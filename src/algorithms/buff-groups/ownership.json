@@ -1,0 +1,714 @@
+{
+  "AlbedoTalent2": {
+    "character": "Albedo",
+    "minConstellation": 0
+  },
+  "AlbedoC4": {
+    "character": "Albedo",
+    "minConstellation": 4
+  },
+  "AlbedoC6": {
+    "character": "Albedo",
+    "minConstellation": 6
+  },
+  "AlbedoWitchEve": {
+    "character": "Albedo",
+    "minConstellation": 0
+  },
+  "AmberC6": {
+    "character": "Amber",
+    "minConstellation": 6
+  },
+  "AloyTalent1": {
+    "character": "Aloy",
+    "minConstellation": 0
+  },
+  "AratakiIttoC4": {
+    "character": "AratakiItto",
+    "minConstellation": 4
+  },
+  "BeidouC6": {
+    "character": "Beidou",
+    "minConstellation": 6
+  },
+  "BeidouC6StellarConduct": {
+    "character": "Beidou",
+    "minConstellation": 6
+  },
+  "BennettQ": {
+    "character": "Bennett",
+    "minConstellation": 0
+  },
+  "BennettC6": {
+    "character": "Bennett",
+    "minConstellation": 6
+  },
+  "FischlWitchEve": {
+    "character": "Fischl",
+    "minConstellation": 0
+  },
+  "ChongyunTalent2": {
+    "character": "Chongyun",
+    "minConstellation": 0
+  },
+  "DionaC6G50": {
+    "character": "Diona",
+    "minConstellation": 6
+  },
+  "DionaC6StellarConduct": {
+    "character": "Diona",
+    "minConstellation": 6
+  },
+  "QiqiTalent2StellarConduct": {
+    "character": "Qiqi",
+    "minConstellation": 0
+  },
+  "QiqiC6StellarConduct": {
+    "character": "Qiqi",
+    "minConstellation": 6
+  },
+  "CynoC1StellarConduct": {
+    "character": "Cyno",
+    "minConstellation": 1
+  },
+  "CynoC2StellarConduct": {
+    "character": "Cyno",
+    "minConstellation": 2
+  },
+  "EscoffierTalent3": {
+    "character": "Escoffier",
+    "minConstellation": 0
+  },
+  "EscoffierC1": {
+    "character": "Escoffier",
+    "minConstellation": 1
+  },
+  "EscoffierC2": {
+    "character": "Escoffier",
+    "minConstellation": 2
+  },
+  "EulaE": {
+    "character": "Eula",
+    "minConstellation": 0
+  },
+  "GanyuTalent2": {
+    "character": "Ganyu",
+    "minConstellation": 0
+  },
+  "GanyuC1": {
+    "character": "Ganyu",
+    "minConstellation": 1
+  },
+  "GorouE1": {
+    "character": "Gorou",
+    "minConstellation": 0
+  },
+  "GorouE3": {
+    "character": "Gorou",
+    "minConstellation": 0
+  },
+  "GorouTalent1": {
+    "character": "Gorou",
+    "minConstellation": 0
+  },
+  "GorouC6": {
+    "character": "Gorou",
+    "minConstellation": 6
+  },
+  "HuTaoTalent1": {
+    "character": "HuTao",
+    "minConstellation": 0
+  },
+  "AinoC1": {
+    "character": "Aino",
+    "minConstellation": 1
+  },
+  "AinoC6": {
+    "character": "Aino",
+    "minConstellation": 6
+  },
+  "IneffaMoonelectroRelay": {
+    "character": "Ineffa",
+    "minConstellation": 0
+  },
+  "IneffaTalent3": {
+    "character": "Ineffa",
+    "minConstellation": 0
+  },
+  "JeanC4": {
+    "character": "Jean",
+    "minConstellation": 4
+  },
+  "KaedeharaKazuhaTalent2": {
+    "character": "KaedeharaKazuha",
+    "minConstellation": 0
+  },
+  "KaedeharaKazuhaC2": {
+    "character": "KaedeharaKazuha",
+    "minConstellation": 2
+  },
+  "KamisatoAyakaC4": {
+    "character": "KamisatoAyaka",
+    "minConstellation": 4
+  },
+  "KleeC1": {
+    "character": "Klee",
+    "minConstellation": 1
+  },
+  "KleeC2": {
+    "character": "Klee",
+    "minConstellation": 2
+  },
+  "KleeC6": {
+    "character": "Klee",
+    "minConstellation": 6
+  },
+  "KujouSaraEOrQ": {
+    "character": "KujouSara",
+    "minConstellation": 0
+  },
+  "FlinsTalent1": {
+    "character": "Flins",
+    "minConstellation": 0
+  },
+  "FlinsC6": {
+    "character": "Flins",
+    "minConstellation": 6
+  },
+  "LaumaTalent1": {
+    "character": "Lauma",
+    "minConstellation": 0
+  },
+  "LaumaTalent2": {
+    "character": "Lauma",
+    "minConstellation": 0
+  },
+  "LaumaSkillResMinus": {
+    "character": "Lauma",
+    "minConstellation": 0
+  },
+  "LaumaBurst": {
+    "character": "Lauma",
+    "minConstellation": 0
+  },
+  "LaumaC6": {
+    "character": "Lauma",
+    "minConstellation": 6
+  },
+  "ColumbinaP1": {
+    "character": "Columbina",
+    "minConstellation": 0
+  },
+  "ColumbinaQ": {
+    "character": "Columbina",
+    "minConstellation": 0
+  },
+  "ColumbinaC2": {
+    "character": "Columbina",
+    "minConstellation": 2
+  },
+  "ColumbinaConstellation": {
+    "character": "Columbina",
+    "minConstellation": 0
+  },
+  "ColumbinaC6": {
+    "character": "Columbina",
+    "minConstellation": 6
+  },
+  "NeferTalent1": {
+    "character": "Nefer",
+    "minConstellation": 0
+  },
+  "LisaTalent2": {
+    "character": "Lisa",
+    "minConstellation": 0
+  },
+  "MonaQ": {
+    "character": "Mona",
+    "minConstellation": 0
+  },
+  "MonaC1": {
+    "character": "Mona",
+    "minConstellation": 1
+  },
+  "MonaC2": {
+    "character": "Mona",
+    "minConstellation": 2
+  },
+  "MonaMagusGlow": {
+    "character": "Mona",
+    "minConstellation": 0
+  },
+  "NingguangTalent2": {
+    "character": "Ningguang",
+    "minConstellation": 0
+  },
+  "RaidenShogunE": {
+    "character": "RaidenShogun",
+    "minConstellation": 0
+  },
+  "RaidenShogunC4": {
+    "character": "RaidenShogun",
+    "minConstellation": 4
+  },
+  "RazorC4": {
+    "character": "Razor",
+    "minConstellation": 4
+  },
+  "RosariaTalent2": {
+    "character": "Rosaria",
+    "minConstellation": 0
+  },
+  "RosariaC6": {
+    "character": "Rosaria",
+    "minConstellation": 6
+  },
+  "SethosC4": {
+    "character": "Sethos",
+    "minConstellation": 4
+  },
+  "ShenheE": {
+    "character": "Shenhe",
+    "minConstellation": 0
+  },
+  "ShenheQ": {
+    "character": "Shenhe",
+    "minConstellation": 0
+  },
+  "ShenheTalent1": {
+    "character": "Shenhe",
+    "minConstellation": 0
+  },
+  "ShenheTalent2": {
+    "character": "Shenhe",
+    "minConstellation": 0
+  },
+  "SucroseTalent1": {
+    "character": "Sucrose",
+    "minConstellation": 0
+  },
+  "SucroseTalent2": {
+    "character": "Sucrose",
+    "minConstellation": 0
+  },
+  "SucroseTalentMagusE": {
+    "character": "Sucrose",
+    "minConstellation": 0
+  },
+  "SucroseTalentMagusQ": {
+    "character": "Sucrose",
+    "minConstellation": 0
+  },
+  "SucroseC6": {
+    "character": "Sucrose",
+    "minConstellation": 6
+  },
+  "ThomaTalent1": {
+    "character": "Thoma",
+    "minConstellation": 0
+  },
+  "ThomaC6": {
+    "character": "Thoma",
+    "minConstellation": 6
+  },
+  "VentiC2": {
+    "character": "Venti",
+    "minConstellation": 2
+  },
+  "VentiC6": {
+    "character": "Venti",
+    "minConstellation": 6
+  },
+  "VentiSongOfTime": {
+    "character": "Venti",
+    "minConstellation": 0
+  },
+  "VentiTalentFreedom": {
+    "character": "Venti",
+    "minConstellation": 0
+  },
+  "XianglingTalent2": {
+    "character": "Xiangling",
+    "minConstellation": 0
+  },
+  "XianglingC1": {
+    "character": "Xiangling",
+    "minConstellation": 1
+  },
+  "TravelerElements": {
+    "character": "Traveler",
+    "minConstellation": 0
+  },
+  "AetherCryoTalent1": {
+    "character": "AetherCryo",
+    "minConstellation": 0
+  },
+  "AetherCryoC2": {
+    "character": "AetherCryo",
+    "minConstellation": 2
+  },
+  "AetherCryoC6": {
+    "character": "AetherCryo",
+    "minConstellation": 6
+  },
+  "TravelerEnhancedAttribute": {
+    "character": "Traveler",
+    "minConstellation": 0
+  },
+  "XianglingC6": {
+    "character": "Xiangling",
+    "minConstellation": 6
+  },
+  "XingqiuC2": {
+    "character": "Xingqiu",
+    "minConstellation": 2
+  },
+  "XinyanC4": {
+    "character": "Xinyan",
+    "minConstellation": 4
+  },
+  "XinyanTalent2": {
+    "character": "Xinyan",
+    "minConstellation": 0
+  },
+  "YaeMikoC1": {
+    "character": "YaeMiko",
+    "minConstellation": 1
+  },
+  "YaeMikoC2": {
+    "character": "YaeMiko",
+    "minConstellation": 2
+  },
+  "YaeMikoC4": {
+    "character": "YaeMiko",
+    "minConstellation": 4
+  },
+  "YoimiyaTalent2": {
+    "character": "Yoimiya",
+    "minConstellation": 0
+  },
+  "YunjinQ": {
+    "character": "Yunjin",
+    "minConstellation": 0
+  },
+  "YunjinC2": {
+    "character": "Yunjin",
+    "minConstellation": 2
+  },
+  "ZhongliShield": {
+    "character": "Zhongli",
+    "minConstellation": 0
+  },
+  "YelanTalent2": {
+    "character": "Yelan",
+    "minConstellation": 0
+  },
+  "YelanC4": {
+    "character": "Yelan",
+    "minConstellation": 4
+  },
+  "KamisatoAyatoQ": {
+    "character": "KamisatoAyato",
+    "minConstellation": 0
+  },
+  "ShikanoinHeizouTalent2": {
+    "character": "ShikanoinHeizou",
+    "minConstellation": 0
+  },
+  "TighnariC4": {
+    "character": "Tighnari",
+    "minConstellation": 4
+  },
+  "DoriC4": {
+    "character": "Dori",
+    "minConstellation": 4
+  },
+  "FurinaQ": {
+    "character": "Furina",
+    "minConstellation": 0
+  },
+  "NilouTalent1": {
+    "character": "Nilou",
+    "minConstellation": 0
+  },
+  "NilouTalent2": {
+    "character": "Nilou",
+    "minConstellation": 0
+  },
+  "CandaceQ": {
+    "character": "Candace",
+    "minConstellation": 0
+  },
+  "CandaceTalent2": {
+    "character": "Candace",
+    "minConstellation": 0
+  },
+  "NahidaTalent1": {
+    "character": "Nahida",
+    "minConstellation": 0
+  },
+  "NahidaC2": {
+    "character": "Nahida",
+    "minConstellation": 2
+  },
+  "FaruzanQ": {
+    "character": "Faruzan",
+    "minConstellation": 0
+  },
+  "Mika": {
+    "character": "Mika",
+    "minConstellation": 0
+  },
+  "KavehQ": {
+    "character": "Kaveh",
+    "minConstellation": 0
+  },
+  "BaizhuTalent2": {
+    "character": "Baizhu",
+    "minConstellation": 0
+  },
+  "BaizhuC4": {
+    "character": "Baizhu",
+    "minConstellation": 4
+  },
+  "XianyunTalent1": {
+    "character": "Xianyun",
+    "minConstellation": 0
+  },
+  "XianyunTalent2": {
+    "character": "Xianyun",
+    "minConstellation": 0
+  },
+  "KachinaC4": {
+    "character": "Kachina",
+    "minConstellation": 4
+  },
+  "XilonenE": {
+    "character": "Xilonen",
+    "minConstellation": 0
+  },
+  "XilonenC2": {
+    "character": "Xilonen",
+    "minConstellation": 2
+  },
+  "XilonenC4": {
+    "character": "Xilonen",
+    "minConstellation": 4
+  },
+  "LaylaC4": {
+    "character": "Layla",
+    "minConstellation": 4
+  },
+  "CitlaliTalent1": {
+    "character": "Citlali",
+    "minConstellation": 0
+  },
+  "CitlaliC1": {
+    "character": "Citlali",
+    "minConstellation": 1
+  },
+  "CitlaliC6": {
+    "character": "Citlali",
+    "minConstellation": 6
+  },
+  "EmilieC2": {
+    "character": "Emilie",
+    "minConstellation": 2
+  },
+  "YumemizukiMizukiC1": {
+    "character": "YumemizukiMizuki",
+    "minConstellation": 1
+  },
+  "YumemizukiMizukiC2": {
+    "character": "YumemizukiMizuki",
+    "minConstellation": 2
+  },
+  "YumemizukiMizukiC6": {
+    "character": "YumemizukiMizuki",
+    "minConstellation": 6
+  },
+  "YumemizukiMizukiE": {
+    "character": "YumemizukiMizuki",
+    "minConstellation": 0
+  },
+  "YumemizukiMizukiEnhancedEM": {
+    "character": "YumemizukiMizuki",
+    "minConstellation": 0
+  },
+  "IansanTalent2": {
+    "character": "Iansan",
+    "minConstellation": 0
+  },
+  "ChevreuseTalent1": {
+    "character": "Chevreuse",
+    "minConstellation": 0
+  },
+  "ChevreuseTalent2": {
+    "character": "Chevreuse",
+    "minConstellation": 0
+  },
+  "ChevreuseC6": {
+    "character": "Chevreuse",
+    "minConstellation": 6
+  },
+  "MavuikaTalent2": {
+    "character": "Mavuika",
+    "minConstellation": 0
+  },
+  "MavuikaC6": {
+    "character": "Mavuika",
+    "minConstellation": 6
+  },
+  "OroronC6": {
+    "character": "Ororon",
+    "minConstellation": 6
+  },
+  "DurinTalent2": {
+    "character": "Durin",
+    "minConstellation": 0
+  },
+  "DurinC1": {
+    "character": "Durin",
+    "minConstellation": 1
+  },
+  "DurinC2": {
+    "character": "Durin",
+    "minConstellation": 2
+  },
+  "DurinC6": {
+    "character": "Durin",
+    "minConstellation": 6
+  },
+  "ZibaiTalent1": {
+    "character": "Zibai",
+    "minConstellation": 0
+  },
+  "ZibaiC2": {
+    "character": "Zibai",
+    "minConstellation": 2
+  },
+  "LinneaTalent1": {
+    "character": "Linnea",
+    "minConstellation": 0
+  },
+  "LinneaTalent2": {
+    "character": "Linnea",
+    "minConstellation": 0
+  },
+  "LinneaTalent3": {
+    "character": "Linnea",
+    "minConstellation": 0
+  },
+  "LinneaC1": {
+    "character": "Linnea",
+    "minConstellation": 1
+  },
+  "LinneaC2": {
+    "character": "Linnea",
+    "minConstellation": 2
+  },
+  "LinneaC4": {
+    "character": "Linnea",
+    "minConstellation": 4
+  },
+  "LinneaC6": {
+    "character": "Linnea",
+    "minConstellation": 6
+  },
+  "IfaTalent2": {
+    "character": "Ifa",
+    "minConstellation": 0
+  },
+  "JahodaTalent2": {
+    "character": "Jahoda",
+    "minConstellation": 0
+  },
+  "JahodaC6": {
+    "character": "Jahoda",
+    "minConstellation": 6
+  },
+  "IllugaP2": {
+    "character": "Illuga",
+    "minConstellation": 0
+  },
+  "IllugaQ": {
+    "character": "Illuga",
+    "minConstellation": 0
+  },
+  "IllugaC4": {
+    "character": "Illuga",
+    "minConstellation": 4
+  },
+  "PruneTalent1": {
+    "character": "Prune",
+    "minConstellation": 0
+  },
+  "PruneTalent2": {
+    "character": "Prune",
+    "minConstellation": 0
+  },
+  "PruneC6": {
+    "character": "Prune",
+    "minConstellation": 6
+  },
+  "LohenTalent2": {
+    "character": "Lohen",
+    "minConstellation": 0
+  },
+  "LohenC2": {
+    "character": "Lohen",
+    "minConstellation": 2
+  },
+  "NicoleE": {
+    "character": "Nicole",
+    "minConstellation": 0
+  },
+  "NicoleC2": {
+    "character": "Nicole",
+    "minConstellation": 2
+  },
+  "NicoleC4": {
+    "character": "Nicole",
+    "minConstellation": 4
+  },
+  "NicoleC6": {
+    "character": "Nicole",
+    "minConstellation": 6
+  },
+  "SandroneTalent1": {
+    "character": "Sandrone",
+    "minConstellation": 0
+  },
+  "SandroneC1": {
+    "character": "Sandrone",
+    "minConstellation": 1
+  },
+  "AlyoshaHunterPrecision": {
+    "character": "Alyosha",
+    "minConstellation": 0
+  },
+  "OdetteTalent1": {
+    "character": "Odette",
+    "minConstellation": 0
+  },
+  "OdetteMarvelousSplendor": {
+    "character": "Odette",
+    "minConstellation": 0
+  },
+  "OdetteC2MarvelousSplendor": {
+    "character": "Odette",
+    "minConstellation": 2
+  },
+  "OdetteC2SoloDance": {
+    "character": "Odette",
+    "minConstellation": 2
+  },
+  "OdetteC4SnowSwanDream": {
+    "character": "Odette",
+    "minConstellation": 4
+  },
+  "OdetteC6MarvelousSplendor": {
+    "character": "Odette",
+    "minConstellation": 6
+  }
+}

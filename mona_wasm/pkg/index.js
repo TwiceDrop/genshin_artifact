@@ -1,0 +1,15 @@
+import * as bridge from './mona_wasm_bg.js';
+import { bindings } from './bindings.js';
+const response = await fetch(new URL('./mona_wasm_bg.wasm?raw-wasm', import.meta.url));
+if (!response.ok) throw new Error('Mona calculation core could not be loaded');
+const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), { './mona_wasm_bg.js': bridge });
+bindings.lI(instance.exports);
+export const BonusPerStat = bindings.bd;
+export const CalcArtifactBestSet = bindings.uC;
+export const CalculatorInterface = bindings.K2;
+export const CommonInterface = bindings.Ps;
+export const DSLInterface = bindings.ZB;
+export const OptimizeSingleWasm = bindings.E2;
+export const PotentialInterface = bindings.gF;
+export const TeamOptimizationWasm = bindings.B8;
+export const TransformativeDamage = bindings.PX;

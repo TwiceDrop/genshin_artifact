@@ -1,0 +1,8 @@
+{
+  "appId": "com.mona.artifact.local",
+  "appName": "莫娜占卜铺",
+  "webDir": "dist-mobile",
+  "server": { "androidScheme": "https", "hostname": "localhost" },
+  "android": { "allowMixedContent": false, "backgroundColor": "#f5f7fb", "webContentsDebuggingEnabled": false },
+  "plugins": { "CapacitorHttp": { "enabled": false }, "SystemBars": { "insetsHandling": "disable", "style": "LIGHT" } }
+}

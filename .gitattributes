@@ -1,0 +1,7 @@
+* text=auto
+*.wasm binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.jar binary
