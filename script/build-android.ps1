@@ -1,4 +1,4 @@
-﻿param([switch]$SkipWebBuild)
+﻿param([switch]$SkipWebBuild, [string]$SigningDirectory)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $projectRoot
@@ -8,9 +8,14 @@ $sdkRoot = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LO
 if (-not (Test-Path -LiteralPath $sdkRoot)) { throw '未找到 Android SDK，请设置 ANDROID_HOME。' }
 [IO.File]::WriteAllText((Join-Path $projectRoot 'android/local.properties'), "sdk.dir=$($sdkRoot.Replace('\','/'))`n")
 if (-not $SkipWebBuild) { & npm.cmd run build:mobile; if ($LASTEXITCODE -ne 0) { throw '手机前端构建失败' } }
+$licenseDir = Join-Path $projectRoot 'dist-mobile/licenses'
+New-Item -ItemType Directory -Path $licenseDir -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE'),(Join-Path $projectRoot 'THIRD_PARTY_NOTICES.md') -Destination $licenseDir
+Copy-Item -LiteralPath (Join-Path $projectRoot 'src/algorithms/artifact-score/vendor/LICENSE.miao') -Destination $licenseDir
+Copy-Item -LiteralPath (Join-Path $projectRoot 'server/vendor/twicedrop/LICENSE') -Destination (Join-Path $licenseDir 'LICENSE.qrcode')
 & npx.cmd cap sync android
 if ($LASTEXITCODE -ne 0) { throw '安卓资源同步失败' }
-$privateDir = Join-Path $projectRoot '.local-data'
+$privateDir = if ($SigningDirectory) { (Resolve-Path -LiteralPath $SigningDirectory).Path } else { Join-Path $projectRoot '.local-data' }
 New-Item -ItemType Directory -Path $privateDir -Force | Out-Null
 $keyFile = Join-Path $privateDir 'android-signing.jks'
 $passwordFile = Join-Path $privateDir 'android-signing.json'
@@ -30,10 +35,13 @@ try {
     & .\android\gradlew.bat -p android assembleRelease --console=plain
     if ($LASTEXITCODE -ne 0) { throw 'APK 构建失败' }
     New-Item -ItemType Directory -Path releases -Force | Out-Null
-    Copy-Item -LiteralPath 'android/app/build/outputs/apk/release/app-release.apk' -Destination 'releases/mona-offline-android.apk'
-    $hash = (Get-FileHash -LiteralPath 'releases/mona-offline-android.apk' -Algorithm SHA256).Hash.ToLowerInvariant()
-    [IO.File]::WriteAllText((Join-Path $projectRoot 'releases/mona-offline-android.apk.sha256'), "$hash  mona-offline-android.apk`n")
-    Write-Output 'APK 已生成：releases/mona-offline-android.apk'
+    $version = (Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).version
+    $filename = "genshin_artifact_V${version}_android.apk"
+    $apk = Join-Path $projectRoot "releases/$filename"
+    Copy-Item -LiteralPath 'android/app/build/outputs/apk/release/app-release.apk' -Destination $apk
+    $hash = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
+    [IO.File]::WriteAllText("$apk.sha256", "$hash  $filename`n", [Text.UTF8Encoding]::new($false))
+    Write-Output "APK 已生成：$apk"
 } finally {
     Remove-Item Env:MONA_SIGN_PASSWORD -ErrorAction SilentlyContinue
     Remove-Item Env:MONA_SIGN_STORE -ErrorAction SilentlyContinue

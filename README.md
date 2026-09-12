@@ -1,12 +1,14 @@
 # 莫娜占卜铺 · 本地增强版
 
-**V7.0.11** · Windows 10 / 11（64 位）· MIT
+**V7.0.11** · Windows 10 / 11（64 位）· Android 7.0+ · MIT
 
 在莫娜占卜铺的伤害计算、圣遗物自动配装基础上，增加米游社扫码导入、多 UID 管理、装备评分、伤害与属性对比，以及词条收益曲线。计算和仓库管理在本机运行，扫码与同步角色时才需要连接米游社。无需自己部署服务器。
 
 [下载安装包](https://github.com/TwiceDrop/genshin_artifact/releases/tag/V7.0.11) · [全部版本](https://github.com/TwiceDrop/genshin_artifact/releases) · [问题反馈](https://github.com/TwiceDrop/genshin_artifact/issues)
 
 ## 安装与启动
+
+### Windows
 
 1. 打开上面的发布页面，在 **Assets** 下载 `genshin_artifact_V7.0.11_windows_x64_setup.exe`。`Source code` 是源码压缩包，不是安装程序。
 2. 运行安装程序，按提示安装。默认安装到当前用户的 `%LOCALAPPDATA%\Programs\MonaArtifact`，无需管理员权限。可勾选桌面快捷方式。
@@ -20,6 +22,17 @@
 ```powershell
 Get-FileHash .\genshin_artifact_V7.0.11_windows_x64_setup.exe -Algorithm SHA256
 ```
+
+### Android 手机安装
+
+在同一个 Release 的 Assets 下载 **`genshin_artifact_V7.0.11_android.apk`**，传到手机并打开安装。按系统提示允许当前文件管理器安装应用；安装后打开“莫娜占卜铺”。建议保持 Android System WebView / Chrome 为该系统可用的最新版本。
+
+- APK 包含计算内核、图片与全部正式版功能，**无需电脑开机、服务器地址或浏览器网页**。已有角色和装备可断网计算；米游社扫码和数据同步需要网络。
+- 已安装之前提供的手机版时直接覆盖安装即可，包名和签名保持一致。不要先卸载；卸载或清除应用数据会删除手机本地仓库与 Cookie。升级前可导出 UID 文件备份。
+- 底部“计算 / 圣遗物 / UID 数据 / 全部功能”切换页面。计算页按“角色与配置 / 圣遗物与伤害 / 面板与曲线”分区，支持全面屏状态栏、手势导航和键盘安全区域。
+- 电脑导出所选 UID 的 JSON，传到手机后在“UID 数据”点击“导入 UID 数据包 / 角色快照”。UID 的已穿戴与闲置装备一同导入；导入记录可持久保存和撤销，去重复用的原有装备不会删除。手机也可通过系统文件保存对话框导出给电脑。
+- 手机上扫码可先“保存登录二维码”，在米游社扫一扫里从相册识别，或用另一台设备扫码。手机凭据使用 Android Keystore 加密，独立保存在应用内，UID 数据包不携带 Cookie。
+- Android 的独立校验文件为 `genshin_artifact_V7.0.11_android.apk.sha256`；`SHA256SUMS.txt` 对应 Windows 安装包。手机的大仓库优化耗时取决于设备性能，计算期间请保持应用在前台。
 
 ## 相较基础版莫娜的新增与改进
 
@@ -39,7 +52,7 @@ Get-FileHash .\genshin_artifact_V7.0.11_windows_x64_setup.exe -Algorithm SHA256
 | 跨设备搬运角色与装备 | 按 UID 导出角色和该 UID 的已穿戴、闲置圣遗物；可勾选附带归属未知的旧装备 |
 | 导入后难以恢复 | 导入记录刷新后保留；可撤销。撤销只删除该次实际新增且未被后续修改或引用的装备，去重复用的原有装备不会删除 |
 
-同时保留莫娜的基础能力：圣遗物仓库与套装管理、四件套约束、单人自动配装、队伍配装、伤害明细、敌人参数、预设、MONA-DSL 与圣遗物潜力分析。界面包含窄屏适配；本次 Release 提供 Windows 安装包，不提供 Android APK。
+同时保留莫娜的基础能力：圣遗物仓库与套装管理、四件套约束、单人自动配装、队伍配装、伤害明细、敌人参数、预设、MONA-DSL 与圣遗物潜力分析。安卓 APK 与电脑版共用计算、导入、评分和仓库代码，包含相同的正式版功能；手机使用本地 WebView 和原生文件选择器，无需电脑或自建服务器。
 
 ## 第一次导入数据
 
@@ -100,6 +113,16 @@ powershell -ExecutionPolicy Bypass -File script/build-windows.ps1 -NodeRuntime "
 ```
 
 输出在 `release-output`。脚本只装入明确定义的运行文件，不能把整个工作目录手动塞进安装包。重新打包前把已有 `release-stage` 移走，避免混入旧文件。
+
+### 构建 Android APK
+
+准备 Java 21、Android SDK（compileSdk 36）与 Node.js 22，安装依赖后运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File script/build-android.ps1
+```
+
+输出为 `releases/genshin_artifact_V7.0.11_android.apk`。首次构建会在本地 `.local-data` 创建签名密钥，务必私下备份，切勿提交到 Git。以后升级必须使用同一签名；可通过 `-SigningDirectory "私有签名目录"` 复用自己的签名。自行生成的新密钥不能覆盖安装官方 Release 的签名版本。修改内容后，运行 `npm run test:local` 与连接测试设备时的 `android/gradlew.bat -p android connectedDebugAndroidTest` 验证。
 
 ## 来源与许可证
 
