@@ -87,3 +87,6 @@ mod waveriding_whirl;
 mod starcallers_watch;
 mod sunny_morning_sleep_in;
 mod vivid_notions;
+
+pub mod hymn_of_the_maelstrom;
+pub use hymn_of_the_maelstrom::HymnOfTheMaelstrom;

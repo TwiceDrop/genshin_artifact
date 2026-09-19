@@ -710,5 +710,33 @@
   "OdetteC6MarvelousSplendor": {
     "character": "Odette",
     "minConstellation": 6
+  },
+  "VodyanitsaE": {
+    "character": "Vodyanitsa",
+    "minConstellation": 0
+  },
+  "VodyanitsaA4": {
+    "character": "Vodyanitsa",
+    "minConstellation": 0
+  },
+  "VodyanitsaC1": {
+    "character": "Vodyanitsa",
+    "minConstellation": 1
+  },
+  "VodyanitsaC2": {
+    "character": "Vodyanitsa",
+    "minConstellation": 2
+  },
+  "VodyanitsaC6": {
+    "character": "Vodyanitsa",
+    "minConstellation": 6
+  },
+  "VodyanitsaSignature": {
+    "character": "Vodyanitsa",
+    "minConstellation": 0
+  },
+  "VodyanitsaA1": {
+    "character": "Vodyanitsa",
+    "minConstellation": 0
   }
 }

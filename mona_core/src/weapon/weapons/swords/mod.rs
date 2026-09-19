@@ -95,3 +95,5 @@ mod sturdy_bone;
 mod peak_patrol_song;
 mod calamity_of_eshu;
 mod azurelight;
+
+pub mod beyond_the_chrysalis;pub use beyond_the_chrysalis::BeyondTheChrysalis;

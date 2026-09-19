@@ -2,6 +2,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub enum WeaponConfig {
+    BeyondTheChrysalis {
+        #[serde(default)] loyal_wind: bool,
+        #[serde(default)] rebel_wind: bool,
+        on_field: bool,
+        #[serde(default)] loyal_rate: Option<f64>,
+        #[serde(default)] rebel_rate: Option<f64>,
+        #[serde(default)] plenty_rate: f64,
+    },
+    HymnOfTheMaelstrom { stacks: usize, boosted: bool, on_field: bool, #[serde(default)] hp: f64 },
     NoConfig,
 
     // sword

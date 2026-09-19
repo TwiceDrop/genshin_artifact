@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 
-const port = Number(process.env.MONA_PORT || 4174)
+const port = Number(process.env.MONA_PORT || 4183)
 const base = `http://127.0.0.1:${port}`
 const url = `${base}/#/calculate`
 

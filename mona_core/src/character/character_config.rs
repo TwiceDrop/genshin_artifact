@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub enum CharacterConfig {
+    Vesna { stance: bool, radiance: bool, disciplinary_stacks: usize, anemo_cryo_count: usize, other_count: usize, #[serde(default)] flat_inside_discipline: bool },
+    Vodyanitsa { e_active: bool, song_active: bool, ordinary_mode: bool, c1_active: bool, c2_active: bool, c4_stacks: usize, on_field: bool },
     Ganyu { talent2_rate: f64 },
     HuTao { le_50: bool },
     KamisatoAyaka { talent1_rate: f64, talent2_rate: f64 },

@@ -18,7 +18,8 @@ use crate::applications::common::{CharacterInterface, TargetFunctionInterface, W
 use crate::applications::optimize_artifacts::inter::OptimizeArtifactInterface;
 use crate::target_function::dsl_tf::TargetFunctionDSL;
 
-pub struct OptimizeSingleWasm;
+#[wasm_bindgen]
+pub struct OptimizeSingleWasm {}
 
 #[wasm_bindgen]
 impl OptimizeSingleWasm {

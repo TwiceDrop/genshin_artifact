@@ -8,6 +8,7 @@ use crate::buffs::buff::{BuffMeta};
 #[derive(Serialize, Deserialize)]
 #[derive(BuffData, EnumLen, FromPrimitive, Display, EnumIter)]
 pub enum BuffName {
+    VesnaSupport,
     // common
     ATKPercentage,
     DEFPercentage,
