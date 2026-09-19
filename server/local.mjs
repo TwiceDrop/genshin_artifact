@@ -138,6 +138,6 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
     return server
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    const port = Number(process.env.MONA_PORT || 4174)
+    const port = Number(process.env.MONA_PORT || 4183)
     createLocalServer().listen(port, '127.0.0.1', () => console.log(`莫娜本地版：http://127.0.0.1:${port}/#/calculate`))
 }

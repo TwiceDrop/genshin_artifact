@@ -30,8 +30,12 @@ https://github.com/TwiceDrop/mhy-qdcode-to-cookie
 
 ## 运行库与游戏资源
 
-Windows 安装包包含 Node.js 22.23.2，来自 Node.js 官方 Windows x64 发行包；完整许可证保存在安装目录 `runtime/LICENSE`，其中含其捆绑组件的声明。
+V7.0.11 的 Windows 安装包包含 Node.js 22.23.2，来自 Node.js 官方 Windows x64 发行包；其许可证位于安装目录 `runtime/LICENSE`。本次 7.1.01 beta1 网页压缩包不捆绑 Node.js，使用用户自行安装的运行环境。
 
 前端依赖及版本在 `package-lock.json` 中记录，包含 Vue、Element Plus、ECharts、Monaco Editor 等。各依赖按其自身许可证提供；构建时生成的许可证文件随对应资源一同分发。图标、字体及其他第三方素材按各自许可证提供。
 
 游戏图片、角色/武器/圣遗物名称及资料属于相应权利人，本项目 MIT 许可不覆盖这些权利。
+
+## 本次测试服扩展
+
+`mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `7.1.01 beta1使用说明.md` 与 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。

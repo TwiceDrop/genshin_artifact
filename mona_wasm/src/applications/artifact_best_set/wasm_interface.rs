@@ -6,7 +6,8 @@ use crate::utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 use crate::utils;
 
-pub struct CalcArtifactBestSet;
+#[wasm_bindgen]
+pub struct CalcArtifactBestSet {}
 
 #[wasm_bindgen]
 impl CalcArtifactBestSet {

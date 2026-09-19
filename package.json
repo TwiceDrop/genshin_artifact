@@ -1,6 +1,6 @@
 {
   "name": "genshin_artifacts",
-  "version": "7.0.11",
+  "version": "7.1.1-beta.1",
   "private": true,
   "scripts": {
     "start": "node server/local.mjs",
@@ -23,7 +23,11 @@
     "tauri": "tauri",
     "build:mobile": "cross-env ENV_FILE=.env.mobile.yaml vue-cli-service build",
     "android:sync": "cap sync android",
-    "android:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File script/build-android.ps1"
+    "android:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File script/build-android.ps1",
+    "test:beta": "node beta-tools/smoke.mjs",
+    "build:beta-kernel": "powershell -NoProfile -ExecutionPolicy Bypass -File beta-tools/build-extension.ps1",
+    "test:beta2": "node beta-tools/smoke-beta2.mjs",
+    "test:beta3": "node beta-tools/smoke-beta3.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.1",
@@ -84,5 +88,6 @@
     "unplugin-element-plus": "^0.4.0",
     "unplugin-icons": "^0.14.5",
     "unplugin-vue-components": "^0.19.6"
-  }
+  },
+  "displayVersion": "7.1.01 beta1"
 }

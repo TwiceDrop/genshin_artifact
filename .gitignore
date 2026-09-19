@@ -50,3 +50,11 @@ inspect.js
 *.tar.gz
 *backup*
 *export*.json
+
+# Local compiler caches and diagnostic output
+/.build-target/
+**/target/
+/beta-tools/mingw64/
+/beta-tools/wasm-bindgen-*/
+/beta-data/*.log
+

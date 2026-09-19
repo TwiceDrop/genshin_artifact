@@ -58,6 +58,7 @@ pub trait DamageBuilder {
         fumo: Option<Element>
     ) -> Self::Result;
 
+    fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result;
     fn heal(&self, attribute: &Self::AttributeType) -> Self::Result;
 
     fn shield(&self, attribute: &Self::AttributeType, element: Element) -> Self::Result;

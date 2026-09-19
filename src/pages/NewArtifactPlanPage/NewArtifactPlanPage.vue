@@ -1,5 +1,11 @@
 <template>
     <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
+        <el-alert v-if="characterName === 'Vodyanitsa'" type="warning" :closable="false" show-icon style="margin-bottom:16px"
+            title="沃雅妮莎 · 测试服 7.0.54 / D48100502"
+            description="已接入普通技能、治疗、命座条件、专武及单人配装。天赋填游戏显示等级（含命座）；BUFF 开关需按战斗状态设置。星扩散完整结算、部分新装备与多人联合优化仍待适配；歌声 Q 乘区默认关闭，确认后再启用。" />
+        <el-alert v-if="characterName === 'Vesna'" type="warning" :closable="false" show-icon style="margin-bottom:16px"
+            title="薇斯纳 · 7.1.01 beta1 · 测试服 7.0.54 / D48100502"
+            description="已接入角色、蝶变、普通/星扩散伤害、单人配装和词条曲线。辉映需先触发冰扩散；二命列装自动满层整肃。定额与整肃乘区可切换，仍待实测；天赋填游戏显示等级。自身被动由下方角色配置控制。新角色配装仅使用扩展已支持的套装，未支持套装不纳入候选。" />
         <nav class="calc-mobile-tabs" aria-label="计算器分区">
             <button :class="{ active: mobileCalcTab === 'character' }" @click="mobileCalcTab = 'character'">角色与配置</button>
             <button :class="{ active: mobileCalcTab === 'equipment' }" @click="mobileCalcTab = 'equipment'">圣遗物与伤害</button>
@@ -271,10 +277,13 @@
         <el-dialog v-model="showMyCharacters" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
+        <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" description="此组合暂不显示计算结果。请更换未适配的装备或 BUFF；原有角色的原版组合仍可使用。" style="margin-bottom:16px" />
+        <el-alert v-if="betaSupportActive" type="warning" :closable="false" title="沃雅妮莎队友 BUFF · 测试服" description="已接入普通水 / 冰支援。星扩散与月反应结果暂不显示，避免将普通增益误用于特殊反应。来源生命请填写战斗状态下的最终值；自身效果已在角色设置启用时，请勿重复添加同名支援。" style="margin-bottom:16px" />
         <el-row class="big-container">
             <el-col class="left-container mona-scroll-hidden" :sm="24" :md="6">
                 <div class="config-character">
-                    <img :src="characterSplash" alt="角色" class="character-splash" />
+                    <img v-if="characterSplash && !characterSplash.endsWith('/vodyanitsa.svg')"
+                        :src="characterSplash" alt="" aria-hidden="true" class="character-splash" />
                     <div class="select-character">
                         <p class="common-title">{{ t("misc.character") }}</p>
                         <div class="my-characters-import">
@@ -387,6 +396,7 @@
                                 :item-name="weaponName"
                                 :configs="weaponConfigConfig"
                             ></item-config>
+                            <signature-weapon-effects :weapon="weaponInterface" />
                         </div>
                     </div>
                 </div>
@@ -671,13 +681,13 @@
                         style="margin-bottom: 16px"
                     ></select-character-skill>
                     <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
-                    <damage-panel
+                    <damage-panel v-if="!betaCalculationError && characterDamageAnalysis"
                         :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
                     ></damage-panel>
                 </div>
 
                 <h3 class="common-title2" style="margin-top: 24px">{{ t("calcPage.dmg2") }}</h3>
-                <transformative-damage
+                <transformative-damage v-if="!betaCalculationError && characterTransformativeDamage"
                     :data="characterTransformativeDamage"
                 ></transformative-damage>
             </el-col>
@@ -686,14 +696,14 @@
                 <div class="common-title">{{ t("calcPage.panel") }}</div>
 
                 <div class="my-button-list" style="margin-bottom: 12px">
-                    <el-button type="primary" :icon="IconEpHistogram" @click="showOptimalGainCurve = true">最优收益曲线 · 0～20 条</el-button>
+                    <el-button type="primary" :icon="IconEpHistogram" @click="showOptimalGainCurve = true" :disabled="!!betaCalculationError">最优收益曲线 · 0～20 条</el-button>
                     <el-button
                         :icon="IconEpHistogram"
                         @click="handleClickAttributeAnalysis"
                     >{{ t("calcPage.statCurve") }}</el-button>
                 </div>
 
-                <attribute-panel
+                <attribute-panel v-if="!betaCalculationError"
                     :attribute="attributeFromWasm"
                     :baseline="comparisonAttribute"
                 ></attribute-panel>
@@ -703,6 +713,7 @@
 </template>
 
 <script setup lang="ts">
+import SignatureWeaponEffects from '@/components/display/SignatureWeaponEffects.vue'
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import ArtifactComparisonControls from '@/components/display/ArtifactComparisonControls.vue'
 import { useArtifactComparison, snapshotEquipment } from '@/composables/artifactComparison.mjs'
@@ -874,6 +885,12 @@ const {
     weaponInterface,
     weaponLocale
 } = useWeapon(characterWeaponType)
+
+watch(characterName, (name, previous) => {
+    if (name === 'Vodyanitsa') weaponName.value = 'HymnOfTheMaelstrom' as any
+    else if (name === 'Vesna') weaponName.value = 'BeyondTheChrysalis' as any
+    else if (previous === 'Vodyanitsa' && weaponName.value === 'HymnOfTheMaelstrom') weaponName.value = 'MagicGuide' as any
+}, { flush: 'sync' })
 
 
 //////////////////////////////////////////////////////////////
@@ -1260,45 +1277,27 @@ const damageAnalysisWasmInterface = computed(() => {
     }
 })
 
-const characterDamageAnalysis = computed(() => {
+const damageCalculation = computed(() => {
+    try {
     let fumo2 = null
     if (fumo.value !== "None") {
         fumo2 = fumo.value
     }
     const temp = mona.CalculatorInterface.get_damage_analysis(damageAnalysisWasmInterface.value, fumo2)
     // console.log(temp)
-    return temp
+    return { value: temp, error: '' }
+    } catch (error: any) { return { value: null, error: error.message || String(error) } }
 })
+const characterDamageAnalysis = computed(() => damageCalculation.value.value)
 
-const characterTransformativeDamage = computed(() => {
-    // return  {
-    //     "electro_charged": 0,
-    //     "overload": 0,
-    //     "shatter": 0,
-    //     "superconduct": 0,
-    //     "swirl_cryo": 0,
-    //     "swirl_pyro": 0,
-    //     "swirl_electro": 0,
-    //     "swirl_hydro": 0
-    // }
-    const temp = mona.CalculatorInterface.get_transformative_damage(damageAnalysisWasmInterface.value)
-    return temp
-    // console.log(temp)
-    // return temp
-    // const ret = {
-    //     "electro_charged": temp.electro_charged,
-    //     "overload": temp.overload,
-    //     "shatter": temp.shatter,
-    //     "superconduct": temp.superconduct,
-    //     "swirl_cryo": temp.swirl_cryo,
-    //     "swirl_pyro": temp.swirl_pyro,
-    //     "swirl_electro": temp.swirl_electro,
-    //     "swirl_hydro": temp.swirl_hydro
-    // }
-    // return ret
+const transformativeCalculation = computed(() => {
+    try { return { value: mona.CalculatorInterface.get_transformative_damage(damageAnalysisWasmInterface.value), error: '' } }
+    catch (error: any) { return { value: null, error: error.message || String(error) } }
 })
+const characterTransformativeDamage = computed(() => transformativeCalculation.value.value)
 
 function handleDisplayAnalysis() {
+    if (betaCalculationError.value) return ElMessage.error(betaCalculationError.value)
     showDamageAnalysisDialog.value = true
 
     nextTick(() => {
@@ -1323,11 +1322,13 @@ const getAttributeWasmInterface = computed(() => {
     }
 })
 
-const attributeFromWasm = computed(() => {
-    const ret = mona.CommonInterface.get_attribute(getAttributeWasmInterface.value)
-    // console.log(ret)
-    return ret
+const attributeCalculation = computed(() => {
+    try { return { value: mona.CommonInterface.get_attribute(getAttributeWasmInterface.value), error: '' } }
+    catch (error: any) { return { value: null, error: error.message || String(error) } }
 })
+const attributeFromWasm = computed(() => attributeCalculation.value.value || {})
+const betaCalculationError = computed(() => attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
+const betaSupportActive = computed(() => buffsInterface.value.some((b: any) => b.name.startsWith('Vodyanitsa'))) 
 
 const artifactScoreContext = computed(() => {
     const c = scoreCharacters[characterName.value]
@@ -1366,6 +1367,7 @@ const bonusPerStatWasmInterface = computed(() => {
 })
 
 function handleClickAttributeAnalysis() {
+    if (betaCalculationError.value) return ElMessage.error(betaCalculationError.value)
     miscPerStatBonus.value = mona.BonusPerStat.bonus_per_stat(bonusPerStatWasmInterface.value)
     showArtifactPerBonusDialog.value = true
 }
@@ -1842,13 +1844,19 @@ watch(() => accountStore.currentAccountId.value, () => {
 }
 
 .config-character {
-    //overflow: visible;
-    //position: relative;
+    position: relative;
+    isolation: isolate;
 
     .character-splash {
         position: absolute;
-        width: 400px;
-        opacity: 0.3;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-height: 360px;
+        object-fit: contain;
+        object-position: top center;
+        z-index: -1;
+        opacity: 0.12;
         pointer-events: none;
     }
 

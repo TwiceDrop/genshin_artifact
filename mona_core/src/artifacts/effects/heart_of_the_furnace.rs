@@ -1,0 +1,7 @@
+
+ use crate::attribute::{Attribute,AttributeName,AttributeCommon};use crate::artifacts::artifact_trait::{ArtifactMetaData,ArtifactTrait};use crate::artifacts::effect::ArtifactEffect;use crate::artifacts::effect_config::ArtifactEffectConfig;use crate::character::character_common_data::CharacterCommonData;
+ pub struct HeartOfTheFurnace;pub struct Effect{rate:f64}
+ impl<A:Attribute> ArtifactEffect<A> for Effect{fn effect2(&self,a:&mut A){a.add_atk_percentage("HeartOfTheFurnace2",0.18);a.set_value_by(AttributeName::ElementalMastery,"HeartOfTheFurnace2",0.0);}fn effect4(&self,a:&mut A){a.add_atk_percentage("HeartOfTheFurnace4",0.12*self.rate);a.set_value_by(AttributeName::CriticalBase,"HeartOfTheFurnace4",0.0*self.rate);a.set_value_by(AttributeName::StellarSwirlBonus,"HeartOfTheFurnace4",0.5*self.rate);}}
+ impl ArtifactTrait for HeartOfTheFurnace{fn create_effect<A:Attribute>(c:&ArtifactEffectConfig,_:&CharacterCommonData)->Box<dyn ArtifactEffect<A>>{Box::new(Effect{rate:c.config_heart_of_the_furnace.rate.clamp(0.0,1.0)})}
+ #[cfg(not(target_family="wasm"))]const META_DATA:ArtifactMetaData=ArtifactMetaData{name:crate::artifacts::ArtifactSetName::HeartOfTheFurnace,name_mona:"heart_of_the_furnace",name_locale:crate::common::i18n::locale!(zh_cn:"HeartOfTheFurnace",en:"HeartOfTheFurnace"),flower:None,feather:None,sand:None,goblet:None,head:None,star:(4,5),effect1:None,effect2:None,effect3:None,effect4:None,effect5:None,internal_id:0};}
+ 

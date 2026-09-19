@@ -31,8 +31,7 @@
         </el-option-group>
         <el-option-group label=">=30">
             <el-option label="35" value="35"></el-option>
-            <el-option label="30+" value="30+"></el-option>
-            <el-option label="30-" value="30-"></el-option>
+            <el-option label="30" value="30"></el-option>
         </el-option-group>
         <el-option-group label=">=20">
             <el-option label="25" value="25"></el-option>
@@ -41,8 +40,7 @@
         </el-option-group>
         <el-option-group label=">=10">
             <el-option label="15" value="15"></el-option>
-            <el-option label="10+" value="10+"></el-option>
-            <el-option label="10-" value="10-"></el-option>
+            <el-option label="10" value="10"></el-option>
         </el-option-group>
         <el-option-group label=">=1">
             <el-option label="5" value="5"></el-option>

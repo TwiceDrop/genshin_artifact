@@ -1,0 +1,359 @@
+{
+  "provenance": {
+    "uid": "102233531",
+    "source": "http://127.0.0.1:4174/#/calculate",
+    "preset": "米游社 102233531 · 梦见月瑞希",
+    "method": "只读界面，按显示精度转录；不是原始 UID JSON。ID 1–5 为实验编号。",
+    "observedPanel": {
+      "hp": 16255,
+      "atk": 1103,
+      "def": 881,
+      "em": 691,
+      "critical": 0.688,
+      "critical_damage": 1.623
+    },
+    "observedNormal1": {
+      "expectation": 535,
+      "critical": 662,
+      "non_critical": 253
+    }
+  },
+  "input": {
+    "character": {
+      "name": "YumemizukiMizuki",
+      "level": 80,
+      "ascend": false,
+      "constellation": 2,
+      "skill1": 0,
+      "skill2": 7,
+      "skill3": 7,
+      "params": {
+        "YumemizukiMizuki": {
+          "talent2_rate": 0,
+          "enhanced_state": false,
+          "c1_reaction_active": true
+        }
+      }
+    },
+    "weapon": {
+      "name": "DawningFrost",
+      "level": 70,
+      "ascend": false,
+      "refine": 3,
+      "params": {
+        "DawningFrost": {
+          "rate_charged": 0,
+          "rate_skill": 0
+        }
+      }
+    },
+    "skill": {
+      "index": 0,
+      "config": "NoConfig"
+    },
+    "buffs": [],
+    "artifacts": [
+      {
+        "set_name": "ScarletProof",
+        "slot": "Flower",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "HPFixed",
+          4780
+        ],
+        "sub_stats": [
+          [
+            "CriticalRate",
+            0.097
+          ],
+          [
+            "ElementalMastery",
+            44
+          ],
+          [
+            "CriticalDamage",
+            0.117
+          ],
+          [
+            "DEFFixed",
+            42
+          ]
+        ],
+        "id": 1
+      },
+      {
+        "set_name": "ScarletProof",
+        "slot": "Feather",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ATKFixed",
+          311
+        ],
+        "sub_stats": [
+          [
+            "DEFPercentage",
+            0.058
+          ],
+          [
+            "CriticalDamage",
+            0.171
+          ],
+          [
+            "DEFFixed",
+            35
+          ],
+          [
+            "CriticalRate",
+            0.066
+          ]
+        ],
+        "id": 2
+      },
+      {
+        "set_name": "ScarletProof",
+        "slot": "Sand",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ElementalMastery",
+          187
+        ],
+        "sub_stats": [
+          [
+            "CriticalRate",
+            0.132
+          ],
+          [
+            "CriticalDamage",
+            0.148
+          ],
+          [
+            "DEFFixed",
+            42
+          ],
+          [
+            "HPFixed",
+            239
+          ]
+        ],
+        "id": 3
+      },
+      {
+        "set_name": "HeartOfTheFurnace",
+        "slot": "Goblet",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ElementalMastery",
+          187
+        ],
+        "sub_stats": [
+          [
+            "CriticalRate",
+            0.152
+          ],
+          [
+            "CriticalDamage",
+            0.054
+          ],
+          [
+            "ATKPercentage",
+            0.099
+          ],
+          [
+            "DEFFixed",
+            39
+          ]
+        ],
+        "id": 4
+      },
+      {
+        "set_name": "ScarletProof",
+        "slot": "Head",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ElementalMastery",
+          187
+        ],
+        "sub_stats": [
+          [
+            "DEFFixed",
+            16
+          ],
+          [
+            "CriticalDamage",
+            0.179
+          ],
+          [
+            "ATKFixed",
+            53
+          ],
+          [
+            "CriticalRate",
+            0.031
+          ]
+        ],
+        "id": 5
+      }
+    ],
+    "artifact_config": {
+      "config_archaic_petra": {
+        "element": "Electro",
+        "rate": 0
+      },
+      "config_berserker": {
+        "rate": 0
+      },
+      "config_blizzard_strayer": {
+        "critical_bonus": 0
+      },
+      "config_bloodstained_chivalry": {
+        "rate": 0
+      },
+      "config_brave_heart": {
+        "rate": 0
+      },
+      "config_crimson_witch_of_flames": {
+        "level": 0
+      },
+      "config_deepwood_memories": {
+        "rate": 0
+      },
+      "config_echoes_of_an_offering": {
+        "rate": 0.5053283764473575
+      },
+      "config_flower_of_paradise_lost": {
+        "stack": 4
+      },
+      "config_desert_pavilion_chronicle": {
+        "rate": 1
+      },
+      "config_gilded_dreams": {
+        "same_count": 0,
+        "diff_count": 0,
+        "rate": 0
+      },
+      "config_golden_troupe": {
+        "rate": 0
+      },
+      "config_heart_of_depth": {
+        "rate": 0
+      },
+      "config_husk_of_opulent_dreams": {
+        "level": 0
+      },
+      "config_instructor": {
+        "rate": 0
+      },
+      "config_lavawalker": {
+        "rate": 0
+      },
+      "config_marechaussee_hunter": {
+        "stack": 0
+      },
+      "config_martial_artist": {
+        "rate": 0
+      },
+      "config_noblesse_oblige": {
+        "rate": 0
+      },
+      "config_nymphs_dream": {
+        "w1": 0,
+        "w2": 0,
+        "w3": 1,
+        "rate": 1
+      },
+      "config_pale_flame": {
+        "avg_level": 0,
+        "full_rate": 0
+      },
+      "config_realm_mirror_night": {
+        "moon_state": 2,
+        "moon_reaction_bonus": 1
+      },
+      "config_retracing_bolide": {
+        "rate": 0
+      },
+      "config_shimenawas_reminiscence": {
+        "rate": 0
+      },
+      "config_spin_moon_serenade": {
+        "moon_state": 2,
+        "moon_reaction_bonus": 1
+      },
+      "config_tenacity_of_the_millelith": {
+        "rate": 0
+      },
+      "config_thundersoother": {
+        "rate": 0
+      },
+      "config_vermillion_hereafter": {
+        "rate_q": 0,
+        "stack": 0
+      },
+      "config_viridescent_venerer": {
+        "element": "Electro",
+        "rate": 1
+      },
+      "config_vourukashas_glow": {
+        "stack": 4
+      },
+      "config_song_of_days_past": {
+        "regeneration": 0,
+        "rate": 0
+      },
+      "config_nighttime_whispers_in_the_echoing_woods": {
+        "rate1": 0,
+        "rate2": 0
+      },
+      "config_fragment_of_harmonic_whimsy": {
+        "level": 0
+      },
+      "config_unfinished_reverie": {
+        "rate": 0
+      },
+      "config_scroll_of_the_hero_of_cinder_city": {
+        "elements": [],
+        "rate1": 0,
+        "rate2": 0
+      },
+      "config_obsidian_codex": {
+        "set2_rate": 0,
+        "set4_rate": 0
+      },
+      "config_long_nights_oath": {
+        "level": 0
+      },
+      "config_finale_of_the_deep_galleries": {
+        "rate1": 0,
+        "rate2": 0
+      },
+      "config_aubade_of_morningstar_and_moon": {
+        "rate": 1,
+        "is_ascendant_gleam": true
+      },
+      "config_a_day_carved_from_rising_winds": {
+        "rate": 1,
+        "is_completed_witch_homework": true
+      },
+      "config_heavens_gift": {
+        "rate": 1,
+        "is_completed_witch_homework": true,
+        "is_secret_arts": true
+      },
+      "config_disenchantment_in_deep_shadow": {
+        "rate": 1
+      },
+      "config_scarlet_proof": {
+        "rate": 1
+      },
+      "config_heart_of_the_furnace": {
+        "rate": 1
+      }
+    },
+    "enemy": null
+  }
+}

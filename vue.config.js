@@ -13,11 +13,10 @@ const IconsResolver = require("unplugin-icons/resolver")
 const Icons = require("unplugin-icons/webpack")
 const webpack = require('webpack')
 
-let revision = "source"
-try { revision = execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim().substring(0, 7) } catch {}
+const revision = '7.1.01-beta1'
 console.log("revision: ", revision)
 
-const version = JSON.parse(readFileSync("./package.json").toString()).version || "no version"
+const version = JSON.parse(readFileSync("./package.json").toString()).displayVersion || "no version"
 
 function getEnv() {
     const filename = process.env.ENV_FILE

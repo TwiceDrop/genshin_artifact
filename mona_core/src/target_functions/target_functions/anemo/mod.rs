@@ -27,3 +27,5 @@ pub use xianyun_default::XianyunDefaultTargetFunction;
 pub use chasca_default::ChascaDefaultTargetFunction;
 pub use lanyan_default::LanyanDefaultTargetFunction;
 pub use yumemizuki_mizuki_default::YumemizukiMizukiDefaultTargetFunction;
+
+pub mod vesna_default;pub use vesna_default::VesnaDefaultTargetFunction;

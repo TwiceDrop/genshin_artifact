@@ -1,0 +1,212 @@
+{
+  "provenance": {
+    "uid": "102233531",
+    "preset": "米游社 102233531 · 丝柯克",
+    "source": "http://127.0.0.1:4174/#/calculate",
+    "method": "从已保存角色界面读取，按显示精度转录；未取得原始 UID JSON。测试 ID 为本地编号。",
+    "observedPanel": {
+      "HP": 18665,
+      "ATK": 2694,
+      "DEF": 940,
+      "ElementalMastery": 67,
+      "Critical": 0.851,
+      "CriticalDamage": 2.251,
+      "BonusCryo": 0.15
+    },
+    "observedNormal1": {
+      "expectation": 2216,
+      "critical": 2471,
+      "nonCritical": 760
+    }
+  },
+  "input": {
+    "character": {
+      "name": "Skirk",
+      "level": 90,
+      "ascend": false,
+      "constellation": 0,
+      "skill1": 0,
+      "skill2": 9,
+      "skill3": 9,
+      "params": {
+        "Skirk": {
+          "death_crossing_stacks": 0,
+          "team_has_hydro_cryo": false,
+          "c2_atk_bonus": false
+        }
+      }
+    },
+    "weapon": {
+      "name": "Azurelight",
+      "level": 90,
+      "ascend": false,
+      "refine": 1,
+      "params": {
+        "Azurelight": {
+          "after_skill": true,
+          "zero_energy": false
+        }
+      }
+    },
+    "skill": {
+      "index": 0,
+      "config": {
+        "Skirk": {
+          "cunning_stacks": 100,
+          "seven_phase_mode": true,
+          "void_rift_count": 0
+        }
+      }
+    },
+    "buffs": [],
+    "artifact_config": null,
+    "enemy": null,
+    "artifacts": [
+      {
+        "set_name": "FinaleOfTheDeepGalleries",
+        "slot": "Flower",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "HPFixed",
+          4780
+        ],
+        "sub_stats": [
+          [
+            "DEFPercentage",
+            0.073
+          ],
+          [
+            "CriticalRate",
+            0.109
+          ],
+          [
+            "ATKFixed",
+            18
+          ],
+          [
+            "CriticalDamage",
+            0.194
+          ]
+        ],
+        "id": 1
+      },
+      {
+        "set_name": "FinaleOfTheDeepGalleries",
+        "slot": "Feather",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ATKFixed",
+          311
+        ],
+        "sub_stats": [
+          [
+            "CriticalDamage",
+            0.256
+          ],
+          [
+            "DEFFixed",
+            16
+          ],
+          [
+            "ElementalMastery",
+            16
+          ],
+          [
+            "CriticalRate",
+            0.117
+          ]
+        ],
+        "id": 2
+      },
+      {
+        "set_name": "FinaleOfTheDeepGalleries",
+        "slot": "Sand",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ATKPercentage",
+          0.466
+        ],
+        "sub_stats": [
+          [
+            "CriticalRate",
+            0.136
+          ],
+          [
+            "CriticalDamage",
+            0.14
+          ],
+          [
+            "ElementalMastery",
+            16
+          ],
+          [
+            "HPPercentage",
+            0.041
+          ]
+        ],
+        "id": 3
+      },
+      {
+        "set_name": "FinaleOfTheDeepGalleries",
+        "slot": "Goblet",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "ATKPercentage",
+          0.466
+        ],
+        "sub_stats": [
+          [
+            "DEFPercentage",
+            0.073
+          ],
+          [
+            "CriticalRate",
+            0.113
+          ],
+          [
+            "HPFixed",
+            239
+          ],
+          [
+            "CriticalDamage",
+            0.155
+          ]
+        ],
+        "id": 4
+      },
+      {
+        "set_name": "ADayCarvedFromRisingWinds",
+        "slot": "Head",
+        "level": 20,
+        "star": 5,
+        "main_stat": [
+          "CriticalDamage",
+          0.622
+        ],
+        "sub_stats": [
+          [
+            "HPPercentage",
+            0.058
+          ],
+          [
+            "ElementalMastery",
+            35
+          ],
+          [
+            "ATKPercentage",
+            0.117
+          ],
+          [
+            "CriticalRate",
+            0.105
+          ]
+        ],
+        "id": 5
+      }
+    ]
+  }
+}

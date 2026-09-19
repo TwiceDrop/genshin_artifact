@@ -258,6 +258,13 @@ impl DamageBuilder for SimpleDamageBuilder {
         }
     }
 
+    fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result {
+      let mut result=self.damage(attribute,enemy,Element::Anemo,skill,level,None);
+      result.normal=crate::damage::stellar_swirl::calculate(attribute,enemy,ratio);
+      result.melt=None;result.vaporize=None;result.spread=None;result.aggravate=None;
+      
+      result
+    }
     fn heal(&self, attribute: &Self::AttributeType) -> Self::Result {
         let atk = attribute.get_atk() + self.extra_atk;
         let def = attribute.get_def() + self.extra_def;

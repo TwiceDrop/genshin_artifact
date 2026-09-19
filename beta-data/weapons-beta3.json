@@ -1,0 +1,1263 @@
+{
+  "checkedAt": "2026-09-19T13:00:39.365Z",
+  "revision": "7.0.54 D48100502",
+  "weapons": [
+    {
+      "id": 11522,
+      "name": "BeyondTheChrysalis",
+      "url": "https://gi.gachabase.net/weapons/11522/beyond-the-chrysalis/beta?lang=chs",
+      "sha256": "304b0d51abd759e71e76589f480ef598abdc5a8c567677c3a8d3cc4b761f30b4",
+      "refinements": [
+        [
+          0.56,
+          0.36,
+          5,
+          10,
+          4
+        ],
+        [
+          0.72,
+          0.45,
+          5.5,
+          10,
+          4
+        ],
+        [
+          0.88,
+          0.54,
+          6,
+          10,
+          4
+        ],
+        [
+          1.04,
+          0.63,
+          6.5,
+          10,
+          4
+        ],
+        [
+          1.2,
+          0.72,
+          7,
+          10,
+          4
+        ]
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "ascend": false,
+          "attack": 48,
+          "subStat": 0.096
+        },
+        {
+          "level": 2,
+          "ascend": false,
+          "attack": 52,
+          "subStat": 0.096
+        },
+        {
+          "level": 3,
+          "ascend": false,
+          "attack": 56,
+          "subStat": 0.096
+        },
+        {
+          "level": 4,
+          "ascend": false,
+          "attack": 61,
+          "subStat": 0.096
+        },
+        {
+          "level": 5,
+          "ascend": false,
+          "attack": 65,
+          "subStat": 0.1116
+        },
+        {
+          "level": 6,
+          "ascend": false,
+          "attack": 69,
+          "subStat": 0.1116
+        },
+        {
+          "level": 7,
+          "ascend": false,
+          "attack": 74,
+          "subStat": 0.1116
+        },
+        {
+          "level": 8,
+          "ascend": false,
+          "attack": 78,
+          "subStat": 0.1116
+        },
+        {
+          "level": 9,
+          "ascend": false,
+          "attack": 83,
+          "subStat": 0.1116
+        },
+        {
+          "level": 10,
+          "ascend": false,
+          "attack": 87,
+          "subStat": 0.1308
+        },
+        {
+          "level": 11,
+          "ascend": false,
+          "attack": 92,
+          "subStat": 0.1308
+        },
+        {
+          "level": 12,
+          "ascend": false,
+          "attack": 96,
+          "subStat": 0.1308
+        },
+        {
+          "level": 13,
+          "ascend": false,
+          "attack": 101,
+          "subStat": 0.1308
+        },
+        {
+          "level": 14,
+          "ascend": false,
+          "attack": 106,
+          "subStat": 0.1308
+        },
+        {
+          "level": 15,
+          "ascend": false,
+          "attack": 110,
+          "subStat": 0.1502
+        },
+        {
+          "level": 16,
+          "ascend": false,
+          "attack": 115,
+          "subStat": 0.1502
+        },
+        {
+          "level": 17,
+          "ascend": false,
+          "attack": 119,
+          "subStat": 0.1502
+        },
+        {
+          "level": 18,
+          "ascend": false,
+          "attack": 124,
+          "subStat": 0.1502
+        },
+        {
+          "level": 19,
+          "ascend": false,
+          "attack": 129,
+          "subStat": 0.1502
+        },
+        {
+          "level": 20,
+          "ascend": false,
+          "attack": 133,
+          "subStat": 0.1696
+        },
+        {
+          "level": 20,
+          "ascend": true,
+          "attack": 164,
+          "subStat": 0.1696
+        },
+        {
+          "level": 21,
+          "ascend": false,
+          "attack": 169,
+          "subStat": 0.1696
+        },
+        {
+          "level": 22,
+          "ascend": false,
+          "attack": 174,
+          "subStat": 0.1696
+        },
+        {
+          "level": 23,
+          "ascend": false,
+          "attack": 179,
+          "subStat": 0.1696
+        },
+        {
+          "level": 24,
+          "ascend": false,
+          "attack": 183,
+          "subStat": 0.1696
+        },
+        {
+          "level": 25,
+          "ascend": false,
+          "attack": 188,
+          "subStat": 0.189
+        },
+        {
+          "level": 26,
+          "ascend": false,
+          "attack": 193,
+          "subStat": 0.189
+        },
+        {
+          "level": 27,
+          "ascend": false,
+          "attack": 197,
+          "subStat": 0.189
+        },
+        {
+          "level": 28,
+          "ascend": false,
+          "attack": 202,
+          "subStat": 0.189
+        },
+        {
+          "level": 29,
+          "ascend": false,
+          "attack": 207,
+          "subStat": 0.189
+        },
+        {
+          "level": 30,
+          "ascend": false,
+          "attack": 212,
+          "subStat": 0.2084
+        },
+        {
+          "level": 31,
+          "ascend": false,
+          "attack": 217,
+          "subStat": 0.2084
+        },
+        {
+          "level": 32,
+          "ascend": false,
+          "attack": 221,
+          "subStat": 0.2084
+        },
+        {
+          "level": 33,
+          "ascend": false,
+          "attack": 226,
+          "subStat": 0.2084
+        },
+        {
+          "level": 34,
+          "ascend": false,
+          "attack": 231,
+          "subStat": 0.2084
+        },
+        {
+          "level": 35,
+          "ascend": false,
+          "attack": 236,
+          "subStat": 0.2278
+        },
+        {
+          "level": 36,
+          "ascend": false,
+          "attack": 241,
+          "subStat": 0.2278
+        },
+        {
+          "level": 37,
+          "ascend": false,
+          "attack": 246,
+          "subStat": 0.2278
+        },
+        {
+          "level": 38,
+          "ascend": false,
+          "attack": 251,
+          "subStat": 0.2278
+        },
+        {
+          "level": 39,
+          "ascend": false,
+          "attack": 256,
+          "subStat": 0.2278
+        },
+        {
+          "level": 40,
+          "ascend": false,
+          "attack": 261,
+          "subStat": 0.2472
+        },
+        {
+          "level": 40,
+          "ascend": true,
+          "attack": 292,
+          "subStat": 0.2472
+        },
+        {
+          "level": 41,
+          "ascend": false,
+          "attack": 297,
+          "subStat": 0.2472
+        },
+        {
+          "level": 42,
+          "ascend": false,
+          "attack": 302,
+          "subStat": 0.2472
+        },
+        {
+          "level": 43,
+          "ascend": false,
+          "attack": 306,
+          "subStat": 0.2472
+        },
+        {
+          "level": 44,
+          "ascend": false,
+          "attack": 311,
+          "subStat": 0.2472
+        },
+        {
+          "level": 45,
+          "ascend": false,
+          "attack": 316,
+          "subStat": 0.2666
+        },
+        {
+          "level": 46,
+          "ascend": false,
+          "attack": 321,
+          "subStat": 0.2666
+        },
+        {
+          "level": 47,
+          "ascend": false,
+          "attack": 326,
+          "subStat": 0.2666
+        },
+        {
+          "level": 48,
+          "ascend": false,
+          "attack": 331,
+          "subStat": 0.2666
+        },
+        {
+          "level": 49,
+          "ascend": false,
+          "attack": 336,
+          "subStat": 0.2666
+        },
+        {
+          "level": 50,
+          "ascend": false,
+          "attack": 341,
+          "subStat": 0.286
+        },
+        {
+          "level": 50,
+          "ascend": true,
+          "attack": 373,
+          "subStat": 0.286
+        },
+        {
+          "level": 51,
+          "ascend": false,
+          "attack": 378,
+          "subStat": 0.286
+        },
+        {
+          "level": 52,
+          "ascend": false,
+          "attack": 383,
+          "subStat": 0.286
+        },
+        {
+          "level": 53,
+          "ascend": false,
+          "attack": 388,
+          "subStat": 0.286
+        },
+        {
+          "level": 54,
+          "ascend": false,
+          "attack": 393,
+          "subStat": 0.286
+        },
+        {
+          "level": 55,
+          "ascend": false,
+          "attack": 398,
+          "subStat": 0.3054
+        },
+        {
+          "level": 56,
+          "ascend": false,
+          "attack": 403,
+          "subStat": 0.3054
+        },
+        {
+          "level": 57,
+          "ascend": false,
+          "attack": 408,
+          "subStat": 0.3054
+        },
+        {
+          "level": 58,
+          "ascend": false,
+          "attack": 413,
+          "subStat": 0.3054
+        },
+        {
+          "level": 59,
+          "ascend": false,
+          "attack": 418,
+          "subStat": 0.3054
+        },
+        {
+          "level": 60,
+          "ascend": false,
+          "attack": 423,
+          "subStat": 0.3248
+        },
+        {
+          "level": 60,
+          "ascend": true,
+          "attack": 455,
+          "subStat": 0.3248
+        },
+        {
+          "level": 61,
+          "ascend": false,
+          "attack": 460,
+          "subStat": 0.3248
+        },
+        {
+          "level": 62,
+          "ascend": false,
+          "attack": 465,
+          "subStat": 0.3248
+        },
+        {
+          "level": 63,
+          "ascend": false,
+          "attack": 470,
+          "subStat": 0.3248
+        },
+        {
+          "level": 64,
+          "ascend": false,
+          "attack": 475,
+          "subStat": 0.3248
+        },
+        {
+          "level": 65,
+          "ascend": false,
+          "attack": 480,
+          "subStat": 0.3442
+        },
+        {
+          "level": 66,
+          "ascend": false,
+          "attack": 485,
+          "subStat": 0.3442
+        },
+        {
+          "level": 67,
+          "ascend": false,
+          "attack": 491,
+          "subStat": 0.3442
+        },
+        {
+          "level": 68,
+          "ascend": false,
+          "attack": 496,
+          "subStat": 0.3442
+        },
+        {
+          "level": 69,
+          "ascend": false,
+          "attack": 501,
+          "subStat": 0.3442
+        },
+        {
+          "level": 70,
+          "ascend": false,
+          "attack": 506,
+          "subStat": 0.3635
+        },
+        {
+          "level": 70,
+          "ascend": true,
+          "attack": 537,
+          "subStat": 0.3635
+        },
+        {
+          "level": 71,
+          "ascend": false,
+          "attack": 543,
+          "subStat": 0.3635
+        },
+        {
+          "level": 72,
+          "ascend": false,
+          "attack": 548,
+          "subStat": 0.3635
+        },
+        {
+          "level": 73,
+          "ascend": false,
+          "attack": 553,
+          "subStat": 0.3635
+        },
+        {
+          "level": 74,
+          "ascend": false,
+          "attack": 558,
+          "subStat": 0.3635
+        },
+        {
+          "level": 75,
+          "ascend": false,
+          "attack": 563,
+          "subStat": 0.3828
+        },
+        {
+          "level": 76,
+          "ascend": false,
+          "attack": 569,
+          "subStat": 0.3828
+        },
+        {
+          "level": 77,
+          "ascend": false,
+          "attack": 574,
+          "subStat": 0.3828
+        },
+        {
+          "level": 78,
+          "ascend": false,
+          "attack": 579,
+          "subStat": 0.3828
+        },
+        {
+          "level": 79,
+          "ascend": false,
+          "attack": 585,
+          "subStat": 0.3828
+        },
+        {
+          "level": 80,
+          "ascend": false,
+          "attack": 590,
+          "subStat": 0.4022
+        },
+        {
+          "level": 80,
+          "ascend": true,
+          "attack": 621,
+          "subStat": 0.4022
+        },
+        {
+          "level": 81,
+          "ascend": false,
+          "attack": 626,
+          "subStat": 0.4022
+        },
+        {
+          "level": 82,
+          "ascend": false,
+          "attack": 632,
+          "subStat": 0.4022
+        },
+        {
+          "level": 83,
+          "ascend": false,
+          "attack": 637,
+          "subStat": 0.4022
+        },
+        {
+          "level": 84,
+          "ascend": false,
+          "attack": 642,
+          "subStat": 0.4022
+        },
+        {
+          "level": 85,
+          "ascend": false,
+          "attack": 648,
+          "subStat": 0.4216
+        },
+        {
+          "level": 86,
+          "ascend": false,
+          "attack": 653,
+          "subStat": 0.4216
+        },
+        {
+          "level": 87,
+          "ascend": false,
+          "attack": 658,
+          "subStat": 0.4216
+        },
+        {
+          "level": 88,
+          "ascend": false,
+          "attack": 664,
+          "subStat": 0.4216
+        },
+        {
+          "level": 89,
+          "ascend": false,
+          "attack": 669,
+          "subStat": 0.4216
+        },
+        {
+          "level": 90,
+          "ascend": false,
+          "attack": 674,
+          "subStat": 0.441
+        }
+      ]
+    },
+    {
+      "id": 14524,
+      "name": "HymnOfTheMaelstrom",
+      "url": "https://gi.gachabase.net/weapons/14524/hymn-of-the-maelstrom/beta?lang=chs",
+      "sha256": "e03849fe9cd6c2771853b26895bade9e3f6e251026f8ae8227d85765c345c0a1",
+      "refinements": [
+        [
+          0.04,
+          40000,
+          0.004,
+          0.08,
+          10,
+          3,
+          5,
+          0.75
+        ],
+        [
+          0.05,
+          40000,
+          0.005,
+          0.1,
+          10,
+          3,
+          5,
+          0.75
+        ],
+        [
+          0.06,
+          40000,
+          0.006,
+          0.12,
+          10,
+          3,
+          5,
+          0.75
+        ],
+        [
+          0.07,
+          40000,
+          0.007,
+          0.14,
+          10,
+          3,
+          5,
+          0.75
+        ],
+        [
+          0.08,
+          40000,
+          0.008,
+          0.16,
+          10,
+          3,
+          5,
+          0.75
+        ]
+      ],
+      "levels": [
+        {
+          "level": 1,
+          "ascend": false,
+          "attack": 44,
+          "subStat": 0.144
+        },
+        {
+          "level": 2,
+          "ascend": false,
+          "attack": 48,
+          "subStat": 0.144
+        },
+        {
+          "level": 3,
+          "ascend": false,
+          "attack": 51,
+          "subStat": 0.144
+        },
+        {
+          "level": 4,
+          "ascend": false,
+          "attack": 55,
+          "subStat": 0.144
+        },
+        {
+          "level": 5,
+          "ascend": false,
+          "attack": 58,
+          "subStat": 0.1673
+        },
+        {
+          "level": 6,
+          "ascend": false,
+          "attack": 62,
+          "subStat": 0.1673
+        },
+        {
+          "level": 7,
+          "ascend": false,
+          "attack": 65,
+          "subStat": 0.1673
+        },
+        {
+          "level": 8,
+          "ascend": false,
+          "attack": 69,
+          "subStat": 0.1673
+        },
+        {
+          "level": 9,
+          "ascend": false,
+          "attack": 72,
+          "subStat": 0.1673
+        },
+        {
+          "level": 10,
+          "ascend": false,
+          "attack": 76,
+          "subStat": 0.1963
+        },
+        {
+          "level": 11,
+          "ascend": false,
+          "attack": 79,
+          "subStat": 0.1963
+        },
+        {
+          "level": 12,
+          "ascend": false,
+          "attack": 83,
+          "subStat": 0.1963
+        },
+        {
+          "level": 13,
+          "ascend": false,
+          "attack": 86,
+          "subStat": 0.1963
+        },
+        {
+          "level": 14,
+          "ascend": false,
+          "attack": 90,
+          "subStat": 0.1963
+        },
+        {
+          "level": 15,
+          "ascend": false,
+          "attack": 93,
+          "subStat": 0.2254
+        },
+        {
+          "level": 16,
+          "ascend": false,
+          "attack": 96,
+          "subStat": 0.2254
+        },
+        {
+          "level": 17,
+          "ascend": false,
+          "attack": 100,
+          "subStat": 0.2254
+        },
+        {
+          "level": 18,
+          "ascend": false,
+          "attack": 103,
+          "subStat": 0.2254
+        },
+        {
+          "level": 19,
+          "ascend": false,
+          "attack": 107,
+          "subStat": 0.2254
+        },
+        {
+          "level": 20,
+          "ascend": false,
+          "attack": 110,
+          "subStat": 0.2544
+        },
+        {
+          "level": 20,
+          "ascend": true,
+          "attack": 141,
+          "subStat": 0.2544
+        },
+        {
+          "level": 21,
+          "ascend": false,
+          "attack": 145,
+          "subStat": 0.2544
+        },
+        {
+          "level": 22,
+          "ascend": false,
+          "attack": 148,
+          "subStat": 0.2544
+        },
+        {
+          "level": 23,
+          "ascend": false,
+          "attack": 152,
+          "subStat": 0.2544
+        },
+        {
+          "level": 24,
+          "ascend": false,
+          "attack": 155,
+          "subStat": 0.2544
+        },
+        {
+          "level": 25,
+          "ascend": false,
+          "attack": 158,
+          "subStat": 0.2835
+        },
+        {
+          "level": 26,
+          "ascend": false,
+          "attack": 162,
+          "subStat": 0.2835
+        },
+        {
+          "level": 27,
+          "ascend": false,
+          "attack": 165,
+          "subStat": 0.2835
+        },
+        {
+          "level": 28,
+          "ascend": false,
+          "attack": 169,
+          "subStat": 0.2835
+        },
+        {
+          "level": 29,
+          "ascend": false,
+          "attack": 172,
+          "subStat": 0.2835
+        },
+        {
+          "level": 30,
+          "ascend": false,
+          "attack": 176,
+          "subStat": 0.3126
+        },
+        {
+          "level": 31,
+          "ascend": false,
+          "attack": 179,
+          "subStat": 0.3126
+        },
+        {
+          "level": 32,
+          "ascend": false,
+          "attack": 182,
+          "subStat": 0.3126
+        },
+        {
+          "level": 33,
+          "ascend": false,
+          "attack": 186,
+          "subStat": 0.3126
+        },
+        {
+          "level": 34,
+          "ascend": false,
+          "attack": 189,
+          "subStat": 0.3126
+        },
+        {
+          "level": 35,
+          "ascend": false,
+          "attack": 193,
+          "subStat": 0.3417
+        },
+        {
+          "level": 36,
+          "ascend": false,
+          "attack": 196,
+          "subStat": 0.3417
+        },
+        {
+          "level": 37,
+          "ascend": false,
+          "attack": 199,
+          "subStat": 0.3417
+        },
+        {
+          "level": 38,
+          "ascend": false,
+          "attack": 203,
+          "subStat": 0.3417
+        },
+        {
+          "level": 39,
+          "ascend": false,
+          "attack": 206,
+          "subStat": 0.3417
+        },
+        {
+          "level": 40,
+          "ascend": false,
+          "attack": 210,
+          "subStat": 0.3708
+        },
+        {
+          "level": 40,
+          "ascend": true,
+          "attack": 241,
+          "subStat": 0.3708
+        },
+        {
+          "level": 41,
+          "ascend": false,
+          "attack": 244,
+          "subStat": 0.3708
+        },
+        {
+          "level": 42,
+          "ascend": false,
+          "attack": 248,
+          "subStat": 0.3708
+        },
+        {
+          "level": 43,
+          "ascend": false,
+          "attack": 251,
+          "subStat": 0.3708
+        },
+        {
+          "level": 44,
+          "ascend": false,
+          "attack": 255,
+          "subStat": 0.3708
+        },
+        {
+          "level": 45,
+          "ascend": false,
+          "attack": 258,
+          "subStat": 0.3999
+        },
+        {
+          "level": 46,
+          "ascend": false,
+          "attack": 262,
+          "subStat": 0.3999
+        },
+        {
+          "level": 47,
+          "ascend": false,
+          "attack": 265,
+          "subStat": 0.3999
+        },
+        {
+          "level": 48,
+          "ascend": false,
+          "attack": 268,
+          "subStat": 0.3999
+        },
+        {
+          "level": 49,
+          "ascend": false,
+          "attack": 272,
+          "subStat": 0.3999
+        },
+        {
+          "level": 50,
+          "ascend": false,
+          "attack": 275,
+          "subStat": 0.429
+        },
+        {
+          "level": 50,
+          "ascend": true,
+          "attack": 307,
+          "subStat": 0.429
+        },
+        {
+          "level": 51,
+          "ascend": false,
+          "attack": 310,
+          "subStat": 0.429
+        },
+        {
+          "level": 52,
+          "ascend": false,
+          "attack": 314,
+          "subStat": 0.429
+        },
+        {
+          "level": 53,
+          "ascend": false,
+          "attack": 317,
+          "subStat": 0.429
+        },
+        {
+          "level": 54,
+          "ascend": false,
+          "attack": 321,
+          "subStat": 0.429
+        },
+        {
+          "level": 55,
+          "ascend": false,
+          "attack": 324,
+          "subStat": 0.4581
+        },
+        {
+          "level": 56,
+          "ascend": false,
+          "attack": 327,
+          "subStat": 0.4581
+        },
+        {
+          "level": 57,
+          "ascend": false,
+          "attack": 331,
+          "subStat": 0.4581
+        },
+        {
+          "level": 58,
+          "ascend": false,
+          "attack": 334,
+          "subStat": 0.4581
+        },
+        {
+          "level": 59,
+          "ascend": false,
+          "attack": 338,
+          "subStat": 0.4581
+        },
+        {
+          "level": 60,
+          "ascend": false,
+          "attack": 341,
+          "subStat": 0.4872
+        },
+        {
+          "level": 60,
+          "ascend": true,
+          "attack": 373,
+          "subStat": 0.4872
+        },
+        {
+          "level": 61,
+          "ascend": false,
+          "attack": 376,
+          "subStat": 0.4872
+        },
+        {
+          "level": 62,
+          "ascend": false,
+          "attack": 380,
+          "subStat": 0.4872
+        },
+        {
+          "level": 63,
+          "ascend": false,
+          "attack": 383,
+          "subStat": 0.4872
+        },
+        {
+          "level": 64,
+          "ascend": false,
+          "attack": 387,
+          "subStat": 0.4872
+        },
+        {
+          "level": 65,
+          "ascend": false,
+          "attack": 390,
+          "subStat": 0.5162
+        },
+        {
+          "level": 66,
+          "ascend": false,
+          "attack": 394,
+          "subStat": 0.5162
+        },
+        {
+          "level": 67,
+          "ascend": false,
+          "attack": 397,
+          "subStat": 0.5162
+        },
+        {
+          "level": 68,
+          "ascend": false,
+          "attack": 401,
+          "subStat": 0.5162
+        },
+        {
+          "level": 69,
+          "ascend": false,
+          "attack": 404,
+          "subStat": 0.5162
+        },
+        {
+          "level": 70,
+          "ascend": false,
+          "attack": 408,
+          "subStat": 0.5452
+        },
+        {
+          "level": 70,
+          "ascend": true,
+          "attack": 439,
+          "subStat": 0.5452
+        },
+        {
+          "level": 71,
+          "ascend": false,
+          "attack": 442,
+          "subStat": 0.5452
+        },
+        {
+          "level": 72,
+          "ascend": false,
+          "attack": 446,
+          "subStat": 0.5452
+        },
+        {
+          "level": 73,
+          "ascend": false,
+          "attack": 450,
+          "subStat": 0.5452
+        },
+        {
+          "level": 74,
+          "ascend": false,
+          "attack": 453,
+          "subStat": 0.5452
+        },
+        {
+          "level": 75,
+          "ascend": false,
+          "attack": 457,
+          "subStat": 0.5743
+        },
+        {
+          "level": 76,
+          "ascend": false,
+          "attack": 460,
+          "subStat": 0.5743
+        },
+        {
+          "level": 77,
+          "ascend": false,
+          "attack": 464,
+          "subStat": 0.5743
+        },
+        {
+          "level": 78,
+          "ascend": false,
+          "attack": 467,
+          "subStat": 0.5743
+        },
+        {
+          "level": 79,
+          "ascend": false,
+          "attack": 471,
+          "subStat": 0.5743
+        },
+        {
+          "level": 80,
+          "ascend": false,
+          "attack": 475,
+          "subStat": 0.6034
+        },
+        {
+          "level": 80,
+          "ascend": true,
+          "attack": 506,
+          "subStat": 0.6034
+        },
+        {
+          "level": 81,
+          "ascend": false,
+          "attack": 509,
+          "subStat": 0.6034
+        },
+        {
+          "level": 82,
+          "ascend": false,
+          "attack": 513,
+          "subStat": 0.6034
+        },
+        {
+          "level": 83,
+          "ascend": false,
+          "attack": 516,
+          "subStat": 0.6034
+        },
+        {
+          "level": 84,
+          "ascend": false,
+          "attack": 520,
+          "subStat": 0.6034
+        },
+        {
+          "level": 85,
+          "ascend": false,
+          "attack": 524,
+          "subStat": 0.6324
+        },
+        {
+          "level": 86,
+          "ascend": false,
+          "attack": 527,
+          "subStat": 0.6324
+        },
+        {
+          "level": 87,
+          "ascend": false,
+          "attack": 531,
+          "subStat": 0.6324
+        },
+        {
+          "level": 88,
+          "ascend": false,
+          "attack": 535,
+          "subStat": 0.6324
+        },
+        {
+          "level": 89,
+          "ascend": false,
+          "attack": 538,
+          "subStat": 0.6324
+        },
+        {
+          "level": 90,
+          "ascend": false,
+          "attack": 542,
+          "subStat": 0.6615
+        }
+      ]
+    }
+  ]
+}

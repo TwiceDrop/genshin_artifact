@@ -397,6 +397,13 @@ impl DamageBuilder for ComplicatedDamageBuilder {
         }
     }
 
+    fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result {
+      let mut result=self.damage(attribute,enemy,Element::Anemo,skill,level,None);
+      result.normal=crate::damage::stellar_swirl::calculate(attribute,enemy,ratio);
+      result.melt=None;result.vaporize=None;result.spread=None;result.aggravate=None;
+      result.moonfall=None;result.moonelectro=None;result.direct_moonelectro=None;result.bonus.clear();result.def_minus.clear();result.def_penetration.clear();
+      result
+    }
     fn heal(&self, attribute: &Self::AttributeType) -> Self::Result {
         let atk_comp = self.get_atk_composition(attribute);
         let atk = atk_comp.sum();
