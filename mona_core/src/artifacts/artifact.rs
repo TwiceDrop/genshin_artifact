@@ -22,6 +22,8 @@ use super::effects::get_effect;
 #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
 #[derive(FromPrimitive, ArtifactData, EnumLen, Display, EnumIter)]
 pub enum ArtifactSetName {
+    HeartOfTheFurnace,
+    ScarletProof,
     Empty,  // use to construct fake super artifact
     Adventurer,
     ArchaicPetra,

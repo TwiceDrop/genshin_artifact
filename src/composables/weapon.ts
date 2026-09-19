@@ -3,6 +3,7 @@ import type {WeaponName, WeaponType} from "@/types/weapon"
 import {weaponByType, weaponData} from "@weapon"
 import {type Ref} from "vue"
 import {useI18n} from "@/i18n/i18n";
+import {isSignatureWeapon, normalizeSignatureWeapon} from '../../beta-data/weapon-effects.mjs'
 
 export function useWeapon(weaponType: null | Ref<WeaponType>) {
     const weaponName = ref<WeaponName>("PolarStar")
@@ -44,6 +45,16 @@ export function useWeapon(weaponType: null | Ref<WeaponType>) {
             params: weaponConfig.value
         }
     })
+
+    // Upgrade saved beta2 boolean switches without losing their enabled state.
+    watch(weaponConfig, value => {
+        if (!isSignatureWeapon({name: weaponName.value})) return
+        const weapon = {name: weaponName.value, level: weaponLevelNumber.value, ascend: weaponAscend.value, refine: weaponRefine.value, params: value}
+        try {
+            const normalized = normalizeSignatureWeapon(weapon).params
+            if (JSON.stringify(normalized) !== JSON.stringify(value)) weaponConfig.value = normalized
+        } catch { /* Invalid values are reported by the calculation entry point. */ }
+    }, {flush: 'sync', deep: true})
 
     // function changeWeapon(name: WeaponName) {
     //

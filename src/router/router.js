@@ -159,7 +159,7 @@ router.beforeEach((to, from, next) => {
     }
 
     const title = to.meta.title
-    document.title = `${title} | ${webName}`
+    document.title = `${title} | ${webName} ${process.env.MONA_VERSION}`
 
     next();
 })

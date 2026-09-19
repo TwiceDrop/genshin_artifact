@@ -1,4 +1,4 @@
-// Generated from Mona v5.33.58; see script/prepare-release.cjs.
+// beta2 preview catalog
 export default {
   "AetherAnemo": {
     "name": "AetherAnemo",
@@ -13069,6 +13069,276 @@ export default {
         "name": "solo_dance_double",
         "title": 108,
         "type": "bool"
+      }
+    ],
+    "configSkill": []
+  },
+  "Vodyanitsa": {
+    "name": "Vodyanitsa",
+    "nameLocale": 3517,
+    "element": "Hydro",
+    "weapon": "Catalyst",
+    "star": 5,
+    "avatar": "/beta/vodyanitsa.svg",
+    "splash": "/beta/vodyanitsa.svg",
+    "skillName1": 3518,
+    "skillName2": 3519,
+    "skillName3": 3520,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 150
+      },
+      {
+        "index": 1,
+        "text": 297
+      },
+      {
+        "index": 2,
+        "text": 200
+      },
+      {
+        "index": 3,
+        "text": 796
+      },
+      {
+        "index": 4,
+        "text": 3146
+      },
+      {
+        "index": 5,
+        "text": 225
+      },
+      {
+        "index": 6,
+        "text": 370
+      },
+      {
+        "index": 7,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 8,
+        "text": 3521
+      },
+      {
+        "index": 9,
+        "text": 3522
+      },
+      {
+        "index": 10,
+        "text": 3523
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 11,
+        "text": 3524
+      }
+    ],
+    "config": [
+      {
+        "name": "e_active",
+        "title": 3525,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "song_active",
+        "title": 3526,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3527,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "c1_active",
+        "title": 3528,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "c2_active",
+        "title": 3529,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "c4_stacks",
+        "title": 3530,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 0
+      },
+      {
+        "name": "on_field",
+        "title": 3531,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "configSkill": [
+      {
+        "name": "low_hp_heal",
+        "title": 3532,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "q_song_bonus",
+        "title": 3533,
+        "type": "bool",
+        "default": false
+      }
+    ],
+    "id": 10000140
+  },
+  "Vesna": {
+    "name": "Vesna",
+    "nameLocale": 3560,
+    "element": "Anemo",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/beta/vesna.webp",
+    "splash": "/beta/vesna.webp",
+    "skillName1": 3561,
+    "skillName2": 3562,
+    "skillName3": 3563,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 150
+      },
+      {
+        "index": 1,
+        "text": 297
+      },
+      {
+        "index": 2,
+        "text": 3564
+      },
+      {
+        "index": 3,
+        "text": 796
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 510
+      },
+      {
+        "index": 6,
+        "text": 3146
+      },
+      {
+        "index": 7,
+        "text": 3565
+      },
+      {
+        "index": 8,
+        "text": 3566
+      },
+      {
+        "index": 9,
+        "text": 3567
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 3568
+      },
+      {
+        "index": 11,
+        "text": 3569
+      },
+      {
+        "index": 12,
+        "text": 3570
+      },
+      {
+        "index": 13,
+        "text": 3571
+      },
+      {
+        "index": 14,
+        "text": 3572
+      },
+      {
+        "index": 15,
+        "text": 3573
+      },
+      {
+        "index": 16,
+        "text": 3574
+      },
+      {
+        "index": 18,
+        "text": 3575
+      },
+      {
+        "index": 19,
+        "text": 3576
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 17,
+        "text": 3577
+      }
+    ],
+    "config": [
+      {
+        "name": "stance",
+        "title": 3578,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "radiance",
+        "title": 3579,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "disciplinary_stacks",
+        "title": 3580,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "anemo_cryo_count",
+        "title": 3581,
+        "type": "int",
+        "min": 1,
+        "max": 4,
+        "default": 1
+      },
+      {
+        "name": "other_count",
+        "title": 3582,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 1
+      },
+      {
+        "name": "flat_inside_discipline",
+        "title": 3583,
+        "type": "bool",
+        "default": false
       }
     ],
     "configSkill": []

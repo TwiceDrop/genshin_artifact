@@ -2,6 +2,8 @@ use crate::common::{SkillType, Element};
 
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug)]
 pub enum AttributeName {
+ VesnaStance, VesnaRadiance, VesnaDiscipline, VesnaFlatInside,
+ StellarSwirlBonus, StellarSwirlFlat, StellarSwirlCritDamage, StellarSwirlElevation,
     // 自定义数据，应当只用在角色的特定的Effect中，否则容易使用不当，产生冲突
     USER1,
     USER2,

@@ -5,6 +5,7 @@ use serde::Serialize;
 
 pub mod get_attribute;
 
+#[wasm_bindgen]
 pub struct CommonInterface {}
 
 #[wasm_bindgen]

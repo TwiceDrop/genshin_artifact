@@ -13,3 +13,5 @@ pub mod damage_builder;
 pub mod damage_result;
 pub mod transformative_damage;
 pub mod level_coefficient;
+
+pub mod stellar_swirl;

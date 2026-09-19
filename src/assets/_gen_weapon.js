@@ -1,4 +1,4 @@
-// Generated from Mona v5.33.58; see script/prepare-release.cjs.
+// beta3 weapon catalog
 export default {
   "MistsplitterReforged": {
     "name": "MistsplitterReforged",
@@ -4479,5 +4479,87 @@ export default {
         "type": "bool"
       }
     ]
+  },
+  "HymnOfTheMaelstrom": {
+    "name": "HymnOfTheMaelstrom",
+    "internalName": "Catalyst_HymnOfTheMaelstrom",
+    "nameLocale": 3534,
+    "star": 5,
+    "type": "Catalyst",
+    "url": "/beta/vodyanitsa.svg",
+    "effect": 3601,
+    "configs": [
+      {
+        "name": "hp",
+        "title": 3597,
+        "type": "intInput",
+        "min": 0,
+        "max": 500000,
+        "default": 0
+      },
+      {
+        "name": "stacks",
+        "title": 3598,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 0
+      },
+      {
+        "name": "boosted",
+        "title": 3599,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "on_field",
+        "title": 3600,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "id": 14524
+  },
+  "BeyondTheChrysalis": {
+    "name": "BeyondTheChrysalis",
+    "internalName": "Sword_BeyondTheChrysalis",
+    "nameLocale": 3584,
+    "star": 5,
+    "type": "Sword",
+    "url": "/beta/chrysalis.webp",
+    "effect": 3596,
+    "configs": [
+      {
+        "name": "loyal_rate",
+        "title": 3593,
+        "type": "float",
+        "min": 0,
+        "max": 100,
+        "default": 0
+      },
+      {
+        "name": "rebel_rate",
+        "title": 3594,
+        "type": "float",
+        "min": 0,
+        "max": 100,
+        "default": 0
+      },
+      {
+        "name": "plenty_rate",
+        "title": 3595,
+        "type": "float",
+        "min": 0,
+        "max": 100,
+        "default": 0
+      },
+      {
+        "name": "on_field",
+        "title": 3588,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "id": 11522
   }
 }

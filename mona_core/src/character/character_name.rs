@@ -26,6 +26,8 @@ use crate::weapon::weapon_common_data::WeaponCommonData;
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 #[derive(Display, FromPrimitive, EnumString, CharacterData, EnumLen, EnumIter)]
 pub enum CharacterName {
+    Vesna,
+    Vodyanitsa,
     AetherAnemo,
     Albedo,
     Alhaitham,

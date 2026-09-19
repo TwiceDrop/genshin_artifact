@@ -1,0 +1,258 @@
+{
+  "points": [
+    {
+      "rolls": 0,
+      "damage": 215948.56972997478,
+      "gain": 0,
+      "marginal": 0,
+      "allocation": {
+        "ATKPercentage": 0,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 0
+      }
+    },
+    {
+      "rolls": 1,
+      "damage": 221263.41612754267,
+      "gain": 0.024611630464668632,
+      "marginal": 5314.84639756789,
+      "allocation": {
+        "ATKPercentage": 0,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 1
+      }
+    },
+    {
+      "rolls": 2,
+      "damage": 226647.94741974544,
+      "gain": 0.04954595301626363,
+      "marginal": 5384.531292202766,
+      "allocation": {
+        "ATKPercentage": 1,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 1
+      }
+    },
+    {
+      "rolls": 3,
+      "damage": 232092.1326716156,
+      "gain": 0.07475651708102049,
+      "marginal": 5444.1852518701635,
+      "allocation": {
+        "ATKPercentage": 1,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 2
+      }
+    },
+    {
+      "rolls": 4,
+      "damage": 237636.48252619442,
+      "gain": 0.10043091659897785,
+      "marginal": 5544.349854578817,
+      "allocation": {
+        "ATKPercentage": 2,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 2
+      }
+    },
+    {
+      "rolls": 5,
+      "damage": 243211.312088847,
+      "gain": 0.12624645948320912,
+      "marginal": 5574.829562652565,
+      "allocation": {
+        "ATKPercentage": 3,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 2
+      }
+    },
+    {
+      "rolls": 6,
+      "damage": 248916.31993689644,
+      "gain": 0.152664823148146,
+      "marginal": 5705.007848049456,
+      "allocation": {
+        "ATKPercentage": 3,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 7,
+      "damage": 254653.11294949971,
+      "gain": 0.17923037539874254,
+      "marginal": 5736.793012603273,
+      "allocation": {
+        "ATKPercentage": 4,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 8,
+      "damage": 260421.10063270136,
+      "gain": 0.20594038181561314,
+      "marginal": 5767.987683201645,
+      "allocation": {
+        "ATKPercentage": 5,
+        "ElementalMastery": 0,
+        "CriticalDamage": 0,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 9,
+      "damage": 265806.6746402104,
+      "gain": 0.23087953290257457,
+      "marginal": 5385.574007509043,
+      "allocation": {
+        "ATKPercentage": 5,
+        "ElementalMastery": 0,
+        "CriticalDamage": 1,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 10,
+      "damage": 271192.2486477194,
+      "gain": 0.25581868398953556,
+      "marginal": 5385.574007508985,
+      "allocation": {
+        "ATKPercentage": 5,
+        "ElementalMastery": 0,
+        "CriticalDamage": 2,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 11,
+      "damage": 276577.8226552284,
+      "gain": 0.28075783507649654,
+      "marginal": 5385.574007508985,
+      "allocation": {
+        "ATKPercentage": 5,
+        "ElementalMastery": 0,
+        "CriticalDamage": 3,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 12,
+      "damage": 281963.3966627374,
+      "gain": 0.305696986163458,
+      "marginal": 5385.574007509043,
+      "allocation": {
+        "ATKPercentage": 5,
+        "ElementalMastery": 0,
+        "CriticalDamage": 4,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 13,
+      "damage": 287406.67093803216,
+      "gain": 0.33090333173963415,
+      "marginal": 5443.274275294738,
+      "allocation": {
+        "ATKPercentage": 6,
+        "ElementalMastery": 0,
+        "CriticalDamage": 4,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 14,
+      "damage": 292896.2128959905,
+      "gain": 0.35632393056472744,
+      "marginal": 5489.541957958369,
+      "allocation": {
+        "ATKPercentage": 6,
+        "ElementalMastery": 0,
+        "CriticalDamage": 5,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 15,
+      "damage": 298385.75485394895,
+      "gain": 0.38174452938982095,
+      "marginal": 5489.541957958427,
+      "allocation": {
+        "ATKPercentage": 6,
+        "ElementalMastery": 0,
+        "CriticalDamage": 6,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 16,
+      "damage": 303968.7702447435,
+      "gain": 0.4075979786521877,
+      "marginal": 5583.01539079455,
+      "allocation": {
+        "ATKPercentage": 7,
+        "ElementalMastery": 0,
+        "CriticalDamage": 6,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 17,
+      "damage": 309561.02554186474,
+      "gain": 0.43349421544650335,
+      "marginal": 5592.255297121243,
+      "allocation": {
+        "ATKPercentage": 7,
+        "ElementalMastery": 0,
+        "CriticalDamage": 7,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 18,
+      "damage": 315246.75427182217,
+      "gain": 0.4598233026780927,
+      "marginal": 5685.728729957424,
+      "allocation": {
+        "ATKPercentage": 8,
+        "ElementalMastery": 0,
+        "CriticalDamage": 7,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 19,
+      "damage": 320941.7229081064,
+      "gain": 0.48619517744163154,
+      "marginal": 5694.968636284233,
+      "allocation": {
+        "ATKPercentage": 8,
+        "ElementalMastery": 0,
+        "CriticalDamage": 8,
+        "CriticalRate": 3
+      }
+    },
+    {
+      "rolls": 20,
+      "damage": 326730.16497722664,
+      "gain": 0.512999902642443,
+      "marginal": 5788.4420691202395,
+      "allocation": {
+        "ATKPercentage": 9,
+        "ElementalMastery": 0,
+        "CriticalDamage": 8,
+        "CriticalRate": 3
+      }
+    }
+  ],
+  "baseline": 215948.56972997478,
+  "evaluations": 10626
+}

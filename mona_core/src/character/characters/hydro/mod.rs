@@ -25,3 +25,6 @@ pub use neuvillette::Neuvillette;
 pub use furina::Furina;
 pub use sigewinne::Sigewinne;
 pub use mualani::Mualani;
+
+pub mod vodyanitsa;
+pub use vodyanitsa::Vodyanitsa;

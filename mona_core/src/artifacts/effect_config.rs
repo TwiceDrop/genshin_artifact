@@ -216,6 +216,8 @@ pub struct ConfigRealmMirrorNight {
 #[derive(Default, Debug, Clone)]
 #[derive(Serialize, Deserialize)]
 pub struct ArtifactEffectConfig {
+    #[serde(default)] pub config_heart_of_the_furnace:ConfigRate,
+    #[serde(default)] pub config_scarlet_proof:ConfigRate,
     pub config_spin_moon_serenade: ConfigSpinMoonSerenade,
     pub config_realm_mirror_night: ConfigRealmMirrorNight,
     pub config_archaic_petra: ConfigArchaicPetra,
@@ -258,6 +260,8 @@ pub struct ArtifactEffectConfig {
 #[derive(Serialize, Deserialize)]
 #[derive(Clone)]
 pub struct ArtifactConfigInterface {
+    pub config_heart_of_the_furnace:Option<ConfigRate>,
+    pub config_scarlet_proof:Option<ConfigRate>,
     pub config_spin_moon_serenade: Option<ConfigSpinMoonSerenade>,
     pub config_realm_mirror_night: Option<ConfigRealmMirrorNight>,
     pub config_archaic_petra: Option<ConfigArchaicPetra>,
@@ -300,6 +304,8 @@ pub struct ArtifactConfigInterface {
 impl ArtifactConfigInterface {
     pub fn to_config(self) -> ArtifactEffectConfig {
         ArtifactEffectConfig {
+            config_heart_of_the_furnace:self.config_heart_of_the_furnace.unwrap_or_default(),
+            config_scarlet_proof:self.config_scarlet_proof.unwrap_or_default(),
             config_archaic_petra: self.config_archaic_petra.unwrap_or_default(),
             config_berserker: self.config_berserker.unwrap_or_default(),
             config_blizzard_strayer: self.config_blizzard_strayer.unwrap_or(Default::default()),

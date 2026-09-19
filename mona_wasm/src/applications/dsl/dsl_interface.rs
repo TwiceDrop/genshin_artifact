@@ -13,7 +13,8 @@ use serde::{Serialize, Deserialize};
 use crate::applications::common::{BuffInterface, CharacterInterface, EnemyInterface, WeaponInterface};
 use crate::utils;
 
-pub struct DSLInterface;
+#[wasm_bindgen]
+pub struct DSLInterface {}
 
 #[derive(Serialize)]
 pub struct RunResult {

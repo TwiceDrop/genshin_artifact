@@ -20,7 +20,8 @@ use mona::weapon::Weapon;
 use mona::utils;
 use serde::Serialize;
 
-pub struct TeamOptimizationWasm;
+#[wasm_bindgen]
+pub struct TeamOptimizationWasm {}
 
 fn artifacts_by_id_hashmap<'a>(artifacts: &[&'a Artifact]) -> HashMap<u64, &'a Artifact> {
     let mut temp = HashMap::new();
