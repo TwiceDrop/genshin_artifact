@@ -23,3 +23,6 @@ pub use neuvillette_default::NeuvilletteDefaultTargetFunction;
 pub use furina_default::FurinaDefaultTargetFunction;
 pub use sigewinne_default::SigewinneDefaultTargetFunction;
 pub use mualani_default::MualaniDefaultTargetFunction;
+
+pub mod vodyanitsa_default;
+pub use vodyanitsa_default::VodyanitsaDefaultTargetFunction;

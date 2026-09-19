@@ -84,7 +84,7 @@ export default {
             //     // name: t("dmg", this.element)
             // })
 
-            push("normal", this.normalDamageTitle)
+            if (!this.analysisFromWasm.beta2_model) push("normal", this.normalDamageTitle)
 
             if (this.analysisFromWasm.melt) {
                 push("melt", this.t("dmg.melt"))

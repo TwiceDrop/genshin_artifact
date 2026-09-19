@@ -1,4 +1,4 @@
-// Generated from Mona v5.33.58; see script/prepare-release.cjs.
+// beta2 preview catalog
 export default {
   "ATKPercentage": {
     "name": "ATKPercentage",
@@ -4222,6 +4222,329 @@ export default {
         "name": "rate",
         "title": 1471,
         "type": "float"
+      }
+    ]
+  },
+  "VodyanitsaE": {
+    "name": "VodyanitsaE",
+    "nameLocale": 3545,
+    "description": 3546,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
+      }
+    ]
+  },
+  "VodyanitsaA4": {
+    "name": "VodyanitsaA4",
+    "nameLocale": 3547,
+    "description": 3548,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
+      }
+    ]
+  },
+  "VodyanitsaC1": {
+    "name": "VodyanitsaC1",
+    "nameLocale": 3549,
+    "description": 3550,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
+      }
+    ]
+  },
+  "VodyanitsaC2": {
+    "name": "VodyanitsaC2",
+    "nameLocale": 3551,
+    "description": 3552,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
+      }
+    ]
+  },
+  "VodyanitsaC6": {
+    "name": "VodyanitsaC6",
+    "nameLocale": 3553,
+    "description": 3554,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
+      }
+    ]
+  },
+  "VodyanitsaSignature": {
+    "name": "VodyanitsaSignature",
+    "nameLocale": 3555,
+    "description": 3556,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "refine",
+        "title": 3557,
+        "type": "int",
+        "min": 1,
+        "max": 5,
+        "default": 1
+      },
+      {
+        "name": "stacks",
+        "title": 3558,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 3
+      },
+      {
+        "name": "boosted",
+        "title": 3559,
+        "type": "bool",
+        "default": true
+      }
+    ]
+  },
+  "VodyanitsaA1": {
+    "name": "VodyanitsaA1",
+    "nameLocale": 3591,
+    "description": 3592,
+    "genre": "Character",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": [
+      {
+        "name": "hp",
+        "title": 3541,
+        "type": "floatInput",
+        "default": 60000
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "e_level",
+        "title": 3542,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "on_field",
+        "title": 3543,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "ordinary_mode",
+        "title": 3544,
+        "type": "bool",
+        "default": true
       }
     ]
   }

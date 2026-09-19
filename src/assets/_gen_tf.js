@@ -1,4 +1,4 @@
-// Generated from Mona v5.33.58; see script/prepare-release.cjs.
+// beta2 preview catalog
 export default {
   "MaxATK": {
     "name": "MaxATK",
@@ -2952,6 +2952,24 @@ export default {
     ],
     "for": "YaeMiko",
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Yae.png",
+    "config": []
+  },
+  "VodyanitsaDefault": {
+    "name": "VodyanitsaDefault",
+    "nameLocale": 3539,
+    "description": 3540,
+    "tags": [],
+    "for": "Vodyanitsa",
+    "badge": "/beta/vodyanitsa.svg",
+    "config": []
+  },
+  "VesnaDefault": {
+    "name": "VesnaDefault",
+    "nameLocale": 3589,
+    "description": 3590,
+    "tags": [],
+    "for": "Vesna",
+    "badge": "/beta/vesna.webp",
     "config": []
   }
 }

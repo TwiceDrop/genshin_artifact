@@ -29,3 +29,5 @@ pub use def_minus::BuffDEFMinus;
 pub use res_minus::BuffResMinus;
 pub use healing_bonus::BuffHealingBonus;
 pub use base_dmg::BuffBaseDmg;
+
+pub mod vesna_support;pub use vesna_support::BuffVesnaSupport;

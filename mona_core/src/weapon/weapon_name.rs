@@ -12,6 +12,8 @@ use crate::common::item_config_type::ItemConfig;
 #[derive(FromPrimitive, Display)]
 #[derive(WeaponData, EnumLen, EnumIter)]
 pub enum WeaponName {
+    BeyondTheChrysalis,
+    HymnOfTheMaelstrom,
     // sword
     MistsplitterReforged,
     AquilaFavonia,

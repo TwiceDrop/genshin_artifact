@@ -44,7 +44,8 @@ pub struct WasmInput {
 //     pub elemental_mastery_len: usize,
 // }
 
-pub struct BonusPerStat;
+#[wasm_bindgen]
+pub struct BonusPerStat {}
 
 #[wasm_bindgen]
 impl BonusPerStat {

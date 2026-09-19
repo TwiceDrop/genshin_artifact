@@ -5,7 +5,8 @@ use mona::potential_function::potential_function::calc_potential;
 use mona::utils::{set_panic_hook};
 use serde::Serialize;
 
-pub struct PotentialInterface;
+#[wasm_bindgen]
+pub struct PotentialInterface {}
 
 pub fn get_potential(artifacts: &[Artifact], pf_interface: &PotentialFunctionInterface) -> Vec<(u64, f64)> {
     let potential_function = pf_interface.to_pf();

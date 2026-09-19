@@ -24,7 +24,8 @@ use wasm_bindgen::prelude::*;
 
 use crate::applications::common::{BuffInterface, CharacterInterface, EnemyInterface, SkillInterface, TargetFunctionInterface, WeaponInterface};
 
-pub struct CalculatorInterface;
+#[wasm_bindgen]
+pub struct CalculatorInterface {}
 
 #[derive(Serialize, Deserialize)]
 pub struct CalculatorConfigInterface {

@@ -125,3 +125,7 @@ mod finale_of_the_deep_galleries;
 pub fn get_effect<T: Attribute>(name: ArtifactSetName, config: &ArtifactEffectConfig, character: &Character<T>) -> Box<dyn ArtifactEffect<T>> {
     name.create_effect(config, &character.common_data)
 }
+
+pub mod scarlet_proof;pub use scarlet_proof::ScarletProof;
+
+pub mod heart_of_the_furnace;pub use heart_of_the_furnace::HeartOfTheFurnace;
