@@ -1,7 +1,46 @@
 use serde::{Deserialize, Serialize};
 
+fn full_coverage() -> f64 { 1.0 }
+
 #[derive(Serialize, Deserialize)]
 pub enum WeaponConfig {
+    NewBough { stacks: f64, radiance: bool, rate: f64 },
+    WintersHeavyHeart { cryo_count: usize, electro_count: usize, radiance: bool, #[serde(default = "full_coverage")] rate: f64 },
+    BreezeborneRefrain { rate: f64 },
+    HereticsMoltenBlade { movement_rate: f64, #[serde(default = "full_coverage")] rate: f64 },
+    Emberwell {
+        reaction_active: bool, stellar_active: bool,
+        #[serde(default = "full_coverage")] reaction_rate: f64,
+        #[serde(default = "full_coverage")] stellar_rate: f64,
+    },
+    ForgedByTheGoldenMelody {
+        state: usize, counterpoint_active: bool, #[serde(default)] counterpoint_state: usize,
+        #[serde(default = "full_coverage")] rate: f64,
+        #[serde(default = "full_coverage")] counterpoint_rate: f64,
+    },
+    BladeOfAtonement {
+        reaction_active: bool, stellar_active: bool,
+        #[serde(default = "full_coverage")] reaction_rate: f64,
+        #[serde(default = "full_coverage")] stellar_rate: f64,
+    },
+    Frostbreath {
+        active: bool,
+        #[serde(default = "full_coverage")] rate: f64,
+        #[serde(default = "full_coverage")] energy_rate: f64,
+    },
+    SongOfTheVigil {
+        stellar_active: bool,
+        #[serde(default = "full_coverage")] rate: f64,
+        #[serde(default = "full_coverage")] energy_rate: f64,
+    },
+    ClashOfKings { active: bool, #[serde(default = "full_coverage")] rate: f64 },
+    EchoesOfTheHeart {
+        reaction_active: bool, stellar_active: bool,
+        #[serde(default = "full_coverage")] reaction_rate: f64,
+        #[serde(default = "full_coverage")] stellar_rate: f64,
+    },
+    JadeVista { same_count: usize, diff_count: usize, #[serde(default = "full_coverage")] rate: f64 },
+    CovenantOfFrostAndSnow { active: bool, #[serde(default = "full_coverage")] rate: f64 },
     BeyondTheChrysalis {
         #[serde(default)] loyal_wind: bool,
         #[serde(default)] rebel_wind: bool,

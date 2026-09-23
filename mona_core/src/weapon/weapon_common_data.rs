@@ -19,6 +19,7 @@ impl WeaponCommonData {
     pub fn new(name: WeaponName, level: i32, ascend: bool, refine: i32) -> WeaponCommonData {
         let static_data = get_static_data(name);
         let base_atk = crate::weapon::signature_stats::stats(name, level, ascend)
+            .or_else(|| crate::weapon::snezhnaya_stats::stats(name, level, ascend))
             .map(|s| s.0).unwrap_or_else(|| static_data.weapon_base.get_base_atk(level, ascend));
 
         WeaponCommonData {
@@ -35,7 +36,8 @@ impl<T: Attribute> ChangeAttribute<T> for WeaponCommonData {
 
         if let Some(s) = self.static_data.weapon_sub_stat {
             let mut sub_stat = WeaponSubStat::new(s, self.level, self.ascend);
-            if let Some((_, value)) = crate::weapon::signature_stats::stats(self.name, self.level, self.ascend) {
+            if let Some((_, value)) = crate::weapon::signature_stats::stats(self.name, self.level, self.ascend)
+                .or_else(|| crate::weapon::snezhnaya_stats::stats(self.name, self.level, self.ascend)) {
                 sub_stat.value = value;
             }
             sub_stat.change_attribute(attribute);

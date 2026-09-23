@@ -8,7 +8,7 @@ use crate::common::item_config_type::ConfigElements8Multi;
 
 #[derive(Serialize, Deserialize)]
 pub enum BuffConfig {
-    VesnaSupport { flat: f64, bonus: f64, crit_damage: f64, elevation: f64, anemo_res: f64 },
+    VesnaSupport { flat: f64, bonus: f64, crit_damage: f64, elevation: f64, anemo_res: f64, #[serde(default)] base: f64 },
     ATKPercentage { p: f64 },
     DEFPercentage { p: f64 },
     HPPercentage { p: f64 },

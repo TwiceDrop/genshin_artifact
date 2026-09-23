@@ -1,4 +1,4 @@
-// beta2 preview catalog
+// Published metadata with verified Stellar Swirl support.
 export default {
   "MaxATK": {
     "name": "MaxATK",
@@ -2454,10 +2454,35 @@ export default {
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/67c7f6c8/abe2da348abe64c67d9c2763d2d8c4e7.png",
     "config": []
   },
+  "YumemizukiMizukiStellarSwirl": {
+    "name": "YumemizukiMizukiStellarSwirl",
+    "nameLocale": 3644,
+    "description": 3645,
+    "tags": [
+      "输出",
+      "星扩散"
+    ],
+    "for": "YumemizukiMizuki",
+    "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/67c7f6c8/1cebf43ac944ad3ff2a0581bebe309d8.png",
+    "config": [
+      {
+        "name": "mode",
+        "title": 3646,
+        "type": "option",
+        "default": 0,
+        "options": [
+          "廓然梦生·直接星扩散",
+          "一命·直接星扩散",
+          "反应星扩散·风",
+          "反应星扩散·冰"
+        ]
+      }
+    ]
+  },
   "YumemizukiMizukiDefault": {
     "name": "YumemizukiMizukiDefault",
     "nameLocale": 2005,
-    "description": 1859,
+    "description": 3647,
     "tags": [
       ""
     ],
@@ -2971,5 +2996,53 @@ export default {
     "for": "Vesna",
     "badge": "/beta/vesna.webp",
     "config": []
+  },
+  "SandroneStellarSwirl": {
+    "name": "SandroneStellarSwirl",
+    "nameLocale": 3664,
+    "description": 3665,
+    "tags": [
+      "输出",
+      "星扩散"
+    ],
+    "for": "Sandrone",
+    "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
+    "config": [
+      {
+        "name": "mode",
+        "title": 3666,
+        "type": "option",
+        "default": 0,
+        "options": [
+          "重击冷凝射线",
+          "棱晶弹",
+          "聚能光束",
+          "四命协同攻击",
+          "六命集束射线（单段）"
+        ]
+      },
+      {
+        "name": "c2_ray_stacks",
+        "title": 286,
+        "type": "int",
+        "default": 0,
+        "min": 0,
+        "max": 3
+      },
+      {
+        "name": "prism_overcharge",
+        "title": 3667,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "burst_tactics_stacks",
+        "title": 3668,
+        "type": "int",
+        "default": 0,
+        "min": 0,
+        "max": 10
+      }
+    ]
   }
 }

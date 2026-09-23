@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-09-22",
+  "versionPolicy": "These old-character Stellar Swirl changes are present in the public 7.0 release data. Current Gachabase release pages may carry the 7.1 release/preload label while cached pages still carry 7.0; that label alone does not establish server availability. Beta 7.0.54 is a separate branch. No additional unverified 7.1 old-character buff has been invented.",
+  "releaseAnnouncement": "https://www.hoyolab.com/article/46233468",
+  "characters": [
+    {
+      "name": "YumemizukiMizuki",
+      "source": "https://gi.gachabase.net/characters/10000109/yumemizuki-mizuki/release?lang=en",
+      "checked": "Lv10 E Stellar Swirl bonus is 4.5% per 100 EM; enhanced periodic hit adds 1000% EM ordinary damage and, during Radiance, a separate 1000% EM Stellar Swirl hit. C1 reaction flat is 550% EM for Stellar Swirl, separate from the 400% EM direct hit. Dreamdrifter grants 10% EM to nearby party characters. C2 reduces five elemental resistances by 20%; C6 adds 10% Stellar Swirl CR and 20% CD, plus own EM-over-500 CR/CD scaling.",
+      "implementation": "Published core already contains direct skill indices 14/15 and enhanced periodic index 16. Added a dedicated damage optimization target and UI reaction access; preserved original character core. Dreamdrifter and Radiance are distinct game conditions."
+    },
+    {
+      "name": "Qiqi",
+      "source": "https://gi.gachabase.net/characters/10000035/qiqi/release?lang=en",
+      "checked": "Herald active during Stellar Swirl Radiance grants 50% Cryo Swirl/Stellar Swirl bonus. C6 grants four 12-second charges; other on-field characters' direct talent/skill Stellar hits gain 600% source Qiqi ATK. It does not grant panel ATK or reaction-vortex flat damage. Coordinated Herald hits are ordinary Cryo.",
+      "implementation": "Original team talent/C6 buffs only affected Stellar Conduct. Added Stellar Swirl bonus and direct flat support; retained original Conduct and ordinary reaction behavior. Updated coordinated-hit label."
+    },
+    {
+      "name": "Diona",
+      "source": "https://gi.gachabase.net/characters/10000039/diona/release?lang=en",
+      "checked": "Choice Treasures recognizes Cryo Swirl/Stellar Swirl. C6 adds 40% Cryo Swirl/Stellar Swirl damage in the matching Radiance state and adds 25% own Max HP.",
+      "implementation": "DionaC6StellarConduct was experimentally verified to already add 40% to Stellar Swirl in the published core; no duplicate bonus was added."
+    },
+    {
+      "name": "Sandrone",
+      "source": "https://gi.gachabase.net/characters/10000133/sandrone/release?lang=en",
+      "snapshot": "beta-data/sources-strengthened/sandrone-release-en.html",
+      "exactSkillData": "beta-data/sandrone-stellar-skills.json",
+      "checked": "Lv10 direct Stellar Swirl ATK ratios: charged 2.4225, skill 0.5832, burst 5.9544; C4 1.875, C6 1.2 per extra hit. E's second prism gains x4 above 50 power; burst gains x(1+0.1*tactics). C2 charged beam gains 40%+20% per stack CD, up to 3 stacks. Own Stellar base bonus caps at 14%; C1 bonus is 30%; C6 elevation is 20%.",
+      "implementation": "Added distinct skill indices 18-22, preserving 0-17. Uses actual Stellar Swirl reaction composition and exact 15-level arrays, not renamed Conduct damage. New target recomputes candidate-dependent ATK, EM, weapon, artifact and own base effects."
+    },
+    {
+      "name": "Varka",
+      "source": "https://gi.gachabase.net/characters/10000128/varka/release?lang=en",
+      "checked": "Stellar Swirl can trigger A4 stacks of 7.5% damage bonus, max 4, and C4 Anemo plus corresponding-element bonus of 20%.",
+      "implementation": "Existing swirl_stacks and c4_bonus controls already express the numeric effects; this is trigger compatibility, not a new direct Stellar damage conversion."
+    },
+    {
+      "name": "KaedeharaKazuha",
+      "source": "https://gi.gachabase.net/characters/10000047/kaedehara-kazuha/release?lang=chs",
+      "checked": "Stellar Swirl can trigger the existing corresponding-element bonus of 0.04% per EM for 8 seconds.",
+      "implementation": "Existing manual teammate buff represents the same numerical effect; no invented Stellar damage bonus was added."
+    },
+    {
+      "name": "Sucrose",
+      "source": "https://gi.gachabase.net/characters/10000043/sucrose/release?lang=en",
+      "checked": "Stellar Swirl can trigger A1's 50 EM to other matching-element teammates for 8 seconds.",
+      "implementation": "Trigger recognition only; retained existing numerical buff."
+    },
+    {
+      "name": "Venti",
+      "source": "https://gi.gachabase.net/characters/10000022/venti/release?lang=en",
+      "checked": "During the Hexerei burst-field effect, Stellar Swirl also triggers the active character's 50% damage bonus and Venti's 135%-of-original Stormeye damage.",
+      "implementation": "Existing song_of_time_rate control already represents the numeric buff; no new Stellar conversion was inferred."
+    },
+    {
+      "name": "Prune",
+      "source": "https://gi.gachabase.net/characters/10000132/prune/release?lang=en",
+      "checked": "Stellar Swirl can trigger E conversion, A1's corresponding-element 150% ATK follow-up, and the Hexerei additional 30% triggering-character ATK buff.",
+      "implementation": "Existing elemental skill/follow-up entries and arcane_swirl_atk_active express these numeric effects."
+    },
+    {
+      "name": "Sayu",
+      "source": "https://gi.gachabase.net/characters/10000053/sayu/release?lang=chs",
+      "checked": "Stellar Swirl triggers A1's 300+1.2*EM healing and C4's 1.2 direct energy restoration, each subject to the existing 2-second interval.",
+      "implementation": "Trigger recognition only. Direct energy was not converted into Energy Recharge."
+    },
+    {
+      "name": "Skirk",
+      "source": "https://gi.gachabase.net/characters/10000114/skirk/release?lang=en",
+      "checked": "Stellar Swirl joins A1's Void Rift trigger list: interval 2.5 seconds, at most 3 rifts, 8 resource per absorbed rift.",
+      "implementation": "Trigger compatibility; no additional damage multiplier inferred."
+    }
+  ],
+  "validation": [
+    "beta-tools/smoke-stellar-support.mjs",
+    "beta-tools/probe-sandrone-review.mjs",
+    "beta-tools/smoke-strengthened.mjs"
+  ]
+}

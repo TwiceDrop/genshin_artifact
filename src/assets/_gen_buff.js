@@ -1,4 +1,4 @@
-// beta2 preview catalog
+// Published metadata with verified Stellar Swirl support.
 export default {
   "ATKPercentage": {
     "name": "ATKPercentage",
@@ -642,16 +642,16 @@ export default {
   },
   "QiqiTalent2StellarConduct": {
     "name": "QiqiTalent2StellarConduct",
-    "nameLocale": 174,
-    "description": 178,
+    "nameLocale": 3648,
+    "description": 3649,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qiqi.png",
     "genre": "Character",
     "config": []
   },
   "QiqiC6StellarConduct": {
     "name": "QiqiC6StellarConduct",
-    "nameLocale": 175,
-    "description": 177,
+    "nameLocale": 3650,
+    "description": 3651,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qiqi.png",
     "genre": "Character",
     "config": [
@@ -3173,8 +3173,8 @@ export default {
   },
   "SandroneTalent1": {
     "name": "SandroneTalent1",
-    "nameLocale": 1991,
-    "description": 3247,
+    "nameLocale": 3652,
+    "description": 3653,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
     "genre": "Character",
     "config": [
@@ -3190,8 +3190,8 @@ export default {
   },
   "SandroneC1": {
     "name": "SandroneC1",
-    "nameLocale": 1992,
-    "description": 1994,
+    "nameLocale": 3654,
+    "description": 3655,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
     "genre": "Character",
     "config": []
@@ -4545,6 +4545,31 @@ export default {
         "title": 3544,
         "type": "bool",
         "default": true
+      }
+    ]
+  },
+  "BreezeborneRefrainSupport": {
+    "name": "BreezeborneRefrainSupport",
+    "nameLocale": 3628,
+    "description": 3633,
+    "badge": "https://i.gachabase.net/ztuDbp624ovROhZ6_MRYUNYGxTuqFgDks6LLUY4tnV8/q:50/f:webp/plain/gi/assets/6c662094dcaba2c59b6024646af690a8.png",
+    "genre": "Weapon",
+    "config": [
+      {
+        "name": "refine",
+        "title": 3630,
+        "type": "intInput",
+        "min": 1,
+        "max": 5,
+        "default": 1
+      },
+      {
+        "name": "rate",
+        "title": 3624,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   }

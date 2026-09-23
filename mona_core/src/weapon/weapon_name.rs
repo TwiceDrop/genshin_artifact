@@ -12,6 +12,19 @@ use crate::common::item_config_type::ItemConfig;
 #[derive(FromPrimitive, Display)]
 #[derive(WeaponData, EnumLen, EnumIter)]
 pub enum WeaponName {
+    NewBough,
+    WintersHeavyHeart,
+    BreezeborneRefrain,
+    HereticsMoltenBlade,
+    Emberwell,
+    ForgedByTheGoldenMelody,
+    BladeOfAtonement,
+    Frostbreath,
+    SongOfTheVigil,
+    ClashOfKings,
+    EchoesOfTheHeart,
+    JadeVista,
+    CovenantOfFrostAndSnow,
     BeyondTheChrysalis,
     HymnOfTheMaelstrom,
     // sword

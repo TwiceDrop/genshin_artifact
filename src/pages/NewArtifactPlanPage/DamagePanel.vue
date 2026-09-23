@@ -23,6 +23,7 @@
 
 <script>
 import { damageComparison } from '@/algorithms/damage-comparison.mjs'
+import { ADDITIONAL_DAMAGE_REACTIONS, damageReactionLabel } from '@/algorithms/reaction-labels.mjs'
 import {useI18n} from "@/i18n/i18n";
 
 export default {
@@ -119,9 +120,8 @@ export default {
             if (this.analysisFromWasm.direct_moonelectro) {
                 push("direct_moonelectro", "直接月感电")
             }
-            const additional = { direct_moonbloom: '直接月绽放', mooncrystallize: '月结晶', direct_mooncrystallize: '直接月结晶', direct_stellarconduct: '星超导', direct_stellarswirl: '星扩散' }
-            for (const [key, title] of Object.entries(additional)) {
-                if (this.analysisFromWasm[key]) push(key, title)
+            for (const key of ADDITIONAL_DAMAGE_REACTIONS) {
+                if (Number.isFinite(this.analysisFromWasm[key]?.expectation)) push(key, damageReactionLabel(key))
             }
 
             return temp
