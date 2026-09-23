@@ -148,11 +148,11 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly dslinterface_run: (a: number, b: number, c: number, d: number) => number;
+  readonly __wbg_dslinterface_free: (a: number) => void;
   readonly calculatorinterface_get_damage_analysis: (a: number, b: number) => number;
   readonly calculatorinterface_get_transformative_damage: (a: number) => number;
   readonly __wbg_calculatorinterface_free: (a: number) => void;
-  readonly dslinterface_run: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbg_dslinterface_free: (a: number) => void;
   readonly commoninterface_get_attribute: (a: number) => number;
   readonly commoninterface_get_artifacts_rank_by_character: (a: number, b: number, c: number, d: number) => number;
   readonly bonusperstat_bonus_per_stat: (a: number) => number;

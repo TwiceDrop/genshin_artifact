@@ -1,4 +1,4 @@
-// beta3 weapon catalog
+// Weapon metadata: published catalog with 7.1 beta additions.
 export default {
   "MistsplitterReforged": {
     "name": "MistsplitterReforged",
@@ -919,17 +919,26 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/87d27550c758abfcfe4295bf1feaa7f3.png",
     "type": "Sword",
-    "effect": 1507,
+    "effect": 3602,
     "configs": [
       {
-        "default": 1,
-        "max": 1,
-        "min": 0,
         "name": "movement_rate",
-        "title": 1469,
-        "type": "float"
+        "title": 3634,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "rate",
+        "title": 3636,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 11435
   },
   "Emberwell": {
     "name": "Emberwell",
@@ -938,7 +947,7 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/b994ba18cd4931b61958de51b5395d67.png",
     "type": "Sword",
-    "effect": 2944,
+    "effect": 3603,
     "configs": [
       {
         "default": true,
@@ -951,8 +960,25 @@ export default {
         "name": "stellar_active",
         "title": 1176,
         "type": "bool"
+      },
+      {
+        "name": "reaction_rate",
+        "title": 3643,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "stellar_rate",
+        "title": 3638,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 11436
   },
   "WhitelakeFrostfeather": {
     "name": "WhitelakeFrostfeather",
@@ -1771,7 +1797,7 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/f3831aed5e415c960fe1b6ad8f6024e5.png",
     "type": "Claymore",
-    "effect": 2040,
+    "effect": 3606,
     "configs": [
       {
         "default": 0,
@@ -1789,8 +1815,37 @@ export default {
         "name": "counterpoint_active",
         "title": 890,
         "type": "bool"
+      },
+      {
+        "name": "counterpoint_state",
+        "title": 3632,
+        "type": "option",
+        "default": 0,
+        "options": [
+          "跟随当前乐章",
+          "攻击力复调",
+          "元素精通复调",
+          "星烁反应复调"
+        ]
+      },
+      {
+        "name": "rate",
+        "title": 3639,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "counterpoint_rate",
+        "title": 3640,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 12435
   },
   "BladeOfAtonement": {
     "name": "BladeOfAtonement",
@@ -1799,7 +1854,7 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/7f31b15690c0c7d5f3fc385b7ad0bf8d.png",
     "type": "Claymore",
-    "effect": 2943,
+    "effect": 3607,
     "configs": [
       {
         "default": true,
@@ -1812,8 +1867,25 @@ export default {
         "name": "stellar_active",
         "title": 1176,
         "type": "bool"
+      },
+      {
+        "name": "reaction_rate",
+        "title": 3643,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "stellar_rate",
+        "title": 3638,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 12436
   },
   "EngulfingLightning": {
     "name": "EngulfingLightning",
@@ -2541,15 +2613,32 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/42f9925ccf0ed36513ab375d0ccd606f.png",
     "type": "Polearm",
-    "effect": 2947,
+    "effect": 3608,
     "configs": [
       {
         "default": true,
         "name": "active",
         "title": 1466,
         "type": "bool"
+      },
+      {
+        "name": "rate",
+        "title": 3641,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "energy_rate",
+        "title": 3642,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 13435
   },
   "SongOfTheVigil": {
     "name": "SongOfTheVigil",
@@ -2558,15 +2647,32 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/1c4ebc0821298a77ebd8cf5ef487b871.png",
     "type": "Polearm",
-    "effect": 2946,
+    "effect": 3609,
     "configs": [
       {
         "default": true,
         "name": "stellar_active",
         "title": 1176,
         "type": "bool"
+      },
+      {
+        "name": "rate",
+        "title": 3641,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "energy_rate",
+        "title": 3642,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 13436
   },
   "LostPrayerToTheSacredWinds": {
     "name": "LostPrayerToTheSacredWinds",
@@ -3552,15 +3658,24 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/741f589153ef2d22307233be14b00e12.png",
     "type": "Catalyst",
-    "effect": 2953,
+    "effect": 3610,
     "configs": [
       {
         "default": true,
         "name": "active",
         "title": 1466,
         "type": "bool"
+      },
+      {
+        "name": "rate",
+        "title": 3636,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 14435
   },
   "EchoesOfTheHeart": {
     "name": "EchoesOfTheHeart",
@@ -3569,7 +3684,7 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/93c5de39db16c894abaf1df56b710dd5.png",
     "type": "Catalyst",
-    "effect": 2942,
+    "effect": 3611,
     "configs": [
       {
         "default": true,
@@ -3582,8 +3697,25 @@ export default {
         "name": "stellar_active",
         "title": 1176,
         "type": "bool"
+      },
+      {
+        "name": "reaction_rate",
+        "title": 3643,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "stellar_rate",
+        "title": 3638,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 14436
   },
   "PolarStar": {
     "name": "PolarStar",
@@ -4443,25 +4575,34 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/0f601bcd039f213598bb9d89842c982e.png",
     "type": "Bow",
-    "effect": 387,
+    "effect": 3614,
     "configs": [
       {
-        "default": 2,
-        "max": 4,
-        "min": 0,
         "name": "same_count",
-        "title": 709,
-        "type": "int"
+        "title": 3625,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 2
       },
       {
-        "default": 2,
-        "max": 4,
-        "min": 0,
         "name": "diff_count",
-        "title": 1235,
-        "type": "int"
+        "title": 3626,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 1
+      },
+      {
+        "name": "rate",
+        "title": 3635,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 15435
   },
   "CovenantOfFrostAndSnow": {
     "name": "CovenantOfFrostAndSnow",
@@ -4470,15 +4611,24 @@ export default {
     "star": 4,
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/2865b59789886b72f1a9a9bcf3e731de.png",
     "type": "Bow",
-    "effect": 2952,
+    "effect": 3615,
     "configs": [
       {
         "default": true,
         "name": "active",
         "title": 1466,
         "type": "bool"
+      },
+      {
+        "name": "rate",
+        "title": 3636,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
-    ]
+    ],
+    "id": 15436
   },
   "HymnOfTheMaelstrom": {
     "name": "HymnOfTheMaelstrom",
@@ -4561,5 +4711,101 @@ export default {
       }
     ],
     "id": 11522
+  },
+  "NewBough": {
+    "name": "NewBough",
+    "internalName": "Sword_NewBough",
+    "nameLocale": 3604,
+    "id": 11437,
+    "star": 4,
+    "type": "Sword",
+    "url": "https://i.gachabase.net/_0oyZ_gscDAEq9G0ll6uKPo34rZKSRKWk_Y2HtgU4m4/q:50/f:webp/plain/gi/assets/999cd5ea606e3a368d04e88d988cd21a.png",
+    "effect": 3605,
+    "configs": [
+      {
+        "name": "stacks",
+        "title": 3631,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 0
+      },
+      {
+        "name": "radiance",
+        "title": 3619,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "rate",
+        "title": 3620,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      }
+    ]
+  },
+  "WintersHeavyHeart": {
+    "name": "WintersHeavyHeart",
+    "internalName": "Catalyst_WintersHeavyHeart",
+    "nameLocale": 3612,
+    "id": 14437,
+    "star": 4,
+    "type": "Catalyst",
+    "url": "https://i.gachabase.net/5JdfT921JygH_EDQF3wo70r2ltGQAzPw-SLrxCGxO1Q/q:50/f:webp/plain/gi/assets/39d7ad17a1dac916cbd67b5c56529ea1.png",
+    "effect": 3613,
+    "configs": [
+      {
+        "name": "cryo_count",
+        "title": 3621,
+        "type": "int",
+        "min": 0,
+        "max": 4,
+        "default": 0
+      },
+      {
+        "name": "electro_count",
+        "title": 3622,
+        "type": "int",
+        "min": 0,
+        "max": 4,
+        "default": 0
+      },
+      {
+        "name": "radiance",
+        "title": 3623,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "rate",
+        "title": 3635,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      }
+    ]
+  },
+  "BreezeborneRefrain": {
+    "name": "BreezeborneRefrain",
+    "internalName": "Bow_BreezeborneRefrain",
+    "nameLocale": 3616,
+    "id": 15437,
+    "star": 4,
+    "type": "Bow",
+    "url": "https://i.gachabase.net/ztuDbp624ovROhZ6_MRYUNYGxTuqFgDks6LLUY4tnV8/q:50/f:webp/plain/gi/assets/6c662094dcaba2c59b6024646af690a8.png",
+    "effect": 3617,
+    "configs": [
+      {
+        "name": "rate",
+        "title": 3624,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 0
+      }
+    ]
   }
 }

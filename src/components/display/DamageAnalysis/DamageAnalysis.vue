@@ -1,5 +1,5 @@
 <template>
-    <div style="margin-bottom: 16px;" class="flex-row">
+    <div style="margin-bottom: 16px;" class="flex-row damage-reaction-controls">
         <el-radio-group v-model="damageType" style="margin-right: 24px;">
             <el-radio-button label="normal">{{ normalDamageName }}</el-radio-button>
             <el-radio-button v-if="showMeltOption" label="melt">融化</el-radio-button>
@@ -9,6 +9,7 @@
             <el-radio-button v-if="showMoonfallOption" label="moonfall">月绽放</el-radio-button>
             <el-radio-button v-if="showMoonElectroOption" label="moonelectro">月感电</el-radio-button>
             <el-radio-button v-if="showDirectMoonElectroOption" label="direct_moonelectro">直伤月感电</el-radio-button>
+            <el-radio-button v-for="result in stellarResults" :key="result.key" :label="result.key">{{ result.label }}</el-radio-button>
         </el-radio-group>
 
         <span class="damage-display" v-if="damageType === 'normal'">{{ Math.round(damageNormal) }}</span>
@@ -19,9 +20,19 @@
         <span class="damage-display" v-if="damageType === 'moonfall'">{{ Math.round(damageMoonfall) }}</span>
         <span class="damage-display" v-if="damageType === 'moonelectro'">{{ Math.round(damageMoonElectro) }}</span>
         <span class="damage-display" v-if="damageType === 'direct_moonelectro'">{{ Math.round(damageDirectMoonElectro) }}</span>
+        <span class="damage-display" v-if="selectedStellarResult">{{ formatStellarDamage(selectedStellarResult.expectation) }}</span>
     </div>
 
-    <div class="header-row" style="overflow: auto; margin-bottom: 16px;">
+    <section v-if="selectedStellarResult" class="stellar-detail">
+        <el-descriptions :column="3" border>
+            <el-descriptions-item label="期望伤害">{{ formatStellarDamage(selectedStellarResult.expectation) }}</el-descriptions-item>
+            <el-descriptions-item label="暴击伤害">{{ formatStellarDamage(selectedStellarResult.critical) }}</el-descriptions-item>
+            <el-descriptions-item label="非暴击伤害">{{ formatStellarDamage(selectedStellarResult.non_critical) }}</el-descriptions-item>
+        </el-descriptions>
+        <p>以上为当前配装与技能条件下的完整结果；请在角色、武器或增益设置中调整生效条件。</p>
+    </section>
+
+    <div v-else class="header-row" style="overflow: auto; margin-bottom: 16px;">
         <div>
             <div class="big-title base-damage-region" :title="Math.round(baseDamageSpread*1000)/1000" v-if="damageType === 'spread'">{{ baseRegionName }}</div>
             <div class="big-title base-damage-region" :title="Math.round(baseDamageAggravate*1000)/1000" v-else-if="damageType === 'aggravate'">{{ baseRegionName }}</div>
@@ -205,7 +216,7 @@
         </div>
     </div>
 
-    <div v-if="isDamage" class="header-row" style="overflow: auto">
+    <div v-if="isDamage && !selectedStellarResult" class="header-row" style="overflow: auto">
         <div>
             <div class="big-title def-minus">防御乘区</div>
             <div class="header-row">
@@ -235,6 +246,7 @@
 <script>
 import DamageAnalysisUtil from "./DamageAnalysisUtil"
 import { LEVEL_MULTIPLIER } from "@/constants/levelMultiplier"
+import { stellarDamageResults, defaultDamageReaction } from "@/algorithms/reaction-labels.mjs"
 
 function sum(arr) {
     let s = 0
@@ -255,6 +267,7 @@ export default {
     data() {
         return {
             damageType: "normal",
+            stellarResults: [],
             element: "Pyro",
             isHeal: false,
             isShield: false,
@@ -289,6 +302,9 @@ export default {
         }
     },
     methods: {
+        formatStellarDamage(value) {
+            return Number.isFinite(value) ? Math.round(value).toLocaleString("zh-CN") : "—"
+        },
         setValue(analysis) {
             console.log(analysis)
             let map = {
@@ -323,7 +339,9 @@ export default {
             this.isHeal = analysis.is_heal
             this.isShield = analysis.is_shield
             this.isDamage = !this.isHeal && !this.isShield
-            this.damageType = "normal"
+            this.stellarResults = stellarDamageResults(analysis)
+            const preferred = defaultDamageReaction(analysis)
+            this.damageType = this.stellarResults.some(result => result.key === preferred) ? preferred : "normal"
             for (let key in map) {
                 let fromKey = map[key]
                 let temp = []
@@ -339,6 +357,9 @@ export default {
         }
     },
     computed: {
+        selectedStellarResult() {
+            return this.stellarResults.find(result => result.key === this.damageType)
+        },
         normalDamageName() {
             const map = {
                 "Pyro": "火元素伤害",
@@ -681,6 +702,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.damage-reaction-controls { flex-wrap: wrap; gap: 12px; }
+.damage-reaction-controls :deep(.el-radio-group) { display: flex; flex-wrap: wrap; row-gap: 8px; }
+.stellar-detail { overflow-x: auto; }
+.stellar-detail p { color: #7a8797; font-size: 12px; line-height: 1.7; }
+
 .header-row {
     display: flex;
     // align-items: center;

@@ -1,11 +1,11 @@
 <template>
     <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
-        <el-alert v-if="characterName === 'Vodyanitsa'" type="warning" :closable="false" show-icon style="margin-bottom:16px"
-            title="沃雅妮莎 · 测试服 7.0.54 / D48100502"
+        <el-alert v-if="characterName === 'Vodyanitsa'" type="info" :closable="false" show-icon style="margin-bottom:16px"
+            title="沃雅妮莎 · 计算说明"
             description="已接入普通技能、治疗、命座条件、专武及单人配装。天赋填游戏显示等级（含命座）；BUFF 开关需按战斗状态设置。星扩散完整结算、部分新装备与多人联合优化仍待适配；歌声 Q 乘区默认关闭，确认后再启用。" />
-        <el-alert v-if="characterName === 'Vesna'" type="warning" :closable="false" show-icon style="margin-bottom:16px"
-            title="薇斯纳 · 7.1.01 beta1 · 测试服 7.0.54 / D48100502"
-            description="已接入角色、蝶变、普通/星扩散伤害、单人配装和词条曲线。辉映需先触发冰扩散；二命列装自动满层整肃。定额与整肃乘区可切换，仍待实测；天赋填游戏显示等级。自身被动由下方角色配置控制。新角色配装仅使用扩展已支持的套装，未支持套装不纳入候选。" />
+        <el-alert v-if="characterName === 'Vesna'" type="info" :closable="false" show-icon style="margin-bottom:16px"
+            title="薇斯纳 · 计算说明"
+            description="已接入角色、蝶变、普通/星扩散伤害、单人配装和词条曲线。辉映需先触发冰扩散；二命列装自动满层整肃。定额与整肃乘区可切换；天赋填游戏显示等级。自身被动由下方角色配置控制。新角色配装仅使用扩展已支持的套装，未支持套装不纳入候选。" />
         <nav class="calc-mobile-tabs" aria-label="计算器分区">
             <button :class="{ active: mobileCalcTab === 'character' }" @click="mobileCalcTab = 'character'">角色与配置</button>
             <button :class="{ active: mobileCalcTab === 'equipment' }" @click="mobileCalcTab = 'equipment'">圣遗物与伤害</button>
@@ -278,7 +278,7 @@
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" description="此组合暂不显示计算结果。请更换未适配的装备或 BUFF；原有角色的原版组合仍可使用。" style="margin-bottom:16px" />
-        <el-alert v-if="betaSupportActive" type="warning" :closable="false" title="沃雅妮莎队友 BUFF · 测试服" description="已接入普通水 / 冰支援。星扩散与月反应结果暂不显示，避免将普通增益误用于特殊反应。来源生命请填写战斗状态下的最终值；自身效果已在角色设置启用时，请勿重复添加同名支援。" style="margin-bottom:16px" />
+        <el-alert v-if="betaSupportActive" type="info" :closable="false" title="沃雅妮莎队友 BUFF" description="已接入普通水 / 冰支援。星扩散与月反应结果暂不显示，避免将普通增益误用于特殊反应。来源生命请填写战斗状态下的最终值；自身效果已在角色设置启用时，请勿重复添加同名支援。" style="margin-bottom:16px" />
         <el-row class="big-container">
             <el-col class="left-container mona-scroll-hidden" :sm="24" :md="6">
                 <div class="config-character">
@@ -1362,6 +1362,7 @@ const bonusPerStatWasmInterface = computed(() => {
         artifacts: artifactWasmFormat.value,
         tf: targetFunctionInterface.value,
         buffs: buffsInterface.value,
+        enemy: enemyInterface.value,
         artifacts_config: artifactConfigForCalculator.value
     }
 })
@@ -1598,6 +1599,7 @@ function getOptimizeArtifactWasmInterface() {
         weapon: weaponInterface.value,
         target_function: targetFunctionInterface.value,
         constraint: constraintInterface.value,
+        enemy: enemyInterface.value,
         buffs: buffsInterface.value,
         artifact_config,
         algorithm: algorithm.value,

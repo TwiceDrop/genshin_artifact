@@ -1,11 +1,11 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export function dslinterface_run(a: number, b: number, c: number, d: number): number;
+export function __wbg_dslinterface_free(a: number): void;
 export function calculatorinterface_get_damage_analysis(a: number, b: number): number;
 export function calculatorinterface_get_transformative_damage(a: number): number;
 export function __wbg_calculatorinterface_free(a: number): void;
-export function dslinterface_run(a: number, b: number, c: number, d: number): number;
-export function __wbg_dslinterface_free(a: number): void;
 export function commoninterface_get_attribute(a: number): number;
 export function commoninterface_get_artifacts_rank_by_character(a: number, b: number, c: number, d: number): number;
 export function bonusperstat_bonus_per_stat(a: number): number;

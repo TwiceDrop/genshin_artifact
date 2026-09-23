@@ -84,15 +84,14 @@ import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, MarkPointComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { STATS, combinationCount, rollValue } from '@/algorithms/stat-gain/curve.mjs'
+import { damageReactionOptions, defaultDamageReaction } from '@/algorithms/reaction-labels.mjs'
 
 use([LineChart, BarChart, GridComponent, TooltipComponent, MarkPointComponent, CanvasRenderer])
 const props = defineProps({ input: { type: Object, required: true }, analysis: { type: Object, required: true }, fumo: { type: String, default: 'None' } })
-const reactionLabels = { normal: '普通伤害 / 治疗', melt: '融化', vaporize: '蒸发', spread: '蔓激化', aggravate: '超激化', moonfall: '月落', moonelectro: '月感电', mooncrystallize: '月结晶', direct_moonelectro: '直接月感电', direct_moonbloom: '直接月绽放', direct_mooncrystallize: '直接月结晶', direct_stellarconduct: '星超导', direct_stellarswirl: '星扩散' }
-const reactions = computed(() => Object.entries(props.analysis).filter(([, v]) => v && typeof v === 'object' && Number.isFinite(v.expectation)).map(([key]) => ({ key, label: reactionLabels[key] || key })))
+const reactions = computed(() => damageReactionOptions(props.analysis))
 const reaction = ref('')
 function chooseReaction() {
-    const positive = reactions.value.filter(r => props.analysis[r.key].expectation > 0)
-    reaction.value = positive.find(r => r.key === 'direct_stellarconduct')?.key || positive[0]?.key || reactions.value[0]?.key || ''
+    reaction.value = defaultDamageReaction(props.analysis)
 }
 chooseReaction()
 const tier = ref('average')

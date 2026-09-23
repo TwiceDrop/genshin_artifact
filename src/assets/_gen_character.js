@@ -1,4 +1,4 @@
-// beta2 preview catalog
+// Published metadata with verified Stellar Swirl support.
 export default {
   "AetherAnemo": {
     "name": "AetherAnemo",
@@ -5480,7 +5480,7 @@ export default {
       },
       {
         "index": 16,
-        "text": 1109
+        "text": 3663
       },
       {
         "index": 13,
@@ -12725,6 +12725,10 @@ export default {
       {
         "index": 9,
         "text": 3442
+      },
+      {
+        "index": 18,
+        "text": 3656
       }
     ],
     "skillMap2": [
@@ -12739,6 +12743,14 @@ export default {
       {
         "index": 15,
         "text": 2013
+      },
+      {
+        "index": 19,
+        "text": 3657
+      },
+      {
+        "index": 21,
+        "text": 3659
       }
     ],
     "skillMap3": [
@@ -12761,6 +12773,14 @@ export default {
       {
         "index": 17,
         "text": 507
+      },
+      {
+        "index": 20,
+        "text": 3658
+      },
+      {
+        "index": 22,
+        "text": 3660
       }
     ],
     "config": [
@@ -12779,13 +12799,13 @@ export default {
       {
         "default": true,
         "name": "c1_team_stellar",
-        "title": 145,
+        "title": 3661,
         "type": "bool"
       },
       {
         "default": true,
         "name": "c6_elevate_active",
-        "title": 500,
+        "title": 3662,
         "type": "bool"
       }
     ],
@@ -13079,7 +13099,7 @@ export default {
     "element": "Hydro",
     "weapon": "Catalyst",
     "star": 5,
-    "avatar": "/beta/vodyanitsa.svg",
+    "avatar": "/characters/vodyanitsa.webp",
     "splash": "/beta/vodyanitsa.svg",
     "skillName1": 3518,
     "skillName2": 3519,
@@ -13206,7 +13226,7 @@ export default {
     "element": "Anemo",
     "weapon": "Sword",
     "star": 5,
-    "avatar": "/beta/vesna.webp",
+    "avatar": "/characters/vesna.webp",
     "splash": "/beta/vesna.webp",
     "skillName1": 3561,
     "skillName2": 3562,

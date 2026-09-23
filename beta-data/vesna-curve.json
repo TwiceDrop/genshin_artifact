@@ -14,9 +14,9 @@
     },
     {
       "rolls": 1,
-      "damage": 221263.41612754267,
+      "damage": 221263.41612754264,
       "gain": 0.024611630464668632,
-      "marginal": 5314.84639756789,
+      "marginal": 5314.846397567861,
       "allocation": {
         "ATKPercentage": 0,
         "ElementalMastery": 0,
@@ -26,9 +26,9 @@
     },
     {
       "rolls": 2,
-      "damage": 226647.94741974544,
-      "gain": 0.04954595301626363,
-      "marginal": 5384.531292202766,
+      "damage": 226647.94741974538,
+      "gain": 0.04954595301626341,
+      "marginal": 5384.531292202737,
       "allocation": {
         "ATKPercentage": 1,
         "ElementalMastery": 0,
@@ -40,7 +40,7 @@
       "rolls": 3,
       "damage": 232092.1326716156,
       "gain": 0.07475651708102049,
-      "marginal": 5444.1852518701635,
+      "marginal": 5444.185251870222,
       "allocation": {
         "ATKPercentage": 1,
         "ElementalMastery": 0,
@@ -122,9 +122,9 @@
     },
     {
       "rolls": 10,
-      "damage": 271192.2486477194,
-      "gain": 0.25581868398953556,
-      "marginal": 5385.574007508985,
+      "damage": 271192.24864771945,
+      "gain": 0.2558186839895358,
+      "marginal": 5385.574007509043,
       "allocation": {
         "ATKPercentage": 5,
         "ElementalMastery": 0,
@@ -136,7 +136,7 @@
       "rolls": 11,
       "damage": 276577.8226552284,
       "gain": 0.28075783507649654,
-      "marginal": 5385.574007508985,
+      "marginal": 5385.574007508927,
       "allocation": {
         "ATKPercentage": 5,
         "ElementalMastery": 0,
@@ -230,9 +230,9 @@
     },
     {
       "rolls": 19,
-      "damage": 320941.7229081064,
-      "gain": 0.48619517744163154,
-      "marginal": 5694.968636284233,
+      "damage": 320941.72290810634,
+      "gain": 0.4861951774416311,
+      "marginal": 5694.968636284175,
       "allocation": {
         "ATKPercentage": 8,
         "ElementalMastery": 0,
@@ -242,9 +242,9 @@
     },
     {
       "rolls": 20,
-      "damage": 326730.16497722664,
-      "gain": 0.512999902642443,
-      "marginal": 5788.4420691202395,
+      "damage": 326730.1649772267,
+      "gain": 0.5129999026424432,
+      "marginal": 5788.442069120356,
       "allocation": {
         "ATKPercentage": 9,
         "ElementalMastery": 0,

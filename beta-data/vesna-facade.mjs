@@ -1,4 +1,5 @@
 import {normalizeSignatureWeapon, chrysalisEffects} from './weapon-effects.mjs';
+import {isLimitedWeapon, limitedWeaponEffects, LIMITED_WEAPONS} from './limited-weapons.mjs';
 const clone=x=>JSON.parse(JSON.stringify(x)),named=(name,config)=>({name,config:{[name]:config}});
 const sum=x=>Object.values(x||{}).reduce((a,b)=>a+b,0);
 export function createBeta2(base,extension,support){
@@ -16,7 +17,7 @@ export function createBeta2(base,extension,support){
   if(x.weapon&&!support.weapons.includes(x.weapon.name)&&x.weapon.name!=='BeyondTheChrysalis')throw Error('薇斯纳扩展暂不支持这把武器：'+x.weapon.name);
   if(x.target_function?.use_dsl||x.tf?.use_dsl)throw Error('薇斯纳暂不支持 MONA-DSL，请使用薇斯纳的原生目标。');
   for(const t of [x.target_function,x.tf])if(t&&t.name!=='VesnaDefault'&&!t.name.startsWith('Common'))throw Error('请为薇斯纳选择「灵剑·爆发」目标。');
-  const buffs=[],state={flat:0,bonus:0,crit_damage:0,elevation:0,anemo_res:0},seen=new Set();
+  const buffs=[],state={flat:0,base:0,bonus:0,crit_damage:0,elevation:0,anemo_res:0},seen=new Set();
   for(const b of x.buffs||[]){
    if(seen.has(b.name))continue;seen.add(b.name);
    if(b.name.startsWith('Vodyanitsa')){
@@ -33,13 +34,18 @@ export function createBeta2(base,extension,support){
    else if(nativeBuffs.has(b.name))buffs.push(b);
    else throw Error('薇斯纳扩展暂不支持此 BUFF：'+b.name);
   }
+  const displayedState={...state};
+  for(const buff of buffs)if(buff.name==='VesnaSupport')for(const key of Object.keys(displayedState))displayedState[key]+=Number(buff.config?.VesnaSupport?.[key]||0);
   buffs.push(named('VesnaSupport',state));x.buffs=buffs;
   function normalizeArtifacts(arts){const counts={};for(const a of arts)counts[a.set_name]=(counts[a.set_name]||0)+1;return arts.map(a=>{if(supported.has(a.set_name))return a;if(counts[a.set_name]===1)return {...a,set_name:'Empty'};throw Error('薇斯纳暂未适配该套装效果：'+a.set_name+'。请先使用血红之证或已支持的套装。');});}
   if(x.artifacts)x.artifacts=normalizeArtifacts(x.artifacts);
-  return {x,candidates:candidates?clone(candidates).filter(a=>supported.has(a.set_name)):undefined,state};
+  return {x,candidates:candidates?clone(candidates).filter(a=>supported.has(a.set_name)):undefined,state:displayedState};
  }
  const wrap=(className)=>new Proxy(base[className]||{}, {get(target,method){if(typeof target[method]!=='function'&&typeof extension[className]?.[method]!=='function')return target[method];return (...args)=>{
-  const input=args[0];
+ const input=args[0];
+  if(className==='CommonInterface'&&method==='get_artifacts_rank_by_character'&&input?.name==='Vesna'){
+   throw Error('薇斯纳的静态评分权重尚未实现，请使用单人配装的实际伤害目标。');
+  }
   if(input?.weapon?.name==='BeyondTheChrysalis'&&input?.character?.name!=='Vesna')throw Error('蝶变装备计算目前支持薇斯纳；其他角色装备蝶变尚未接入。');
   if(className==='TeamOptimizationWasm'&&input?.single_interfaces?.some(x=>x.character?.name==='Vesna'))throw Error('薇斯纳暂不支持多人联合配装，请使用单人计算。');
   if(input?.character?.name!=='Vesna')return target[method](...args);
@@ -56,15 +62,16 @@ export function createBeta2(base,extension,support){
     r.direct_stellarswirl=r.normal;r.normal={critical:0,non_critical:0,expectation:0,is_heal:false,is_shield:false};
     const atk=sum(r.atk),em=sum(r.em),co=x.character.constellation;
     const stacks=co>=2&&p.stance?6:p.disciplinary_stacks;
-    r.direct_stellarswirl_base_compose={'星耀祝礼（测试服）':Math.min(atk*.00007,.14)};
+    r.direct_stellarswirl_base_compose={'星耀祝礼':Math.min(atk*.00007,.14),'队友星扩散基础增益':state.base};
     r.direct_stellarswirl_compose={'精通':6*em/(2000+em),'队友':state.bonus};
     if(x.weapon.name==='BeyondTheChrysalis')r.direct_stellarswirl_compose['蝶变']=chrysalisEffects(x.weapon).stellarSwirlBonus;
+    if(isLimitedWeapon(x.weapon))r.direct_stellarswirl_compose[LIMITED_WEAPONS[x.weapon.name].label]=limitedWeaponEffects(x.weapon).stellar;
     for(const [set,key,value]of [['ScarletProof','config_scarlet_proof',.4],['HeartOfTheFurnace','config_heart_of_the_furnace',.5]])if(x.artifacts.filter(a=>a.set_name===set).length>=4)r.direct_stellarswirl_compose[set]=value*(x.artifact_config?.[key]?.rate??0);
     if(co>=1&&p.stance)r.direct_stellarswirl_compose['薇斯纳一命']=.2;
     r.critical_stellarswirl={};r.critical_damage_stellarswirl={'队友星伤暴伤':state.crit_damage};
     r.direct_stellarswirl_extra_fixed={'队友定额加值':state.flat};
     r.elevate_stellarswirl_compose={'薇斯纳六命':co>=6?.2:0,'队友':state.elevation};
-    r.beta2_model={revision:'7.0.54 D48100502',discipline:stacks,flat_inside:p.flat_inside_discipline};
+    r.beta2_model={revision:'7.1.0 D48145775',discipline:stacks,flat_inside:p.flat_inside_discipline};
    }
   }
   return r;

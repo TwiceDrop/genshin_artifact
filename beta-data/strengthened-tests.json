@@ -1,0 +1,271 @@
+{
+  "checkedAt": "2026-09-22T14:24:19.515Z",
+  "scope": "Published WASM formula audit and the full composed API for the new Yumemizuki Mizuki Stellar Swirl optimization target; no product code is patched by this script.",
+  "source": {
+    "url": "https://gi.gachabase.net/characters/10000109/yumemizuki-mizuki/release?lang=chs",
+    "version": "7.0.0",
+    "designRevision": 47194594
+  },
+  "passed": 26,
+  "total": 26,
+  "tests": [
+    {
+      "name": "瑞希技能目录包含14/15直星扩散与16强化持续攻击",
+      "pass": true
+    },
+    {
+      "name": "E自身星扩散增伤：技能1～15档每100EM的完整系数",
+      "pass": true
+    },
+    {
+      "name": "E队友BUFF：技能1～15档、0/500/1000精通，星扩散增伤正确",
+      "pass": true
+    },
+    {
+      "name": "idx16普通强化持续攻击：原E倍率不变并额外加1000%EM",
+      "pass": true
+    },
+    {
+      "name": "idx14星扩散额外伤害：1000%EM、精通/E增伤、抗性与双暴完整乘区",
+      "pass": true
+    },
+    {
+      "name": "C1独立直伤：idx15为400%EM，与idx14比例0.4，C0无该直伤",
+      "pass": true
+    },
+    {
+      "name": "C1反应固定加值：550%总EM、开关关闭清除，独立直伤不重复叠加",
+      "pass": true
+    },
+    {
+      "name": "C1队友BUFF只添加550%源EM反应固定值",
+      "pass": true
+    },
+    {
+      "name": "C2自身开启强化状态后风抗降低20%，同时覆盖星扩散风与冰部分",
+      "pass": true
+    },
+    {
+      "name": "C2队友BUFF五种抗性降低20%，火水雷冰伤每EM0.04%，不影响草岩",
+      "pass": true
+    },
+    {
+      "name": "C6自身精通转换：500阈值、1000封顶，不将额外转换精通重复作为源",
+      "pass": true
+    },
+    {
+      "name": "C6星伤专属10%暴击率和20%暴伤，与普通双暴分开",
+      "pass": true
+    },
+    {
+      "name": "廓然梦生10%精通转换与队友BUFF，不产生递归增幅",
+      "pass": true
+    },
+    {
+      "name": "瑞希idx14/15星伤最优词条曲线与原发布WASM实际伤害相同",
+      "pass": true
+    },
+    {
+      "name": "兼容旧存档：原瑞希纯精通配装目标继续最大化精通",
+      "pass": true
+    },
+    {
+      "name": "新星扩散目标位于瑞希目录首位，四模式和旧精通目标同时存在",
+      "pass": true
+    },
+    {
+      "name": "四模式 AStar/Naive 配装值等于对应实际伤害，保留强化状态及C1开关",
+      "pass": true
+    },
+    {
+      "name": "四模式十词条收益：精通、暴击率、暴伤逐档与实际加词条伤害一致",
+      "pass": true
+    },
+    {
+      "name": "变化候选以实际星伤选择精通或双暴，旧精通目标仍选精通",
+      "pass": true
+    },
+    {
+      "name": "四模式最优词条曲线每个点与新配装目标一致",
+      "pass": true
+    },
+    {
+      "name": "新目标不改写角色、目标或圣遗物存档，冻结输入也可计算",
+      "pass": true
+    },
+    {
+      "name": "非法目标模式、错误角色、C0一命模式及静态评分都明确拒绝",
+      "pass": true
+    },
+    {
+      "name": "省略新目标配置默认廓然直接星扩散，旧角色旧目标结果保持一致",
+      "pass": true
+    },
+    {
+      "name": "保留新目标名称时用户自定义DSL优先，配装和收益按自定义常量123",
+      "pass": true
+    },
+    {
+      "name": "理论套装排行明确拒绝新星扩散目标，避免旧内核忽略DSL",
+      "pass": true
+    },
+    {
+      "name": "单人与团队新星伤目标选择暴伤头，旧精通目标选择精通头",
+      "pass": true
+    }
+  ],
+  "observations": [
+    {
+      "id": "mizuki-default-target",
+      "status": "info",
+      "finding": "The legacy Elemental Mastery target remains available for existing saves; the new Stellar Swirl target is tested separately below.",
+      "samples": [
+        {
+          "constellation": 0,
+          "enhanced": false,
+          "target": 1220,
+          "em": 1220,
+          "starDamage": 80083.1192742559
+        },
+        {
+          "constellation": 0,
+          "enhanced": true,
+          "target": 1342,
+          "em": 1342,
+          "starDamage": 92492.06649952875
+        },
+        {
+          "constellation": 6,
+          "enhanced": false,
+          "target": 1220,
+          "em": 1220,
+          "starDamage": 92573.02383992053
+        },
+        {
+          "constellation": 6,
+          "enhanced": true,
+          "target": 1342,
+          "em": 1342,
+          "starDamage": 183911.28913977795
+        }
+      ]
+    },
+    {
+      "id": "mizuki-stellar-target-candidate-selection",
+      "status": "info",
+      "samples": [
+        {
+          "baseEM": 115,
+          "constellation": 0,
+          "critBuff": 0,
+          "best": "em",
+          "values": [
+            {
+              "name": "em",
+              "id": 51,
+              "value": 23042.568795280386
+            },
+            {
+              "name": "cr",
+              "id": 52,
+              "value": 22480.545863016767
+            },
+            {
+              "name": "cd",
+              "id": 53,
+              "value": 21010.7170610596
+            }
+          ]
+        },
+        {
+          "baseEM": 1500,
+          "constellation": 0,
+          "critBuff": 0,
+          "best": "cr",
+          "values": [
+            {
+              "name": "cr",
+              "id": 52,
+              "value": 120558.48010742248
+            },
+            {
+              "name": "em",
+              "id": 51,
+              "value": 115567.10009272468
+            },
+            {
+              "name": "cd",
+              "id": 53,
+              "value": 112676.09471243143
+            }
+          ]
+        },
+        {
+          "baseEM": 1500,
+          "constellation": 6,
+          "critBuff": 60,
+          "best": "cd",
+          "values": [
+            {
+              "name": "cd",
+              "id": 53,
+              "value": 383902.9567027799
+            },
+            {
+              "name": "cr",
+              "id": 52,
+              "value": 378243.5602667984
+            },
+            {
+              "name": "em",
+              "id": 51,
+              "value": 377687.00044000417
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mizuki-stellar-team-optimization",
+      "status": "info",
+      "samples": [
+        {
+          "target": "YumemizukiMizukiStellarSwirl",
+          "head": 6,
+          "value": 46272.35669031414,
+          "teamHead": 6
+        },
+        {
+          "target": "YumemizukiMizukiDefault",
+          "head": 5,
+          "value": 782.1,
+          "teamHead": 5
+        }
+      ]
+    },
+    {
+      "id": "explicit-stellar-skill-14",
+      "status": "review",
+      "finding": "Explicitly selecting a stellar-only skill still evaluates its damage with enhanced_state=false. This may be intentional standalone-skill evaluation, so it is not classified as a formula failure.",
+      "damage": {
+        "critical": 30513.12419497371,
+        "non_critical": 14877.19365917782,
+        "expectation": 15658.990185967614,
+        "is_heal": false,
+        "is_shield": false
+      }
+    },
+    {
+      "id": "explicit-stellar-skill-15",
+      "status": "review",
+      "finding": "Explicitly selecting a stellar-only skill still evaluates its damage with enhanced_state=false. This may be intentional standalone-skill evaluation, so it is not classified as a formula failure.",
+      "damage": {
+        "critical": 12205.249677989483,
+        "non_critical": 5950.877463671127,
+        "expectation": 6263.5960743870455,
+        "is_heal": false,
+        "is_shield": false
+      }
+    }
+  ]
+}

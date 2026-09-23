@@ -3,12 +3,14 @@ pub mod claymores;
 pub mod polearms;
 pub mod catalysts;
 pub mod bows;
+pub mod snezhnaya;
 
 pub use swords::*;
 pub use claymores::*;
 pub use polearms::*;
 pub use catalysts::*;
 pub use bows::*;
+pub use snezhnaya::*;
 
 use crate::attribute::Attribute;
 use super::weapon_name::WeaponName;

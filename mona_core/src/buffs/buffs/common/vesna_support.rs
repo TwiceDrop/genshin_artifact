@@ -1,7 +1,7 @@
 
 use crate::attribute::{Attribute,AttributeName};use crate::buffs::{Buff,BuffConfig};use crate::buffs::buff::BuffMeta;
-pub struct BuffVesnaSupport{flat:f64,bonus:f64,cd:f64,elev:f64,res:f64}
-impl<A:Attribute> Buff<A> for BuffVesnaSupport{fn change_attribute(&self,a:&mut A){use AttributeName::*;a.set_value_by(StellarSwirlFlat,"队友星伤定额加值",self.flat);a.set_value_by(StellarSwirlBonus,"队友星伤增益",self.bonus);a.set_value_by(StellarSwirlCritDamage,"队友星伤暴伤",self.cd);a.set_value_by(StellarSwirlElevation,"队友星伤擢升",self.elev);a.set_value_by(ResMinusAnemo,"流荡风旋减风抗",self.res);}}
+pub struct BuffVesnaSupport{flat:f64,bonus:f64,cd:f64,elev:f64,res:f64,base:f64}
+impl<A:Attribute> Buff<A> for BuffVesnaSupport{fn change_attribute(&self,a:&mut A){use AttributeName::*;a.set_value_by(StellarSwirlFlat,"队友星伤定额加值",self.flat);a.set_value_by(StellarSwirlBonus,"队友星伤增益",self.bonus);a.set_value_by(StellarSwirlCritDamage,"队友星伤暴伤",self.cd);a.set_value_by(StellarSwirlElevation,"队友星伤擢升",self.elev);a.set_value_by(ResMinusAnemo,"流荡风旋减风抗",self.res);a.set_value_by(StellarSwirlBaseBonus,"队友星耀祝礼基础增益",self.base);}}
 impl BuffMeta for BuffVesnaSupport{
 #[cfg(not(target_family="wasm"))]const META_DATA:crate::buffs::buff_meta::BuffMetaData=crate::buffs::buff_meta::BuffMetaData{name:crate::buffs::buff_name::BuffName::VesnaSupport,name_locale:crate::common::i18n::locale!(zh_cn:"薇斯纳队友增益",en:"Vesna support"),image:crate::buffs::buff_meta::BuffImage::Misc("sword"),genre:crate::buffs::buff_meta::BuffGenre::Common,description:None,from:crate::buffs::buff_meta::BuffFrom::Common};
-fn create<A:Attribute>(c:&BuffConfig)->Box<dyn Buff<A>>{let(flat,bonus,cd,elev,res)=match c{BuffConfig::VesnaSupport{flat,bonus,crit_damage,elevation,anemo_res}=>(*flat,*bonus,*crit_damage,*elevation,*anemo_res),_=>(0.0,0.0,0.0,0.0,0.0)};Box::new(BuffVesnaSupport{flat,bonus,cd,elev,res})}}
+fn create<A:Attribute>(c:&BuffConfig)->Box<dyn Buff<A>>{let(flat,bonus,cd,elev,res,base)=match c{BuffConfig::VesnaSupport{flat,bonus,crit_damage,elevation,anemo_res,base}=>(*flat,*bonus,*crit_damage,*elevation,*anemo_res,*base),_=>(0.0,0.0,0.0,0.0,0.0,0.0)};Box::new(BuffVesnaSupport{flat,bonus,cd,elev,res,base})}}
