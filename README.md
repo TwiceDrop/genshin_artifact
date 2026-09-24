@@ -7,7 +7,9 @@
 - 梦见月瑞希、七七、桑多涅等角色的星扩散加强已接入配装、伤害及收益曲线；计算范围见[角色加强说明](beta-data/strengthened-notes.md)。
 - 保留米游社导入、UID 数据管理、伤害对比与词条收益等功能。
 
-[下载 7.1.02](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.02) · [武器数据与范围](beta-data/limited-71-notes.md) · [原项目](https://github.com/wormtql/genshin_artifact)
+[下载 7.1.02 网页版](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.02) · [下载 7.1.02 安卓版](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.02-android) · [武器数据与范围](beta-data/limited-71-notes.md) · [原项目](https://github.com/wormtql/genshin_artifact)
+
+安卓版沿用原版包名与签名，可覆盖安装并保留本机数据；安装与互传说明见[安卓使用说明](docs/android-offline.md)。
 
 ## 启动
 
@@ -25,4 +27,4 @@ WASM、生成元数据和图片资源已随源码提供。不要运行旧版 `se
 
 对照[原神 7.1 更新公告](https://ys.mihoyo.com/main/news/detail/166392)与 Gachabase `release` 版本 `7.1.0 D48145775 / R48145775`：两名新角色的技能倍率、被动与命座参数，两把专武的全部精炼和等级数据，以及 13 把相关四星武器的全部精炼和等级数据，与项目已有数值一致。运行时武器表已切换到[正式版提取数据](beta-data/weapons-release-71.json)。角色完整时间轴、部分乘区、旧角色武器等级插值与多人联合配装仍有限制，详见使用说明。
 
-本次提供源码与桌面网页包；不提供新版安卓 APK 或 Windows 安装程序。保留原项目 LICENSE，第三方模块说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+本次提供源码、桌面网页包与 Android APK；不提供新版 Windows 安装程序。保留原项目 LICENSE，第三方模块说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

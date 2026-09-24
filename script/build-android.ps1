@@ -35,7 +35,8 @@ try {
     & .\android\gradlew.bat -p android assembleRelease --console=plain
     if ($LASTEXITCODE -ne 0) { throw 'APK 构建失败' }
     New-Item -ItemType Directory -Path releases -Force | Out-Null
-    $version = (Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).version
+    $package = Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json
+    $version = if ($package.displayVersion) { $package.displayVersion } else { $package.version }
     $filename = "genshin_artifact_V${version}_android.apk"
     $apk = Join-Path $projectRoot "releases/$filename"
     Copy-Item -LiteralPath 'android/app/build/outputs/apk/release/app-release.apk' -Destination $apk

@@ -1,12 +1,16 @@
-# 安卓本地版
+# 安卓本地版 7.1.02
 
-## 1.0.1 全面屏修复
+## 7.1.02 更新
+
+本版将沃雅妮莎、薇斯纳、7.1 武器和星扩散相关计算带入原版手机 App；角色选择使用头像。沿用原版的离线资源、手机布局、UID 数据互传与本地账号存储。
+
+### 原版全面屏适配
 
 状态栏、显示挖孔、导航手势区和软键盘由安卓原生容器统一避让；不再给 WebView 本身加 padding，也不叠加框架的 CSS 安全区处理。竖屏、横屏切换和键盘收起都会重新计算可用区域。计算器采用页面滚动，修复分区标签重复下移、遮挡角色入口，以及立绘造成的横向溢出；手机首页标题缩小。
 
-此版本与 1.0.0 使用相同包名、相同签名，可直接覆盖安装，保留已有数据。原生布局测试覆盖手势导航、三键导航、横屏挖孔、键盘出现与收起，并检查实际 Activity 的 WebView 边界。
+此版本与原版使用相同包名和签名，可直接覆盖安装，保留已有数据。原生布局此前已测试手势导航、三键导航、横屏挖孔、键盘出现与收起，以及实际 Activity 的 WebView 边界。
 
-安装包：`releases/mona-offline-android.apk`，Android 7.0 及以上。保持 Android System WebView 为较新版本。
+安装包：`releases/genshin_artifact_V7.1.02_android.apk`，Android 7.0 及以上。保持 Android System WebView 为较新版本。
 
 将 APK 发送到手机，在文件管理器中打开安装。更新时直接覆盖安装，保留应用数据；卸载或清除应用数据会删除本机角色、装备、历史与 Cookie。
 
@@ -34,13 +38,13 @@ Cookie 不包含在互传文件中。手机端可独立扫码或手动录入 Coo
 
 ## 构建与更新
 
-运行根目录“打包安卓.bat”，或 `npm run android:apk`。需要 Node.js 22+、Java 21、Android SDK 36；脚本优先使用本机 Android Studio JBR 和默认 SDK 目录，也支持 JAVA_HOME / ANDROID_HOME。
+运行 `script/build-android.ps1`。需要 Node.js 22+、Java 21、Android SDK 36；脚本优先使用本机 Android Studio JBR 和默认 SDK 目录，也支持 JAVA_HOME / ANDROID_HOME。要覆盖安装原版 App，使用 `-SigningDirectory` 指向原版保存签名文件的 `.local-data` 目录；首次安装可直接运行 `npm run android:apk` 生成新签名。
 
 脚本执行移动端构建、Capacitor 资源同步与 Gradle release 打包，并生成 SHA-256 校验文件。手机使用 APK 内置资源，没有远程 server.url。桌面构建仍使用 `npm run build:local`。
 
 **保留 `.local-data/android-signing.jks` 和 `.local-data/android-signing.json`。** 后续覆盖升级必须使用同一签名；这两个本机文件不进入 Git，不要随源码公开。版本发布时递增 `android/app/build.gradle` 中的 versionCode。
 
-## 本次验证
+## 原版验证范围
 
 - Node 测试覆盖 UID 往返迁移、跨 UID 隔离、编号重映射、重复导入、已删除装备、包校验，以及手机账号服务出错/取消/退出后保留 Cookie。
 - 手机尺寸界面验证了 UID 导入、角色应用、评分、伤害和完整 0～20 条曲线；重新加载后角色仍可用。
