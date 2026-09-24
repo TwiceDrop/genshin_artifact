@@ -278,7 +278,7 @@
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" description="此组合暂不显示计算结果。请更换未适配的装备或 BUFF；原有角色的原版组合仍可使用。" style="margin-bottom:16px" />
-        <el-alert v-if="betaSupportActive" type="info" :closable="false" title="沃雅妮莎队友 BUFF" description="已接入普通水 / 冰支援。星扩散与月反应结果暂不显示，避免将普通增益误用于特殊反应。来源生命请填写战斗状态下的最终值；自身效果已在角色设置启用时，请勿重复添加同名支援。" style="margin-bottom:16px" />
+        <el-alert v-if="betaSupportActive" type="info" :closable="false" title="沃雅妮莎队友 BUFF" description="角色技能支援请填写来源角色战斗状态下的最终生命；自身效果已在角色设置启用时，请勿重复添加同名支援。漩流颂歌队友武器特效请在「武器」分组添加。" style="margin-bottom:16px" />
         <el-row class="big-container">
             <el-col class="left-container mona-scroll-hidden" :sm="24" :md="6">
                 <div class="config-character">
@@ -886,10 +886,9 @@ const {
     weaponLocale
 } = useWeapon(characterWeaponType)
 
-watch(characterName, (name, previous) => {
+watch(characterName, name => {
     if (name === 'Vodyanitsa') weaponName.value = 'HymnOfTheMaelstrom' as any
     else if (name === 'Vesna') weaponName.value = 'BeyondTheChrysalis' as any
-    else if (previous === 'Vodyanitsa' && weaponName.value === 'HymnOfTheMaelstrom') weaponName.value = 'MagicGuide' as any
 }, { flush: 'sync' })
 
 
@@ -1328,7 +1327,7 @@ const attributeCalculation = computed(() => {
 })
 const attributeFromWasm = computed(() => attributeCalculation.value.value || {})
 const betaCalculationError = computed(() => attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
-const betaSupportActive = computed(() => buffsInterface.value.some((b: any) => b.name.startsWith('Vodyanitsa'))) 
+const betaSupportActive = computed(() => buffsInterface.value.some((b: any) => b.name.startsWith('Vodyanitsa') && b.name !== 'VodyanitsaSignature'))
 
 const artifactScoreContext = computed(() => {
     const c = scoreCharacters[characterName.value]

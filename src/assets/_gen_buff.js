@@ -4444,12 +4444,12 @@ export default {
     "name": "VodyanitsaSignature",
     "nameLocale": 3555,
     "description": 3556,
-    "genre": "Character",
+    "genre": "Weapon",
     "badge": "/beta/vodyanitsa.svg",
     "config": [
       {
         "name": "hp",
-        "title": 3541,
+        "title": 3673,
         "type": "floatInput",
         "default": 60000
       },
@@ -4545,6 +4545,31 @@ export default {
         "title": 3544,
         "type": "bool",
         "default": true
+      }
+    ]
+  },
+  "VesnaTalent1": {
+    "name": "VesnaTalent1",
+    "nameLocale": 3669,
+    "description": 3670,
+    "badge": "/characters/vesna.webp",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "atk",
+        "title": 3671,
+        "type": "floatInput",
+        "min": 0,
+        "max": 10000,
+        "default": 2000
+      },
+      {
+        "name": "coverage",
+        "title": 3672,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   },

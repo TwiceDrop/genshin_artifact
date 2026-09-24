@@ -20,7 +20,7 @@ export function createFacade(original,extension,data,support,characters) {
   }walk(out);return out;
  }
  function validate(input,artifacts) {
-  const check=(kind,value)=>{if(value&&!support[kind].includes(value))throw new Error(`7.1.02 新角色/专武扩展暂未适配：${kind} / ${value}。`);};
+  const check=(kind,value)=>{if(value&&!support[kind].includes(value))throw new Error(`7.1.04 新角色/专武扩展暂未适配：${kind} / ${value}。`);};
   function visit(x){if(!x||typeof x!=='object')return;if(Array.isArray(x)){x.forEach(visit);return;}
    if(x.character)check('characters',x.character.name);
    if(x.weapon)check('weapons',x.weapon.name);
@@ -59,7 +59,6 @@ export function createFacade(original,extension,data,support,characters) {
   if(typeof originalFn!=='function')return originalFn;
   return(...args)=>{
    const isNew=extensionRole(args);let input=args[0];
-   if(!isNew&&input?.weapon?.name==='HymnOfTheMaelstrom')throw Error('漩流颂歌装备计算目前支持沃雅妮莎；为其他前台角色计算加攻，请添加「漩流颂歌」BUFF并填写来源最终生命。');
    if(className==='TeamOptimizationWasm'&&input?.single_interfaces?.some(x=>x.character?.name==='Vodyanitsa'||hasSupport(x)))
     throw Error('当前版本尚未校准含沃雅妮莎的多人联合优化，请先使用单人配装。原队伍优化不受影响。');
    const engine=isNew?extension:original;

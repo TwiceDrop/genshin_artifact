@@ -12,6 +12,7 @@ const SOURCE = {
     Qiqi: 'https://gi.gachabase.net/characters/10000035/qiqi/release?lang=en',
     Diona: 'https://gi.gachabase.net/characters/10000039/diona/release?lang=en',
     Sandrone: 'https://gi.gachabase.net/characters/10000133/sandrone/release?lang=en',
+    Vesna: 'https://gi.gachabase.net/characters/10000143/vesna/release?lang=en',
 };
 export const STELLAR_SUPPORT_SOURCES = SOURCE;
 export const SANDRONE_STELLAR_TARGET = 'SandroneStellarSwirl';
@@ -43,7 +44,7 @@ function sandroneRatio(input, index) {
 }
 
 export function stellarSupportState(input) {
-    const state = {bonus: 0, flat: 0, base: 0, labels: {}};
+    const state = {bonus: 0, flat: 0, base: 0, baseSources: {}, labels: {}};
     const seen = new Set();
     for (const b of input?.buffs || []) {
         if (seen.has(b.name)) continue;
@@ -59,8 +60,17 @@ export function stellarSupportState(input) {
         }
         if (b.name === 'QiqiC6StellarConduct' && input.character?.name !== 'Qiqi')
             state.flat += finite(p.atk, '七七来源攻击力') * 6;
-        if (b.name === 'SandroneTalent1')
-            state.base += Math.min(finite(p.atk, '桑多涅来源攻击力') * .00007, .14);
+        if (b.name === 'SandroneTalent1') {
+            const amount = Math.min(finite(p.atk, '桑多涅来源攻击力') * .00007, .14);
+            state.base += amount;
+            state.baseSources['桑多涅·星耀祝礼：星扩散'] = amount;
+        }
+        if (b.name === 'VesnaTalent1' && input.character?.name !== 'Vesna') {
+            const amount = Math.min(finite(p.atk, '薇斯纳来源最终攻击力') * .00007, .14)
+                * finite(p.coverage ?? 1, '薇斯纳星耀祝礼覆盖率', 1);
+            state.base += amount;
+            state.baseSources['薇斯纳·星耀祝礼：星扩散'] = amount;
+        }
     }
     if(input?.character?.name==='Sandrone' && input.character.constellation>=1 && input.character.params?.Sandrone?.c1_team_stellar!==false) {
         state.bonus += .3;
@@ -106,24 +116,32 @@ export function createStellarSupportFacade(base, original) {
         if (!input?.character) return input;
         const state = stellarSupportState(input);
         const sandrone=input.character.name==='Sandrone';
-        if (!state.bonus && !state.flat && !state.base && !sandrone) return input;
+        const synthetic = input.buffs?.some(b => b.name === 'VesnaTalent1');
+        if (!state.bonus && !state.flat && !state.base && !sandrone && !synthetic) return input;
         const x = clone(input); x.buffs ||= [];
         if (native(x)) {
             // The extension has no published Qiqi/Sandrone buff enums.
-            x.buffs = x.buffs.filter(b => !['QiqiTalent2StellarConduct', 'QiqiC6StellarConduct', 'SandroneC1', 'SandroneTalent1'].includes(b.name));
+            x.buffs = x.buffs.filter(b => !['QiqiTalent2StellarConduct', 'QiqiC6StellarConduct', 'SandroneC1', 'SandroneTalent1', 'VesnaTalent1'].includes(b.name));
             if (state.flat || state.base) x.buffs.push(named('VesnaSupport', {flat: state.flat, base: state.base, bonus: 0, crit_damage: 0, elevation: 0, anemo_res: 0}));
         }
         addStarBonus(x, state.bonus);
+        if (!native(x)) x.buffs = x.buffs.filter(b => b.name !== 'VesnaTalent1');
         if (state.base && !native(x)) {
             // Odette's native mode-2 talent has exactly the same .007/100 ATK,
             // 14% cap and Stellar-Swirl-only scope. Preserve all existing buffs.
-            for (const b of input.buffs || []) if (b.name === 'SandroneTalent1')
-                x.buffs.push(named('OdetteTalent1', {atk: b.config.SandroneTalent1.atk, radiance_mode: 2}));
+            for (const b of input.buffs || []) if (['SandroneTalent1', 'VesnaTalent1'].includes(b.name)) {
+                if (b.name === 'VesnaTalent1') {
+                    const p = b.config?.VesnaTalent1 || {};
+                    const atk = Math.min(finite(p.atk, '薇斯纳来源最终攻击力'), 2000)
+                        * finite(p.coverage ?? 1, '薇斯纳星耀祝礼覆盖率', 1);
+                    x.buffs.push(named('OdetteTalent1', {atk, radiance_mode: 2}));
+                } else x.buffs.push(named('OdetteTalent1', {atk: b.config.SandroneTalent1.atk, radiance_mode: 2}));
+            }
         }
         if(sandrone) {
             const p=x.character.params?.Sandrone || {};
             if(p.stellar_base_active!==false && !x.__stellar_dynamic_target) {
-                const panel=base.CommonInterface.get_attribute(input);
+                const panel=base.CommonInterface.get_attribute(x);
                 x.buffs.push(named('OdetteTalent1',{atk:sum(panel.atk),radiance_mode:2}));
             }
             if(x.character.constellation>=6 && p.c6_elevate_active!==false) {
@@ -155,7 +173,7 @@ export function createStellarSupportFacade(base, original) {
             const key = 'BUFF: 奥黛塔「星耀祝礼·银晓之舞」';
             result.direct_stellarswirl_base_compose[key] = (result.direct_stellarswirl_base_compose[key] ?? 0) - state.base;
             if (Math.abs(result.direct_stellarswirl_base_compose[key]) < 1e-12) delete result.direct_stellarswirl_base_compose[key];
-            result.direct_stellarswirl_base_compose['桑多涅·星耀祝礼：星扩散'] = state.base;
+            Object.assign(result.direct_stellarswirl_base_compose, state.baseSources);
         }
         return result;
     }

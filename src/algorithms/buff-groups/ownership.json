@@ -738,5 +738,9 @@
   "VodyanitsaA1": {
     "character": "Vodyanitsa",
     "minConstellation": 0
+  },
+  "VesnaTalent1": {
+    "character": "Vesna",
+    "minConstellation": 0
   }
 }

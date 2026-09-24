@@ -9,7 +9,7 @@
     </div>
     <div v-else-if="weapon.name === 'HymnOfTheMaelstrom'" class="weapon-effects">
         <p>特效生命填0时，随装备者面板自动计算；填写正数时，将其作为生命转攻击的最终生命（含武器、命座等加成），不再重复叠加。</p>
-        <p>自定义值只影响专武加攻，不改写角色自身生命或治疗量。为其他前台角色计算此加攻，请添加沃雅妮莎分组中的「漩流颂歌」BUFF，并填写来源生命。</p>
+        <p>自定义值只影响武器加攻，不改写装备者自身生命或治疗量。任意法器角色装备后均按武器特效计算；若由队友装备并支援当前角色，请在「武器」分组添加「漩流颂歌」BUFF，填写来源装备者最终生命。自身已装备时无需再添加同名 BUFF。</p>
     </div>
     <div v-else-if="limited" class="weapon-effects">
         <template v-if="effects">

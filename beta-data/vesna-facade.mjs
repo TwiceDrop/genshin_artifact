@@ -46,7 +46,6 @@ export function createBeta2(base,extension,support){
   if(className==='CommonInterface'&&method==='get_artifacts_rank_by_character'&&input?.name==='Vesna'){
    throw Error('薇斯纳的静态评分权重尚未实现，请使用单人配装的实际伤害目标。');
   }
-  if(input?.weapon?.name==='BeyondTheChrysalis'&&input?.character?.name!=='Vesna')throw Error('蝶变装备计算目前支持薇斯纳；其他角色装备蝶变尚未接入。');
   if(className==='TeamOptimizationWasm'&&input?.single_interfaces?.some(x=>x.character?.name==='Vesna'))throw Error('薇斯纳暂不支持多人联合配装，请使用单人计算。');
   if(input?.character?.name!=='Vesna')return target[method](...args);
   if(className==='TeamOptimizationWasm')throw Error('薇斯纳暂不支持多人联合配装，请使用单人计算。');
