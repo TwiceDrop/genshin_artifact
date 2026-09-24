@@ -1008,6 +1008,11 @@
   dependencies:
     tslib "^2.1.0"
 
+"@capacitor/ios@8.5.1":
+  version "8.5.1"
+  resolved "https://registry.npmjs.org/@capacitor/ios/-/ios-8.5.1.tgz"
+  integrity sha512-0EVqwCYf3RUp2JAjUGZ04xmG6dSpIsPmPacI9zKxn6mu9RSiHhmFF230ghe00HrkyB6ig6SfNdoADvVODxYhlQ==
+
 "@ctrl/tinycolor@^3.4.1":
   version "3.4.1"
   resolved "https://registry.npmjs.org/@ctrl/tinycolor/-/tinycolor-3.4.1.tgz"

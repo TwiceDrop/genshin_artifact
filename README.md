@@ -11,6 +11,8 @@
 
 安卓版沿用原版包名与签名，可覆盖安装并保留本机数据；安装与互传说明见[安卓使用说明](docs/android-offline.md)。
 
+iPadOS 版使用同一份 7.1.02 计算与数据资源；未签名 IPA 的 GitHub Actions 构建和安装方法见 [iPadOS 使用说明](docs/ipados-offline.md)。
+
 ## 启动
 
 需要 Node.js 22 LTS 或更新版本。从发布页下载网页包，解压后双击 `启动7.1.02.bat`，打开 http://127.0.0.1:4183/#/calculate 。从源码启动：

@@ -36,6 +36,7 @@
     "@capacitor/android": "8.5.1",
     "@capacitor/cli": "8.5.1",
     "@capacitor/core": "8.5.1",
+    "@capacitor/ios": "8.5.1",
     "@element-plus/icons-vue": "^2.0.4",
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-brands-svg-icons": "^5.15.1",

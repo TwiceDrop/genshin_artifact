@@ -1,3 +1,5 @@
+import { randomUUID } from '../platform/crypto-browser.mjs'
+
 const clone = value => value === undefined ? null : JSON.parse(JSON.stringify(value))
 const equal = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
 const keyed = (items, key) => Object.fromEntries((items || []).map(item => [key(item), item]))
@@ -17,7 +19,7 @@ export function appendImportRecord(data, before, presets, inventory, { source, u
             if (!equal(before[domain][key], after[domain][key])) changes[domain].push({ key, before: clone(before[domain][key]), after: clone(after[domain][key]) })
         }
     }
-    const record = { id: crypto.randomUUID(), time: new Date().toISOString(), source, uids: [...new Set(uids.map(String))],
+    const record = { id: randomUUID(), time: new Date().toISOString(), source, uids: [...new Set(uids.map(String))],
         status: 'active', characters: changes.entries.length, added: changes.artifacts.filter(c => !c.before).length,
         changes, selectedBefore: before.selectedUid, selectedAfter: after.selectedUid }
     return { ...data, importRecords: [record, ...(data.importRecords || [])] }

@@ -127,7 +127,7 @@
 
             <div class="tool-right">
                 <el-button-group>
-                    <el-button @click="handleYasUIClicked" size="small" type="primary" v-if="deviceIsPC">{{ t("misc.scan") }}</el-button>
+                    <el-button @click="handleYasUIClicked" size="small" type="primary" v-if="deviceIsPC && !isNative">{{ t("misc.scan") }}</el-button>
                     <el-button @click="handleImportJsonClicked" size="small" type="primary">{{ t("misc.import") }}</el-button>
 
                     <el-dropdown split-button size="small" @click="handleOutputJsonClicked" @command="handleOutputCommand">

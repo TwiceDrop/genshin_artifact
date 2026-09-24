@@ -60,6 +60,15 @@ test('graduation boundaries and incomplete/unknown characters are explicit', () 
     assert.equal(scoreBuild(Array(5).fill(five[0]), { name: '桑多涅' }).grade, '未齐装')
 })
 
+test('artifact score lookup works without Object.hasOwn on iPadOS 15.0', () => {
+    const hasOwn = Object.hasOwn
+    Object.hasOwn = undefined
+    try {
+        assert.equal(scoreBuild(five, { name: '桑多涅' }).supported, true)
+        assert.ok(scoreDetails(five[0], { name: '桑多涅' }, five))
+    } finally { Object.hasOwn = hasOwn }
+})
+
 test('Noelle missing goblet and non-damage goblet safely use her source rule', () => {
     const context = { name: '诺艾尔', options: { elem: 'geo', charAttrs: { cpct: 80, cdmg: 180, mastery: 100 } } }
     assert.match(scoreBuild([five[0]], context).title, /月结晶/)

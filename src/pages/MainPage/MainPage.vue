@@ -115,12 +115,16 @@ $header-height: 48px;
     top: 0;
     bottom: 0;
     left: 0;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .header {
-    height: $header-height;
+    height: calc(#{$header-height} + env(safe-area-inset-top));
     background-color: #409EFF;
     padding-left: 16px;
+    padding-top: env(safe-area-inset-top);
     box-sizing: border-box;
     position: fixed;
     top: 0;
@@ -137,7 +141,7 @@ $header-height: 48px;
     padding: $contentPadding;
 
     &.mobile {
-        margin-top: 48px;
+        margin-top: calc(48px + env(safe-area-inset-top));
         padding: 14px 12px calc(80px + env(safe-area-inset-bottom));
         // The document scrolls on phones; a second overflow container offsets
         // sticky calculator tabs by another header height and covers controls.
@@ -146,11 +150,18 @@ $header-height: 48px;
 
     &.notMobile {
         margin-left: $side-bar-width;
+        padding-top: calc(#{$contentPadding} + env(safe-area-inset-top));
+        padding-bottom: calc(#{$contentPadding} + env(safe-area-inset-bottom));
 
         .main-view {
             min-height: calc(100vh - 2 * #{$contentPadding});
         }
     }
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+    .nav-bar { width: 210px; }
+    .main.notMobile { margin-left: 210px; }
 }
 
 //@media only screen and (min-width: 992px) {
