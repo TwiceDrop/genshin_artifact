@@ -17,7 +17,7 @@ export function ds(body = '', query = '') {
     return `${t},${r},${createHash('md5').update(`salt=${salt}&t=${t}&r=${r}&b=${body}&q=${query}`).digest('hex')}`
 }
 export class MysClient {
-    constructor(fetcher = fetch) { this.fetcher = fetcher; this.device = randomUUID().toUpperCase(); this.deviceFp = ''; this.deviceSeed = randomBytes(8).toString('hex'); this.cookie = ''; this.ticket = ''; this.roles = []; this.qr = new MihoyoApiClient({ fetchImpl: fetcher }) }
+    constructor(fetcher = fetch) { this.fetcher = fetcher; this.device = randomUUID().toUpperCase(); this.deviceFp = ''; this.deviceSeed = randomBytes(8).toString('hex'); this.cookie = ''; this.ticket = ''; this.roles = []; this.qr = new MihoyoApiClient({ fetchImpl: fetcher, randomUuid: randomUUID }) }
     async request(base, path, { body, query = '', authenticated = true } = {}) {
         const stage = stages[path] || '数据读取'
         const serialized = body === undefined ? '' : JSON.stringify(body)
@@ -28,12 +28,16 @@ export class MysClient {
         if (authenticated) headers.Cookie = this.cookie
         if (base === RECORD && this.deviceFp) headers['x-rpc-device_fp'] = this.deviceFp
         let res
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), 20000)
+        timer.unref?.()
         try {
             res = await this.fetcher(`${base}${path}${query ? '?' + query : ''}`, {
                 method: body === undefined ? 'GET' : 'POST', headers,
-                ...(serialized ? { body: serialized } : {}), signal: AbortSignal.timeout(20000), redirect: 'error',
+                ...(serialized ? { body: serialized } : {}), signal: controller.signal, redirect: 'error',
             })
         } catch { throw new Error(`${stage}失败：无法连接米游社，请检查网络后重试`) }
+        finally { clearTimeout(timer) }
         if (!res.ok) throw new Error(`${stage}失败：米游社 HTTP ${res.status}`)
         let data
         try { data = await res.json() } catch { throw new Error(`${stage}失败：米游社返回了无法解析的数据`) }

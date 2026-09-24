@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import { createMysConverter } from '../src/import/miyoushe.mjs'
 import { exportUidPackage, importUidPackage, validateUidPackage } from '../src/import/uid-package.mjs'
 import { createHash as nativeHash } from 'node:crypto'
-import { createHash, randomBytes, randomInt } from '../src/platform/crypto-browser.mjs'
+import { createHash, randomBytes, randomInt, randomUUID } from '../src/platform/crypto-browser.mjs'
 
 const meta = name => JSON.parse(fs.readFileSync(new URL(`../src/assets/_gen_${name}.js`, import.meta.url), 'utf8').replace(/^.*\nexport default /, '').trim().replace(/;$/, ''))
 const catalog = { characters: meta('character'), weapons: meta('weapon'), artifacts: meta('artifact'), targets: meta('tf'), locale: JSON.parse(fs.readFileSync(new URL('../src/i18n/generated/zh-cn.json', import.meta.url))) }
@@ -57,6 +57,27 @@ test('mobile DS digest is identical to Node and random parameters have expected 
     assert.equal(createHash('md5').update(value).digest('hex'), nativeHash('md5').update(value).digest('hex'))
     assert.match(randomBytes(8).toString('hex'), /^[0-9a-f]{16}$/)
     for (let i = 0; i < 30; i++) { const n = randomInt(100001, 200000); assert.ok(n >= 100001 && n < 200000) }
+})
+
+test('iPadOS 15 UUID generation needs only crypto.getRandomValues', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto')
+    Object.defineProperty(globalThis, 'crypto', { configurable: true, value: {
+        getRandomValues(bytes) { bytes.forEach((_, index) => { bytes[index] = index }); return bytes }
+    } })
+    try {
+        assert.equal(randomUUID(), '00010203-0405-4607-8809-0a0b0c0d0e0f')
+    } finally {
+        if (descriptor) Object.defineProperty(globalThis, 'crypto', descriptor)
+        else delete globalThis.crypto
+    }
+})
+
+test('UID package validation works without Object.hasOwn on iPadOS 15.0', () => {
+    const source = fixture(), pack = exportUidPackage('111111111', source.data, source.presets, source.inventory)
+    const hasOwn = Object.hasOwn
+    Object.hasOwn = undefined
+    try { assert.equal(validateUidPackage(pack, catalog), pack) }
+    finally { Object.hasOwn = hasOwn }
 })
 
 test('deleted warehouse equipment does not prevent exporting a saved UID', () => {

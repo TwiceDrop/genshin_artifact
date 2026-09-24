@@ -28,7 +28,7 @@ export function validateUidPackage(pack, catalog) {
     if (!Array.isArray(pack.characters) || pack.characters.length > 300 || !Array.isArray(pack.artifacts) || pack.artifacts.length > 5000 || !Array.isArray(pack.history) || pack.history.length > 15000) fail('数据数量异常')
     const integer = (n, min, max) => Number.isInteger(n) && n >= min && n <= max
     const artifact = a => {
-        if (!a || !Object.hasOwn(catalog.artifacts, a.setName) || !slots.includes(a.position) || !integer(a.star, 1, 5) || !integer(a.level, 0, Math.min(20, a.star * 4)) || !Array.isArray(a.normalTags) || a.normalTags.length > 4) fail('圣遗物信息无效或未适配')
+        if (!a || !Object.prototype.hasOwnProperty.call(catalog.artifacts, a.setName) || !slots.includes(a.position) || !integer(a.star, 1, 5) || !integer(a.level, 0, Math.min(20, a.star * 4)) || !Array.isArray(a.normalTags) || a.normalTags.length > 4) fail('圣遗物信息无效或未适配')
         for (const tag of [a.mainTag, ...a.normalTags]) if (!tag || !stats.has(tag.name) || !Number.isFinite(tag.value) || tag.value < 0) fail('圣遗物词条无效')
     }
     const artifactIds = new Set()
@@ -40,9 +40,9 @@ export function validateUidPackage(pack, catalog) {
         for (const a of entry.equippedArtifacts || []) artifact(a)
         if (!preset) continue
         const c = preset.character, w = preset.weapon, t = preset.targetFunction
-        if (!c || !Object.hasOwn(catalog.characters, c.name) || !w || !Object.hasOwn(catalog.weapons, w.name) || catalog.characters[c.name].weapon !== catalog.weapons[w.name].type) fail('角色或武器未适配')
+        if (!c || !Object.prototype.hasOwnProperty.call(catalog.characters, c.name) || !w || !Object.prototype.hasOwnProperty.call(catalog.weapons, w.name) || catalog.characters[c.name].weapon !== catalog.weapons[w.name].type) fail('角色或武器未适配')
         if (!integer(c.level,1,100) || !integer(c.constellation,0,6) || ![c.skill1,c.skill2,c.skill3].every(n=>integer(n,0,14)) || !integer(w.level,1,90) || !integer(w.refine,1,5)) fail('角色养成数值无效')
-        if (!t || !Object.hasOwn(catalog.targets,t.name)) fail('目标函数未适配')
+        if (!t || !Object.prototype.hasOwnProperty.call(catalog.targets,t.name)) fail('目标函数未适配')
         for (const ids of [entry.artifactIds, preset.artifactIds]) if (ids && (!Array.isArray(ids) || ids.length !== 5 || ids.some(id => id !== -1 && !artifactIds.has(id)))) fail('角色引用了缺失的装备')
     }
     for (const row of pack.history) {

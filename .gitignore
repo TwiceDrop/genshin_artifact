@@ -12,6 +12,16 @@ public/release-assets/
 /android/app/src/main/assets/public
 /android/app/src/main/assets/capacitor.config.json
 /android/app/src/main/assets/capacitor.plugins.json
+/ios/App/App/public/
+/ios/App/App/capacitor.config.json
+/ios/App/App/capacitor.plugins.json
+/ios/App/Pods/
+/ios/App/build/
+/ios/App/DerivedData/
+/ios/App/App.xcworkspace/xcuserdata/
+/ios/App/App.xcodeproj/xcuserdata/
+*.xcuserstate
+*.ipa
 
 # local env files
 .env.local

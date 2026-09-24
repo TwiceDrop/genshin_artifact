@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { artifactFingerprint } from '../import/miyoushe.mjs'
+import { randomUUID } from '../platform/crypto-browser.mjs'
 
 export const snapshotEquipment = items => JSON.parse(JSON.stringify(Array.from({ length: 5 }, (_, i) => items[i] || null)))
 const signature = items => JSON.stringify(items.map(a => a ? [a.id ?? null, artifactFingerprint(a)] : null))
@@ -41,7 +42,7 @@ export function useArtifactComparison({ storage, key, items, gameBaseline }) {
         const all = storage.value.history || []
         const existing = all.find(row => row.key === key.value && row.label === label && signature(row.items) === signature(frozen))
         if (existing) return existing.id
-        const row = { id: crypto.randomUUID(), key: key.value, label, time: new Date().toISOString(), items: frozen }
+        const row = { id: randomUUID(), key: key.value, label, time: new Date().toISOString(), items: frozen }
         const previousSelection = historyId.value
         update({ history: [row, ...all.filter(row => row.key === key.value).slice(0, 49), ...all.filter(row => row.key !== key.value)] })
         selectedHistoryId.value = previousSelection || row.id

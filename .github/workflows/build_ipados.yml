@@ -1,0 +1,170 @@
+name: Build iPadOS unsigned IPA
+
+on:
+  push:
+    branches:
+      - codex/7.1.02-ipados
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcode_dir=''
+          for candidate in /Applications/Xcode_26.*.app; do
+            if test -d "$candidate"; then xcode_dir="$candidate"; fi
+          done
+          test -n "$xcode_dir"
+          echo "DEVELOPER_DIR=$xcode_dir/Contents/Developer" >> "$GITHUB_ENV"
+          "$xcode_dir/Contents/Developer/usr/bin/xcodebuild" -version | grep '^Xcode 26\.'
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run 7.1.02 regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          for script in test:local test:beta test:beta2 test:beta3 test:limited71 test:strengthened test:stellar-support; do
+            echo "::group::$script"
+            npm run "$script" 2>&1 | tee -a artifacts/regression-tests.log
+            echo '::endgroup::'
+          done
+
+      - name: Build offline web assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build:mobile
+          test -s dist-mobile/index.html
+          test "$(find dist-mobile -type f -name '*.wasm' | wc -l | tr -d ' ')" -ge 2
+          for worker in editor css html json ts; do
+            test -s "dist-mobile/$worker.worker.js"
+          done
+
+      - name: Sync Capacitor iOS project
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx cap sync ios
+          test -s ios/App/App/public/index.html
+          test "$(find ios/App/App/public -type f -name '*.wasm' | wc -l | tr -d ' ')" -ge 2
+          for worker in editor css html json ts; do
+            test -s "ios/App/App/public/$worker.worker.js"
+          done
+
+      - name: Build unsigned iPadOS app
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/mona-ipados-device" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build 2>&1 | tee artifacts/device-build.log
+
+      - name: Package and verify unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/mona-ipados-device/Build/Products/Release-iphoneos/App.app"
+          plist="$app/Info.plist"
+          test -d "$app"
+          test -s "$app/public/index.html"
+          test "$(find "$app/public" -type f -name '*.wasm' | wc -l | tr -d ' ')" -ge 2
+          for worker in editor css html json ts; do
+            test -s "$app/public/$worker.worker.js"
+          done
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$plist")"
+          xcrun lipo -archs "$app/$executable" | grep -qw arm64
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")" = '7.1.2'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :UIDeviceFamily:0' "$plist")" = '2'
+          mkdir -p artifacts/Payload
+          cp -R "$app" artifacts/Payload/
+          cd artifacts
+          zip -qry mona-7.1.02-ipados-unsigned.ipa Payload
+          shasum -a 256 mona-7.1.02-ipados-unsigned.ipa > mona-7.1.02-ipados-unsigned.ipa.sha256
+          {
+            echo "source_commit=$GITHUB_SHA"
+            echo "node=$(node --version)"
+            echo "xcode=$(xcodebuild -version | head -n 1)"
+            echo 'version=7.1.02 (CFBundleShortVersionString 7.1.2)'
+            echo 'platform=iphoneos arm64; unsigned'
+          } > build-info.txt
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: mona-7.1.02-ipados-unsigned
+          path: |
+            artifacts/mona-7.1.02-ipados-unsigned.ipa
+            artifacts/mona-7.1.02-ipados-unsigned.ipa.sha256
+            artifacts/build-info.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Build for iPad simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/mona-ipados-simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build 2>&1 | tee artifacts/simulator-build.log
+
+      - name: Launch on iPad simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          read -r simulator state < <(xcrun simctl list -j devices available | node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const devices = Object.values(JSON.parse(s).devices).flat(); const ipad = devices.find(d => d.name.startsWith("iPad")); if (ipad) process.stdout.write(`${ipad.udid} ${ipad.state}\n`); });')
+          test -n "$simulator"
+          if test "$state" != 'Booted'; then xcrun simctl boot "$simulator"; fi
+          xcrun simctl bootstatus "$simulator" -b
+          xcrun simctl install "$simulator" "$RUNNER_TEMP/mona-ipados-simulator/Build/Products/Debug-iphonesimulator/App.app"
+          xcrun simctl launch "$simulator" com.mona.artifact.local | tee artifacts/simulator-launch.log
+          sleep 10
+          xcrun simctl io "$simulator" screenshot artifacts/ipad-launch.png
+
+      - name: Upload build and test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mona-7.1.02-ipados-logs
+          path: |
+            artifacts/regression-tests.log
+            artifacts/simulator-build.log
+            artifacts/simulator-launch.log
+            artifacts/ipad-launch.png
+            artifacts/device-build.log
+          if-no-files-found: ignore
+          retention-days: 30

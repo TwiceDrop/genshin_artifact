@@ -32,7 +32,7 @@ export function scoreRanking(item) {
 
 export function scoreBuild(items, context) {
     const artifacts = items.filter(Boolean).map(toScoreArtifact)
-    if (!context?.name || !Object.hasOwn(data.usefulAttr, context.name)) {
+    if (!context?.name || !Object.prototype.hasOwnProperty.call(data.usefulAttr, context.name)) {
         return { supported: false, title: '暂无该角色的评分规则', artifacts: [], total: null, grade: '待适配', count: artifacts.length }
     }
     const evaluator = createScoreEvaluator(context.name, artifacts, context.options || {})
@@ -48,7 +48,7 @@ export function scoreBuild(items, context) {
 
 export function scoreDetails(item, context, equipped = []) {
     const a = toScoreArtifact(item)
-    if (!a || !context?.name || !Object.hasOwn(data.usefulAttr, context.name)) return null
+    if (!a || !context?.name || !Object.prototype.hasOwnProperty.call(data.usefulAttr, context.name)) return null
     // Candidate replaces the same slot while all other build conditions stay fixed.
     const fullSet = equipped.filter(x => x && x.position !== item.position).map(toScoreArtifact).concat(a)
     const evaluator = createScoreEvaluator(context.name, fullSet, context.options || {})

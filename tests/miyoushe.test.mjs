@@ -68,6 +68,18 @@ test('record DS covers exactly the transmitted JSON and query', () => {
     const [t, r, hash] = ds(body, query).split(',')
     assert.equal(hash, createHash('md5').update(`salt=xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs&t=${t}&r=${r}&b=${body}&q=${query}`).digest('hex'))
 })
+
+test('MysClient requests work without AbortSignal.timeout on iPadOS 15', async () => {
+    const timeout = AbortSignal.timeout
+    AbortSignal.timeout = undefined
+    try {
+        const client = new MysClient(async (_url, options) => {
+            assert.ok(options.signal instanceof AbortSignal)
+            return { ok: true, json: async () => ({ retcode: 0, data: { list: [] } }) }
+        })
+        assert.deepEqual(await client.request('https://api-takumi.mihoyo.com', '/binding/api/getUserGameRolesByCookie', { authenticated: false }), { list: [] })
+    } finally { AbortSignal.timeout = timeout }
+})
 test('every generated set crosses the app/WASM boundary; imported Sandrone equipment computes a real curve', async () => {
     for (const [key, data] of Object.entries(artifacts)) {
         assert.equal(appConverter.convertArtifactName(key), data.name2)
