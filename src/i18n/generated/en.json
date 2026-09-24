@@ -3554,8 +3554,8 @@
   "角笛触发后，普通模式目标水 / 冰暴伤提高50%，星扩散模式星扩散暴伤提高60%。六命前仅场上目标。",
   "沃雅妮莎-「永不落幕的盛歌」",
   "歌声期间提高水 / 冰伤害60%，星扩散伤害擢升25%。",
-  "沃雅妮莎-「漩流颂歌」",
-  "当前场上目标获得专武加攻。来源生命填最终值，避免重复添加生命加成。",
+  "Hymn of the Maelstrom (teammate weapon effect)",
+  "When a teammate equips Hymn of the Maelstrom, their final HP grants ATK to the active character. Do not add this effect again when the active character already equips the weapon.",
   "专武精炼",
   "专武层数",
   "冻结 / 星扩散强化",
@@ -3667,5 +3667,10 @@
   "按选定单次直接星扩散伤害的期望值配装。精确计入各天赋等级、命座、改进战术、原生武器/圣遗物与队友增益；不代表完整时间轴DPS。输入天赋为界面显示的最终等级，勿重复叠加三命/五命等级。",
   "星扩散技能",
   "棱晶弹：解算功率>50（第二发400%）",
-  "改进战术层数"
+  "改进战术层数",
+  "Vesna · passive · Stellar Swirl base damage",
+  "When Vesna's passive is active, each 100 final ATK on her increases party Stellar Swirl base damage by 0.7%, up to 14%. Scaled by uptime. Enter Vesna's final in-combat ATK. This does not alter character ATK.",
+  "Vesna's final in-combat ATK",
+  "Passive uptime (0–1; 1 = 100%)",
+  "Equipped character's final HP (including weapon and constellations)"
 ]

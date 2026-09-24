@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { createMysConverter } from '../src/import/miyoushe.mjs'
-import { availableCharacterBuffs, bindBuffConfig, characterBuffProfile } from '../src/algorithms/buff-groups/index.mjs'
+import { availableCharacterBuffs, bindBuffConfig, characterBuffProfile, groupCharacterBuffs, groupSelectedBuffs } from '../src/algorithms/buff-groups/index.mjs'
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url),'utf8').replace(/^(?:\s*\/\/[^\n]*\n)*\s*export default\s*/,'').trim().replace(/;$/,''))
 const characters=read('../src/assets/_gen_character.js'),weapons=read('../src/assets/_gen_weapon.js'),artifacts=read('../src/assets/_gen_artifact.js'),targets=read('../src/assets/_gen_tf.js'),locale=read('../src/i18n/generated/zh-cn.json')
 const converter=createMysConverter({characters,weapons,artifacts,targets,locale})
@@ -14,9 +14,13 @@ test('beta1 模拟米游社快照导入沃雅妮莎，显示天赋不重复叠�
  assert.deepEqual([entry.preset.character.skill1,entry.preset.character.skill2,entry.preset.character.skill3],[0,12,9])
  assert.equal(entry.preset.weapon.name,'HymnOfTheMaelstrom');assert.equal(entry.preset.weapon.refine,3)
  const profile=characterBuffProfile('Vodyanitsa','123456789',[{uid:'123456789',presetName:'test'}],{test:{item:entry.preset}})
- const buffs=read('../src/assets/_gen_buff.js'),rules=read('../src/algorithms/buff-groups/ownership.json'),list=Object.values(buffs).filter(b=>rules[b.name]?.character==='Vodyanitsa')
- assert.equal(list.length,7)
- assert.deepEqual(availableCharacterBuffs(list,rules,profile).map(b=>b.name),['VodyanitsaE','VodyanitsaA4','VodyanitsaC1','VodyanitsaC2','VodyanitsaSignature','VodyanitsaA1'])
+ const buffs=read('../src/assets/_gen_buff.js'),rules=read('../src/algorithms/buff-groups/ownership.json')
+ const list=groupCharacterBuffs(Object.values(buffs),rules).find(group=>group.character==='Vodyanitsa').buffs
+ assert.equal(list.length,6)
+ assert.deepEqual(availableCharacterBuffs(list,rules,profile).map(b=>b.name),['VodyanitsaE','VodyanitsaA4','VodyanitsaC1','VodyanitsaC2','VodyanitsaA1'])
+ assert.equal(buffs.VodyanitsaSignature.genre,'Weapon')
+ const savedWeaponBuff={id:1,name:'VodyanitsaSignature',config:{VodyanitsaSignature:{hp:50000,refine:5,stacks:3,boosted:true}},lock:false}
+ assert.deepEqual(groupSelectedBuffs([savedWeaponBuff],buffs,rules),{characters:[],other:[savedWeaponBuff]})
  const config=bindBuffConfig(buffs.VodyanitsaE,profile).VodyanitsaE
  assert.equal(config.e_level,13);assert.equal(config.constellation,3)
  assert.equal(characterBuffProfile('Vodyanitsa','987654321',[],{}).imported,false)

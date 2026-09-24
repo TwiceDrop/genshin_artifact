@@ -58,6 +58,42 @@ test('桑多涅队友星耀祝礼精确基础乘区，保留既有奥黛塔', ()
         close(sum(a.direct_stellarconduct_base_compose), sum(b.direct_stellarconduct_base_compose));
     }
 });
+test('薇斯纳星耀祝礼按来源攻击力封顶、覆盖率计算，只加星扩散基础伤害', () => {
+    for (const [atk, coverage] of [[0, 1], [1000, 1], [2000, .5], [3500, 1], [3500, 0]]) {
+        const x = input(), off = damage(x);
+        x.buffs = [named('VesnaTalent1', {atk, coverage})];
+        const on = damage(x), expected = Math.min(atk * .00007, .14) * coverage;
+        close(sum(on.direct_stellarswirl_base_compose) - sum(off.direct_stellarswirl_base_compose), expected);
+        close(on.normal.expectation, off.normal.expectation);
+        close(sum(on.direct_stellarconduct_base_compose), sum(off.direct_stellarconduct_base_compose));
+        close(on.direct_stellarswirl.expectation / off.direct_stellarswirl.expectation,
+            (1 + sum(off.direct_stellarswirl_base_compose) + expected) / (1 + sum(off.direct_stellarswirl_base_compose)));
+        close(on.stellarswirl_cryo.expectation / off.stellarswirl_cryo.expectation, 1 + expected);
+    }
+    assert.throws(() => damage({...input(), buffs: [named('VesnaTalent1', {atk: 2000, coverage: 1.1})]}), /覆盖率/);
+});
+test('薇斯纳与桑多涅、奥黛塔的星耀祝礼独立叠加', () => {
+    const x = input();
+    x.buffs = [named('OdetteTalent1', {atk: 1000, radiance_mode: 2}),
+        named('SandroneTalent1', {atk: 2000}), named('VesnaTalent1', {atk: 2500, coverage: .5})];
+    const result = damage(x);
+    close(sum(result.direct_stellarswirl_base_compose), .07 + .14 + .07);
+    close(result.direct_stellarswirl_base_compose['桑多涅·星耀祝礼：星扩散'], .14);
+    close(result.direct_stellarswirl_base_compose['薇斯纳·星耀祝礼：星扩散'], .07);
+});
+test('桑多涅前台可同时接收薇斯纳队友星耀祝礼', () => {
+    const x = sandrone(0), off = damage(x, full);
+    x.buffs.push(named('VesnaTalent1', {atk: 1500, coverage: .5}));
+    const on = damage(x, full);
+    close(sum(on.direct_stellarswirl_base_compose) - sum(off.direct_stellarswirl_base_compose), .0525);
+});
+test('薇斯纳队友星耀祝礼进入瑞希单人配装目标', () => {
+    const x = input();
+    x.buffs = [named('VesnaTalent1', {atk: 2000, coverage: .75})];
+    const target = {name:MIZUKI_STELLAR_TARGET,params:{[MIZUKI_STELLAR_TARGET]:{mode:0}}};
+    const ranked = full.OptimizeSingleWasm.optimize({...x,target_function:target,algorithm:'Naive',constraint:null,filter:null},x.artifacts);
+    close(ranked[0].value, damage(x,full).direct_stellarswirl.expectation);
+});
 test('七七六命只增加直接星扩散基础，不增加面板攻击或反应星扩散', () => {
     const x = input(6), off = damage(x); x.buffs = [named('QiqiC6StellarConduct', {atk: 2000})];
     const a = damage(x), raw = sum(off.em) * sum(off.direct_stellarswirl_ratio) + sum(off.direct_stellarswirl_extra_fixed);
@@ -154,6 +190,14 @@ test('原生薇斯纳七七/桑多涅/既有VesnaSupport合并，数值和分乘
     close(sum(after.direct_stellarswirl_extra_fixed),12100);
     const expected=before.direct_stellarswirl.expectation*(rawBefore+12000)/rawBefore*(1+sum(after.direct_stellarswirl_base_compose))/(1+sum(before.direct_stellarswirl_base_compose))*(1+sum(after.direct_stellarswirl_compose))/(1+sum(before.direct_stellarswirl_compose));
     close(after.direct_stellarswirl.expectation,expected);
+});
+test('薇斯纳本人已有固有天赋，不重复叠加自己的可选队友增益',()=>{
+    const x=sandrone(0);x.character={name:'Vesna',level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:{Vesna:{stance:true,radiance:true,disciplinary_stacks:6,anemo_cryo_count:1,other_count:0,flat_inside_discipline:false}}};
+    x.weapon={name:'NewBough',level:90,ascend:false,refine:5,params:{NewBough:{stacks:3,rate:.5,radiance:true}}};
+    x.skill={index:17,config:'NoConfig'};x.artifacts=[];x.buffs=[];
+    const own=damage(x,full);
+    x.buffs=[named('VesnaTalent1',{atk:3000,coverage:1})];
+    close(damage(x,full).direct_stellarswirl.expectation,own.direct_stellarswirl.expectation);
 });
 fs.writeFileSync(new URL('../beta-data/stellar-support-tests.json', import.meta.url), JSON.stringify({tests}, null, 2) + '\n');
 if(tests.some(t => !t.pass)) process.exitCode = 1;

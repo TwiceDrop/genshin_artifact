@@ -5,8 +5,8 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
-[assembly: System.Reflection.AssemblyVersion("7.0.11.0")]
-[assembly: System.Reflection.AssemblyFileVersion("7.0.11.0")]
+[assembly: System.Reflection.AssemblyVersion("7.1.4.0")]
+[assembly: System.Reflection.AssemblyFileVersion("7.1.4.0")]
 internal static class Launcher {
     [STAThread] static void Main() {
         Application.EnableVisualStyles();
@@ -32,7 +32,7 @@ internal sealed class LocalApp : ApplicationContext {
     bool stopping;
     public LocalApp() {
         var root = AppDomain.CurrentDomain.BaseDirectory;
-        tray = new NotifyIcon { Text = "莫娜占卜铺 V7.0.11", Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath), Visible = true };
+        tray = new NotifyIcon { Text = "莫娜占卜铺 V7.1.04", Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath), Visible = true };
         var menu = new ContextMenuStrip();
         menu.Items.Add("打开莫娜占卜铺", null, (s,e) => Launcher.Open());
         menu.Items.Add("退出", null, (s,e) => ExitThread());
