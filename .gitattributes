@@ -1,4 +1,6 @@
 * text=auto eol=lf
+*.bat -text -eol whitespace=cr-at-eol
+*.cmd -text -eol whitespace=cr-at-eol
 *.wasm binary
 *.png binary
 *.jpg binary
