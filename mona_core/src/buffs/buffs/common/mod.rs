@@ -31,3 +31,5 @@ pub use healing_bonus::BuffHealingBonus;
 pub use base_dmg::BuffBaseDmg;
 
 pub mod vesna_support;pub use vesna_support::BuffVesnaSupport;
+
+pub mod extension_effect;pub use extension_effect::BuffExtensionEffect;

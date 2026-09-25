@@ -109,6 +109,45 @@ function normalizeArguments(args){
   return args.map(walk);
 }
 
+
+// The release core already implements these weapons at level 90. Translate the
+// UI's newer switch names back to that core instead of replacing an old character.
+function publishedWeapon(w){
+ const p=w.params?.[w.name]||{};
+ const cfg={
+  PrizedIsshinBlade:null,
+  AthameArtis:{rate:p.burst_hit?p.rate:0,magus:p.secret_rite},
+  MoonweaverDawn:{max_energy:p.energy_cost},
+  SerenitysCall:{rate:p.reaction_active?p.rate:0,full_moon:p.moon_full},
+  LightbearingMoonshard:{extra_active:p.skill_active},
+  WhitelakeFrostfeather:{stack:p.stacks},
+  ExaiphanesBlade:{active:p.hit_active,resonated_elements:p.resonated_elements},
+  AmberBead:{stack:p.stacks},
+  NightweaversLookingGlass:{northernmost_runo_active:p.skill_active,crescent_verse_active:p.lunar_bloom_active},
+  ReliquaryOfTruth:{false_secret_active:p.skill_active,true_moon_active:p.lunar_bloom_hit},
+  DawningFrost:{rate_charged:p.charged_active?p.charged_rate:0,rate_skill:p.skill_active?p.skill_rate:0},
+  EtherlightSpindlelute:{rate:p.skill_active?p.rate:0},
+  BlackmarrowLantern:{moon_state:p.moon_full?2:0},
+  NocturnesCurtainCall:{sacred_wine_uptime:p.lunar_active?p.rate:0},
+  AngelosHeptades:{shield_rate:p.shield_active?p.rate:0},
+ }[w.name];
+ if(['LightbearingMoonshard','WhitelakeFrostfeather','ExaiphanesBlade','NightweaversLookingGlass','ReliquaryOfTruth'].includes(w.name)
+   && Object.entries(p).some(([k,v])=>k.endsWith('rate')&&v!==1))
+   throw Error('旧角色使用此新武器暂只支持完整覆盖率；平均覆盖率换算尚未校准。');
+ if(w.name==='NightweaversLookingGlass'&&p.skill_active&&p.lunar_bloom_active)
+   throw Error('纺夜天镜的队友反应增益尚未校准，请关闭相关触发条件。');
+ return {...w,params:cfg?{[w.name]:cfg}:'NoConfig'};
+}
+function publishedArguments(args){
+ const walk=x=>{
+  if(Array.isArray(x))return x.map(walk);
+  if(!x||typeof x!=='object'||ArrayBuffer.isView(x)||x instanceof ArrayBuffer)return x;
+  if(isExpandedWeapon(x)&&Object.hasOwn(x,'level'))return publishedWeapon(x);
+  return Object.fromEntries(Object.entries(x).map(([k,v])=>[k,walk(v)]));
+ };
+ return args.map(walk);
+}
+
 // The published WASM has no base-ATK override. Old roles can use the rebuilt
 // extension only after their kit parity has been verified against the release.
 export function createExpandedWeaponsFacade(base,original,extension,{verifiedOldRoles=[]}={}){
@@ -126,15 +165,16 @@ export function createExpandedWeaponsFacade(base,original,extension,{verifiedOld
       inputs.forEach(collect);
       if(!weapons.length)return fn(...args);
       const role=prepared[0]?.character?.name||prepared[0]?.name||prepared[1]?.character?.name;
-      if(role&&!nativeRole(role)&&!verified.has(role))throw Error(`${role} 装备新目录武器尚未通过发布内核与扩展内核一致性校验；不能保证白值与技能结果准确。`);
-      const engine=role&&!nativeRole(role)?extension:base;
-      const result=engine[className]?.[method](...prepared);
+      const oldRole=role&&!nativeRole(role);
+      if(oldRole&&!verified.has(role)&&weapons.some(w=>w.level!==90))throw Error('旧角色使用新增目录武器的1～89级白值尚未校准，请使用90级武器。');
+      const engine=oldRole&&verified.has(role)?extension:base;
+      const result=engine[className]?.[method](...(oldRole&&!verified.has(role)?publishedArguments(prepared):prepared));
       if(result&&typeof result==='object'&&!Array.isArray(result)&&weapons.length===1){
         const attackValues=result.atk&&typeof result.atk==='object'?Object.values(result.atk):[];
         const sourceAttack=attackValues.length&&attackValues.every(Number.isFinite)?attackValues.reduce((sum,value)=>sum+value,0):undefined;
         const effect=expandedWeaponEffects(weapons[0],{characterName:role,sourceAttack});
         if(['CommonInterface','CalculatorInterface'].includes(className))result.weapon_effects=effect;
-        result.weapon_precision={levelCurve:'exact',sourceRevision:data.revision,oldRoleParity:nativeRole(role)||verified.has(role)};
+        result.weapon_precision={levelCurve:'exact',sourceRevision:data.revision,oldRoleParity:nativeRole(role)||verified.has(role),characterCore:oldRole&&!verified.has(role)?'published':'extension'};
       }
       return result;
     };

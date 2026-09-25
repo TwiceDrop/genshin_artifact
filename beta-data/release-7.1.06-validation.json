@@ -1,0 +1,24 @@
+{
+  "release": "7.1.06",
+  "verifiedAt": "2026-09-25T16:30:47.847Z",
+  "testFile": "tests/release-7106.test.mjs",
+  "uniqueTestCases": 5,
+  "passed": 5,
+  "fullSuiteRun": false,
+  "notes": [
+    "用户要求最多5项测试。首次3项通过；修正后仅复跑失败项，五项现已全部通过。",
+    "初次奥黛塔配装用例采用Empty套装无可选结果，改为正常五件角斗士候选。",
+    "未进行实体手机交互或真实账号登录测试。"
+  ],
+  "builds": {
+    "web": "passed",
+    "windows": "passed",
+    "android": "passed"
+  },
+  "android": {
+    "versionCode": 70106,
+    "versionName": "7.1.06",
+    "certificateSha256": "ba0891657ae61081fc2061aa5c66ada867caf7a0f81b7ff2339174751b9e4834",
+    "matchesPreviousRelease": "v7.1.05"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "release": "7.1.06",
+  "characterRevision": "7.1.0 D48145775",
+  "weaponRevision": {
+    "branch": "release",
+    "version": "7.1.0",
+    "designRevision": 48145775,
+    "resourceRevision": 48145775
+  },
+  "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+  "extensionWasmSha256": "6c8acf0e7938d030e4cfad1e51eb4b2cf86651864bae0696657ff0fedac6892c"
+}

@@ -1,4 +1,5 @@
 // Existing characters keep the published core; Vodyanitsa uses the compiled extension.
+import {prepareExtensionBuffs} from './extension-buffs.mjs';
 import {normalizeSignatureWeapon} from './weapon-effects.mjs';
 import {markReactionAvailability} from './reaction-availability.mjs';
 import {calculateStellarSwirlTeam} from './stellar-swirl-reaction.mjs';
@@ -36,7 +37,7 @@ export function createFacade(original,extension,data,support,characters) {
  const extensionRole=args=>args.some(a=>a?.character?.name==='Vodyanitsa'||a?.name==='Vodyanitsa');
  const hasSupport=input=>(input?.buffs||[]).some(special);
  function normalizeExtension(args) {
-  const out=clone(args);
+  const out=clone(args).map(x=>x?.character?prepareExtensionBuffs(x):x);
   function walk(x){if(!x||typeof x!=='object')return;
    if(Array.isArray(x)&&x.length&&x.every(a=>a&&typeof a.set_name==='string')) {
     const slots=new Map();for(const a of x){if(!slots.has(a.set_name))slots.set(a.set_name,new Set());slots.get(a.set_name).add(a.slot);}
@@ -69,7 +70,7 @@ export function createFacade(original,extension,data,support,characters) {
    const add=(n,v)=>fresh.push(named(n,v));
    if(id==='A1'&&element==='Anemo'&&damageScope)add('ResMinus',{p:35});
    if(id==='E'&&relevant&&damageScope)add('ResMinus',{p:data.character.skills.e_res_shred[level-1]*100});
-   if(id==='A4'&&relevant&&ordinary&&damageScope)add('BaseDmg',{value:Math.min(Math.max(hp-40000,0)*.14,3500)});
+   if(id==='A4'&&relevant&&ordinary&&on&&damageScope)add('BaseDmg',{value:Math.min(Math.max(hp-40000,0)*.14,3500)});
    if(id==='C1'&&c>=1)add('ATKFixed',{value:hp*.008});
    if(id==='C2'&&c>=2&&(on||c>=6)&&relevant&&ordinary&&damageScope)add('CriticalDamage',{p:50});
    if(id==='C6'&&c>=6){add('CustomElementalBonus',{element:'Hydro',p:60});add('CustomElementalBonus',{element:'Cryo',p:60});}
@@ -80,7 +81,7 @@ export function createFacade(original,extension,data,support,characters) {
     add('ATKPercentage',{p:100*stacks*Math.min(Math.max(hp-40000,0)/1000*coef/10,2*coef)*m});
    }
   }
-  out.buffs.push(...fresh);return out;
+  out.buffs.push(...fresh);return prepareExtensionBuffs(out);
  }
  const wrap=(className)=>new Proxy(original[className],{get(target,method){
   const originalFn=Reflect.get(target,method);
