@@ -577,6 +577,30 @@
                                         <el-input-number v-model="source.triggers.vesnaTalentCoverage" :min="0" :max="1" :step="0.1" :precision="2" size="small" />
                                     </div>
                                 </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Odette'">
+                                    <div class="team-context-row">
+                                        <span>奥黛塔辉映</span>
+                                        <el-select v-model="source.triggers.odetteRadianceMode" size="small">
+                                            <el-option :value="0" label="未触发" /><el-option :value="1" label="星超导" /><el-option :value="2" label="星扩散" />
+                                        </el-select>
+                                        <el-switch v-model="source.triggers.odetteBlessing" active-text="星耀祝礼生效" />
+                                    </div>
+                                    <div class="team-context-row">
+                                        <el-switch v-model="source.triggers.odetteSplendor" active-text="受益角色已获得华彩" />
+                                        <span>受益华彩层数</span><el-input-number v-model="source.triggers.odetteStacks" :min="0" :max="presetStore.presets.value[source.presetName]?.item.character.constellation >= 1 ? 6 : 4" size="small" />
+                                    </div>
+                                    <el-switch v-model="source.triggers.odetteDouble" active-text="独舞倒影在场（二命）" />
+                                    <el-switch v-model="source.triggers.odetteDream" active-text="雪鹄之梦已触发（四命）" />
+                                    <p>使用来源预设的命座和最终爆发等级；按受益角色实际获得的层数计算，不自动模拟华彩转移。</p>
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Qiqi'">
+                                    <el-switch v-model="source.triggers.qiqiTalisman" active-text="辉映·星烁：度厄真符条件已触发" />
+                                    <el-switch v-model="source.triggers.qiqiC6" active-text="六命增益已触发" />
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Sandrone'">
+                                    <el-switch v-model="source.triggers.sandroneBlessing" active-text="星耀祝礼·星扩散已触发" />
+                                    <el-switch v-model="source.triggers.sandroneC1" active-text="一命队友星扩散增益已触发" />
+                                </template>
                                 <p>当前自动效果：{{ teamSourceEffects(source.sourceId).join('、') || '条件未触发或无已校准效果' }}</p>
                             </div>
                             <el-alert v-for="issue in teamContextResult.issues" :key="issue" type="error" :closable="false" :title="issue" />
@@ -1316,7 +1340,7 @@ const otherBuffs = computed(() => buffs.value.filter(buff => buff.name !== 'Reso
 const teamContextSources = ref<ITeamContextSource[]>([])
 const teamContextStellarMode = ref(false)
 const availableTeamPresets = computed(() => presetStore.allFlat.value.filter(entry =>
-    ['Vodyanitsa', 'Vesna'].includes(entry.item?.character?.name)
+    ['Vodyanitsa', 'Vesna', 'Odette', 'Qiqi', 'Sandrone'].includes(entry.item?.character?.name)
     && entry.item.character.name !== characterName.value
     && entry.name !== miscCurrentPresetName.value))
 const selectedTeamPresetNames = computed<string[]>({
@@ -1327,7 +1351,7 @@ const selectedTeamPresetNames = computed<string[]>({
     },
 })
 function teamCharacterLabel(name?: string) {
-    return name === 'Vodyanitsa' ? '沃雅妮莎' : name === 'Vesna' ? '薇斯纳' : '未知角色'
+    return ({Vodyanitsa:'沃雅妮莎',Vesna:'薇斯纳',Odette:'奥黛塔',Qiqi:'七七',Sandrone:'桑多涅'} as Record<string,string>)[name || ''] || '未知角色'
 }
 function teamSourceGearLabel(name: string) {
     const ids = presetStore.presets.value[name]?.item.artifactIds

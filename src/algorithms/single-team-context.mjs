@@ -1,7 +1,7 @@
-import {deriveTeamBuffs} from '../../beta-data/hybrid-team-optimizer.mjs';
+import {deriveTeamBuffs,TEAM_BUFF_SOURCES} from '../../beta-data/hybrid-team-optimizer.mjs';
 
 const clone = value => JSON.parse(JSON.stringify(value));
-const SUPPORTED_SOURCES = new Set(['Vodyanitsa', 'Vesna']);
+const SUPPORTED_SOURCES = new Set(TEAM_BUFF_SOURCES);
 
 export function createTeamContextSource(presetName, preset) {
     const item = preset?.item || preset;
@@ -25,6 +25,9 @@ export function createTeamContextSource(presetName, preset) {
             signatureBoosted: weaponParams.boosted === true,
             signatureOnField: weaponParams.on_field !== false,
             recipientOnField: true,
+            odetteRadianceMode: characterParams.radiance_mode ?? 0,
+            odetteStacks: 0, odetteBlessing: false, odetteSplendor: false, odetteDouble: false, odetteDream: false,
+            qiqiTalisman: false, qiqiC6: false, sandroneBlessing: false, sandroneC1: false,
         },
     };
 }
@@ -51,6 +54,7 @@ function sourceInterface(item, sourceId, triggers) {
         buffs:(item.buffs || []).filter(buff => !buff.lock).map(buff => ({name:buff.name,config:clone(buff.config)})),
         artifact_config:item.artifactEffectMode === 'custom' ? clone(item.artifactConfig || null) : null,
         team_effects:{
+            support_triggers:clone(triggers),
             a1_active:triggers.a1Active === true,
             a4_active:triggers.a4Active === true,
             vesna_talent_active:triggers.vesnaTalentActive === true,
@@ -65,7 +69,7 @@ function manualOverrides(auto, manual) {
         if (buff.source_id) return buff.source_id === auto.source_id && buff.name === auto.name;
         // Old presets do not have source IDs. The character-specific name
         // uniquely identifies the calibrated source when only one is selected.
-        return buff.name === auto.name && (auto.name.startsWith('Vodyanitsa') || auto.name === 'VesnaTalent1');
+        return buff.name === auto.name && TEAM_BUFF_SOURCES.some(name=>auto.name.startsWith(name));
     });
 }
 
@@ -73,8 +77,10 @@ export function deriveSingleTeamContext(api, recipient, selectedSources, presets
     const manual = recipient.buffs || [];
     const result = {buffs:[...manual], automatic:[], sources:[], issues:[], team_context:[]};
     if (!selectedSources?.length) return result;
+    if(selectedSources.length>3){result.issues.push('单支队伍最多关联三名队友。');return result;}
     const sourceIds = new Set(), characterNames = new Set();
     const recipientGear = new Set((recipient.equipped_artifact_ids || []).filter(id => Number.isInteger(id) && id >= 0));
+    const occupiedGear = new Set(recipientGear);
     for (const selected of selectedSources) {
         const {presetName, sourceId, triggers = {}} = selected;
         const entry = presets?.[presetName], item = entry?.item || entry;
@@ -91,7 +97,7 @@ export function deriveSingleTeamContext(api, recipient, selectedSources, presets
         }
         const ids = item.artifactIds.filter(id => Number.isInteger(id) && id >= 0);
         if (new Set(ids).size !== ids.length) {result.issues.push(`队友预设「${presetName}」重复使用了圣遗物。`);continue;}
-        if (ids.some(id => recipientGear.has(id))) {result.issues.push(`队友预设「${presetName}」与当前角色占用了同一件圣遗物。`);continue;}
+        if (ids.some(id => occupiedGear.has(id))) {result.issues.push(`队友预设「${presetName}」与当前角色或其他队友占用了同一件圣遗物。`);continue;}
         const gear = ids.map(getArtifact);
         if (gear.some(artifact => !artifact)) {result.issues.push(`队友预设「${presetName}」有圣遗物已从库存删除，请重新保存装备。`);continue;}
         const recipientWithMode = {...recipient, team_effects:{...(recipient.team_effects || {}),
@@ -101,6 +107,7 @@ export function deriveSingleTeamContext(api, recipient, selectedSources, presets
             const source = sourceInterface(item, sourceId, triggers);
             const effects = deriveTeamBuffs(api,[recipientWithMode,source],
                 [recipient.artifacts || [],gear.map(convertArtifact)],0);
+            ids.forEach(id=>occupiedGear.add(id));
             result.automatic.push(...effects.filter(effect => !manualOverrides(effect,manual)));
             result.sources.push({presetName,sourceId,characterName:name,artifactCount:gear.length,effectNames:effects.map(e=>e.name)});
             result.team_context.push({source_id:sourceId,preset_name:presetName,triggers:clone(triggers)});

@@ -51,7 +51,7 @@ impl<A:Attribute> ChangeAttribute<A> for VodyanitsaEffect {
   use AttributeName::*;
   if self.c4>0 {a.add_hp_percentage("沃雅妮莎 C4（测试服）",self.c4.min(3) as f64*0.2);}
   if self.e {a.set_value_by(ResMinusHydro,"沃雅妮莎 E",SKILL.e_res_shred[self.e_level]);a.set_value_by(ResMinusCryo,"沃雅妮莎 E",SKILL.e_res_shred[self.e_level]);}
-  if self.a4 && self.song && self.ordinary {
+  if self.a4 && self.song && self.ordinary && self.on {
    a.add_edge1(HP,ExtraDmgHydro,Box::new(|x,_|((x-40000.0).max(0.0)*0.14).min(3500.0)),Box::new(|g,x,_| (if x>40000.0 && x<65000.0 {g*0.14}else{0.0},0.0)),"十二弦的泪歌（单次有效）");
   }
   if self.c1 {a.add_edge1(HP,ATKFixed,Box::new(|x,_|x*0.008),Box::new(|g,_,_|(g*0.008,0.0)),"沃雅妮莎 C1");}

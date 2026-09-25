@@ -1,3 +1,4 @@
+import {prepareExtensionBuffs} from './extension-buffs.mjs';
 import {normalizeSignatureWeapon, chrysalisEffects} from './weapon-effects.mjs';
 import {isLimitedWeapon, limitedWeaponEffects, LIMITED_WEAPONS} from './limited-weapons.mjs';
 import {withStellarSwirlTeam} from './facade.mjs';
@@ -7,7 +8,7 @@ export function createBeta2(base,extension,support){
  const supported=new Set([...support.artifacts,'ScarletProof','HeartOfTheFurnace']);
  const nativeBuffs=new Set([...support.buffs,'VesnaSupport']);
  function prepare(raw,candidates){
-  const x=clone(raw),c=x.character;
+  const x=prepareExtensionBuffs(clone(raw)),c=x.character;
   if(c?.name==='Vesna'){
    c.params={Vesna:{stance:false,radiance:false,disciplinary_stacks:0,anemo_cryo_count:1,other_count:0,flat_inside_discipline:false,...(c.params?.Vesna||{})}};
    const p=c.params.Vesna;
@@ -19,7 +20,7 @@ export function createBeta2(base,extension,support){
   for(const t of [x.target_function,x.tf])if(t&&!t.use_dsl&&t.name!=='VesnaDefault'&&!t.name.startsWith('Common'))throw Error('请为薇斯纳选择「灵剑·爆发」目标。');
   const buffs=[],state={flat:0,base:0,bonus:0,crit_damage:0,elevation:0,anemo_res:0},seen=new Set();
   for(const b of x.buffs||[]){
-   if(seen.has(b.name))continue;seen.add(b.name);
+   if(b.name!=='ExtensionEffect'&&seen.has(b.name))continue;seen.add(b.name);
    if(b.name.startsWith('Vodyanitsa')){
     const p=b.config?.[b.name]||{},hp=Number(p.hp),co=Number(p.constellation),id=b.name.slice(10),star=p.ordinary_mode===false,on=p.on_field!==false;
     if(!Number.isFinite(hp)||hp<=0||hp>500000||!Number.isInteger(co)||co<0||co>6)throw Error('沃雅妮莎 BUFF 的生命或命座无效');
