@@ -213,9 +213,44 @@ pub struct ConfigRealmMirrorNight {
     pub moon_reaction_bonus: u8, // 0-4
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(default)]
+pub struct ConfigAubadeOfMorningstarAndMoon {
+    pub rate: f64,
+    pub is_ascendant_gleam: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(default)]
+pub struct ConfigADayCarvedFromRisingWinds {
+    pub rate: f64,
+    pub is_completed_witch_homework: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(default)]
+pub struct ConfigHeavensGift {
+    pub rate: f64,
+    pub is_completed_witch_homework: bool,
+    pub is_secret_arts: bool,
+    // 0 means that no on-field character element has been selected.
+    pub on_field_element: u8,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(default)]
+pub struct ConfigDisenchantmentInDeepShadow {
+    pub rate: f64,
+}
+
 #[derive(Default, Debug, Clone)]
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct ArtifactEffectConfig {
+    #[serde(default)] pub config_aubade_of_morningstar_and_moon: ConfigAubadeOfMorningstarAndMoon,
+    #[serde(default)] pub config_a_day_carved_from_rising_winds: ConfigADayCarvedFromRisingWinds,
+    #[serde(default)] pub config_heavens_gift: ConfigHeavensGift,
+    #[serde(default)] pub config_disenchantment_in_deep_shadow: ConfigDisenchantmentInDeepShadow,
     #[serde(default)] pub config_heart_of_the_furnace:ConfigRate,
     #[serde(default)] pub config_scarlet_proof:ConfigRate,
     pub config_spin_moon_serenade: ConfigSpinMoonSerenade,
@@ -260,6 +295,10 @@ pub struct ArtifactEffectConfig {
 #[derive(Serialize, Deserialize)]
 #[derive(Clone)]
 pub struct ArtifactConfigInterface {
+    pub config_aubade_of_morningstar_and_moon: Option<ConfigAubadeOfMorningstarAndMoon>,
+    pub config_a_day_carved_from_rising_winds: Option<ConfigADayCarvedFromRisingWinds>,
+    pub config_heavens_gift: Option<ConfigHeavensGift>,
+    pub config_disenchantment_in_deep_shadow: Option<ConfigDisenchantmentInDeepShadow>,
     pub config_heart_of_the_furnace:Option<ConfigRate>,
     pub config_scarlet_proof:Option<ConfigRate>,
     pub config_spin_moon_serenade: Option<ConfigSpinMoonSerenade>,
@@ -304,6 +343,10 @@ pub struct ArtifactConfigInterface {
 impl ArtifactConfigInterface {
     pub fn to_config(self) -> ArtifactEffectConfig {
         ArtifactEffectConfig {
+            config_aubade_of_morningstar_and_moon: self.config_aubade_of_morningstar_and_moon.unwrap_or_default(),
+            config_a_day_carved_from_rising_winds: self.config_a_day_carved_from_rising_winds.unwrap_or_default(),
+            config_heavens_gift: self.config_heavens_gift.unwrap_or_default(),
+            config_disenchantment_in_deep_shadow: self.config_disenchantment_in_deep_shadow.unwrap_or_default(),
             config_heart_of_the_furnace:self.config_heart_of_the_furnace.unwrap_or_default(),
             config_scarlet_proof:self.config_scarlet_proof.unwrap_or_default(),
             config_archaic_petra: self.config_archaic_petra.unwrap_or_default(),

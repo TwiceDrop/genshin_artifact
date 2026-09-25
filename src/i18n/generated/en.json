@@ -3672,5 +3672,15 @@
   "When Vesna's passive is active, each 100 final ATK on her increases party Stellar Swirl base damage by 0.7%, up to 14%. Scaled by uptime. Enter Vesna's final in-combat ATK. This does not alter character ATK.",
   "Vesna's final in-combat ATK",
   "Passive uptime (0–1; 1 = 100%)",
-  "Equipped character's final HP (including weapon and constellations)"
+  "Equipped character's final HP (including weapon and constellations)",
+  "Increases Elemental Burst DMG by 20%. When the equipping character's Energy Capacity does not exceed 60/40, their Elemental Burst DMG is increased by an additional 16%/28%.",
+  "Wielder Energy capacity (0 if unknown)",
+  "Moonweaver's Dawn",
+  "Lunar-Crystallize coverage",
+  "Stack coverage",
+  "ATK bonus coverage",
+  "Prayer of the Far North coverage",
+  "New Moon Verse coverage",
+  "Secret of Lies coverage",
+  "Moon of Truth coverage"
 ]

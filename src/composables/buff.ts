@@ -9,6 +9,8 @@ export interface BuffEntry {
     name: string,
     config: any,
     lock: boolean,
+    source_id?: string,
+    source_effect?: string,
 }
 
 export function useBuff() {
@@ -34,7 +36,9 @@ export function useBuff() {
         for (let buff of buffsUnlocked.value) {
             temp.push({
                 name: buff.name,
-                config: buff.config
+                config: buff.config,
+                ...(buff.source_id ? {source_id: buff.source_id} : {}),
+                ...(buff.source_effect ? {source_effect: buff.source_effect} : {}),
             })
         }
         return temp
@@ -88,4 +92,3 @@ export function useBuff() {
         toggleBuff,
     }
 }
-

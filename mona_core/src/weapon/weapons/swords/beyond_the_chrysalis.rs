@@ -1,5 +1,6 @@
 
 use crate::attribute::{Attribute,AttributeName};use crate::character::character_common_data::CharacterCommonData;
+use crate::common::i18n::locale;
 use crate::common::WeaponType;use crate::weapon::weapon_base_atk::WeaponBaseATKFamily;use crate::weapon::weapon_sub_stat::WeaponSubStatFamily;
 use crate::weapon::weapon_common_data::WeaponCommonData;use crate::weapon::weapon_effect::WeaponEffect;use crate::weapon::weapon_static_data::WeaponStaticData;use crate::weapon::weapon_trait::WeaponTrait;use crate::weapon::{WeaponConfig,WeaponName};
 pub struct BeyondTheChrysalis;pub struct Effect{loyal:f64,rebel:f64}

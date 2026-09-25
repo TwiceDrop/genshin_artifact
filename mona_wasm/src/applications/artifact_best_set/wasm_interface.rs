@@ -5,6 +5,8 @@ use crate::applications::artifact_best_set::type_interface::CalcArtifactBestSetI
 use crate::utils::set_panic_hook;
 use wasm_bindgen::prelude::*;
 use crate::utils;
+use mona::target_functions::TargetFunction;
+use crate::target_function::dsl_tf::TargetFunctionDSL;
 
 #[wasm_bindgen]
 pub struct CalcArtifactBestSet {}
@@ -18,7 +20,13 @@ impl CalcArtifactBestSet {
 
         let character = calc_best_set_interface.character.to_character();
         let weapon = calc_best_set_interface.weapon.to_weapon(&character);
-        let target_function = calc_best_set_interface.target_function.to_target_function(&character, &weapon);
+        let target_function: Box<dyn TargetFunction> = if calc_best_set_interface.target_function.use_dsl {
+            Box::new(TargetFunctionDSL::new(
+                calc_best_set_interface.target_function.dsl_source.as_deref().expect("missing DSL source")
+            ))
+        } else {
+            calc_best_set_interface.target_function.to_target_function(&character, &weapon)
+        };
         let enemy = match calc_best_set_interface.enemy {
             Some(ref x) => x.to_enemy(),
             None => Default::default()

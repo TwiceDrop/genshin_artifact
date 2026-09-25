@@ -11,6 +11,16 @@ const snake = name => name.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`).replace
 const defaults = () => Object.fromEntries(Object.values(sets).filter(s => s.config2.length || s.config4.length)
     .map(s => [`config_${snake(s.name2)}`, Object.fromEntries([...s.config2, ...s.config4].map(c => [c.name, c.default]))]))
 
+test('the four later artifact sets expose explicit inactive conditions', () => {
+    for (const name of ['AubadeOfMorningstarAndMoon', 'ADayCarvedFromRisingWinds', 'HeavensGift', 'DisenchantmentInDeepShadow']) {
+        const set = sets[name]
+        assert.ok(set && set.config4.length, name)
+        assert.equal(set.config4.find(config => config.name === 'rate')?.default, 0, name)
+    }
+    assert.equal(sets.HeavensGift.config4.find(config => config.name === 'on_field_element')?.default, 0)
+    for (const name of ['AubadeOfMorningstarAndMoon', 'ADayCarvedFromRisingWinds']) assert.equal(sets[name].minStar, 4)
+})
+
 function harness() {
     const items = new Map()
     const slots = ['flower', 'feather', 'sand', 'cup', 'head']

@@ -96,11 +96,21 @@ test('薇斯纳队友星耀祝礼进入瑞希单人配装目标', () => {
 });
 test('七七六命只增加直接星扩散基础，不增加面板攻击或反应星扩散', () => {
     const x = input(6), off = damage(x); x.buffs = [named('QiqiC6StellarConduct', {atk: 2000})];
-    const a = damage(x), raw = sum(off.em) * sum(off.direct_stellarswirl_ratio) + sum(off.direct_stellarswirl_extra_fixed);
+    const a = damage(x);
     close(sum(a.atk), sum(off.atk)); close(a.normal.expectation, off.normal.expectation);
     close(a.stellarswirl_anemo.expectation, off.stellarswirl_anemo.expectation);
     close(a.stellarswirl_cryo.expectation, off.stellarswirl_cryo.expectation);
-    close(a.direct_stellarswirl.expectation / off.direct_stellarswirl.expectation, (raw + 12000) / raw);
+    // Level, EM and reaction bonuses do not amplify the 6 × 2000 flat.
+    // The default enemy has 10% Anemo RES; Mizuki C2 shreds 20%, giving
+    // -10% effective resistance and the negative-RES multiplier 1.05.
+    close(a.direct_stellarswirl.non_critical-off.direct_stellarswirl.non_critical,12000*1.05);
+    const crit=Math.max(0,Math.min(1,sum(a.critical)+sum(a.critical_stellarswirl)));
+    const cd=sum(a.critical_damage)+sum(a.critical_damage_stellarswirl);
+    close(a.direct_stellarswirl.expectation-off.direct_stellarswirl.expectation,12000*1.05*(1+crit*cd));
+    const stronger=clone(x);stronger.buffs.push(named('ElementalMastery',{value:500}),named('EnhanceStellarGlimmerReaction',{p:50}));
+    const baseline=clone(stronger);baseline.buffs.shift();
+    const high=damage(stronger),low=damage(baseline);
+    close(high.direct_stellarswirl.non_critical-low.direct_stellarswirl.non_critical,12000*1.05);
 });
 test('等级1/20/70/80/90，C0/C1/C6及两种直伤的七七加值DSL与面板一致', () => {
     for(const level of [1, 20, 70, 80, 90]) for(const co of [0, 1, 6]) for(const idx of co ? [14, 15] : [14]) {
@@ -108,20 +118,33 @@ test('等级1/20/70/80/90，C0/C1/C6及两种直伤的七七加值DSL与面板�
         x.buffs = [named('QiqiC6StellarConduct', {atk: 1800}), named('QiqiTalent2StellarConduct'), named('YumemizukiMizukiC1', {em: 900})];
         const source = `dmg hit = YumemizukiMizuki.${idx === 14 ? 'TalentStellarSwirl' : 'C1StellarSwirl'}\nresult = hit.direct_stellarswirl.e`;
         const transformed = support.adjustStellarSupportDsl(source, x);
-        const p = clone(transformed.input);
+        assert.match(transformed.source,/stellarswirl_anemo/);
         // Invoke through the optimizer, whose callback recalculates each artifact candidate.
-        const target = {name: 'YumemizukiMizukiDefault', params: 'NoConfig', use_dsl: true, dsl_source: transformed.source};
-        const result = api.OptimizeSingleWasm.optimize({...p, target_function: target, algorithm: 'Naive', constraint: null, filter: null}, p.artifacts);
+        const target = {name: 'YumemizukiMizukiDefault', params: 'NoConfig', use_dsl: true, dsl_source: source};
+        const result = api.OptimizeSingleWasm.optimize({...x, target_function: target, algorithm: 'Naive', constraint: null, filter: null}, x.artifacts);
         close(result[0].value, damage(x).direct_stellarswirl.expectation);
         const q = clone(x); q.character.params.YumemizukiMizuki.c1_reaction_active = false;
         close(damage(q).direct_stellarswirl.expectation, damage(x).direct_stellarswirl.expectation);
     }
 });
-test('七七C6不改反应目标、自定义DSL明确拒绝', () => {
+test('七七C6不改反应目标，自定义DSL可组合直接星扩散', () => {
     const x = input(1); x.buffs = [named('QiqiC6StellarConduct', {atk: 1000})];
     const source = 'dmg hit = YumemizukiMizuki.TalentStellarSwirl\nresult = hit.stellarswirl_cryo.e';
     assert.deepEqual(support.adjustStellarSupportDsl(source, x), {source, input: x});
-    assert.throws(() => support.adjustStellarSupportDsl('result = 1', x), /自定义DSL/);
+    const custom='dmg hit = YumemizukiMizuki.TalentStellarSwirl\nresult = hit.direct_stellarswirl.e * 2 + hit.direct_stellarswirl.c + hit.direct_stellarswirl.n';
+    const adjusted=support.adjustStellarSupportDsl(custom,x);
+    assert.match(adjusted.source,/stellarswirl_anemo/);
+    const target={name:'YumemizukiMizukiDefault',params:'NoConfig',use_dsl:true,dsl_source:custom};
+    const result=api.OptimizeSingleWasm.optimize({...x,target_function:target,algorithm:'Naive',constraint:null,filter:null},x.artifacts);
+    const direct=damage(x).direct_stellarswirl;
+    close(result[0].value,direct.expectation*2+direct.critical+direct.non_critical);
+    assert.deepEqual(support.adjustStellarSupportDsl('result = 1',x),{source:'result = 1',input:x});
+    const mixed=clone(x);mixed.character.params.YumemizukiMizuki.c1_reaction_active=false;
+    const mixSource='dmg hit = YumemizukiMizuki.TalentStellarSwirl\nresult = hit.direct_stellarswirl.e + hit.stellarswirl_anemo.e';
+    const mix=api.OptimizeSingleWasm.optimize({...mixed,target_function:{...target,dsl_source:mixSource},algorithm:'Naive',constraint:null,filter:null},mixed.artifacts);
+    const analyzed=damage(mixed);
+    close(mix[0].value,analyzed.direct_stellarswirl.expectation+analyzed.stellarswirl_anemo.expectation);
+    assert.throws(()=>support.adjustStellarSupportDsl(mixSource,x),/逐项保留/);
 });
 function sandrone(co=6) {
     const x=input();x.character={name:'Sandrone',level:90,ascend:false,constellation:co,skill1:9,skill2:9,skill3:9,params:{Sandrone:{stellar_base_active:true,em_conversion_active:true,c1_team_stellar:true,c6_elevate_active:true}}};
@@ -130,6 +153,41 @@ function sandrone(co=6) {
     x.buffs=[named('QiqiC6StellarConduct',{atk:2000}),named('QiqiTalent2StellarConduct'),named('DionaC6StellarConduct'),named('OdetteTalent1',{atk:1000,radiance_mode:2})];
     return x;
 }
+test('桑多涅直接星扩散的七七定额在基础/精通后、冰抗与擢升前',()=>{
+    const withFlat=sandrone(),without=clone(withFlat);
+    without.buffs=without.buffs.filter(b=>b.name!=='QiqiC6StellarConduct');
+    const on=damage(withFlat),off=damage(without);
+    // 12000 flat × 0.9 Cryo RES × 1.2 C6 Stellar elevation.
+    close(on.direct_stellarswirl.non_critical-off.direct_stellarswirl.non_critical,12000*.9*1.2);
+    const elevated=clone(withFlat);elevated.buffs.push(named('ElementalMastery',{value:500}),
+        named('EnhanceStellarGlimmerReaction',{p:50}));
+    const elevatedOff=clone(elevated);elevatedOff.buffs=elevatedOff.buffs.filter(b=>b.name!=='QiqiC6StellarConduct');
+    close(damage(elevated).direct_stellarswirl.non_critical
+        -damage(elevatedOff).direct_stellarswirl.non_critical,12000*.9*1.2);
+});
+test('桑多涅新技能可用于含多段结果的自定义 DSL',()=>{
+    const x=sandrone(),config='{c2_ray_stacks: 3, prism_overcharge: true, burst_tactics_stacks: 10, stellarconduct_hits: 0}';
+    const source=`dmg first = Sandrone.ChargedRayStellar(${config})\nresult = first.direct_stellarswirl.e * 2 + first.direct_stellarswirl.c + first.direct_stellarswirl.n`;
+    const target={name:SANDRONE_STELLAR_TARGET,params:'NoConfig',use_dsl:true,dsl_source:source};
+    const result=api.OptimizeSingleWasm.optimize({...x,target_function:target,algorithm:'Naive',constraint:null,filter:null},x.artifacts);
+    const direct=damage(x).direct_stellarswirl;
+    close(result[0].value,direct.expectation*2+direct.critical+direct.non_critical);
+    const changed=clone(x);changed.artifacts[4].sub_stats.push(['ATKPercentage',.1]);
+    const value=api.OptimizeSingleWasm.optimize({...changed,target_function:target,algorithm:'Naive',constraint:null,filter:null},changed.artifacts)[0].value;
+    const next=damage(changed).direct_stellarswirl;
+    close(value,next.expectation*2+next.critical+next.non_critical);
+    const combined=`dmg first = Sandrone.ChargedRayStellar(${config})\ndmg second = Sandrone.SkillPrismStellar(${config})\nresult = first.direct_stellarswirl.e + second.direct_stellarswirl.e`;
+    const both=api.OptimizeSingleWasm.optimize({...x,target_function:{...target,dsl_source:combined},algorithm:'Naive',constraint:null,filter:null},x.artifacts)[0].value;
+    const prism=clone(x);prism.skill.index=19;
+    close(both,direct.expectation+damage(prism).direct_stellarswirl.expectation);
+    const short='dmg first = Sandrone.ChargedRayStellar({c2_ray_stacks: 3})\nresult = first.direct_stellarswirl.e';
+    const shortResult=api.OptimizeSingleWasm.optimize({...x,target_function:{...target,dsl_source:short},algorithm:'Naive',constraint:null,filter:null},x.artifacts);
+    close(shortResult[0].value,direct.expectation);
+    const playground=clone(x);delete playground.artifacts;delete playground.skill;
+    const printed=api.DSLInterface.run(`dmg first = Sandrone.ChargedRayStellar(${config})\nprint(first.direct_stellarswirl.e)`,playground,x.artifacts);
+    assert.equal(printed.is_error,false);
+    close(Number(printed.output.match(/[0-9]+(?:\.[0-9]+)?/)[0]),direct.expectation);
+});
 test('桑多涅45档精确倍率与独立来源快照一致',()=>{
     const expected=read('beta-data/sandrone-stellar-skills.json');
     for(const key of ['charged','skill','burst','c4','c6'])assert.deepEqual(SANDRONE_STELLAR_RATIOS[key],expected[key]);
@@ -150,7 +208,7 @@ test('桑多涅五种新技能的配装DSL、词条收益与面板一致',()=>{
 test('桑多涅配装每候选重新计算攻击/精通/星伤，32套混合圣遗物最优值正确',()=>{
     const x=sandrone();x.buffs.push(named('YumemizukiMizukiC1',{em:1000}));
     const a=x.artifacts.map((v,i)=>({...v,id:i+1,set_name:'ScarletProof'}));
-    const b=x.artifacts.map((v,i)=>({...v,id:i+6,set_name:'HeartOfTheFurnace',sub_stats:[...v.sub_stats,['ATKPercentage',.1],['ElementalMastery',30]]}));
+    const b=x.artifacts.map((v,i)=>({...v,id:i+6,set_name:'HeartOfTheFurnace',sub_stats:[...v.sub_stats,['ATKPercentage',.1],['ElementalMastery',30],['CriticalRate',.04]]}));
     x.artifact_config={...x.artifact_config,config_scarlet_proof:{rate:1},config_heart_of_the_furnace:{rate:1}};
     const target={name:SANDRONE_STELLAR_TARGET,params:{[SANDRONE_STELLAR_TARGET]:{mode:0,c2_ray_stacks:3,prism_overcharge:true,burst_tactics_stacks:10}}};
     let best=-Infinity;
@@ -184,11 +242,16 @@ test('原生薇斯纳七七/桑多涅/既有VesnaSupport合并，数值和分乘
     x.skill={index:17,config:'NoConfig'};x.artifacts=[];x.buffs=[named('VesnaSupport',{flat:100,base:.03,bonus:.1,crit_damage:.2,elevation:.05,anemo_res:0})];
     const before=damage(x,full);
     x.buffs.push(named('QiqiC6StellarConduct',{atk:2000}),named('QiqiTalent2StellarConduct'),named('SandroneC1'),named('SandroneTalent1',{atk:2000}));
-    const after=damage(x,full),rawBefore=sum(before.atk)*sum(before.atk_ratio)+100;
+    const after=damage(x,full),skillBase=sum(before.atk)*sum(before.atk_ratio);
     close(sum(after.direct_stellarswirl_base_compose)-sum(before.direct_stellarswirl_base_compose),.14);
     close(sum(after.direct_stellarswirl_compose)-sum(before.direct_stellarswirl_compose),.8);
     close(sum(after.direct_stellarswirl_extra_fixed),12100);
-    const expected=before.direct_stellarswirl.expectation*(rawBefore+12000)/rawBefore*(1+sum(after.direct_stellarswirl_base_compose))/(1+sum(before.direct_stellarswirl_base_compose))*(1+sum(after.direct_stellarswirl_compose))/(1+sum(before.direct_stellarswirl_compose));
+    // Direct Stellar Swirl: ATK × ratio × base bonus × EM/reaction bonus,
+    // then flat increases, then RES, CRIT and elevation. Both cases share the
+    // last three multipliers, so only the pre-RES amount changes here.
+    const preResistance=(analysis)=>skillBase*(1+sum(analysis.direct_stellarswirl_base_compose))
+        *(1+sum(analysis.direct_stellarswirl_compose))+sum(analysis.direct_stellarswirl_extra_fixed);
+    const expected=before.direct_stellarswirl.expectation*preResistance(after)/preResistance(before);
     close(after.direct_stellarswirl.expectation,expected);
 });
 test('薇斯纳本人已有固有天赋，不重复叠加自己的可选队友增益',()=>{
@@ -199,5 +262,6 @@ test('薇斯纳本人已有固有天赋，不重复叠加自己的可选队友�
     x.buffs=[named('VesnaTalent1',{atk:3000,coverage:1})];
     close(damage(x,full).direct_stellarswirl.expectation,own.direct_stellarswirl.expectation);
 });
-fs.writeFileSync(new URL('../beta-data/stellar-support-tests.json', import.meta.url), JSON.stringify({tests}, null, 2) + '\n');
+if(process.env.UPDATE_STELLAR_SNAPSHOT)
+    fs.writeFileSync(new URL('../beta-data/stellar-support-tests.json', import.meta.url), JSON.stringify({tests}, null, 2) + '\n');
 if(tests.some(t => !t.pass)) process.exitCode = 1;

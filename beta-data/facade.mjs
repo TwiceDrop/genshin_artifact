@@ -1,9 +1,37 @@
 // Existing characters keep the published core; Vodyanitsa uses the compiled extension.
 import {normalizeSignatureWeapon} from './weapon-effects.mjs';
+import {markReactionAvailability} from './reaction-availability.mjs';
+import {calculateStellarSwirlTeam} from './stellar-swirl-reaction.mjs';
 const clone=x=>JSON.parse(JSON.stringify(x));
-const stripUncalibrated=result=>{for(const k of Object.keys(result))if(/stellar|moon/i.test(k))delete result[k];return result;};
 const named=(name,config)=>({name,config:{[name]:config}});
 const special=b=>b?.name?.startsWith('Vodyanitsa');
+function guardVodyanitsaSong(input) {
+ const x=clone(input),song=x.character?.params?.Vodyanitsa?.song_active===true;
+ const prior=x.skill?.config?.Vodyanitsa||{};
+ const confirmed=prior.q_song_bonus===true,active=song&&confirmed;
+ x.skill.config={Vodyanitsa:{...prior,q_song_bonus:active}};
+ return {input:x,status:{active,reason:active?null:!song?'未配置遥久之歌状态':'尚未手动确认歌声 Q 乘区'}};
+}
+export function withStellarSwirlTeam(result,input,calibrated=[]) {
+  const context=input?.stellar_swirl_context;
+  if(!context)return markReactionAvailability(result,calibrated);
+  const configured=clone(context);
+  const starA4=(input.buffs||[]).find(b=>b.name==='VodyanitsaA4'&&b.config?.VodyanitsaA4?.ordinary_mode===false);
+  if(starA4){
+   if(configured.vodyanitsaA4)throw Error('星扩散队伍中沃雅妮莎 A4 请只配置一个来源');
+   if(!configured.a4RecipientId)throw Error('沃雅妮莎 A4 需要明确指定实际参与星扩散的受益角色 ID');
+   const p=starA4.config.VodyanitsaA4;
+   configured.vodyanitsaA4={hp:Number(p.hp),active:p.on_field!==false,
+    coverage:Number(p.coverage??1),recipientId:configured.a4RecipientId};
+  }
+  const calculated=calculateStellarSwirlTeam(configured);
+  result.stellarswirl_anemo=calculated.stellarswirl_anemo;
+  result.stellarswirl_cryo=calculated.stellarswirl_cryo;
+  result.stellar_swirl_team_model={formula_version:calculated.formula_version,
+   trigger_id:configured.triggerId,vortex_multiplier:configured.vortexMultiplier,
+   individual:calculated.individual};
+  return markReactionAvailability(result,[...calibrated,'stellarswirl_anemo','stellarswirl_cryo']);
+}
 export function createFacade(original,extension,data,support,characters) {
  const extensionRole=args=>args.some(a=>a?.character?.name==='Vodyanitsa'||a?.name==='Vodyanitsa');
  const hasSupport=input=>(input?.buffs||[]).some(special);
@@ -59,16 +87,24 @@ export function createFacade(original,extension,data,support,characters) {
   if(typeof originalFn!=='function')return originalFn;
   return(...args)=>{
    const isNew=extensionRole(args);let input=args[0];
+   let songStatus=null;
+   if(input?.character?.name==='Vodyanitsa'&&input.skill?.index===11){
+    const guarded=guardVodyanitsaSong(input);args=[guarded.input,...args.slice(1)];
+    input=args[0];songStatus=guarded.status;
+   }
+   const annotateSong=result=>{if(songStatus&&className==='CalculatorInterface'&&method==='get_damage_analysis')result.q_song_status=songStatus;return result;};
+   if(input?.stellar_swirl_context&&!(className==='CalculatorInterface'&&method==='get_damage_analysis'))
+    throw Error('星扩散队伍参与者合成目前仅接入单次伤害分析，不可用于 DSL、词条收益或配装。');
    if(className==='TeamOptimizationWasm'&&input?.single_interfaces?.some(x=>x.character?.name==='Vodyanitsa'||hasSupport(x)))
     throw Error('当前版本尚未校准含沃雅妮莎的多人联合优化，请先使用单人配装。原队伍优化不受影响。');
    const engine=isNew?extension:original;
    if(isNew){args=normalizeExtension(args);input=args[0];if(input?.weapon)input.weapon=normalizeSignatureWeapon(input.weapon);validate(args);if(!engine[className]?.[method])throw Error('新角色/专武暂不支持此计算入口');}
-   if(!hasSupport(input)) { const result=engine[className][method](...args);return isNew && className==='CalculatorInterface' ? stripUncalibrated(result) : result; }
+   if(!hasSupport(input)) { const result=engine[className][method](...args);return className==='CalculatorInterface'&&method==='get_damage_analysis'&&(isNew||input?.stellar_swirl_context) ? annotateSong(withStellarSwirlTeam(result,input)) : result; }
    if(className==='CalculatorInterface'&&method==='get_damage_analysis') {
     const globalInput=supportInput(input,'None',false),base=engine[className][method](globalInput,args[1]);
-    if(base.is_heal || base.is_shield)return stripUncalibrated(base);
+    if(base.is_heal || base.is_shield)return annotateSong(markReactionAvailability(base));
     const scoped=supportInput(input,base.element,true),result=engine[className][method](scoped,args[1]);
-    return stripUncalibrated(result);
+    return annotateSong(withStellarSwirlTeam(result,input));
    }
    if(className==='CommonInterface'&&method==='get_attribute')return engine[className][method](supportInput(input,'None',false));
    if(className==='CalculatorInterface'&&method==='get_transformative_damage') {
@@ -77,7 +113,7 @@ export function createFacade(original,extension,data,support,characters) {
     for(const [element,key] of [['Hydro','swirl_hydro'],['Cryo','swirl_cryo']]) {
       const scoped=engine[className][method](supportInput(resistanceInput,element,true));if(key in result)result[key]=scoped[key];
     }
-    return stripUncalibrated(result);
+    return markReactionAvailability(result);
    }
    if(className==='OptimizeSingleWasm'||className==='BonusPerStat') {
     // The tested Skirk default rotation is all ordinary Cryo. Mixed reaction targets need native scoping.

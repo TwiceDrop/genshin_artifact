@@ -31,6 +31,48 @@ const SANDRONE_SKILLS = [
     {index:21, original:15, name:'C4Resonator', label:'四命棱晶谐振炮·星扩散'},
     {index:22, original:17, name:'C6ClusterStellar', label:'六命集束射线·星扩散（单段）'},
 ];
+// Work on DSL tokens rather than substituting whole target strings. This
+// preserves user formulas, comments, and quoted text while allowing several
+// direct Stellar hits in the same expression.
+function dslTokens(source) {
+    const tokens=[];
+    for(let i=0;i<source.length;) {
+        const start=i, c=source[i];
+        if(/\s/.test(c)) {i++;continue;}
+        if(source.startsWith('//',i)) {i=source.indexOf('\n',i+2);if(i<0)i=source.length;continue;}
+        if(source.startsWith('/*',i)) {const end=source.indexOf('*/',i+2);i=end<0?source.length:end+2;continue;}
+        if(c==='"') {i++;while(i<source.length){if(source[i++]==='\\')i++;else if(source[i-1]==='"')break;}tokens.push({value:source.slice(start,i),start,end:i,type:'string'});continue;}
+        if(/[A-Za-z_]/.test(c)){i++;while(i<source.length&&/[A-Za-z_0-9]/.test(source[i]))i++;tokens.push({value:source.slice(start,i),start,end:i,type:'id'});continue;}
+        if(/[0-9]/.test(c)){i++;while(i<source.length&&/[0-9.]/.test(source[i]))i++;tokens.push({value:source.slice(start,i),start,end:i,type:'number'});continue;}
+        i++;tokens.push({value:c,start,end:i,type:'symbol'});
+    }
+    return tokens;
+}
+function dslDamageBindings(tokens) {
+    const bindings=new Map();
+    for(let i=0;i+5<tokens.length;i++) {
+        const t=tokens;
+        if(t[i].value!=='dmg'||t[i+1].type!=='id'||t[i+2].value!=='='||t[i+3].type!=='id'||t[i+4].value!=='.'||t[i+5].type!=='id')continue;
+        const config={};let j=i+6;
+        const synthetic=t[i+3].value==='Sandrone'&&SANDRONE_SKILLS.some(s=>s.name===t[i+5].value);
+        if(synthetic&&t[j]?.value==='('&&t[j+1]?.value==='{') {
+            j+=2;
+            while(t[j]&&t[j].value!=='}') {
+                const key=t[j++];if(key.type!=='id'||t[j++]?.value!==':')throw Error('星扩散技能参数格式无效');
+                let sign=1;if(t[j]?.value==='-'){sign=-1;j++;}
+                const value=t[j++];if(!value)throw Error('星扩散技能参数缺少数值');
+                if(value.type==='number')config[key.value]=sign*Number(value.value);
+                else if(sign===1&&['true','false'].includes(value.value))config[key.value]=value.value==='true';
+                else throw Error('星扩散技能参数必须为固定数值或布尔值');
+                if(t[j]?.value===',')j++;
+                else if(t[j]?.value!=='}')throw Error('星扩散技能参数分隔符无效');
+            }
+        }
+        bindings.set(t[i+1].value,{character:t[i+3].value,skill:t[i+5].value,config});
+    }
+    return bindings;
+}
+const DSL_DAMAGE_FIELDS={e:'e',expect:'e',expectation:'e',c:'c',crit:'c',critical:'c',n:'n',non_crit:'n',non_critical:'n'};
 function sandroneRatio(input, index) {
     const c=input.character, p=input.skill?.config?.Sandrone || {}, table=SANDRONE_STELLAR_RATIOS;
     for(const key of ['skill1','skill2','skill3']) if(!Number.isInteger(c[key]) || c[key]<0 || c[key]>14) throw Error('桑多涅天赋等级应为1～15');
@@ -179,10 +221,18 @@ export function createStellarSupportFacade(base, original) {
     }
     function applyFlat(input, result, flat) {
         if (!flat || !result.direct_stellarswirl) return result;
-        const raw = sum(input.character.name==='YumemizukiMizuki' ? result.em : result.atk) * sum(result.direct_stellarswirl_ratio)
-            + sum(result.direct_stellarswirl_extra_damage) + sum(result.direct_stellarswirl_extra_fixed);
-        if (raw <= 0) throw Error('无法确定该直接星扩散技能的基础伤害，不能加入七七六命。');
-        for (const key of ['non_critical', 'critical', 'expectation']) result.direct_stellarswirl[key] *= (raw + flat) / raw;
+        const skillBase = sum(input.character.name==='YumemizukiMizuki' ? result.em : result.atk)
+            * sum(result.direct_stellarswirl_ratio) + sum(result.direct_stellarswirl_extra_damage);
+        const existingFlat = sum(result.direct_stellarswirl_extra_fixed);
+        if (existingFlat) throw Error('直接星扩散已有未核对的定额加值，不能重复加入七七六命。');
+        const amplified = skillBase * (1 + sum(result.direct_stellarswirl_base_compose))
+            * (1 + sum(result.direct_stellarswirl_compose));
+        if (amplified <= 0) throw Error('无法确定该直接星扩散技能的基础伤害，不能加入七七六命。');
+        // The published hit already includes RES, CRIT and elevation. Adding
+        // the flat after base/EM bonuses therefore scales by the amplified
+        // pre-resistance amount, not the raw skill multiplier.
+        for (const key of ['non_critical', 'critical', 'expectation'])
+            result.direct_stellarswirl[key] *= (amplified + flat) / amplified;
         result.direct_stellarswirl_extra_fixed['七七六命·洞玄：直接星扩散'] = flat;
         return result;
     }
@@ -201,12 +251,18 @@ export function createStellarSupportFacade(base, original) {
         const rawReaction=anemoReactionBase(input.character.level) / .75 * reference.stellarswirl_reaction_cryo_base_multiplier * reference.stellarswirl_vortex_coefficient;
         const unit=reference.stellarswirl_cryo?.non_critical / rawReaction;
         if(!Number.isFinite(unit) || rawReaction<=0)throw Error('桑多涅星扩散反应乘区无效');
-        const flat=sum(reference.direct_stellarswirl_extra_fixed)+state.flat;
-        const raw=sum(reference.atk)*ratio+sum(reference.direct_stellarswirl_extra_damage)+(ratio>0?flat:0);
+        const coreFlat=sum(reference.direct_stellarswirl_extra_fixed)+sum(reference.direct_stellarswirl_extra_damage);
+        if(coreFlat)throw Error('桑多涅直接星扩散含未核对的基础加值，无法安全计算。');
+        const flat=ratio>0?state.flat:0;
+        const raw=sum(reference.atk)*ratio;
+        const baseFactor=1+sum(reference.direct_stellarswirl_base_compose);
+        const bonusFactor=1+sum(reference.direct_stellarswirl_compose);
+        if(baseFactor<=0||bonusFactor<=0)throw Error('桑多涅星扩散增益乘区无效');
+        const postFactor=unit/(baseFactor*bonusFactor);
         const critical=clamp(sum(reference.critical)+sum(reference.critical_stellarswirl),0,1);
         const c2=descriptor.index===18 && input.character.constellation>=2 ? .4+.2*clamp(finite(input.skill.config?.Sandrone?.c2_ray_stacks ?? 0,'冷凝射线暴伤层数',3),0,3) : 0;
         const cd=sum(reference.critical_damage)+sum(reference.critical_damage_stellarswirl)+c2;
-        const nonCritical=raw*unit;
+        const nonCritical=raw*unit+flat*postFactor;
         result.normal={critical:0,non_critical:0,expectation:0,is_heal:false,is_shield:false};
         delete result.melt; delete result.direct_stellarconduct;
         result.direct_stellarswirl={non_critical:nonCritical,critical:nonCritical*(1+cd),expectation:nonCritical*(1+critical*cd),is_heal:false,is_shield:false};
@@ -227,50 +283,116 @@ export function createStellarSupportFacade(base, original) {
     }
     function adjustStellarSupportDsl(source, input) {
         const state = stellarSupportState(input);
-        if (!state.flat || native(input)) return {source, input};
-        // Only the generated, audited two direct-Mizuki targets are rewritten.
-        if (!/^dmg hit = YumemizukiMizuki\.(TalentStellarSwirl|C1StellarSwirl)\nresult = hit\.direct_stellarswirl\.e$/.test(source)) {
-            if (/^dmg hit = YumemizukiMizuki\.(TalentStellarSwirl|C1StellarSwirl)\nresult = hit\.stellarswirl_(anemo|cryo)\.e$/.test(source)) return {source, input};
-            throw Error('七七六命星扩散加值暂不支持此自定义DSL；请选瑞希的直接星扩散目标。');
+        if(native(input))return {source,input};
+        const tokens=dslTokens(source),bindings=dslDamageBindings(tokens),replacements=[],props=[];
+        const references=[];
+        for(let i=0;i+4<tokens.length;i++)if(tokens[i].type==='id'&&tokens[i+1].value==='.'&&tokens[i+3].value==='.'&&tokens[i+2].type==='id'&&tokens[i+4].type==='id')
+            references.push({name:tokens[i].value,kind:tokens[i+2].value,field:tokens[i+4].value,start:tokens[i].start,end:tokens[i+4].end});
+        const direct=references.filter(r=>r.kind==='direct_stellarswirl');
+        if(!direct.length)return {source,input};
+        const reactionFlat=(input.buffs||[]).some(b=>b.name==='YumemizukiMizukiC1')||
+            (input.character.name==='YumemizukiMizuki'&&input.character.params?.YumemizukiMizuki?.c1_reaction_active);
+        if(reactionFlat&&references.some(r=>r.kind==='stellarswirl_anemo'||r.kind==='stellarswirl_cryo'))
+            throw Error('该 DSL 同时引用直接与反应星扩散；瑞希一命反应定额加值无法在当前内核中逐项保留。');
+        const x=reactionFlat?withoutReactionFlat(input):clone(input);
+        if(reactionFlat&&x.character.name==='YumemizukiMizuki')
+            x.character.params.YumemizukiMizuki.c1_reaction_active=false;
+        const synthetic=new Map();
+        let mizukiPostFactor;
+        for(const r of direct) {
+            const field=DSL_DAMAGE_FIELDS[r.field];
+            if(!field)throw Error('直接星扩散 DSL 字段无效：'+r.field);
+            const binding=bindings.get(r.name);
+            if(!binding)throw Error('直接星扩散 DSL 缺少 dmg 声明：'+r.name);
+            let expression;
+            const descriptor=binding.character==='Sandrone'&&SANDRONE_SKILLS.find(s=>s.name===binding.skill);
+            if(descriptor) {
+                x.__stellar_dynamic_target=true;
+                if(!synthetic.has(r.name)) {
+                    let attack=`__stellar_attack_${r.name}`;
+                    while(tokens.some(t=>t.type==='id'&&t.value===attack))attack+='_';
+                    synthetic.set(r.name,{attack,config:sandroneConfig(binding.config),descriptor});
+                    props.push(`prop ${attack} = Sandrone.atk`);
+                }
+                const s=synthetic.get(r.name);
+                expression=sandroneExpression(x,s.descriptor,s.config,r.name,s.attack,field);
+            } else if(binding.character==='YumemizukiMizuki'&&['TalentStellarSwirl','C1StellarSwirl'].includes(binding.skill)) {
+                expression=source.slice(r.start,r.end);
+                if(state.flat){
+                    if(mizukiPostFactor===undefined){
+                        const reference=base.CalculatorInterface.get_damage_analysis(prepare(x),null);
+                        const coreFlat=sum(reference.direct_stellarswirl_extra_fixed);
+                        if(coreFlat)throw Error('瑞希直接星扩散含未核对的定额加值，不能用于七七六命 DSL。');
+                        const factors=(1+sum(reference.direct_stellarswirl_base_compose))
+                            *(1+sum(reference.direct_stellarswirl_compose));
+                        if(factors<=0)throw Error('瑞希星扩散增益乘区无效');
+                        mizukiPostFactor=reference.stellarswirl_anemo.non_critical
+                            /anemoReactionBase(x.character.level)/factors;
+                    }
+                    // The reaction's crit/expectation-to-noncrit ratio remains
+                    // live for each candidate; only RES/elevation is fixed by
+                    // the enemy and the configured support state.
+                    expression=`(${expression} + ${state.flat*mizukiPostFactor} * ${r.name}.stellarswirl_anemo.${field} / max(0.000000000001, ${r.name}.stellarswirl_anemo.n))`;
+                }
+            } else if(state.flat) {
+                throw Error('七七六命定额加值尚不能用于此直接星扩散技能：'+binding.character+'.'+binding.skill);
+            } else continue;
+            replacements.push({start:r.start,end:r.end,expression});
         }
-        const x = clone(input);
-        x.character.params.YumemizukiMizuki.c1_reaction_active = false;
-        // C1's separate reaction-flat bucket is outside the EM bonus bucket.
-        // Removing it leaves direct talent damage intact and gives an exact,
-        // candidate-dependent unit multiplier, including any other direct flat.
-        x.buffs = (x.buffs || []).filter(b => b.name !== 'YumemizukiMizukiC1');
-        const raw = anemoReactionBase(x.character.level);
-        return {input: x, source: source + `\nresult = result + ${state.flat} * hit.stellarswirl_anemo.e / ${raw}`};
+        let transformed=source;
+        for(const r of replacements.sort((a,b)=>b.start-a.start))transformed=transformed.slice(0,r.start)+r.expression+transformed.slice(r.end);
+        if(props.length)transformed+='\n'+props.join('\n');
+        return {source:transformed,input:x};
+    }
+    function sandroneConfig(p) {
+        return {c2_ray_stacks:finite(p.c2_ray_stacks ?? 0,'冷凝射线暴伤层数',3),
+            prism_overcharge:p.prism_overcharge===true,
+            burst_tactics_stacks:finite(p.burst_tactics_stacks ?? 0,'改进战术层数',10),stellarconduct_hits:0};
+    }
+    function sandroneExpression(input, descriptor, config, hit, attack, field) {
+        if(input.character.name!=='Sandrone')throw Error('桑多涅星扩散技能仅适用于桑多涅');
+        if(descriptor.index===21 && input.character.constellation<4)throw Error('四命星扩散目标需要解锁桑多涅四命');
+        if(descriptor.index===22 && input.character.constellation<6)throw Error('六命星扩散目标需要解锁桑多涅六命');
+        const x=clone(input);
+        x.skill={index:descriptor.index,config:{Sandrone:config}};
+        x.__stellar_dynamic_target=true;
+        const refInput=clone(x);refInput.skill.index=descriptor.original;
+        const reference=base.CalculatorInterface.get_damage_analysis(prepare(refInput),null);
+        const ratio=sandroneRatio(x,descriptor.index), state=stellarSupportState(x);
+        const rawReaction=anemoReactionBase(x.character.level)/.75*reference.stellarswirl_reaction_cryo_base_multiplier*reference.stellarswirl_vortex_coefficient;
+        if(!Number.isFinite(rawReaction)||rawReaction<=0)throw Error('桑多涅星扩散反应乘区无效');
+        const coreFlat=sum(reference.direct_stellarswirl_extra_fixed)+sum(reference.direct_stellarswirl_extra_damage);
+        if(coreFlat)throw Error('桑多涅直接星扩散含无法随装备重新计算的基础伤害加值，当前内核无法安全配装。');
+        const baseFromTeam=sum(reference.direct_stellarswirl_base_compose);
+        const bonusFactor=1+sum(reference.direct_stellarswirl_compose);
+        if(1+baseFromTeam<=0||bonusFactor<=0)throw Error('桑多涅星扩散增益乘区无效');
+        const postFactor=reference.stellarswirl_cryo.non_critical
+            /rawReaction/(1+baseFromTeam)/bonusFactor;
+        const c2=descriptor.index===18&&x.character.constellation>=2?.4+.2*config.c2_ray_stacks:0;
+        const react=k=>`${hit}.stellarswirl_cryo.${k}`;
+        const liveCrit=`min(1, max(0, (${react('e')} - ${react('n')}) / max(0.000000000001, ${react('c')} - ${react('n')})))`;
+        const reaction=field==='c'?`(${react('c')} + ${react('n')} * ${c2})`:
+            field==='n'?react('n'):`(${react('e')} + ${react('n')} * ${liveCrit} * ${c2})`;
+        let expression=`${reaction} * (${attack} * ${ratio}) / ${rawReaction}`;
+        if(x.character.params?.Sandrone?.stellar_base_active!==false)
+            expression=`(${expression}) * (1 + ${baseFromTeam} + min(${attack} * 0.00007, 0.14)) / (1 + ${baseFromTeam})`;
+        if(state.flat&&ratio>0)
+            expression=`(${expression} + ${state.flat*postFactor} * (${reaction}) / max(0.000000000001, ${react('n')}))`;
+        return expression;
     }
     function sandroneTarget(input, key) {
         const target=input[key];
         if(target?.name!==SANDRONE_STELLAR_TARGET)return input;
-        if(input.character.name!=='Sandrone')throw Error('桑多涅星扩散目标仅适用于桑多涅');
-        if(target.use_dsl)throw Error('桑多涅星扩散新技能暂不支持自定义DSL，请使用内置星扩散目标');
+        if(target.use_dsl)return {...input,[key]:{...target,name:'SandroneDefault',params:'NoConfig'}};
         const p=target.params?.[SANDRONE_STELLAR_TARGET] || {}, mode=p.mode ?? 0;
         if(!Number.isInteger(mode) || mode<0 || mode>4)throw Error('桑多涅星扩散目标类型无效');
-        if(mode===3 && input.character.constellation<4)throw Error('四命星扩散目标需要解锁桑多涅四命');
-        if(mode===4 && input.character.constellation<6)throw Error('六命星扩散目标需要解锁桑多涅六命');
-        const x=withoutReactionFlat(input), descriptor=SANDRONE_SKILLS[mode];
-        x.skill={index:descriptor.index,config:{Sandrone:{c2_ray_stacks:finite(p.c2_ray_stacks ?? 0,'冷凝射线暴伤层数',3),
-            prism_overcharge:p.prism_overcharge===true,burst_tactics_stacks:finite(p.burst_tactics_stacks ?? 0,'改进战术层数',10),stellarconduct_hits:0}}};
-        const ratio=sandroneRatio(x,descriptor.index), state=stellarSupportState(x);
-        // Let the original core evaluate candidate-dependent EM, weapon and
-        // artifact effects. Own ATK-to-base scaling stays a live DSL expression.
+        const descriptor=SANDRONE_SKILLS[mode], config=sandroneConfig(p);
+        const x=withoutReactionFlat(input);
         x.__stellar_dynamic_target=true;
-        const refInput=clone(x); refInput.skill.index=descriptor.original;
-        const reference=base.CalculatorInterface.get_damage_analysis(prepare(refInput),null);
-        const rawReaction=anemoReactionBase(x.character.level) / .75 * reference.stellarswirl_reaction_cryo_base_multiplier * reference.stellarswirl_vortex_coefficient;
-        const baseFromTeam=sum(reference.direct_stellarswirl_base_compose);
-        const ownBase=x.character.params?.Sandrone?.stellar_base_active!==false;
-        const c2=mode===0 && x.character.constellation>=2 ? .4 + .2*x.skill.config.Sandrone.c2_ray_stacks : 0;
-        const starCrit=sum(reference.critical_stellarswirl);
-        const rawFlat=sum(reference.direct_stellarswirl_extra_fixed)+sum(reference.direct_stellarswirl_extra_damage)+state.flat;
-        const config=x.skill.config.Sandrone;
         const skillConfig=`{c2_ray_stacks: ${config.c2_ray_stacks}, prism_overcharge: ${config.prism_overcharge}, burst_tactics_stacks: ${config.burst_tactics_stacks}, stellarconduct_hits: 0}`;
-        let source=`dmg hit = Sandrone.${descriptor.name}(${skillConfig})\nprop attack = Sandrone.atk\nprop critical = Sandrone.crit0\nresult = (hit.stellarswirl_cryo.e + hit.stellarswirl_cryo.n * min(1, max(0, critical + ${starCrit})) * ${c2}) * (attack * ${ratio} + ${rawFlat}) / ${rawReaction}`;
-        if(ownBase)source+=`\nresult = result * (1 + ${baseFromTeam} + min(attack * 0.00007, 0.14)) / (1 + ${baseFromTeam})`;
-        x[key]={name:'SandroneDefault',params:'NoConfig',use_dsl:true,dsl_source:source};
+        const expression=sandroneExpression(x,descriptor,config,'hit','attack','e');
+        x[key]={name:'SandroneDefault',params:'NoConfig',use_dsl:true,
+            dsl_source:`dmg hit = Sandrone.${descriptor.name}(${skillConfig})\nprop attack = Sandrone.atk\nresult = ${expression}`};
         return x;
     }
     function transformStellarTarget(input) {
@@ -278,10 +400,14 @@ export function createStellarSupportFacade(base, original) {
         if (!input?.character) return input;
         let x = input;
         for (const key of ['target_function', 'tf']) {
-            if(x[key]?.name===SANDRONE_STELLAR_TARGET) {x=sandroneTarget(x,key);continue;}
-            if(!x[key]?.use_dsl)continue;
+            if(x[key]?.name===SANDRONE_STELLAR_TARGET) {
+                const custom=x[key].use_dsl;
+                x=sandroneTarget(x,key);
+                if(!custom)continue;
+            }
+            if(!x[key]?.use_dsl||x[key].__stellar_adjusted)continue;
             const adjusted = adjustStellarSupportDsl(x[key].dsl_source, x);
-            x = {...adjusted.input, [key]: {...x[key], dsl_source: adjusted.source}};
+            x = {...adjusted.input, [key]: {...x[key], dsl_source: adjusted.source,__stellar_adjusted:true}};
         }
         return x;
     }
@@ -289,13 +415,17 @@ export function createStellarSupportFacade(base, original) {
         const fn = Reflect.get(target, method); if (typeof fn !== 'function') return fn;
         return (...args) => {
             if (className === 'DSLInterface' && method === 'run') {
-                if (stellarSupportState(args[1]).flat && !native(args[1])) throw Error('七七六命星扩散加值暂不支持自定义DSL，请使用瑞希的直接星扩散目标。');
-                return fn(args[0], prepare(args[1]), ...args.slice(2));
+                // The playground passes artifacts as the third argument rather
+                // than inside its damage environment. The reference analysis
+                // used to compile Stellar skills must see those same pieces.
+                const adjusted=adjustStellarSupportDsl(args[0],{...args[1],artifacts:args[2]||[]});
+                return fn(adjusted.source,prepare(adjusted.input),...args.slice(2));
             }
             const hasSandroneTarget=x=>x?.target_function?.name===SANDRONE_STELLAR_TARGET || x?.tf?.name===SANDRONE_STELLAR_TARGET || x?.single_interfaces?.some(hasSandroneTarget);
+            const hasCustomDsl=x=>x?.target_function?.use_dsl||x?.tf?.use_dsl||x?.single_interfaces?.some(hasCustomDsl);
             if(className==='CalcArtifactBestSet' && hasSandroneTarget(args[0]))throw Error('桑多涅星扩散目标暂不支持理论套装排行，请使用实际库存配装。');
             if(className==='CommonInterface' && method==='get_artifacts_rank_by_character' && args[2]?.name===SANDRONE_STELLAR_TARGET)throw Error('桑多涅星扩散目标按实际伤害配装，请使用单人配装。');
-            if(hasSandroneTarget(args[0]))args[0]=transformStellarTarget(args[0]);
+            if(hasSandroneTarget(args[0])||hasCustomDsl(args[0]))args[0]=transformStellarTarget(args[0]);
             if (Array.isArray(args[0]?.single_interfaces)) return fn(prepare(args[0]), ...args.slice(1));
             if (!args[0]?.character) return fn(...args);
             const input = args[0], state = stellarSupportState(input);

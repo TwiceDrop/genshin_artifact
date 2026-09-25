@@ -14,6 +14,7 @@
                     </div>
                     <el-button v-if="context" size="small" @click="rankName = ''">查看当前角色：{{ context.label || context.name }}</el-button>
                     <p class="rule-name">{{ details?.title || '请选择右侧角色查看词条得分' }}</p>
+                    <p v-if="details?.weights" class="score-note">固定词条评分权重：暴击率 {{ details.weights.cpct }}、暴击伤害 {{ details.weights.cdmg }}、攻击 {{ details.weights.atk }}、充能 {{ details.weights.recharge }}、{{ details.weights.dmg ? '风伤' : '元素精通' }} {{ details.weights.dmg || details.weights.mastery }}；其余属性 0。该分数只衡量词条质量，不代表伤害最优。</p>
                     <table class="stat-table">
                         <thead><tr><th>详细词条</th><th>得分贡献</th></tr></thead>
                         <tbody>
@@ -49,6 +50,7 @@
             </div>
             <details class="score-rules"><summary>评分来源与毕业度标准</summary>
                 <p>使用 BetterGI ArtifactScore 1.8.0 的喵喵评分规则。普通评分取角色排名前 50% 的平均值。评分用于比较圣遗物词条质量；天赋、角色等级与武器养成不计入毕业度，也不代表队伍伤害排名。</p>
+                <p>薇斯纳使用本地固定权重模板，按普通风伤和直接星扩散分别评分；归一化与固定攻击折算沿用同一评分器。</p>
                 <p>五件平均分：S ≥28、SS ≥35、SSS ≥42、ACE ≥49、MAX ≥56；低于 28 为 D／C／B／A。对应总分门槛：140／175／210／245／280。</p>
                 <a href="https://github.com/babalae/bettergi-scripts-list/tree/22d10e633fc9e03385b7766a66772d9a1aad2936/repo/js/ArtifactScore" target="_blank" rel="noopener noreferrer">查看 BetterGI 评分来源</a>
             </details>

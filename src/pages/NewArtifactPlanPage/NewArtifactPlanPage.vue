@@ -2,10 +2,10 @@
     <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
         <el-alert v-if="characterName === 'Vodyanitsa'" type="info" :closable="false" show-icon style="margin-bottom:16px"
             title="沃雅妮莎 · 计算说明"
-            description="已接入普通技能、治疗、命座条件、专武及单人配装。天赋填游戏显示等级（含命座）；BUFF 开关需按战斗状态设置。星扩散完整结算、部分新装备与多人联合优化仍待适配；歌声 Q 乘区默认关闭，确认后再启用。" />
+            description="已接入普通技能、治疗、命座条件、专武及单人配装。天赋填游戏显示等级（含命座）；BUFF 开关需按战斗状态设置。星扩散定额加值可用于队友直接星扩散；星扩·风/冰须明确实际挂冰、挂风参与者与风涡档位，页面尚无完整配置入口，未配置时仍标为待校准。歌声 Q 需同时启用歌声状态并手动确认乘区。" />
         <el-alert v-if="characterName === 'Vesna'" type="info" :closable="false" show-icon style="margin-bottom:16px"
             title="薇斯纳 · 计算说明"
-            description="已接入角色、蝶变、普通/星扩散伤害、单人配装和词条曲线。辉映需先触发冰扩散；二命列装自动满层整肃。定额与整肃乘区可切换；天赋填游戏显示等级。自身被动由下方角色配置控制。新角色配装仅使用扩展已支持的套装，未支持套装不纳入候选。" />
+            description="已接入角色、蝶变、普通/直接星扩散伤害、单人配装和词条曲线。辉映需先触发冰扩散；二命列装自动满层整肃。星扩散定额加值在基础及精通增伤后结算；旧方案的定额位置开关已忽略。天赋填游戏显示等级。自身被动由下方角色配置控制。" />
         <nav class="calc-mobile-tabs" aria-label="计算器分区">
             <button :class="{ active: mobileCalcTab === 'character' }" @click="mobileCalcTab = 'character'">角色与配置</button>
             <button :class="{ active: mobileCalcTab === 'equipment' }" @click="mobileCalcTab = 'equipment'">圣遗物与伤害</button>
@@ -386,7 +386,7 @@
                                 controls-position="right"
                                 v-model="weaponRefine"
                                 :min="1"
-                                :max="5"
+                                :max="weaponMaxRefine"
                             ></el-input-number>
                         </div>
 
@@ -523,6 +523,66 @@
 
                 <div class="config-buff">
                     <p class="common-title">BUFF</p>
+                    <div class="team-context-control">
+                        <h3 class="common-title2">队友来源（可选）</h3>
+                        <el-select v-model="selectedTeamPresetNames" multiple filterable clearable
+                            placeholder="选择已保存的队友预设" style="width:100%">
+                            <el-option v-for="entry in availableTeamPresets" :key="entry.name"
+                                :label="`${entry.name} · ${teamCharacterLabel(entry.item.character.name)}`"
+                                :value="entry.name" />
+                        </el-select>
+                        <p>按所选预设当前装备和已配置的战斗状态计算来源面板；条件效果需在下方启用。单人配装会保留队友现穿的圣遗物。</p>
+                        <template v-if="teamContextSources.length">
+                            <div class="team-context-row">
+                                <span>受益伤害模式</span>
+                                <el-radio-group v-model="teamContextStellarMode" size="small">
+                                    <el-radio-button :label="false">普通伤害</el-radio-button>
+                                    <el-radio-button :label="true">星扩散</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            <el-alert v-if="targetFunctionUseDSL" type="warning" :closable="false"
+                                title="混合普通伤害与星扩散的 DSL 不能按分支自动切换队友 BUFF；请分别计算单一模式。" />
+                            <div v-for="source in teamContextSources" :key="source.presetName" class="team-source-card">
+                                <strong>{{ source.presetName }} · {{ teamCharacterLabel(presetStore.presets.value[source.presetName]?.item.character.name) }}</strong>
+                                <span class="team-source-gear">{{ teamSourceGearLabel(source.presetName) }}</span>
+                                <label class="team-source-id">来源 ID
+                                    <el-input v-model="source.sourceId" size="small" aria-label="BUFF 来源 ID" />
+                                </label>
+                                <el-switch v-model="source.triggers.recipientOnField" active-text="受益角色在前台" />
+                                <template v-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Vodyanitsa'">
+                                    <div class="team-trigger-grid">
+                                        <el-switch v-model="source.triggers.eActive" active-text="战技命中" />
+                                        <el-switch v-model="source.triggers.songActive" active-text="歌声状态" />
+                                        <el-switch v-model="source.triggers.a1Active" active-text="流荡风旋已触发" />
+                                        <el-switch v-model="source.triggers.a4Active" active-text="领唱／重唱已触发" />
+                                        <el-switch v-if="presetStore.presets.value[source.presetName]?.item.character.constellation >= 1"
+                                            v-model="source.triggers.c1Active" active-text="一命条件" />
+                                        <el-switch v-if="presetStore.presets.value[source.presetName]?.item.character.constellation >= 2"
+                                            v-model="source.triggers.c2Active" active-text="二命角笛命中" />
+                                    </div>
+                                    <div v-if="presetStore.presets.value[source.presetName]?.item.weapon.name === 'HymnOfTheMaelstrom'" class="team-context-row">
+                                        <span>专武层数</span>
+                                        <el-input-number v-model="source.triggers.signatureStacks" :min="0" :max="3" size="small" />
+                                        <el-switch v-model="source.triggers.signatureBoosted" active-text="强化状态" />
+                                        <el-switch v-model="source.triggers.signatureOnField" active-text="专武对当前角色生效" />
+                                    </div>
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Vesna'">
+                                    <div class="team-trigger-grid">
+                                        <el-switch v-model="source.triggers.vesnaRadiance" active-text="辉映已触发" />
+                                        <el-switch v-model="source.triggers.vesnaTalentActive" active-text="队友星耀祝礼已触发" />
+                                    </div>
+                                    <div class="team-context-row">
+                                        <span>星耀祝礼平均覆盖率</span>
+                                        <el-input-number v-model="source.triggers.vesnaTalentCoverage" :min="0" :max="1" :step="0.1" :precision="2" size="small" />
+                                    </div>
+                                </template>
+                                <p>当前自动效果：{{ teamSourceEffects(source.sourceId).join('、') || '条件未触发或无已校准效果' }}</p>
+                            </div>
+                            <el-alert v-for="issue in teamContextResult.issues" :key="issue" type="error" :closable="false" :title="issue" />
+                            <p v-if="teamContextResult.automatic.length">已关联 {{ teamContextResult.automatic.length }} 项队友效果。其他武器触发条件沿用来源预设。固定面板属性与平均覆盖率按配置计入；直接回能不换算为充能效率。</p>
+                        </template>
+                    </div>
                     <div class="buff-tool" style="margin-bottom: 12px">
                         <el-button
                             :icon="IconEpPlus"
@@ -548,6 +608,12 @@
                             @delete="handleClickDeleteBuff(buff.id)"
                             @toggle="handleClickToggleBuff(buff.id)"
                         ></buff-item>
+                        <label v-if="teamContextSources.length" class="manual-buff-source">手动 BUFF 来源
+                            <el-select v-model="buff.source_id" clearable placeholder="未关联队友" size="small">
+                                <el-option v-for="source in teamContextSources" :key="source.sourceId"
+                                    :label="source.presetName" :value="source.sourceId" />
+                            </el-select>
+                        </label>
                     </selected-buff-groups>
                     <div v-else-if="!polestarEnabled">
                         <el-empty description="无BUFF"></el-empty>
@@ -746,6 +812,7 @@ import ItemConfig from "@c/config/ItemConfig"
 import BuffItem from "./BuffItem"
 import SelectedBuffGroups from '@/components/display/SelectedBuffGroups.vue'
 import { otherCharacterArtifactIds } from '@/algorithms/artifact-ownership.mjs'
+import { createTeamContextSource, deriveSingleTeamContext } from '@/algorithms/single-team-context.mjs'
 import WeaponDisplay from "@/components/display/WeaponDisplay.vue"
 import SaveAsKumi from "./SaveAsKumi.vue"
 import TransformativeDamage from "./TransformativeDamage"
@@ -772,7 +839,7 @@ import {useComputeConstraint} from "@/composables/constraint"
 import {BuffEntry, useBuff} from "@/composables/buff"
 import {type PresetEntry, usePresetStore} from "@/store/pinia/preset"
 import {useArtifactStore} from "@/store/pinia/artifact"
-import type {IPreset} from "@/types/preset"
+import type {IPreset, ITeamContextSource} from "@/types/preset"
 import {RandomIDProvider} from "@/utils/idProvider"
 import {use5Artifacts} from "@/composables/artifact"
 import {positions} from "@/constants/artifact"
@@ -876,6 +943,7 @@ const {
     weaponName,
     weaponLevel,
     weaponRefine,
+    weaponMaxRefine,
     weaponConfig,
     weaponLevelNumber,
     weaponAscend,
@@ -1083,13 +1151,18 @@ function getPresetItem() {
         buffsToBeSaved.push({
             name: buff.name,
             config: deepCopy(buff.config),
-            lock: buff.lock
+            lock: buff.lock,
+            source_id: (buff as any).source_id,
+            source_effect: (buff as any).source_effect,
         })
     }
 
     const item = {
         // buffs: deepCopy(config.buffs),
         buffs: buffsToBeSaved,
+        artifactIds: [...artifactIds.value],
+        teamContext: deepCopy(teamContextSources.value),
+        teamContextStellarMode: teamContextStellarMode.value,
         character: deepCopy(characterInterface.value),
         weapon: deepCopy(weaponInterface.value),
         targetFunction: deepCopy(targetFunctionInterface.value),
@@ -1138,12 +1211,16 @@ function usePreset(name: string) {
                 id: idGenerator.generateId(),
                 name: buff.name,
                 config: buff.config,
-                lock: buff.lock
+                lock: buff.lock,
+                source_id: buff.source_id,
+                source_effect: buff.source_effect,
             }
             newBuffs.push(newBuff)
         }
         buffs.value = newBuffs
     }
+    teamContextSources.value = Array.isArray(item.teamContext) ? deepCopy(item.teamContext) : []
+    teamContextStellarMode.value = item.teamContextStellarMode === true
 
     // use character
     const c = item.character
@@ -1236,6 +1313,49 @@ const {
     toggleBuff
 } = useBuff()
 const otherBuffs = computed(() => buffs.value.filter(buff => buff.name !== 'ResonancePolestarField'))
+const teamContextSources = ref<ITeamContextSource[]>([])
+const teamContextStellarMode = ref(false)
+const availableTeamPresets = computed(() => presetStore.allFlat.value.filter(entry =>
+    ['Vodyanitsa', 'Vesna'].includes(entry.item?.character?.name)
+    && entry.item.character.name !== characterName.value
+    && entry.name !== miscCurrentPresetName.value))
+const selectedTeamPresetNames = computed<string[]>({
+    get: () => teamContextSources.value.map(source => source.presetName),
+    set: names => {
+        teamContextSources.value = names.map(name => teamContextSources.value.find(source => source.presetName === name)
+            || createTeamContextSource(name, presetStore.presets.value[name]))
+    },
+})
+function teamCharacterLabel(name?: string) {
+    return name === 'Vodyanitsa' ? '沃雅妮莎' : name === 'Vesna' ? '薇斯纳' : '未知角色'
+}
+function teamSourceGearLabel(name: string) {
+    const ids = presetStore.presets.value[name]?.item.artifactIds
+    if (!Array.isArray(ids)) return '未保存当前装备'
+    return `当前装备 ${ids.filter(id => id >= 0 && !!artifactStore.getArtifact(id)).length}/5 件`
+}
+function teamSourceEffects(sourceId: string) {
+    return teamContextResult.value.sources.find((source: any) => source.sourceId === sourceId)?.effectNames || []
+}
+const selectedTeamArtifactIds = computed(() => new Set(teamContextSources.value.flatMap(source =>
+    (presetStore.presets.value[source.presetName]?.item.artifactIds || []).filter(id => Number.isInteger(id) && id >= 0))))
+const teamContextResult = computed(() => deriveSingleTeamContext(mona, {
+    character: characterInterface.value,
+    weapon: weaponInterface.value,
+    target_function: targetFunctionInterface.value,
+    equipped_artifact_ids: artifactIds.value,
+    artifacts: artifactWasmFormat.value,
+    buffs: buffsInterface.value,
+    team_effects: {stellar_mode:teamContextStellarMode.value ? 'stellar' : 'ordinary'},
+}, teamContextSources.value, presetStore.presets.value,
+id => artifactStore.getArtifact(id), convertArtifact))
+const effectiveBuffs = computed(() => teamContextResult.value.buffs)
+const teamContextError = computed(() => teamContextResult.value.issues.join(' '))
+const teamContextKey = computed(() => JSON.stringify([
+    teamContextSources.value, teamContextStellarMode.value,
+    teamContextResult.value.automatic, teamContextResult.value.issues,
+    [...selectedTeamArtifactIds.value],
+]))
 
 const showSelectBuffDialog = ref(false)
 
@@ -1268,7 +1388,8 @@ const damageAnalysisWasmInterface = computed(() => {
     return {
         character: characterInterface.value,
         weapon: weaponInterface.value,
-        buffs: buffsInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         artifacts: artifactWasmFormat.value,
         artifact_config: artifactConfigForCalculator.value,
         skill: characterSkillInterface.value,
@@ -1315,7 +1436,8 @@ const getAttributeWasmInterface = computed(() => {
     return {
         character: characterInterface.value,
         weapon: weaponInterface.value,
-        buffs: buffsInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         artifacts: artifactWasmFormat.value,
         artifact_config: artifactConfigForCalculator.value,
     }
@@ -1326,8 +1448,8 @@ const attributeCalculation = computed(() => {
     catch (error: any) { return { value: null, error: error.message || String(error) } }
 })
 const attributeFromWasm = computed(() => attributeCalculation.value.value || {})
-const betaCalculationError = computed(() => attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
-const betaSupportActive = computed(() => buffsInterface.value.some((b: any) => b.name.startsWith('Vodyanitsa') && b.name !== 'VodyanitsaSignature'))
+const betaCalculationError = computed(() => teamContextError.value || attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
+const betaSupportActive = computed(() => effectiveBuffs.value.some((b: any) => b.name.startsWith('Vodyanitsa') && b.name !== 'VodyanitsaSignature'))
 
 const artifactScoreContext = computed(() => {
     const c = scoreCharacters[characterName.value]
@@ -1335,6 +1457,7 @@ const artifactScoreContext = computed(() => {
     const name = /^(Aether|Lumine)/.test(characterName.value) ? '旅行者' : label
     return { name, label, options: {
         elem: c.element.toLowerCase(), cons: characterConstellation.value,
+        scoreMode: characterName.value === 'Vesna' && characterConfig.value?.Vesna?.radiance ? 'stellar' : 'normal',
         weaponName: scoreLocale[scoreWeapons[weaponName.value].nameLocale], weaponAffix: weaponRefine.value,
         charAttrs: panelScoreAttributes(attributeFromWasm.value),
         artisSets: scoreSetNames(artifactItems.value, artifactsData, scoreLocale)
@@ -1360,7 +1483,8 @@ const bonusPerStatWasmInterface = computed(() => {
         weapon: weaponInterface.value,
         artifacts: artifactWasmFormat.value,
         tf: targetFunctionInterface.value,
-        buffs: buffsInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         enemy: enemyInterface.value,
         artifacts_config: artifactConfigForCalculator.value
     }
@@ -1510,7 +1634,8 @@ const allowBorrowEquipped = computed({
 const reservedArtifactIds = computed(() => otherCharacterArtifactIds(
     miyousheStore.data.value.entries, ownershipUid.value, comparisonEntry.value?.key, artifactStore.artifacts.value))
 const ownershipFilterKey = computed(() => JSON.stringify([ownershipUid.value, comparisonKey.value,
-    allowBorrowEquipped.value, allowBorrowEquipped.value ? [] : [...reservedArtifactIds.value].sort((a,b) => a-b)]))
+    allowBorrowEquipped.value, allowBorrowEquipped.value ? [] : [...reservedArtifactIds.value].sort((a,b) => a-b),
+    [...selectedTeamArtifactIds.value].sort((a,b) => a-b),teamContextKey.value]))
 watch(ownershipFilterKey, () => { optimizationResults.value = []; optimizationResultIndex.value = 0 }, { flush: 'sync' })
 const comparisonStorage = computed({
     get: () => miyousheStore.data.value.artifactComparison || {},
@@ -1599,7 +1724,8 @@ function getOptimizeArtifactWasmInterface() {
         target_function: targetFunctionInterface.value,
         constraint: constraintInterface.value,
         enemy: enemyInterface.value,
-        buffs: buffsInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         artifact_config,
         algorithm: algorithm.value,
     }
@@ -1613,7 +1739,7 @@ function getAllArtifactsFiltered(): IArtifact[] {
     const component = filterKumiRef.value
 
     // s is artifact ids to be filtered
-    let s = new Set(allowBorrowEquipped.value ? [] : reservedArtifactIds.value)
+    let s = new Set([...(allowBorrowEquipped.value ? [] : reservedArtifactIds.value), ...selectedTeamArtifactIds.value])
 
     // filter kumi
     if (component) {
@@ -1681,6 +1807,7 @@ function getArtifactsToBeCalculated(): IArtifactWasm[] {
 }
 
 function handleOptimizeArtifact() {
+    if (teamContextError.value) return ElMessage.error(teamContextError.value)
     const start = new Date()
     const originalEquipment = snapshotEquipment(artifactItems.value)
     const originalKey = comparisonKey.value, originalAccount = accountStore.currentAccountId.value
@@ -1738,7 +1865,7 @@ function handleOptimizeArtifact() {
             createComputeResult(
                 characterInterface.value,
                 weaponInterface.value,
-                buffsInterface.value,
+                effectiveBuffs.value,
                 targetFunctionInterface.value,
                 result_artifacts_wasm_format
             )
@@ -1762,6 +1889,8 @@ watch(() => accountStore.currentAccountId.value, () => {
 </script>
 
 <style lang="scss" scoped>
+.team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control p{margin:8px 0;color:#606b7b;font-size:12px;line-height:1.6}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:#667085;font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
 .artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}.artifact-borrowing-control p{margin:6px 0 0;color:#909399;font-size:12px;line-height:1.6}
 .calc-mobile-tabs{display:none}
 @media(max-width:991px){

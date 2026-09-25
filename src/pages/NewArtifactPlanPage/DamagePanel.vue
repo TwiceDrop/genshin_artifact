@@ -1,5 +1,7 @@
 <template>
     <div>
+        <el-alert v-if="uncalibratedReactions.length" type="warning" :closable="false" show-icon
+            title="反应结果待校准" :description="uncalibratedReactions.join('、') + '：尚无经核对的完整结算公式。'" />
         <el-table
             :data="tableData"
         >
@@ -34,6 +36,11 @@ export default {
     },
     data: () => ({ damageColumns: [{ key: "expectation", label: "dmg.expect" }, { key: "critical", label: "dmg.crit" }, { key: "nonCritical", label: "dmg.nonCrit" }] }),
     computed: {
+        uncalibratedReactions() {
+            return Object.entries(this.analysisFromWasm?.reaction_availability || {})
+                .filter(([, value]) => value?.status === 'uncalibrated')
+                .map(([key]) => damageReactionLabel(key))
+        },
         element() {
             return this.analysisFromWasm.element
         },

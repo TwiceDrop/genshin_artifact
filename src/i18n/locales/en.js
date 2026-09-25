@@ -1,6 +1,8 @@
 export default {
     webName: "MonaUranai",
     intro: {
+        checkForUpdates: "Check for updates",
+        automaticUpdateCheck: "Check for updates on startup",
         opensource: "Open source",
         opensourceMonaDescription: "- Frontend<br>- Mona DSL<br>- DSL Book",
         opensourceYasDescription: "- Yas scanner",

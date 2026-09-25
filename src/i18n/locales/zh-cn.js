@@ -1,6 +1,8 @@
 export default {
     webName: "莫娜占卜铺",
     intro: {
+        checkForUpdates: "检查更新",
+        automaticUpdateCheck: "启动时自动检查更新",
         opensource: "开源地址",
         opensourceMonaDescription: "- 前端<br>- 莫娜DSL<br>- DSL Book等",
         opensourceYasDescription: "- YAS导出器",

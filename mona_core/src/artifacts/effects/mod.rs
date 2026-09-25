@@ -64,6 +64,17 @@ pub use scroll_of_the_hero_of_cinder_city::ScrollOfTheHeroOfCinderCity;
 pub use obsidian_codex::ObsidianCodex;
 pub use long_nights_oath::LongNightsOath;
 pub use finale_of_the_deep_galleries::FinaleOfTheDeepGalleries;
+pub mod aubade_of_morningstar_and_moon;
+pub use aubade_of_morningstar_and_moon::AubadeOfMorningstarAndMoon;
+pub mod a_day_carved_from_rising_winds;
+pub use a_day_carved_from_rising_winds::ADayCarvedFromRisingWinds;
+pub mod celestial_gift;
+pub use celestial_gift::HeavensGift;
+pub mod disenchantment_in_deep_shadow;
+pub use disenchantment_in_deep_shadow::DisenchantmentInDeepShadow;
+
+#[cfg(test)]
+mod tests;
 
 pub mod empty;
 pub mod adventurer;

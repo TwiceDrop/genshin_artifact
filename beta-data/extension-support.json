@@ -104,6 +104,21 @@
     "Vesna"
   ],
   "weapons": [
+    "PrizedIsshinBlade",
+    "AthameArtis",
+    "MoonweaverDawn",
+    "SerenitysCall",
+    "LightbearingMoonshard",
+    "WhitelakeFrostfeather",
+    "ExaiphanesBlade",
+    "AmberBead",
+    "NightweaversLookingGlass",
+    "ReliquaryOfTruth",
+    "DawningFrost",
+    "EtherlightSpindlelute",
+    "BlackmarrowLantern",
+    "NocturnesCurtainCall",
+    "AngelosHeptades",
     "NewBough",
     "WintersHeavyHeart",
     "BreezeborneRefrain",
@@ -390,7 +405,8 @@
     "LongNightsOath",
     "FinaleOfTheDeepGalleries",
     "ScarletProof",
-    "HeartOfTheFurnace"
+    "HeartOfTheFurnace",
+    "ADayCarvedFromRisingWinds"
   ],
   "buffs": [
     "ATKPercentage",

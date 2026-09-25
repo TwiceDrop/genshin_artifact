@@ -26,6 +26,8 @@ export function getMarkClass(score) {
 }
 
 function resolveWeights(name, artifacts, options) {
+    // Local templates extend the pinned scorer without changing upstream rules.
+    if (options.fixedWeights) return { title: options.fixedTitle || `${name}-固定词条评分`, attrWeight: { ...options.fixedWeights } }
     const weapon = { ...options.weapon, name: options.weaponName || options.weapon?.name || '', affix: options.weaponAffix ?? options.weapon?.affix ?? 1 }
     const sets = options.artisSets || []
     const slots = Object.fromEntries(artifacts.map((a, i) => [String((a.pos ?? i) + 1), { ...a, main: { key: a.mainKey, value: a.mainValue } }]))
