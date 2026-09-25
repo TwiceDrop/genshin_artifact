@@ -7,8 +7,8 @@
 [Setup]
 AppId={{B9F05725-3D59-446B-B772-6AAC68F9E611}
 AppName=莫娜占卜铺
-AppVersion=7.1.05
-AppVerName=莫娜占卜铺 V7.1.05
+AppVersion=7.1.06
+AppVerName=莫娜占卜铺 V7.1.06
 AppPublisher=TwiceDrop
 AppPublisherURL=https://github.com/TwiceDrop/genshin_artifact
 AppSupportURL=https://github.com/TwiceDrop/genshin_artifact/issues
@@ -19,7 +19,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 OutputDir={#OutputPath}
-OutputBaseFilename=genshin_artifact_V7.1.05_windows_x64_setup
+OutputBaseFilename=genshin_artifact_V7.1.06_windows_x64_setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

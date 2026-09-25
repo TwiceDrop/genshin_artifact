@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 set MONA_PORT=4183
-title 莫娜占卜铺 7.1.05
+title 莫娜占卜铺 7.1.06
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (

@@ -1,6 +1,6 @@
 use crate::common::{SkillType, Element};
 
-#[derive(Hash, Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub enum AttributeName {
  VesnaStance, VesnaRadiance, VesnaDiscipline, VesnaFlatInside,
  StellarSwirlBonus, StellarSwirlFlat, StellarSwirlCritDamage, StellarSwirlElevation, StellarSwirlBaseBonus,
@@ -89,6 +89,7 @@ pub enum AttributeName {
     BonusNormalAttack,
     BonusChargedAttack,
     BonusPlungingAttack,
+    BonusPlungingImpact,
     BonusElementalSkill,
     BonusElementalBurst,
     BonusElectro,

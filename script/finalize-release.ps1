@@ -7,11 +7,11 @@ $assets = Join-Path $root 'releases'
 if (-not (Test-Path -LiteralPath $source -PathType Container)) { throw "Release source folder missing: $source" }
 if (-not (Test-Path -LiteralPath $assets -PathType Container)) { throw "Release assets folder missing: $assets" }
 
-$integrity = Get-Content -LiteralPath (Join-Path $source 'beta-data/release-7.1.05-integrity.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$integrity = Get-Content -LiteralPath (Join-Path $source 'beta-data/release-7.1.06-integrity.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $package = Get-Content -LiteralPath (Join-Path $source 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($package.displayVersion -ne $integrity.release) { throw 'Package and release manifest versions differ.' }
 if ($integrity.extensionWasmSha256 -notmatch '^[a-fA-F0-9]{64}$') {
-    throw 'Final extension WASM SHA-256 is not pinned in beta-data/release-7.1.05-integrity.json.'
+    throw 'Final extension WASM SHA-256 is not pinned in beta-data/release-7.1.06-integrity.json.'
 }
 
 $characters = Get-Content -LiteralPath (Join-Path $source 'beta-data/characters-release-71.json') -Raw -Encoding UTF8 | ConvertFrom-Json

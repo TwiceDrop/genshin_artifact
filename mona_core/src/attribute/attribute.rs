@@ -175,7 +175,8 @@ impl<T: Attribute> AttributeCommon<T> for T {
             0.0
         };
 
-        let mut temp = self.get_value(AttributeName::BonusBase)
+        let impact = if skill == SkillType::PlungingAttackOnGround { self.get_value(AttributeName::BonusPlungingImpact) } else { 0.0 };
+        let mut temp = impact + self.get_value(AttributeName::BonusBase)
             + self.get_value(key1) + value2;
         // todo refactor
         if element != Element::Physical && skill == SkillType::NormalAttack {

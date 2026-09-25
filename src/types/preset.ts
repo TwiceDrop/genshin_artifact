@@ -32,6 +32,9 @@ export interface ITeamContextSource {
         signatureBoosted?: boolean,
         signatureOnField?: boolean,
         recipientOnField?: boolean,
+        odetteRadianceMode?: number, odetteStacks?: number,
+        odetteBlessing?: boolean, odetteSplendor?: boolean, odetteDouble?: boolean, odetteDream?: boolean,
+        qiqiTalisman?: boolean, qiqiC6?: boolean, sandroneBlessing?: boolean, sandroneC1?: boolean,
     }
 }
 
