@@ -10,9 +10,16 @@ lazy_static! {
         "def",
         "hp",
         "em",
+        "em_all",
         "crit0",
         "cd0",
-        "heal"
+        "heal",
+        "stellar_swirl_bonus",
+        "stellar_swirl_flat",
+        "stellar_swirl_base_bonus",
+        "stellar_swirl_crit_damage",
+        "stellar_swirl_elevation",
+        "vesna_discipline"
     ];
 }
 
@@ -27,9 +34,16 @@ pub fn get_prop_value(attribute: &SimpleAttributeGraph2, name: &str) -> Result<f
         "def" => attribute.get_def(),
         "hp" => attribute.get_hp(),
         "em" => attribute.get_value(AttributeName::ElementalMastery),
+        "em_all" => attribute.get_em_all(),
         "crit0" => attribute.get_value(AttributeName::CriticalBase),
         "cd0" => attribute.get_value(AttributeName::CriticalDamageBase),
         "heal" => attribute.get_value(AttributeName::HealingBonus),
+        "stellar_swirl_bonus" => attribute.get_value(AttributeName::StellarSwirlBonus),
+        "stellar_swirl_flat" => attribute.get_value(AttributeName::StellarSwirlFlat),
+        "stellar_swirl_base_bonus" => attribute.get_value(AttributeName::StellarSwirlBaseBonus),
+        "stellar_swirl_crit_damage" => attribute.get_value(AttributeName::StellarSwirlCritDamage),
+        "stellar_swirl_elevation" => attribute.get_value(AttributeName::StellarSwirlElevation),
+        "vesna_discipline" => attribute.get_value(AttributeName::VesnaDiscipline),
         _ => panic!("prop name not exist")
     };
 

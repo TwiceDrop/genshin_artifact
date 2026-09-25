@@ -13353,12 +13353,6 @@ export default {
         "min": 0,
         "max": 3,
         "default": 1
-      },
-      {
-        "name": "flat_inside_discipline",
-        "title": 3583,
-        "type": "bool",
-        "default": false
       }
     ],
     "configSkill": []

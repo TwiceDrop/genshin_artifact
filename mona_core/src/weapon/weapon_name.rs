@@ -12,6 +12,21 @@ use crate::common::item_config_type::ItemConfig;
 #[derive(FromPrimitive, Display)]
 #[derive(WeaponData, EnumLen, EnumIter)]
 pub enum WeaponName {
+    PrizedIsshinBlade,
+    AthameArtis,
+    MoonweaverDawn,
+    SerenitysCall,
+    LightbearingMoonshard,
+    WhitelakeFrostfeather,
+    ExaiphanesBlade,
+    AmberBead,
+    NightweaversLookingGlass,
+    ReliquaryOfTruth,
+    DawningFrost,
+    EtherlightSpindlelute,
+    BlackmarrowLantern,
+    NocturnesCurtainCall,
+    AngelosHeptades,
     NewBough,
     WintersHeavyHeart,
     BreezeborneRefrain,

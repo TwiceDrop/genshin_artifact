@@ -33,12 +33,12 @@ import IconFa6BrandsGithub from "~icons/fa6-brands/github"
 const items = [
     {
         name: "yas",
-        description: "来自莫娜占卜铺原作者的导出器：Yet Another Scanner，state-of-the-art（速度上）导出器",
+        description: "当前维护的 Yet Another Scanner（YAS）圣遗物扫描器",
         buttons: [
             {
                 label: "项目地址",
                 primary: true,
-                link: "https://github.com/wormtql/yas",
+                link: "https://github.com/1803233552/yas",
                 icon: IconFa6BrandsGithub
             }
         ]

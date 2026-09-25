@@ -4,6 +4,20 @@ fn full_coverage() -> f64 { 1.0 }
 
 #[derive(Serialize, Deserialize)]
 pub enum WeaponConfig {
+    AthameArtis { burst_hit: bool, secret_rite: bool, #[serde(default = "full_coverage")] rate: f64 },
+    MoonweaverDawn { energy_cost: usize },
+    SerenitysCall { reaction_active: bool, moon_full: bool, #[serde(default = "full_coverage")] rate: f64 },
+    LightbearingMoonshard { skill_active: bool, #[serde(default = "full_coverage")] rate: f64 },
+    WhitelakeFrostfeather { stacks: f64, #[serde(default = "full_coverage")] rate: f64 },
+    ExaiphanesBlade { hit_active: bool, #[serde(default = "full_coverage")] rate: f64, #[serde(default)] resonated_elements: i32 },
+    AmberBead { stacks: f64 },
+    NightweaversLookingGlass { skill_active: bool, lunar_bloom_active: bool, #[serde(default = "full_coverage")] skill_rate: f64, #[serde(default = "full_coverage")] lunar_rate: f64 },
+    ReliquaryOfTruth { skill_active: bool, lunar_bloom_hit: bool, #[serde(default = "full_coverage")] skill_rate: f64, #[serde(default = "full_coverage")] lunar_rate: f64 },
+    DawningFrost { charged_active: bool, skill_active: bool, #[serde(default = "full_coverage")] charged_rate: f64, #[serde(default = "full_coverage")] skill_rate: f64 },
+    EtherlightSpindlelute { skill_active: bool, #[serde(default = "full_coverage")] rate: f64 },
+    BlackmarrowLantern { moon_full: bool },
+    NocturnesCurtainCall { lunar_active: bool, #[serde(default = "full_coverage")] rate: f64 },
+    AngelosHeptades { shield_active: bool, #[serde(default = "full_coverage")] rate: f64 },
     NewBough { stacks: f64, radiance: bool, rate: f64 },
     WintersHeavyHeart { cryo_count: usize, electro_count: usize, radiance: bool, #[serde(default = "full_coverage")] rate: f64 },
     BreezeborneRefrain { rate: f64 },

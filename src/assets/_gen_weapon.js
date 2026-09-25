@@ -449,7 +449,10 @@ export default {
     "url": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/67c7f6c8/d0bc1a9d160a598e7cfe669f71402662.png",
     "type": "Sword",
     "effect": 1752,
-    "configs": null
+    "configs": null,
+    "id": 11419,
+    "availability": "quest-only",
+    "maxRefine": 1
   },
   "SapwoodBlade": {
     "name": "SapwoodBlade",
@@ -862,11 +865,11 @@ export default {
     "configs": [
       {
         "default": 60,
-        "max": 90,
+        "max": 100,
         "min": 0,
         "name": "max_energy",
         "title": 2922,
-        "type": "float"
+        "type": "int"
       }
     ]
   },
@@ -880,7 +883,7 @@ export default {
     "effect": 2940,
     "configs": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "rate",
@@ -905,10 +908,18 @@ export default {
     "effect": 3272,
     "configs": [
       {
-        "default": true,
+        "default": false,
         "name": "extra_active",
         "title": 1543,
         "type": "bool"
+      },
+      {
+        "name": "rate",
+        "title": 3677,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   },
@@ -990,12 +1001,20 @@ export default {
     "effect": 416,
     "configs": [
       {
-        "default": 3,
+        "default": 0,
         "max": 3,
         "min": 0,
         "name": "stack",
         "title": 1465,
         "type": "float"
+      },
+      {
+        "name": "rate",
+        "title": 3678,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   },
@@ -1009,18 +1028,26 @@ export default {
     "effect": 335,
     "configs": [
       {
-        "default": true,
+        "default": false,
         "name": "active",
         "title": 737,
         "type": "bool"
       },
       {
-        "default": 7,
+        "default": 0,
         "max": 7,
         "min": 0,
         "name": "resonated_elements",
         "title": 1172,
         "type": "int"
+      },
+      {
+        "name": "rate",
+        "title": 3679,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   },
@@ -3512,16 +3539,32 @@ export default {
     "effect": 431,
     "configs": [
       {
-        "default": true,
+        "default": false,
         "name": "northernmost_runo_active",
         "title": 120,
         "type": "bool"
       },
       {
-        "default": true,
+        "default": false,
         "name": "crescent_verse_active",
         "title": 92,
         "type": "bool"
+      },
+      {
+        "name": "skill_rate",
+        "title": 3680,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "lunar_rate",
+        "title": 3681,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   },
@@ -3535,16 +3578,32 @@ export default {
     "effect": 1838,
     "configs": [
       {
-        "default": true,
+        "default": false,
         "name": "false_secret_active",
         "title": 73,
         "type": "bool"
       },
       {
-        "default": true,
+        "default": false,
         "name": "true_moon_active",
         "title": 112,
         "type": "bool"
+      },
+      {
+        "name": "skill_rate",
+        "title": 3682,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
+      },
+      {
+        "name": "lunar_rate",
+        "title": 3683,
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 1
       }
     ]
   },
@@ -3585,7 +3644,7 @@ export default {
     "effect": 1509,
     "configs": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "rate",
@@ -3623,7 +3682,7 @@ export default {
     "effect": 2402,
     "configs": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "sacred_wine_uptime",
@@ -3642,7 +3701,7 @@ export default {
     "effect": 1420,
     "configs": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "shield_rate",

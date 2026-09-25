@@ -21,7 +21,7 @@ try {
     New-Item -ItemType Directory -Path $stage,$output,(Join-Path $stage 'runtime'),(Join-Path $stage 'script') -Force | Out-Null
     # Explicit runtime allowlist: never package the project root or user data.
     Copy-Item -LiteralPath (Join-Path $projectRoot 'dist'),(Join-Path $projectRoot 'server') -Destination $stage -Recurse
-    foreach ($name in @('LICENSE','THIRD_PARTY_NOTICES.md','README.md','7.1.04使用说明.md','7.1.04更新说明.md')) { Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $stage }
+    foreach ($name in @('LICENSE','THIRD_PARTY_NOTICES.md','README.md','7.1.04使用说明.md','7.1.05使用说明.md','7.1.05更新说明.md')) { Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $stage }
     New-Item -ItemType Directory -Path (Join-Path $stage 'beta-data'),(Join-Path $stage 'docs') -Force | Out-Null
     foreach ($name in @('limited-71-notes.md','strengthened-notes.md')) { Copy-Item -LiteralPath (Join-Path $projectRoot "beta-data/$name") -Destination (Join-Path $stage 'beta-data') }
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/android-offline.md') -Destination (Join-Path $stage 'docs')

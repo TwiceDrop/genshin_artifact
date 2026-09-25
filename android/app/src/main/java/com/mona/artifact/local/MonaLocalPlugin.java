@@ -2,6 +2,7 @@ package com.mona.artifact.local;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
@@ -55,6 +56,20 @@ public class MonaLocalPlugin extends Plugin {
         intent.setType(call.getString("mimeType", "application/json"));
         intent.putExtra(Intent.EXTRA_TITLE, call.getString("filename", "mona-backup.json"));
         startActivityForResult(call, intent, "fileSelected");
+    }
+    @PluginMethod public void openExternal(PluginCall call) {
+        try {
+            String url = call.getString("url", "");
+            Uri uri = Uri.parse(url);
+            if (!"https".equals(uri.getScheme()) || !"github.com".equals(uri.getHost()) ||
+                !uri.getPath().startsWith("/TwiceDrop/genshin_artifact/releases/")) {
+                call.reject("更新地址无效"); return;
+            }
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            getActivity().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) { call.reject("无法打开下载页面"); }
     }
     @ActivityCallback private void fileSelected(PluginCall call, ActivityResult result) {
         if (call == null) return;

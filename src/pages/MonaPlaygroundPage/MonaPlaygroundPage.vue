@@ -112,7 +112,7 @@
                             controls-position="right"
                             v-model="weaponRefine"
                             :min="1"
-                            :max="5"
+                            :max="weaponMaxRefine"
                         ></el-input-number>
                     </div>
 
@@ -273,7 +273,7 @@ const {
 //////////////////////////////////////////////////////////////////////////
 // weapon
 const {
-    weaponName, weaponLevel, weaponRefine, weaponConfig,
+    weaponName, weaponLevel, weaponRefine, weaponMaxRefine, weaponConfig,
     weaponNeedConfig,
     weaponConfigConfig,
     weaponAscend,

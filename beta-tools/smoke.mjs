@@ -52,9 +52,14 @@ test('A4 超出四万生命的普通加值与 3500 上限',()=>{
  const boosted=api.CalculatorInterface.get_damage_analysis(x,null);close(boosted.normal.non_critical-base.normal.non_critical,3500*.9*.5);
  x.character.params.Vodyanitsa.ordinary_mode=false;close(api.CalculatorInterface.get_damage_analysis(x,null).normal.non_critical,base.normal.non_critical);
 });
-test('未适配的有效四件套组合明确拒绝，不返回错误结果',()=>{
- const x=structuredClone(input);x.artifacts=raw.artifacts.map(a=>({...a,set_name:'ADayCarvedFromRisingWinds'}));
- assert.throws(()=>api.CommonInterface.get_attribute(x),/暂未适配/);
+test('风起之日四件套按已配置覆盖率计算攻击，不静默丢弃库存',()=>{
+ const x=structuredClone(input);x.artifacts=raw.artifacts.map(a=>({...a,set_name:'Empty'}));
+ const base=sum(api.CommonInterface.get_attribute(x).atk);
+ x.artifacts=x.artifacts.map(a=>({...a,set_name:'ADayCarvedFromRisingWinds'}));
+ const sets=read('../src/assets/_gen_artifact.js');const snake=s=>s.replace(/[A-Z]/g,c=>'_'+c.toLowerCase()).replace(/^_/,'');
+ x.artifact_config=Object.fromEntries(Object.values(sets).filter(s=>s.config2.length||s.config4.length).map(s=>['config_'+snake(s.name2),Object.fromEntries([...s.config2,...s.config4].map(c=>[c.name,c.default]))]));
+ x.artifact_config.config_a_day_carved_from_rising_winds.rate=0.5;
+ close(sum(api.CommonInterface.get_attribute(x).atk)-base,650*(.18+.25*.5));
 });
 test('界面完整圣遗物配置与十条词条收益入口可使用',()=>{
  const sets=read('../src/assets/_gen_artifact.js');const snake=s=>s.replace(/[A-Z]/g,c=>'_'+c.toLowerCase()).replace(/^_/,'');

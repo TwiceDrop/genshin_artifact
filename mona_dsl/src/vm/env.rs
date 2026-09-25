@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use mona::attribute::SimpleAttributeGraph2;
+use mona::attribute::{Attribute, AttributeName, SimpleAttributeGraph2};
 use mona::character::{Character, CharacterName};
 use mona::character::characters::damage;
 use mona::damage::damage_result::SimpleDamageResult;
@@ -99,9 +99,20 @@ impl MonaEnv {
                 let damage: SimpleDamageResult = damage::<SimpleDamageBuilder>(
                     &context, damage_config.skill_index, &damage_config.skill_config, damage_config.fumo.clone(),
                 );
+                // The extension core stores Vesna's direct Stellar-Swirl hit in
+                // `normal`. Expose its actual damage type to DSL while keeping
+                // the old `normal` accessor for existing saved expressions.
+                let direct_stellarswirl = if name == CharacterName::Vesna
+                    && matches!(damage_config.skill_index, 13 | 14 | 15 | 17 | 19)
+                    && context.attribute.get_value(AttributeName::VesnaRadiance) > 0.5 {
+                    Some(damage.normal)
+                } else {
+                    None
+                };
                 // let damage: SimpleDamageResult = name.damage(context, damage_config.skill_index, &damage_config.skill_config);
                 let obj = MonaObjectDamage {
                     normal: damage.normal.clone(),
+                    direct_stellarswirl,
                     melt: damage.melt.clone(),
                     vaporize: damage.vaporize.clone(),
                     spread: damage.spread.clone(),

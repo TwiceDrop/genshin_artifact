@@ -1,5 +1,6 @@
 
 use crate::attribute::{Attribute,AttributeName,AttributeCommon};
+use crate::common::i18n::locale;
 use crate::character::character_common_data::CharacterCommonData;
 use crate::common::WeaponType;
 use crate::weapon::weapon_base_atk::WeaponBaseATKFamily;

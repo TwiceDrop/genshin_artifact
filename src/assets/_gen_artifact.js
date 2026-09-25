@@ -2176,7 +2176,7 @@ export default {
     "eng": "AubadeOfMorningstarAndMoon",
     "name2": "AubadeOfMorningstarAndMoon",
     "nameLocale": 1614,
-    "minStar": 5,
+    "minStar": 4,
     "maxStar": 5,
     "effect2": 457,
     "effect4": 2884,
@@ -2202,7 +2202,7 @@ export default {
     },
     "config4": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "rate",
@@ -2210,7 +2210,7 @@ export default {
         "type": "float"
       },
       {
-        "default": true,
+        "default": false,
         "name": "is_ascendant_gleam",
         "title": 1904,
         "type": "bool"
@@ -2222,7 +2222,7 @@ export default {
     "eng": "ADayCarvedFromRisingWinds",
     "name2": "ADayCarvedFromRisingWinds",
     "nameLocale": 3387,
-    "minStar": 5,
+    "minStar": 4,
     "maxStar": 5,
     "effect2": 1427,
     "effect4": 1750,
@@ -2248,7 +2248,7 @@ export default {
     },
     "config4": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "rate",
@@ -2256,7 +2256,7 @@ export default {
         "type": "float"
       },
       {
-        "default": true,
+        "default": false,
         "name": "is_completed_witch_homework",
         "title": 1088,
         "type": "bool"
@@ -2294,7 +2294,7 @@ export default {
     },
     "config4": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "rate",
@@ -2302,16 +2302,23 @@ export default {
         "type": "float"
       },
       {
-        "default": true,
+        "default": false,
         "name": "is_completed_witch_homework",
         "title": 1087,
         "type": "bool"
       },
       {
-        "default": true,
+        "default": false,
         "name": "is_secret_arts",
         "title": 637,
         "type": "bool"
+      },
+      {
+        "default": 0,
+        "name": "on_field_element",
+        "title": 1257,
+        "type": "option",
+        "options": ["未设置", "雷", "火", "冰", "草", "岩", "风", "水"]
       }
     ],
     "config2": []
@@ -2346,7 +2353,7 @@ export default {
     },
     "config4": [
       {
-        "default": 1,
+        "default": 0,
         "max": 1,
         "min": 0,
         "name": "rate",

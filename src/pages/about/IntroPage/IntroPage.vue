@@ -7,6 +7,12 @@
             V{{ version }}
         </p>
 
+        <div class="update-controls">
+            <el-button type="primary" plain @click="requestManualUpdateCheck">{{ t('intro.checkForUpdates') }}</el-button>
+            <el-switch v-model="automaticUpdates" :active-text="t('intro.automaticUpdateCheck')"
+                       @change="changeAutomaticUpdates" />
+        </div>
+
 <!--        <el-button @click="handleTest"></el-button>-->
 
         <el-row :gutter="16">
@@ -44,7 +50,7 @@
             <el-col :xs="24" :sm="12" class="mb16">
                 <use-case-item text="Yas" :icon="IconFa6BrandsGithub"
                                :description="t('intro.opensourceYasDescription')"
-                               @click="newPage('https://github.com/wormtql/yas')"
+                               @click="newPage('https://github.com/1803233552/yas')"
                 ></use-case-item>
             </el-col>
         </el-row>
@@ -62,7 +68,11 @@ import IconFa6BrandsGithub from "~icons/fa6-brands/github"
 
 import UseCaseItem from "./UseCaseItem.vue"
 import {useRouter} from "vue-router"
+import {onActivated, onBeforeUnmount, onMounted, ref} from "vue"
+import {ElMessage} from "element-plus"
 import {useI18n} from "@/i18n/i18n"
+import {AUTOMATIC_UPDATE_CHANGED_EVENT, isAutomaticUpdateEnabled,
+    requestManualUpdateCheck, setAutomaticUpdateEnabled} from "@/platform/release-update.mjs"
 
 
 const version = process.env.MONA_VERSION
@@ -75,6 +85,17 @@ const host = location.hostname
 const router = useRouter()
 
 const { t } = useI18n()
+const automaticUpdates = ref(isAutomaticUpdateEnabled())
+const refreshAutomaticUpdates = () => { automaticUpdates.value = isAutomaticUpdateEnabled() }
+onActivated(refreshAutomaticUpdates)
+onMounted(() => window.addEventListener(AUTOMATIC_UPDATE_CHANGED_EVENT, refreshAutomaticUpdates))
+onBeforeUnmount(() => window.removeEventListener(AUTOMATIC_UPDATE_CHANGED_EVENT, refreshAutomaticUpdates))
+function changeAutomaticUpdates(enabled: boolean) {
+    if (!setAutomaticUpdateEnabled(enabled)) {
+        refreshAutomaticUpdates()
+        ElMessage.error('无法保存更新偏好，请检查浏览器存储设置')
+    }
+}
 
 function navigateTo(r: any) {
     router.push(r)
@@ -106,6 +127,14 @@ function newPage(url: string) {
 
 .mb16 {
     margin-bottom: 16px;
+}
+
+.update-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: -8px 0 24px;
 }
 
 .title {

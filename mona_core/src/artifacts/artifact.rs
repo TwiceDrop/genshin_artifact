@@ -82,6 +82,10 @@ pub enum ArtifactSetName {
     ObsidianCodex,
     LongNightsOath,
     FinaleOfTheDeepGalleries,
+    AubadeOfMorningstarAndMoon,
+    ADayCarvedFromRisingWinds,
+    HeavensGift,
+    DisenchantmentInDeepShadow,
 }
 
 impl ArtifactSetName {

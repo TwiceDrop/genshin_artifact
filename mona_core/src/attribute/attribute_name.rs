@@ -122,6 +122,7 @@ pub enum AttributeName {
     EnhanceMoonelectro,
     EnhanceMoonelectroBase, // 月感电基础伤害提升
     EnhanceMoonReaction, // 通用月曜反应增伤
+    EnhanceStellarSuperconduct, // 星超导专属增伤，不作用于普通超导或其他星烁反应
 
     HPRatioBase,
     HPRatioNormalAttack,

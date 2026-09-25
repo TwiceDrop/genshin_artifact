@@ -27,6 +27,8 @@
                     <el-button type="primary" :icon="IconEpCpu" @click="handleClickStart">{{ t("teamPage.start") }}</el-button>
                     <el-button :icon="IconEpPlus" @click="handleClickAddMember">{{ t("teamPage.add") }}</el-button>
                 </div>
+                <el-alert v-if="searchComplete === false" type="warning" :closable="false" show-icon
+                    title="已按搜索预算返回候选" description="这批配装已逐组复算；库存较大时搜索可能未覆盖全部组合。" />
 
                 <div
                     v-for="(presetName, index) in presetNames"
@@ -51,6 +53,14 @@
                     <select-preset
                         v-model="presetNames[index]"
                     ></select-preset>
+                    <div v-if="selectedCharacter(index) === 'Vodyanitsa'" class="team-effect-settings">
+                        <el-checkbox v-model="teamEffects[index].a1_active">流荡风旋已生成或引爆</el-checkbox>
+                        <el-checkbox v-model="teamEffects[index].a4_active">领唱／和声剩余次数可用</el-checkbox>
+                    </div>
+                    <div v-if="selectedCharacter(index) === 'Vesna'" class="team-effect-settings">
+                        <el-checkbox v-model="teamEffects[index].vesna_talent_active">星耀祝礼已触发</el-checkbox>
+                        <label>星耀祝礼覆盖率 <el-input-number v-model="teamEffects[index].vesna_talent_coverage" :min="0" :max="1" :step="0.1" /></label>
+                    </div>
 
                     <p class="common-title2">{{ t("teamPage.weight") }}</p>
                     <el-slider
@@ -162,7 +172,15 @@ const mona = await useMona()
 type MemberPresetName = string | null
 const presetNames = ref([null] as MemberPresetName[])
 const weights = ref([0] as number[])
+const defaultTeamEffects = () => ({a1_active:false,a4_active:false,vesna_talent_active:false,vesna_talent_coverage:1})
+const teamEffects = ref([defaultTeamEffects()])
+const searchComplete = ref<boolean | null>(null)
 const MAX_MEMBERS = 8
+
+function selectedCharacter(index: number) {
+    const name = presetNames.value[index]
+    return name ? presetStore.presets.value[name]?.item?.character?.name : null
+}
 
 function handleClickAddMember() {
     if (presetNames.value.length === MAX_MEMBERS) {
@@ -174,6 +192,7 @@ function handleClickAddMember() {
     }
     presetNames.value.push(null)
     weights.value.push(0)
+    teamEffects.value.push(defaultTeamEffects())
 }
 
 function handleDeleteMember(index: number) {
@@ -182,6 +201,7 @@ function handleDeleteMember(index: number) {
     }
     presetNames.value.splice(index, 1)
     weights.value.splice(index, 1)
+    teamEffects.value.splice(index, 1)
 }
 
 const presets = computed(() => {
@@ -269,7 +289,8 @@ const filteredArtifactsWasm = computed(() => {
 
 // do calculation
 const singleInterfaces = computed(() => {
-    return presets.value.map(x => convertPresetToWasmInterface(x.item))
+    return presets.value.map((x,index) => ({...convertPresetToWasmInterface(x.item),
+        source_id:presetNames.value[index],team_effects:teamEffects.value[index]}))
 })
 
 const optimizeTeamHyperParamInterface = {
@@ -313,6 +334,7 @@ function handleClickStart() {
     team_optimize(interfaceWasm, artifacts).then(result => {
         // console.log(result)
         results.value = result.artifacts
+        searchComplete.value = result.search_complete ?? null
         resultIndex.value = 0
     }).catch(e => {
         ElMessage({
@@ -328,12 +350,16 @@ function handleClickStart() {
 watch(() => accountStore.currentAccountId.value, () => {
     presetNames.value = [null]
     weights.value = [0]
+    teamEffects.value = [defaultTeamEffects()]
+    searchComplete.value = null
     results.value = []
     resultIndex.value = 0
 })
 </script>
 
 <style scoped lang="scss">
+.team-effect-settings { display:flex; flex-direction:column; gap:4px; margin:8px 0; font-size:12px; }
+.team-effect-settings label { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 @media (min-width: 992px) {
     .left, .right {
         height: calc(100vh - 2 * 24px);

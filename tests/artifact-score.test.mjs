@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import data, { calcArtifactScore } from '../src/algorithms/artifact-score/vendor/miao.mjs'
-import { toScoreArtifact, scoreRanking, scoreBuild, scoreDetails, getMarkClass, panelScoreAttributes, scoreSetNames, rankingContext } from '../src/algorithms/artifact-score/score.mjs'
+import { toScoreArtifact, scoreRanking, scoreBuild, scoreDetails, getMarkClass, panelScoreAttributes, scoreSetNames, rankingContext, VESNA_SCORE_TEMPLATES } from '../src/algorithms/artifact-score/score.mjs'
 
 const piece = (position = 'flower', mainTag = { name: 'lifeStatic', value: 4780 }) => ({
     position, mainTag, star: 5, level: 20, setName: 'test',
@@ -83,4 +83,21 @@ test('panel values and four-piece aliases preserve context', () => {
     assert.deepEqual(scoreSetNames(five.slice(0, 3), sets, locale), [])
     assert.deepEqual(scoreSetNames(five, sets, locale), ['绝缘之旗印', '绝缘'])
     assert.deepEqual(scoreSetNames(Array(4).fill(five[0]), sets, locale), [])
+})
+
+test('Vesna fixed templates distinguish normal Anemo damage and direct Stellar Swirl', () => {
+    const normal = { name: '薇斯纳', options: { scoreMode: 'normal' } }
+    const stellar = { name: '薇斯纳', options: { scoreMode: 'stellar' } }
+    assert.deepEqual([VESNA_SCORE_TEMPLATES.normal.cpct, VESNA_SCORE_TEMPLATES.normal.cdmg,
+        VESNA_SCORE_TEMPLATES.normal.atk, VESNA_SCORE_TEMPLATES.normal.recharge], [100, 100, 75, 55])
+    assert.deepEqual([VESNA_SCORE_TEMPLATES.normal.dmg, VESNA_SCORE_TEMPLATES.normal.mastery,
+        VESNA_SCORE_TEMPLATES.stellar.dmg, VESNA_SCORE_TEMPLATES.stellar.mastery], [100, 0, 0, 75])
+    const windCup = piece('cup', { name: 'windBonus', value: .466 })
+    const emCup = piece('cup', { name: 'elementalMastery', value: 187 })
+    assert.ok(scoreDetails(windCup, normal).main > scoreDetails(windCup, stellar).main)
+    assert.ok(scoreDetails(emCup, stellar).main > scoreDetails(emCup, normal).main)
+    assert.match(scoreBuild(five, stellar).title, /固定词条评分/)
+    assert.equal(scoreBuild(five, normal).supported, true)
+    assert.equal(rankingContext('薇斯纳·星扩散').options.scoreMode, 'stellar')
+    assert.ok(scoreRanking(windCup).characters.some(x => x.name === '薇斯纳·星扩散'))
 })

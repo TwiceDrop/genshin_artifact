@@ -24,6 +24,11 @@ export function useWeapon(weaponType: null | Ref<WeaponType>) {
         return weaponLevel.value.includes("+")
     })
 
+    const weaponMaxRefine = computed(() => weaponData[weaponName.value]?.maxRefine ?? 5)
+    watch([weaponRefine, weaponMaxRefine], ([refine, max]) => {
+        if (refine > max) weaponRefine.value = max
+    }, {flush: "sync"})
+
     const weaponSplash = computed(() => {
         const data = weaponData[weaponName.value]
         return data.gacha ?? data.url ?? data.tn
@@ -103,6 +108,7 @@ export function useWeapon(weaponType: null | Ref<WeaponType>) {
         weaponName,
         weaponLevel,
         weaponRefine,
+        weaponMaxRefine,
         weaponConfig,
         weaponLevelNumber,
         weaponAscend,

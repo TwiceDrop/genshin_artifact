@@ -6,6 +6,8 @@ import { createFacade } from '../../beta-data/facade.mjs';
 import { createLimitedWeaponFacade } from '../../beta-data/limited-weapon-facade.mjs';
 import { createStrengthenedFacade } from '../../beta-data/strengthened-facade.mjs';
 import { createStellarSupportFacade } from '../../beta-data/stellar-support-facade.mjs';
+import { withHybridTeamOptimization } from '../../beta-data/hybrid-team-optimizer.mjs';
+import { createExpandedWeaponsFacade } from '../../beta-data/expanded-weapons.mjs';
 import weaponData from '../../beta-data/weapons-release-71.json';
 import signatureData from '../../beta-data/weapons-signature-release-71.json';
 import data from '../../beta-data/vodyanitsa.json';
@@ -23,5 +25,6 @@ CommonInterface:bindings.Ps,DSLInterface:bindings.ZB,OptimizeSingleWasm:bindings
 TeamOptimizationWasm:bindings.B8,TransformativeDamage:bindings.PX};
 const baseApi = createFacade(originalApi,extension,data,support,characters);
 const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(baseApi,extension,support),originalApi,weaponData,signatureData),originalApi);
-const api = createStrengthenedFacade(stellar.facade,stellar.transformStellarTarget);
+const strengthened = createStrengthenedFacade(stellar.facade,stellar.transformStellarTarget);
+const api = withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension));
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;

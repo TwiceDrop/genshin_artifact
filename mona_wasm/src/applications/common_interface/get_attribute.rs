@@ -18,6 +18,7 @@ pub struct GetAttributeInterface {
 }
 
 pub fn get_attribute(val: JsValue) -> JsValue {
+    mona::utils::set_panic_hook();
     let input: GetAttributeInterface = serde_wasm_bindgen::from_value(val).unwrap();
 
     let character: Character<ComplicatedAttributeGraph> = input.character.to_character();
