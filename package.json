@@ -1,6 +1,6 @@
 {
   "name": "genshin_artifacts",
-  "version": "7.1.5",
+  "version": "7.1.6",
   "private": true,
   "scripts": {
     "start": "node server/local.mjs",
@@ -30,7 +30,8 @@
     "test:beta3": "node beta-tools/smoke-beta3.mjs",
     "test:limited71": "node beta-tools/smoke-limited-71.mjs",
     "test:strengthened": "node beta-tools/smoke-strengthened.mjs",
-    "test:stellar-support": "node beta-tools/smoke-stellar-support.mjs"
+    "test:stellar-support": "node beta-tools/smoke-stellar-support.mjs",
+    "test:7106": "node --test tests/release-7106.test.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.1",
@@ -92,5 +93,5 @@
     "unplugin-icons": "^0.14.5",
     "unplugin-vue-components": "^0.19.6"
   },
-  "displayVersion": "7.1.05"
+  "displayVersion": "7.1.06"
 }

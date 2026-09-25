@@ -703,6 +703,7 @@ impl ComplicatedDamageBuilder {
         if let Some(name) = AttributeName::bonus_name_by_skill_type(skill) {
             names.push(name);
         }
+        if skill == SkillType::PlungingAttackOnGround { names.push(AttributeName::BonusPlungingImpact); }
         let mut comp = attribute.get_composition_merge(&names);
         if element != Element::Physical && skill == SkillType::NormalAttack {
             // todo refactor

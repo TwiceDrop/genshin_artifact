@@ -1,5 +1,7 @@
 import {expandedWeaponEffects} from './expanded-weapons.mjs';
 
+export const TEAM_BUFF_SOURCES = Object.freeze(['Vodyanitsa','Vesna','Odette','Qiqi','Sandrone']);
+
 const SLOTS = ['Flower', 'Feather', 'Sand', 'Goblet', 'Head'];
 const RESULT_SLOT = Object.fromEntries(SLOTS.map(slot => [slot, slot.toLowerCase()]));
 const MAX_EXACT_BUILDS_PER_MEMBER = 64;
@@ -36,7 +38,7 @@ export function deriveTeamBuffs(api, interfaces, selected, recipientIndex) {
         if (index === recipientIndex) continue;
         const source = interfaces[index], character = source.character, name = character?.name;
         const sourceId = source.source_id || name;
-        if (name !== 'Vodyanitsa' && name !== 'Vesna') continue;
+        if (!TEAM_BUFF_SOURCES.includes(name)) continue;
         const panel = api.CommonInterface.get_attribute({
             character, weapon: source.weapon, artifacts: selected[index],
             artifact_config: source.artifact_config, buffs: source.buffs || [],
@@ -57,6 +59,35 @@ export function deriveTeamBuffs(api, interfaces, selected, recipientIndex) {
                 source_effect:`${sourceId}:${source.weapon.name}:team-damage`,
                 config:{CustomBonus:{p:effect.amount*100}},
             });
+        }
+        const triggers=source.team_effects?.support_triggers || {};
+        const talent=character.level>20 || (character.level===20 && character.ascend);
+        const addSupport=(buff,config={})=>out.push({name:buff,source_character:name,source_id:sourceId,
+            source_effect:sourceId+':'+buff,config:Object.keys(config).length?{[buff]:config}:'NoConfig'});
+        if(name==='Odette'){
+            const mode=Number(triggers.odetteRadianceMode ?? 0);
+            if(!Number.isInteger(mode)||mode<0||mode>2)throw Error('奥黛塔辉映状态无效');
+            const stacks=Number(triggers.odetteStacks ?? 0),limit=character.constellation>=1?6:4;
+            if(!Number.isInteger(stacks)||stacks<0||stacks>limit)throw Error('奥黛塔受益华彩层数超出当前命座上限');
+            if(triggers.odetteBlessing && mode) addSupport('OdetteTalent1',{atk:sum(panel.atk),radiance_mode:mode});
+            if(talent && triggers.odetteSplendor && stacks>0){
+                addSupport('OdetteMarvelousSplendor',{stacks});
+                if(character.constellation>=2)addSupport('OdetteC2MarvelousSplendor',{stacks});
+                if(character.constellation>=6)addSupport('OdetteC6MarvelousSplendor');
+            }
+            if(character.constellation>=2 && triggers.odetteDouble && mode)addSupport('OdetteC2SoloDance',{radiance_mode:mode});
+            if(character.constellation>=4 && triggers.odetteDream)addSupport('OdetteC4SnowSwanDream',{burst_level:character.skill3+1});
+            continue;
+        }
+        if(name==='Qiqi'){
+            if(triggers.qiqiTalisman)addSupport('QiqiTalent2StellarConduct');
+            if(character.constellation>=6 && triggers.qiqiC6)addSupport('QiqiC6StellarConduct',{atk:sum(panel.atk)});
+            continue;
+        }
+        if(name==='Sandrone'){
+            if(triggers.sandroneBlessing)addSupport('SandroneTalent1',{atk:sum(panel.atk)});
+            if(character.constellation>=1 && triggers.sandroneC1)addSupport('SandroneC1');
+            continue;
         }
         if (name === 'Vesna') {
             const active = character.params?.Vesna?.radiance === true
