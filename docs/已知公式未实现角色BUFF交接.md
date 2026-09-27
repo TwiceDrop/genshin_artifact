@@ -1,14 +1,10 @@
-当前发布：用户已实测 alpha2 正常，转为 7.1.07 正式版；保留 Debug，仅更新版本标识并构建网页及 Android。此次不运行额外测试，说明见 release-7.1.07-final.md。
-
-当前更新：7.1.07alpha2 修复 alpha1 Debug 日志确认的 Worker 启动语法错误；恢复 Webpack 可识别的内联 URL 写法。只构建，不测试，不能据此宣称旧版全部报错已修复。详见 release-7.1.07alpha2.md。
-
-> 最新调试交付：已构建7.1.07alpha1；按用户要求不测试，实际报错尚未完整定位。见 [alpha1说明](release-7.1.07alpha1.md)。
+当前发布：7.1.07 正式版已发布，提供网页、Android 和 Windows 安装包，保留 Debug。当前发布说明见 release-7.1.07-final.md；下文保留公式与实现过程记录。
 
 # 角色BUFF交接：v7.1.07当前状态
 
 2026-09-27：此前剩余12项已接入，目录257项的命名缺口为0；当前适配器125条。详细公式、范围、来源与后续限制见 [v7.1.07实现说明](release-7.1.07.md)，覆盖统计见 [覆盖表](unified-buff-coverage.md)。不要继续按旧12项表重复实现。
 
-工作区为 D:/Documents/ChatGPT/unified-kernel-work，分支codex/unified-kernel。含尚未提交的前批与本批修改，HEAD ce2fda9不代表当前成果。最新用户已授权构建v7.1.07，输出 D:/Documents/ChatGPT/v7.1.07；此前“不构建”要求已被覆盖。本轮没有GitHub发布操作。
+当前公开源码以 GitHub 主分支及 v7.1.07 标签为准。正式版已发布；后续开发应使用清理后的源码历史，避免旧本地副本重新引入私人样本。
 
 本轮完成名称：CynoC2StellarConduct、KleeC1、TravelerElements、TravelerEnhancedAttribute、AetherCryoTalent1、AetherCryoC6、YaeMikoC1、NahidaC2、DurinTalent2、DurinC2、IfaTalent2、AlyoshaHunterPrecision。
 

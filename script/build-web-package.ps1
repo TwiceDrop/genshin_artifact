@@ -20,10 +20,11 @@ try {
     Copy-Item -LiteralPath (Join-Path $projectRoot 'dist'),(Join-Path $projectRoot 'server') -Destination $stage -Recurse
     Copy-Item -LiteralPath (Join-Path $projectRoot 'script/start-local.mjs') -Destination (Join-Path $stage 'script')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/android-offline.md') -Destination (Join-Path $stage 'docs')
+    Copy-Item -LiteralPath (Join-Path $projectRoot 'docs/release-7.1.07-final.md') -Destination (Join-Path $stage 'docs')
     foreach ($name in @('limited-71-notes.md','strengthened-notes.md')) {
         Copy-Item -LiteralPath (Join-Path $projectRoot "beta-data/$name") -Destination (Join-Path $stage 'beta-data')
     }
-    foreach ($name in @('LICENSE','THIRD_PARTY_NOTICES.md','README.md','7.1.04使用说明.md','7.1.06使用说明.md','7.1.06更新说明.md','启动7.1.06.bat','启动莫娜.bat')) {
+    foreach ($name in @('LICENSE','THIRD_PARTY_NOTICES.md','README.md',"启动${version}.bat",'启动莫娜.bat')) {
         Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $stage
     }
     Copy-Item -LiteralPath (Join-Path $projectRoot 'src/algorithms/artifact-score/vendor/LICENSE.miao') -Destination (Join-Path $stage 'LICENSE.miao')
