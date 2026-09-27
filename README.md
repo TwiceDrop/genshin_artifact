@@ -22,8 +22,9 @@
 | Android | 下载 [APK 安装包](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.07/genshin_artifact_V7.1.07_android.apk)，在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
 | 网页版 | 下载 [网页 ZIP](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.07/genshin_artifact_V7.1.07_web.zip)，安装 Node.js 20 或更新版本，解压后运行 `启动7.1.07.bat`，访问 http://127.0.0.1:4183/#/calculate 。使用时保留服务窗口。 |
 
-## 其他项目
+## 其他
 
-- [原版莫娜占卜铺](https://github.com/wormtql/genshin_artifact)：本项目的上游圣遗物与伤害计算工具。
-- [1803233552 / genshin_artifact](https://github.com/1803233552/genshin_artifact)：本项目参考的莫娜维护分支。
-- [米游社扫码工具](https://github.com/TwiceDrop/mhy-qdcode-to-cookie)：本项目使用的米游社扫码登录模块来源。
+- **问题反馈**：请在 [Issues](https://github.com/TwiceDrop/genshin_artifact/issues) 提交，附上软件版本、操作步骤和错误截图。
+- **Debug 使用**：遇到计算报错时，开启“开始计算”下方的 Debug，复现后导出调试包。调试包包含当前角色、装备和计算配置，按需提供；刷新前先导出。
+- **数据保存**：仓库和配装数据保存在本地，可通过「UID 数据」导出备份或互传。浏览器数据按访问地址分别保存，切换端口或浏览器不会自动共享。
+- **开源许可**：许可证见 [LICENSE](LICENSE)，第三方模块说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
