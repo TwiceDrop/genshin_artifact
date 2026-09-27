@@ -58,3 +58,7 @@ inspect.js
 /beta-tools/wasm-bindgen-*/
 /beta-data/*.log
 
+# Private account fixtures and exported debug data must stay local.
+/beta-data/mizuki-fixture.json
+/beta-data/skirk-fixture.json
+mona-debug-*.json
