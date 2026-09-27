@@ -35,7 +35,9 @@ export function createBeta2(base,extension,support){
    else if(nativeBuffs.has(b.name))buffs.push(b);
    else throw Error('薇斯纳扩展暂不支持此 BUFF：'+b.name);
   }
-  const displayedState={...state};
+  const displayedState={...state,crit_rate:0};
+  const stellarKeys={StellarSwirlFlat:'flat',StellarSwirlBaseBonus:'base',StellarSwirlBonus:'bonus',StellarSwirlCritRate:'crit_rate',StellarSwirlCritDamage:'crit_damage',StellarSwirlElevation:'elevation',ResMinusAnemo:'anemo_res'};
+  for(const buff of buffs)if(buff.name==='ExtensionEffect')for(const [key,value]of Object.entries(buff.config.ExtensionEffect.values))if(stellarKeys[key])displayedState[stellarKeys[key]]+=value;
   for(const buff of buffs)if(buff.name==='VesnaSupport')for(const key of Object.keys(displayedState))displayedState[key]+=Number(buff.config?.VesnaSupport?.[key]||0);
   buffs.push(named('VesnaSupport',state));x.buffs=buffs;
   function normalizeArtifacts(arts){const counts={};for(const a of arts)counts[a.set_name]=(counts[a.set_name]||0)+1;return arts.map(a=>{if(supported.has(a.set_name))return a;if(counts[a.set_name]===1)return {...a,set_name:'Empty'};throw Error('薇斯纳暂未适配该套装效果：'+a.set_name+'。请先使用血红之证或已支持的套装。');});}
@@ -82,7 +84,7 @@ export function createBeta2(base,extension,support){
     if(isLimitedWeapon(x.weapon))r.direct_stellarswirl_compose[LIMITED_WEAPONS[x.weapon.name].label]=limitedWeaponEffects(x.weapon).stellar;
     for(const [set,key,value]of [['ScarletProof','config_scarlet_proof',.4],['HeartOfTheFurnace','config_heart_of_the_furnace',.5]])if(x.artifacts.filter(a=>a.set_name===set).length>=4)r.direct_stellarswirl_compose[set]=value*(x.artifact_config?.[key]?.rate??0);
     if(co>=1&&p.stance)r.direct_stellarswirl_compose['薇斯纳一命']=.2;
-    r.critical_stellarswirl={};r.critical_damage_stellarswirl={'队友星伤暴伤':state.crit_damage};
+    r.critical_stellarswirl={'队友星伤暴击率':state.crit_rate||0};r.critical_damage_stellarswirl={'队友星伤暴伤':state.crit_damage};
     r.direct_stellarswirl_extra_fixed={'队友定额加值':state.flat};
     r.elevate_stellarswirl_compose={'薇斯纳六命':co>=6?.2:0,'队友':state.elevation};
     r.beta2_model={revision:'7.1.0 D48145775',discipline:stacks,flat_order:'after_base_and_em'};

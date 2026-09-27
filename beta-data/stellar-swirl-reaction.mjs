@@ -1,3 +1,4 @@
+import {collectReactionParameters} from './reaction-parameter-rules.mjs';
 // Formula version: 7.1.0 release, with the individual/party split documented at
 // https://keqingmains.com/misc/stellar-reaction-guide/ and
 // https://www.taptap.cn/moment/851912127529616541 (2026-09-23).
@@ -106,19 +107,20 @@ export function calculateStellarSwirlTeam({participants, triggerId, vortexMultip
             vodyanitsaA4.hp, vodyanitsaA4.active === true,
             vodyanitsaA4.coverage ?? 1);
     }
+    const buffValues=new Map(participants.map(p=>[p.id,collectReactionParameters(p.buffs,{character:{name:p.id},team_effects:{recipient_on_field:p.recipientOnField}})]));
     const individual = (reactionMultiplier, resistanceKey) => participants.map(p => ({
         id:p.id, element:p.element,
         damage:calculateStellarSwirlIndividual({
             levelMultiplier:p.levelMultiplier,
-            reactionMultiplier,
+            reactionMultiplier:reactionMultiplier+(resistanceKey==='cryoResistanceMultiplier'?(buffValues.get(p.id).StellarSwirlReactionCryoBaseMultiplier||0):0),
             elementalMastery:p.elementalMastery ?? 0,
-            baseIncrease:p.baseIncrease ?? 0,
-            reactionBonus:p.reactionBonus ?? 0,
-            extraIncrease:(p.extraIncrease ?? 0) + (p.id === supportRecipient ? supportExtra : 0),
+            baseIncrease:(p.baseIncrease ?? 0)+(buffValues.get(p.id).StellarSwirlBaseBonus||0),
+            reactionBonus:(p.reactionBonus ?? 0)+(buffValues.get(p.id).StellarSwirlBonus||0),
+            extraIncrease:(p.extraIncrease ?? 0)+(buffValues.get(p.id).StellarSwirlFlat||0) + (p.id === supportRecipient ? supportExtra : 0),
             resistanceMultiplier:p[resistanceKey],
-            criticalRate:p.criticalRate ?? 0,
-            criticalDamage:p.criticalDamage ?? 0,
-            elevation:p.elevation ?? 0,
+            criticalRate:Math.min(1,(p.criticalRate ?? 0)+(buffValues.get(p.id).StellarSwirlCritRate||0)),
+            criticalDamage:(p.criticalDamage ?? 0)+(buffValues.get(p.id).StellarSwirlCritDamage||0),
+            elevation:(p.elevation ?? 0)+(buffValues.get(p.id).StellarSwirlElevation||0),
         }),
     }));
     const anemo = individual(0.75, 'anemoResistanceMultiplier');
@@ -128,5 +130,7 @@ export function calculateStellarSwirlTeam({participants, triggerId, vortexMultip
         stellarswirl_cryo:composeStellarSwirlCryo(cryo),
         individual:{anemo, cryo},
         formula_version:'7.1.0-reaction-contributions',
+        expectation_model:participants.length>2?'ranked-individual-expectations-approximation':'fixed-two-participant-weights',
+        expectation_is_approximate:participants.length>2,
     };
 }

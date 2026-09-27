@@ -147,22 +147,22 @@ impl DamageBuilder for ComplicatedDamageBuilder {
 
         let atk_comp = self.get_atk_composition(attribute);
         let atk = atk_comp.sum();
-        let atk_ratio_comp = self.get_atk_ratio_composition(attribute, element, skill);
+        let mut atk_ratio_comp = self.get_atk_ratio_composition(attribute, element, skill);
         let atk_ratio = atk_ratio_comp.sum();
 
         let def_comp = self.get_def_composition(attribute);
         let def = def_comp.sum();
-        let def_ratio_comp = self.get_def_ratio_composition(attribute, element, skill);
+        let mut def_ratio_comp = self.get_def_ratio_composition(attribute, element, skill);
         let def_ratio = def_ratio_comp.sum();
 
         let hp_comp = self.get_hp_composition(attribute);
         let hp = hp_comp.sum();
-        let hp_ratio_comp = self.get_hp_ratio_composition(attribute, element, skill);
+        let mut hp_ratio_comp = self.get_hp_ratio_composition(attribute, element, skill);
         let hp_ratio = hp_ratio_comp.sum();
 
         let em_comp = self.get_em_composition(attribute);
         let em = em_comp.sum();
-        let em_ratio_comp = self.get_em_ratio_composition(attribute, element, skill);
+        let mut em_ratio_comp = self.get_em_ratio_composition(attribute, element, skill);
         let em_ratio = em_ratio_comp.sum();
 
         let mut extra_damage_comp = self.get_extra_damage_composition(attribute, element, skill);
@@ -173,7 +173,10 @@ impl DamageBuilder for ComplicatedDamageBuilder {
         extra_damage_comp.merge(&plunging_extra_damage);
         let extra_damage = extra_damage_comp.sum();
 
-        let base_damage = atk * atk_ratio + def * def_ratio + hp * hp_ratio + em * em_ratio + extra_damage;
+        // Keep flat damage outside this factor, matching SimpleDamageBuilder.
+        let independent_delta = attribute.get_value(AttributeName::IndependentBaseMultiplier);
+        let base_damage = (atk * atk_ratio + def * def_ratio + hp * hp_ratio + em * em_ratio)
+            * (1.0 + independent_delta) + extra_damage;
 
         let bonus_comp = self.get_bonus_composition(attribute, element, skill);
         let bonus = bonus_comp.sum();
@@ -293,7 +296,7 @@ impl DamageBuilder for ComplicatedDamageBuilder {
 
         // 月感电反应：基于等级的反应伤害，无视防御，可以暴击，只受月感电专属增伤影响
         let damage_moonelectro = if element == Element::Electro || element == Element::Hydro {
-            let base_multiplier = 1.8; // 月感电基础倍率
+            let base_multiplier = 3.0; // One contribution, before party weights; not the old 3*0.6 shortcut
             // 叠加通用月曜反应增伤
             let enhance_moon_reaction_comp = self.get_enhance_moon_reaction_composition(attribute);
             let enhance_moon_reaction = enhance_moon_reaction_comp.sum();
@@ -302,15 +305,9 @@ impl DamageBuilder for ComplicatedDamageBuilder {
             let moonelectro_base_damage = LEVEL_MULTIPLIER[character_level - 1] * enhanced_base_multiplier * (1.0 + moonelectro_enhance + enhance_moon_reaction);
 
             // 月感电使用雷元素抗性
-            let moonelectro_resistance_ratio = enemy.get_resistance_ratio(Element::Electro, res_minus);
+            let moonelectro_resistance_ratio = enemy.get_resistance_ratio(Element::Electro, self.get_res_minus_composition(attribute, Element::Electro).sum());
 
-            let dmg = DamageResult {
-                critical: moonelectro_base_damage * (1.0 + critical_damage),
-                non_critical: moonelectro_base_damage,
-                expectation: moonelectro_base_damage * (1.0 + critical * critical_damage),
-                is_heal: false,
-                is_shield: false
-            } * moonelectro_resistance_ratio; // 只应用雷元素抗性系数，无视防御，不受普通增伤影响
+            let dmg = crate::damage::reaction_parameters::finish_lunar(attribute,crate::damage::reaction_parameters::LunarKind::Electro,moonelectro_base_damage,0.0,critical_comp.sum(),critical_damage,moonelectro_resistance_ratio);
             Some(dmg)
         } else {
             None
@@ -336,20 +333,25 @@ impl DamageBuilder for ComplicatedDamageBuilder {
                 let direct_moonelectro_base_damage = multiplier_3x * atk_value * enhanced_ratio * (1.0 + direct_moonelectro_enhance + enhance_moon_reaction);
 
                 // 直伤月感电使用雷元素抗性
-                let direct_moonelectro_resistance_ratio = enemy.get_resistance_ratio(Element::Electro, res_minus);
+                let direct_moonelectro_resistance_ratio = enemy.get_resistance_ratio(Element::Electro, self.get_res_minus_composition(attribute, Element::Electro).sum());
 
-                let dmg = DamageResult {
-                    critical: direct_moonelectro_base_damage * (1.0 + critical_damage),
-                    non_critical: direct_moonelectro_base_damage,
-                    expectation: direct_moonelectro_base_damage * (1.0 + critical * critical_damage),
-                    is_heal: false,
-                    is_shield: false
-                } * direct_moonelectro_resistance_ratio; // 只应用雷元素抗性系数，无视防御，不受普通增伤影响
+                let dmg = crate::damage::reaction_parameters::finish_lunar(attribute,crate::damage::reaction_parameters::LunarKind::Electro,direct_moonelectro_base_damage,0.0,critical_comp.sum(),critical_damage,direct_moonelectro_resistance_ratio);
                 Some(dmg)
             } else {
                 None
             }
         };
+
+        // Record the equivalent ratio adjustment so the existing damage detail
+        // view reconstructs the same base damage without changing flat additions.
+        if independent_delta != 0.0 {
+            for (comp, ratio) in [(&mut atk_ratio_comp, atk_ratio), (&mut def_ratio_comp, def_ratio),
+                (&mut hp_ratio_comp, hp_ratio), (&mut em_ratio_comp, em_ratio)] {
+                if ratio != 0.0 {
+                    *comp.0.entry(String::from("独立伤害倍率修正")).or_insert(0.0) += ratio * independent_delta;
+                }
+            }
+        }
 
         DamageAnalysis {
             atk: atk_comp.0,
@@ -400,6 +402,16 @@ impl DamageBuilder for ComplicatedDamageBuilder {
     fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result {
       let mut result=self.damage(attribute,enemy,Element::Anemo,skill,level,None);
       result.normal=crate::damage::stellar_swirl::calculate(attribute,enemy,ratio);
+      // The shared damage-detail shape must not display an ordinary multiplier
+      // on a reaction that explicitly ignores that scope.
+      for comp in [&mut result.atk_ratio, &mut result.def_ratio, &mut result.hp_ratio, &mut result.em_ratio] {
+          comp.remove("独立伤害倍率修正");
+      }
+      let independent_delta=attribute.get_value(AttributeName::StellarSwirlIndependentBaseMultiplier);
+      if independent_delta != 0.0 {
+          let base_ratio=result.atk_ratio.values().sum::<f64>();
+          result.atk_ratio.insert(String::from("直接星扩散独立倍率修正"),base_ratio*independent_delta);
+      }
       result.melt=None;result.vaporize=None;result.spread=None;result.aggravate=None;
       result.moonfall=None;result.moonelectro=None;result.direct_moonelectro=None;result.bonus.clear();result.def_minus.clear();result.def_penetration.clear();
       result

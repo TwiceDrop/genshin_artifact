@@ -148,11 +148,13 @@ impl DamageBuilder for SimpleDamageBuilder {
             SkillType::PlungingAttackOnGround => attribute.get_value(AttributeName::ExtraDmgPlungingAttackLowHigh),
             _ => 0.0
         };
+        // Independent multipliers affect skill scaling, before flat additions.
+        let independent = 1.0 + attribute.get_value(AttributeName::IndependentBaseMultiplier);
         let base
-            = (attribute.get_def_ratio(element, skill) + self.ratio_def) * def
+            = ((attribute.get_def_ratio(element, skill) + self.ratio_def) * def
             + (attribute.get_hp_ratio(element, skill) + self.ratio_hp) * hp
             + (attribute.get_atk_ratio(element, skill) + self.ratio_atk) * atk
-            + em * self.ratio_em
+            + em * self.ratio_em) * independent
             + attribute.get_extra_damage(element, skill)
             + self.extra_damage
             + base_plunging;

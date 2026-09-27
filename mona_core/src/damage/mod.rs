@@ -15,3 +15,5 @@ pub mod transformative_damage;
 pub mod level_coefficient;
 
 pub mod stellar_swirl;
+
+pub mod reaction_parameters;

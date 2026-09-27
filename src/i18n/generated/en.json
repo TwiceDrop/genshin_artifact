@@ -3118,8 +3118,8 @@
   "Increases Cryo Base DMG via 'Cold Cooking', with an increase equal to 240% of Escoffier's ATK.",
   "Dealing Elemental DMG increases all DMG by <span style=\"color: #409EFF;\">6%-7.5%-9%-10.5%-12%</span> for 6s. Max 2 stacks. Can occur once every 1s.",
   "When dealing Elemental DMG, gain 'Moonlight Faith' for 8s: If the team's Moon Phase is New/Full, all characters gain 60/120 Elemental Mastery. This can be triggered off-field. For each different 'Moonlight Faith' effect, all characters' Moonlight Reaction DMG increases by 10%. Effects from 'Moonlight Faith' cannot stack.",
-  "Deal xx% of original DMG. e.g. 150 means deal 150% of original DMG (multiplies Stat × Ratio by 1.5).",
-  "Damage Multiplier %",
+  "100% preserves the original skill base. Ordinary damage only, before flat additions; never inherited by Lunar or Stellar damage.",
+  "Ordinary Damage Multiplier",
   "Increases all DMG by <span style=\"color: #409EFF;\">8%-10%-12%-14%-16%</span>. After using an Elemental Burst, Normal or Charged Attack, on hit, creates a vacuum blade that does <span style=\"color: #409EFF;\">80%-100%-120%-140%-160%</span> of ATK as DMG to opponents along its path. Lasts for 20s or 8 vacuum blades.",
   "Physical DMG +25%",
   "Physical DMG is increased by 25%.",
@@ -3682,5 +3682,7 @@
   "Prayer of the Far North coverage",
   "New Moon Verse coverage",
   "Secret of Lies coverage",
-  "Moon of Truth coverage"
+  "Moon of Truth coverage",
+  "Direct Stellar Swirl Multiplier",
+  "Use only when explicitly applicable to direct Stellar Swirl. 100% preserves its skill base; flat additions are excluded. Does not affect ordinary damage, Stellar Conduct, or vortex reactions. Extension characters only."
 ]

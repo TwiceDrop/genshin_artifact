@@ -21,7 +21,7 @@ export function markReactionAvailability(result, calibrated = []) {
         delete result[key];
         availability[key] = {
             status: 'uncalibrated',
-            reason: '该角色的此类反应尚无经核对的完整结算公式',
+            reason: '该角色的此类反应尚未完成效果接入与完整结算校准',
         };
     }
     result.reaction_availability = availability;

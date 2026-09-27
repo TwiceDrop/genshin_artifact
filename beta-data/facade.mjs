@@ -1,3 +1,4 @@
+import {bindReactionBuffs} from './reaction-parameter-rules.mjs';
 // Existing characters keep the published core; Vodyanitsa uses the compiled extension.
 import {prepareExtensionBuffs} from './extension-buffs.mjs';
 import {normalizeSignatureWeapon} from './weapon-effects.mjs';
@@ -16,7 +17,7 @@ function guardVodyanitsaSong(input) {
 export function withStellarSwirlTeam(result,input,calibrated=[]) {
   const context=input?.stellar_swirl_context;
   if(!context)return markReactionAvailability(result,calibrated);
-  const configured=clone(context);
+  const configured=bindReactionBuffs(context,input,{team:true});
   const starA4=(input.buffs||[]).find(b=>b.name==='VodyanitsaA4'&&b.config?.VodyanitsaA4?.ordinary_mode===false);
   if(starA4){
    if(configured.vodyanitsaA4)throw Error('星扩散队伍中沃雅妮莎 A4 请只配置一个来源');
@@ -30,8 +31,10 @@ export function withStellarSwirlTeam(result,input,calibrated=[]) {
   result.stellarswirl_cryo=calculated.stellarswirl_cryo;
   result.stellar_swirl_team_model={formula_version:calculated.formula_version,
    trigger_id:configured.triggerId,vortex_multiplier:configured.vortexMultiplier,
-   individual:calculated.individual};
-  return markReactionAvailability(result,[...calibrated,'stellarswirl_anemo','stellarswirl_cryo']);
+   individual:calculated.individual,expectation_model:calculated.expectation_model,expectation_is_approximate:calculated.expectation_is_approximate};
+  markReactionAvailability(result,[...calibrated,'stellarswirl_anemo','stellarswirl_cryo']);
+  if(calculated.expectation_is_approximate)for(const key of ['stellarswirl_anemo','stellarswirl_cryo'])result.reaction_availability[key]={status:'approximate',reason:'3～4人星扩散暂按各人期望贡献排序；各人独立判暴与重排时点尚待确认。'};
+  return result;
 }
 export function createFacade(original,extension,data,support,characters) {
  const extensionRole=args=>args.some(a=>a?.character?.name==='Vodyanitsa'||a?.name==='Vodyanitsa');
@@ -49,7 +52,7 @@ export function createFacade(original,extension,data,support,characters) {
   }walk(out);return out;
  }
  function validate(input,artifacts) {
-  const check=(kind,value)=>{if(value&&!support[kind].includes(value))throw new Error(`7.1.04 新角色/专武扩展暂未适配：${kind} / ${value}。`);};
+  const check=(kind,value)=>{if(value&&!support[kind].includes(value))throw new Error(`新角色/专武扩展暂未适配：${kind} / ${value}。`);};
   function visit(x){if(!x||typeof x!=='object')return;if(Array.isArray(x)){x.forEach(visit);return;}
    if(x.character)check('characters',x.character.name);
    if(x.weapon)check('weapons',x.weapon.name);

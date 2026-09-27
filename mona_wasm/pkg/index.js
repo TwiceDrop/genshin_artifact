@@ -1,4 +1,5 @@
 import * as bridge from './mona_wasm_bg.js';
+import {withLunarDamageContexts} from '../../beta-data/lunar-context-facade.mjs';
 import { bindings } from './bindings.js';
 import initExtension, * as extension from '../extension/mona_extension.js';
 import { createBeta2 } from '../../beta-data/vesna-facade.mjs';
@@ -26,5 +27,5 @@ TeamOptimizationWasm:bindings.B8,TransformativeDamage:bindings.PX};
 const baseApi = createFacade(originalApi,extension,data,support,characters);
 const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(baseApi,extension,support),originalApi,weaponData,signatureData),originalApi);
 const strengthened = createStrengthenedFacade(stellar.facade,stellar.transformStellarTarget);
-const api = withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension));
+const api = withLunarDamageContexts(withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension)));
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;

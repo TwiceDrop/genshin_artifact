@@ -27,11 +27,14 @@ fn get_reaction_coefficient(t: TransformativeType) -> f64 {
     use TransformativeType::*;
     match t {
         Burgeon | Hyperbloom => 3.0,
-        Overload | Bloom => 2.0,
-        Superconduct => 0.5,
+        // Version 5.2+ reaction coefficients, retained in 7.1.
+        // https://www.gensri.wiki/wiki/ (transformative reaction table)
+        Overload => 2.75,
+        Bloom => 2.0,
+        Superconduct => 1.5,
         SwirlHydro | SwirlElectro | SwirlCryo | SwirlPyro => 0.6,
-        ElectroCharged => 1.2,
-        Shatter => 1.5,
+        ElectroCharged => 2.0,
+        Shatter => 3.0,
         Burning => 0.25,
     }
 }
@@ -101,6 +104,8 @@ pub fn transformative_damage_simple(level: usize, em: f64, enemy: &Enemy) -> Tra
 
 pub fn transformative_damage<A: Attribute>(level: usize, attribute: &A, enemy: &Enemy) -> TransformativeDamage {
     let enhance_base = attribute.get_value(AttributeName::EnhanceSwirlBase);
+    // Mizuki C6 fixes ordinary swirl CRIT at 30% / 100%; these paths return expected damage.
+    let swirl_expected = 1.0 + attribute.get_value(AttributeName::SwirlExpectedBonus);
     let enhance_swirl_pyro = attribute.get_value(AttributeName::EnhanceSwirlPyro) + enhance_base;
     let enhance_swirl_cryo = attribute.get_value(AttributeName::EnhanceSwirlCryo) + enhance_base;
     let enhance_swirl_electro = attribute.get_value(AttributeName::EnhanceSwirlElectro) + enhance_base;
@@ -114,15 +119,18 @@ pub fn transformative_damage<A: Attribute>(level: usize, attribute: &A, enemy: &
     let enhance_burgeon = attribute.get_value(AttributeName::EnhanceBurgeon);
     let enhance_burning = attribute.get_value(AttributeName::EnhanceBurning);
 
-    let mut base_swirl = get_transformative_base(level, TransformativeType::SwirlPyro);
-
-    // introduced by Yumemizuki Mizuki C1
-    base_swirl += attribute.get_value(AttributeName::SwirlExtraDmg);
+    let base_swirl = get_transformative_base(level, TransformativeType::SwirlPyro);
+    // Mizuki C1 is flat reaction damage, added after EM and reaction bonuses.
+    let flat_swirl = attribute.get_value(AttributeName::SwirlExtraDmg);
 
     let base_overload = get_transformative_base(level, TransformativeType::Overload);
     let base_superconduct = get_transformative_base(level, TransformativeType::Superconduct);
     let base_shatter = get_transformative_base(level, TransformativeType::Shatter);
     let base_electro_charged = get_transformative_base(level, TransformativeType::ElectroCharged);
+    let bloom_flat = attribute.get_value(AttributeName::BloomFamilyFlat);
+    let nahida_cr = attribute.get_value(AttributeName::NahidaReactionCritRate);
+    let bloom_cd = attribute.get_value(AttributeName::BloomFamilyCritDamage).max(if nahida_cr > 0.0 {1.0} else {0.0});
+    let bloom_expected = 1.0 + (attribute.get_value(AttributeName::BloomFamilyCritRate) + nahida_cr).clamp(0.0,1.0) * bloom_cd;
     let base_bloom = get_transformative_base(level, TransformativeType::Bloom);
     let base_hyperbloom = get_transformative_base(level, TransformativeType::Hyperbloom);
     let base_burgeon = base_hyperbloom;
@@ -146,18 +154,18 @@ pub fn transformative_damage<A: Attribute>(level: usize, attribute: &A, enemy: &
     let res_ratio_physical = enemy.get_resistance_ratio(Element::Physical, res_physical);
     let res_ratio_dendro = enemy.get_resistance_ratio(Element::Dendro, res_dendro);
 
-    let dmg_swirl_pyro = base_swirl * res_ratio_pyro * (1.0 + em_bonus + enhance_swirl_pyro);
-    let dmg_swirl_cryo = base_swirl * res_ratio_cryo * (1.0 + em_bonus + enhance_swirl_cryo);
-    let dmg_swirl_electro = base_swirl * res_ratio_electro * (1.0 + em_bonus + enhance_swirl_electro);
-    let dmg_swirl_hydro = base_swirl * res_ratio_hydro * (1.0 + em_bonus + enhance_swirl_hydro);
+    let dmg_swirl_pyro = (base_swirl * (1.0 + em_bonus + enhance_swirl_pyro) + flat_swirl) * res_ratio_pyro * swirl_expected;
+    let dmg_swirl_cryo = (base_swirl * (1.0 + em_bonus + enhance_swirl_cryo) + flat_swirl) * res_ratio_cryo * swirl_expected;
+    let dmg_swirl_electro = (base_swirl * (1.0 + em_bonus + enhance_swirl_electro) + flat_swirl) * res_ratio_electro * swirl_expected;
+    let dmg_swirl_hydro = (base_swirl * (1.0 + em_bonus + enhance_swirl_hydro) + flat_swirl) * res_ratio_hydro * swirl_expected;
     let dmg_overload = base_overload * res_ratio_pyro * (1.0 + em_bonus + enhance_overload);
     let dmg_superconduct = base_superconduct * res_ratio_cryo * (1.0 + em_bonus + enhance_superconduct);
     let dmg_shatter = base_shatter * res_ratio_physical * (1.0 + em_bonus + enhance_shatter);
     let dmg_electro_charged = base_electro_charged * res_ratio_electro * (1.0 + em_bonus + enhance_electro_charged);
-    let dmg_bloom = base_bloom * res_ratio_dendro * (1.0 + em_bonus + enhance_bloom);
-    let dmg_hyperbloom = base_hyperbloom * res_ratio_dendro * (1.0 + em_bonus + enhance_hyperbloom);
-    let dmg_burgeon = base_burgeon * res_ratio_dendro * (1.0 + em_bonus + enhance_burgeon);
-    let dmg_burning = base_burning * res_ratio_pyro * (1.0 + em_bonus + enhance_burning);
+    let dmg_bloom = (base_bloom * (1.0 + em_bonus + enhance_bloom) + bloom_flat) * res_ratio_dendro * bloom_expected;
+    let dmg_hyperbloom = (base_hyperbloom * (1.0 + em_bonus + enhance_hyperbloom) + bloom_flat) * res_ratio_dendro * bloom_expected;
+    let dmg_burgeon = (base_burgeon * (1.0 + em_bonus + enhance_burgeon) + bloom_flat) * res_ratio_dendro * bloom_expected;
+    let dmg_burning = base_burning * res_ratio_pyro * (1.0 + em_bonus + enhance_burning) * (1.0 + nahida_cr.clamp(0.0,1.0));
     let shield_crystallize = CRYSTALLIZE_BASE[level - 1] * (1.0 + 40.0 / 9.0 * em / (em + 1400.0));
 
     TransformativeDamage {
@@ -185,5 +193,6 @@ pub fn swirl_without_element<A: Attribute>(level: usize, attribute: &A, res_rati
 
     let base = get_transformative_base(level, TransformativeType::SwirlPyro) as f64;
 
-    base * res_ratio * (1.0 + em_bonus + enhance_swirl_base)
+    (base * (1.0 + em_bonus + enhance_swirl_base) + attribute.get_value(AttributeName::SwirlExtraDmg))
+        * res_ratio * (1.0 + attribute.get_value(AttributeName::SwirlExpectedBonus))
 }

@@ -1,7 +1,9 @@
 <template>
     <div>
         <el-alert v-if="uncalibratedReactions.length" type="warning" :closable="false" show-icon
-            title="反应结果待校准" :description="uncalibratedReactions.join('、') + '：尚无经核对的完整结算公式。'" />
+            title="反应结果待校准" :description="uncalibratedReactions.join('、') + '：尚未完成该角色的效果接入与完整结算校准。'" />
+        <el-alert v-if="approximateReactions.length" type="info" :closable="false" show-icon
+            title="星扩散期望为近似值" :description="approximateReactions.join('、') + '：3～4人暂按个人期望贡献排序；独立判暴及重排时点尚待确认。'" />
         <el-table
             :data="tableData"
         >
@@ -39,6 +41,11 @@ export default {
         uncalibratedReactions() {
             return Object.entries(this.analysisFromWasm?.reaction_availability || {})
                 .filter(([, value]) => value?.status === 'uncalibrated')
+                .map(([key]) => damageReactionLabel(key))
+        },
+        approximateReactions() {
+            return Object.entries(this.analysisFromWasm?.reaction_availability || {})
+                .filter(([, value]) => value?.status === 'approximate')
                 .map(([key]) => damageReactionLabel(key))
         },
         element() {

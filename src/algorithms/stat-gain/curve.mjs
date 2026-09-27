@@ -76,6 +76,7 @@ export function computeCurve(evaluate, options, onPoint = () => {}) {
 }
 
 export function createDamageEvaluator(mona, input, reaction, fumo, stats, tier) {
+    if(input?.single_hit_context||input?.ordinary_bloom_context||input?.lunar_crystallize_context||input?.direct_lunar_context||input?.lunar_electro_context||input?.direct_stellar_context||input?.stellar_swirl_context)throw Error('手填星／月反应面板不会随候选圣遗物变化，不能用于词条收益曲线。')
     const config = JSON.parse(JSON.stringify(input))
     const original = config.artifacts[0]?.sub_stats.map(s => [...s]) || []
     // A temporary Empty artifact carries stats only when no real artifact exists.

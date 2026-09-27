@@ -1,29 +1,9 @@
-export function wasmSingleOptimize(optimizeConfig, artifacts, timeout = 600000) {
-    const worker = new Worker(new URL("@worker/optimize_artifact.js", import.meta.url))
+import { runSingleOptimizeWorker } from './single-optimize-task.mjs'
 
-    return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
-            reject("计算超时")
-        }, timeout)
-
-        worker.onmessage = e => {
-            if (e.data.type === "ready") {
-                worker.postMessage({
-                    optimizeConfig,
-                    artifacts,
-                })
-            } else {
-                const results = e.data.data.results
-                clearTimeout(timer)
-
-                resolve(results)
-            }
-        }
-
-        worker.onerror = () => {
-            reject("计算发生错误")
-        }
-    }).finally(() => {
-        worker.terminate()
-    })
+export async function wasmSingleOptimize(optimizeConfig, artifacts, timeout = 600000, onDebug) {
+    onDebug?.({phase:'worker-creating',entry:'optimize_artifact.js'})
+    // Webpack recognizes workers only when new URL is directly inside new Worker.
+    // Extracting the URL into a variable emits an unbundled module as a raw asset.
+    const worker = new Worker(new URL('@worker/optimize_artifact.js', import.meta.url))
+    return runSingleOptimizeWorker(worker, optimizeConfig, artifacts, timeout, onDebug)
 }

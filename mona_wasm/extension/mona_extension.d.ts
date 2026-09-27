@@ -157,8 +157,6 @@ export interface InitOutput {
   readonly __wbg_commoninterface_free: (a: number) => void;
   readonly __wbg_bonusperstat_free: (a: number) => void;
   readonly __wbg_calcartifactbestset_free: (a: number) => void;
-  readonly potentialinterface_get_potential: (a: number, b: number) => number;
-  readonly __wbg_potentialinterface_free: (a: number) => void;
   readonly calculatorinterface_get_damage_analysis: (a: number, b: number) => number;
   readonly calculatorinterface_get_transformative_damage: (a: number) => number;
   readonly teamoptimizationwasm_optimize_team2: (a: number, b: number) => number;
@@ -166,6 +164,8 @@ export interface InitOutput {
   readonly __wbg_calculatorinterface_free: (a: number) => void;
   readonly __wbg_teamoptimizationwasm_free: (a: number) => void;
   readonly __wbg_dslinterface_free: (a: number) => void;
+  readonly potentialinterface_get_potential: (a: number, b: number) => number;
+  readonly __wbg_potentialinterface_free: (a: number) => void;
   readonly __wbg_transformativedamage_free: (a: number) => void;
   readonly __wbg_get_transformativedamage_swirl_cryo: (a: number) => number;
   readonly __wbg_set_transformativedamage_swirl_cryo: (a: number, b: number) => void;

@@ -3,7 +3,7 @@ use crate::common::{SkillType, Element};
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub enum AttributeName {
  VesnaStance, VesnaRadiance, VesnaDiscipline, VesnaFlatInside,
- StellarSwirlBonus, StellarSwirlFlat, StellarSwirlCritDamage, StellarSwirlElevation, StellarSwirlBaseBonus,
+ StellarSwirlBonus, StellarSwirlFlat, StellarSwirlCritRate, StellarSwirlCritDamage, StellarSwirlElevation, StellarSwirlBaseBonus,
     // 自定义数据，应当只用在角色的特定的Effect中，否则容易使用不当，产生冲突
     USER1,
     USER2,
@@ -188,6 +188,21 @@ pub enum AttributeName {
 
     // introduced because of YumemizukiMizuki C1
     SwirlExtraDmg,
+    SwirlExpectedBonus,
+    // Deltas from 1.0; ordinary and direct Stellar Swirl are explicitly scoped.
+    IndependentBaseMultiplier,
+    StellarSwirlIndependentBaseMultiplier,
+    // Scoped reaction effects; multiplier attributes store deltas from 1 or K.
+    ElevateMoonelectro, ElevateMoonbloom, ElevateMoonCrystallize,
+    CriticalMoonReaction, CriticalDamageMoonReaction, MoonReactionDamageMultiplier,
+    StellarConductBaseMultiplier, StellarSwirlReactionCryoBaseMultiplier,
+    EnhanceMoonbloomBase, EnhanceMoonCrystallizeBase,
+    EnhanceMoonbloom, EnhanceMoonCrystallize,
+    CriticalMoonbloom, CriticalDamageMoonbloom,
+    ExtraDmgMoonbloom, ExtraDmgMoonCrystallize, ExtraDmgDirectMoonCrystallize,
+    BloomFamilyFlat, BloomFamilyCritRate, BloomFamilyCritDamage,
+    LunarElectroEnabled, LunarBloomEnabled, LunarCrystallizeEnabled,
+    NahidaReactionCritRate, StellarConductBaseBonus, StellarConductEnabled, StellarSwirlEnabled,
 }
 
 impl AttributeName {

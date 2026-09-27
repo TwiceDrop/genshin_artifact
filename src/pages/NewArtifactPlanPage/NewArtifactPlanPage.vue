@@ -425,6 +425,15 @@
                         </el-button-group>
                     </div>
 
+                    <div class="optimization-debug-control">
+                        <el-switch v-model="optimizationDebugEnabled" active-text="Debug 模式" aria-label="Debug 模式" />
+                        <p>开启后再点“开始计算”，记录本次参数、候选圣遗物和错误。记录仅保存在当前页面，不自动上传，不读取登录凭据。</p>
+                        <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
+                        <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
+                        <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
+                        <details v-if="optimizationDebugRecord?.events.length"><summary>查看调试阶段与错误详情</summary><pre>{{ optimizationDebugDetail }}</pre></details>
+                    </div>
+
                     <div class="artifact-borrowing-control">
                         <label><span>是否允许替换其他角色已穿戴的圣遗物</span><el-switch v-model="allowBorrowEquipped" aria-label="是否允许替换其他角色已穿戴的圣遗物" /></label>
                         <p v-if="ownershipUid">UID {{ ownershipUid }} · {{ allowBorrowEquipped ? '允许使用其他角色装备' : `已排除其他角色穿戴的 ${reservedArtifactIds.size} 件圣遗物` }}。依据最近导入／同步的穿戴记录，开关仅影响自动配装。</p>
@@ -620,7 +629,7 @@
                         <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
                         <div class="polestar-field-stacks"><span>极星辉域层数</span>
                             <!-- This Element Plus version sets aria-disabled only on mount. -->
-                            <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="1" :disabled="!polestarEnabled" label="极星辉域层数" />
+                            <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
                         </div>
                         <p>0～12 层；应用冰/雷增伤、星超导基础倍率及领域物理减抗，参与伤害计算和词条收益曲线。</p>
                     </div>
@@ -733,6 +742,9 @@
 
                 <el-divider></el-divider>
 
+                <single-hit-panel :character="characterInterface" :buffs="effectiveBuffs" />
+                <lunar-damage-panel :attribute="attributeFromWasm" :character="characterInterface" :buffs="effectiveBuffs" />
+
                 <p class="common-title">{{ t("calcPage.dmg") }}</p>
                 <div class="my-button-list" style="margin-bottom: 12px">
                     <el-button-group>
@@ -815,7 +827,8 @@ import scoreLocale from '@/i18n/generated/zh-cn.json'
 import { scoreBuild, scoreSetNames, panelScoreAttributes } from '@/algorithms/artifact-score/score.mjs'
 import {convertArtifact} from "@util/converter"
 import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
-import {deepCopy} from "@/utils/common"
+import {deepCopy, downloadString} from "@/utils/common"
+import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
 import {wasmSingleOptimize} from "@/wasm/single_optimize"
 import {createComputeResult} from "@/api/misc"
 import {deviceIsPC} from "@util/device"
@@ -831,6 +844,8 @@ import SelectBuff from "@/components/select/SelectBuff.vue"
 import ArtifactDisplay from "@c/display/ArtifactDisplay"
 import AddButton from "@c/misc/AddButton"
 import DamagePanel from "./DamagePanel"
+import SingleHitPanel from "./SingleHitPanel.vue"
+import LunarDamagePanel from "./LunarDamagePanel.vue"
 import AttributePanel from "@c/display/AttributePanel"
 import ItemConfig from "@c/config/ItemConfig"
 import BuffItem from "./BuffItem"
@@ -1830,22 +1845,37 @@ function getArtifactsToBeCalculated(): IArtifactWasm[] {
     return artifacts16
 }
 
+const optimizationDebugEnabled = ref(false)
+const optimizationDebugRecord = shallowRef<any>(null)
+const optimizationError = ref('')
+const optimizationDebugDetail = computed(() => JSON.stringify({events:optimizationDebugRecord.value?.events,error:optimizationDebugRecord.value?.error},null,2))
+async function exportOptimizationDebug() {
+    if (!optimizationDebugRecord.value) return
+    try { await downloadString(JSON.stringify(optimizationDebugRecord.value,null,2),'application/json',`mona-debug-7.1.07alpha1-${Date.now()}.json`) }
+    catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
+}
 function handleOptimizeArtifact() {
-    if (teamContextError.value) return ElMessage.error(teamContextError.value)
+    optimizationError.value = ''
+    const debug = optimizationDebugEnabled.value ? createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}}) : null
+    optimizationDebugRecord.value = debug?.record || null
+    const debugEvent = (event: any) => { debug?.event(event); triggerRef(optimizationDebugRecord) }
+    const reportError = (error: any) => { optimizationError.value=error?.message||String(error); debug?.fail(error); triggerRef(optimizationDebugRecord); ElMessage.error(optimizationError.value) }
+
     const start = new Date()
     const originalEquipment = snapshotEquipment(artifactItems.value)
     const originalKey = comparisonKey.value, originalAccount = accountStore.currentAccountId.value
     const originalOwnershipFilter = ownershipFilterKey.value
 
-    const optimizeInterface = getOptimizeArtifactWasmInterface()
-    const artifacts = getArtifactsToBeCalculated()
+    let optimizeInterface: any, artifacts: IArtifactWasm[]
+    try {
+        if (teamContextError.value) throw new Error(teamContextError.value)
+        optimizeInterface = getOptimizeArtifactWasmInterface()
+        artifacts = getArtifactsToBeCalculated()
+        debug?.capture(optimizeInterface,artifacts,{allowBorrowEquipped:allowBorrowEquipped.value,minimumArtifactLevel:16,sandMainStats:constraintSandMainStats.value,gobletMainStats:constraintGobletMainStats.value,headMainStats:constraintHeadMainStats.value,reservedOtherCharacterCount:reservedArtifactIds.value.size})
+        debugEvent({phase:'parameters-prepared'})
+        if (!artifacts.length) throw new Error('没有符合条件的圣遗物，请检查仓库、主词条筛选及其他角色穿戴保护开关')
+    } catch (error: any) { reportError(error); return }
 
-    if (artifacts.length === 0) {
-        ElMessage.error({
-            message: "没有符合条件的圣遗物，请检查仓库、主词条筛选及其他角色穿戴保护开关"
-        })
-        return
-    }
 
     const loading = ElLoading.service({
         lock: true,
@@ -1853,7 +1883,8 @@ function handleOptimizeArtifact() {
         text: "莫娜占卜中"
     })
 
-    wasmSingleOptimize(optimizeInterface, artifacts).then(results => {
+    wasmSingleOptimize(optimizeInterface, artifacts, 600000, debug ? debugEvent : undefined).then(results => {
+        debug?.complete(results); triggerRef(optimizationDebugRecord)
         if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) return
         const end = new Date()
         // @ts-ignore
@@ -1871,7 +1902,7 @@ function handleOptimizeArtifact() {
         mobileCalcTab.value = 'equipment'
 
         // report best result to server, only report player whose 20 artifacts count is above 100
-        if (!process.env.MONA_MOBILE && artifactStore.artifacts20Count.value >= 100 && process.env.NODE_ENV === 'production') {
+        if (!debug && !process.env.MONA_MOBILE && artifactStore.artifacts20Count.value >= 100 && process.env.NODE_ENV === 'production') {
             let result_artifacts_wasm_format: any[] = []
             let first_result = results[0]
             result_artifacts_wasm_format.push(first_result.flower)
@@ -1895,9 +1926,7 @@ function handleOptimizeArtifact() {
             )
         }
     }).catch(e => {
-        ElMessage.error({
-            message: e.message ?? e
-        })
+        reportError(e)
     }).finally(() => {
         loading.close()
     })
@@ -1913,6 +1942,8 @@ watch(() => accountStore.currentAccountId.value, () => {
 </script>
 
 <style lang="scss" scoped>
+.optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control p{font-size:12px;line-height:1.6;color:#606266}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+
 .team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control p{margin:8px 0;color:#606b7b;font-size:12px;line-height:1.6}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}
 .manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:#667085;font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
 .artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}.artifact-borrowing-control p{margin:6px 0 0;color:#909399;font-size:12px;line-height:1.6}

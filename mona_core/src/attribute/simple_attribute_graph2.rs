@@ -8,7 +8,7 @@ use super::typing::EdgeFunctionFwd;
 use super::attribute_name::AttributeName;
 
 const MAX_EDGE_COUNT: usize = 30;
-const MAX_NODE_COUNT: usize = 200;
+const MAX_NODE_COUNT: usize = AttributeName::StellarSwirlEnabled as usize + 1;
 
 #[derive(Copy, Clone, Debug)]
 struct SimpleEntry {

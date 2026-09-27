@@ -1,3 +1,10 @@
+import {REMAINING_CHARACTER_RULES} from './remaining-character-rules.mjs';
+import {LUNAR_EQUIPMENT_RULES,prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
+import {LUNAR_CHARACTER_RULES} from './lunar-character-rules.mjs';
+import {REACTION_PARAMETER_RULES} from './reaction-parameter-rules.mjs';
+import {createBuffRuleRegistry} from './buff-rule-registry.mjs';
+import {SHARED_BUFF_RULES} from './shared-buff-rules.mjs';
+import {RECOVERED_CHARACTER_RULES} from './recovered-character-rules.mjs';
 // Calibrated native-extension adapters. Legacy characters retain their published buffs.
 // Odette parameters: 7.1 release character description and published buff metadata.
 // Each value is a native attribute, so candidate optimization evaluates the same formula.
@@ -12,6 +19,17 @@ const ref=p=>n(p,'refine',1,1,5,true);
 const elements=['Pyro','Hydro','Electro','Cryo','Anemo','Geo','Dendro','Physical'];
 const star=(bonus=0,base=0,elevation=0)=>({star:{bonus,base,elevation}});
 const recipes={
+ ...REMAINING_CHARACTER_RULES,
+ ...LUNAR_EQUIPMENT_RULES,
+ ...LUNAR_CHARACTER_RULES,
+ ...REACTION_PARAMETER_RULES,
+ ...SHARED_BUFF_RULES,
+ ...RECOVERED_CHARACTER_RULES,
+ // Ordinary and Stellar Swirl multipliers are distinct named effects.
+ IndependentDamageMultiplier:p=>({IndependentBaseMultiplier:n(p,'p',100,0,Number.MAX_VALUE)/100-1}),
+ StellarSwirlDamageMultiplier:p=>({StellarSwirlIndependentBaseMultiplier:n(p,'p',100,0,Number.MAX_VALUE)/100-1}),
+ YumemizukiMizukiE:p=>{const amount=p.em*(.0018+.0003*(p.skill_level-1));return {EnhanceSwirlBase:amount,...star(amount*.1)};},
+ YumemizukiMizukiC6:()=>({SwirlExpectedBonus:.3,star:{crit_rate:.1,crit_damage:.2}}),
  OdetteTalent1:p=>star(0,n(p,'radiance_mode',1,0,2,true)===2?Math.min(n(p,'atk',2000)*.00007,.14):0),
  OdetteMarvelousSplendor:p=>star(.15*n(p,'stacks',4,0,6,true)),
  OdetteC2MarvelousSplendor:p=>({ATKPercentage:.07*n(p,'stacks',4,0,6,true)}),
@@ -43,22 +61,26 @@ const recipes={
  AmberC6:()=>({ATKPercentage:.15}),
  SethosC4:()=>({ElementalMastery:80}),
 };
-export const EXTENSION_BUFF_ADAPTERS=Object.freeze(Object.keys(recipes));
+export const EXTENSION_BUFF_REGISTRY=createBuffRuleRegistry(recipes);
+export const EXTENSION_BUFF_ADAPTERS=EXTENSION_BUFF_REGISTRY.names;
 export function prepareExtensionBuffs(input){
  if(!['Vodyanitsa','Vesna'].includes(input?.character?.name))return input;
  const out={...input,buffs:[]},state={flat:0,base:0,bonus:0,crit_damage:0,elevation:0,anemo_res:0};
+ const seen=new Set(),repeatable=new Set(['CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
  let hasStar=false;
- for(const b of input.buffs||[]){
+ for(const b of prepareLunarEquipmentBuffs(input.buffs||[],input)){
+  if(b.lock===true)continue;
   if(b.name==='VesnaSupport'){
-   hasStar=true;for(const k of Object.keys(state))state[k]+=Number(b.config?.VesnaSupport?.[k]||0);continue;
+   hasStar=true;for(const k of Object.keys(state)){const value=b.config?.VesnaSupport?.[k]??0;if(typeof value!=='number'||!Number.isFinite(value))throw Error('星扩散支持参数无效：'+k);state[k]+=value;}continue;
   }
-  const fn=recipes[b.name];
-  if(!fn){out.buffs.push(b);continue;}
-  const p=b.config?.[b.name]||{};
-  if(p.active===false)continue;
-  const {star:stellar,...values}=fn(p);
-  if(stellar){hasStar=true;for(const k of Object.keys(stellar))state[k]+=stellar[k];}
-  if(Object.keys(values).length)out.buffs.push(named('ExtensionEffect',{label:'BUFF: '+b.name,values}));
+  // A named source effect cannot stack with another copy of itself. Custom
+  // numeric modifiers remain independently composable, as in the published core.
+  if(EXTENSION_BUFF_REGISTRY.has(b.name)&&!repeatable.has(b.name)){
+   if(seen.has(b.name))continue;
+   if(b.config?.[b.name]?.active!==false)seen.add(b.name);
+  }
+  const effects=EXTENSION_BUFF_REGISTRY.compile(b,input);
+  if(effects===null)out.buffs.push(b);else out.buffs.push(...effects);
  }
  if(hasStar)out.buffs.push(named('VesnaSupport',state));
  return out;

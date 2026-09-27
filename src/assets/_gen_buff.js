@@ -374,7 +374,22 @@ export default {
     "genre": "Common",
     "config": [
       {
-        "default": 0,
+        "default": 100,
+        "name": "p",
+        "title": 1489,
+        "type": "floatPercentageInput"
+      }
+    ]
+  },
+  "StellarSwirlDamageMultiplier": {
+    "name": "StellarSwirlDamageMultiplier",
+    "nameLocale": 3684,
+    "description": 3685,
+    "badge": "data:image/png;base64,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",
+    "genre": "Common",
+    "config": [
+      {
+        "default": 100,
         "name": "p",
         "title": 1489,
         "type": "floatPercentageInput"
@@ -389,7 +404,7 @@ export default {
     "genre": "Common",
     "config": [
       {
-        "default": 0,
+        "default": 100,
         "name": "p",
         "title": 1489,
         "type": "floatPercentageInput"
@@ -687,6 +702,12 @@ export default {
         "name": "stack",
         "title": 680,
         "type": "float"
+      },
+      {
+        "name": "effect_active",
+        "title": 3704,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -853,6 +874,12 @@ export default {
         "name": "full_moon",
         "title": 1893,
         "type": "bool"
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3687,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -941,7 +968,20 @@ export default {
     "description": 695,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Klee.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "effect_active",
+        "title": 3705,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "hexerei_secret_rite",
+        "title": 3712,
+        "type": "bool",
+        "default": true
+      }
+    ]
   },
   "KleeC2": {
     "name": "KleeC2",
@@ -1018,7 +1058,14 @@ export default {
     "description": 2797,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/68c0b17a/6aae9f16cbe14ac60dd6eb2956e4acf2.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "full_moon",
+        "title": 1892,
+        "type": "bool",
+        "default": true
+      }
+    ]
   },
   "LaumaTalent1": {
     "name": "LaumaTalent1",
@@ -1071,6 +1118,12 @@ export default {
         "name": "skill_level",
         "title": 428,
         "type": "int"
+      },
+      {
+        "name": "debuff_active",
+        "title": 3689,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -1099,11 +1152,25 @@ export default {
       },
       {
         "default": 0,
-        "max": 2,
+        "max": 6,
         "min": 0,
         "name": "constellation",
         "title": 755,
         "type": "int"
+      },
+      {
+        "name": "full_moon",
+        "title": 1892,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "stacks_available",
+        "title": 3686,
+        "type": "int",
+        "default": 1,
+        "min": 0,
+        "max": 36
       }
     ]
   },
@@ -1113,7 +1180,14 @@ export default {
     "description": 2790,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/68c0b17a/4138ef0c4ecfba8f4e69b5ea1631e32d.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "full_moon",
+        "title": 1892,
+        "type": "bool",
+        "default": true
+      }
+    ]
   },
   "ColumbinaP1": {
     "name": "ColumbinaP1",
@@ -1146,6 +1220,12 @@ export default {
         "name": "level",
         "title": 444,
         "type": "int"
+      },
+      {
+        "name": "domain_active",
+        "title": 3688,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -1175,6 +1255,24 @@ export default {
         ],
         "title": 1125,
         "type": "option"
+      },
+      {
+        "name": "full_moon",
+        "title": 1892,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3687,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "lunar_brilliance_active",
+        "title": 3691,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -1209,6 +1307,12 @@ export default {
         "name": "elements",
         "title": 2948,
         "type": "element8multi"
+      },
+      {
+        "name": "domain_active",
+        "title": 3688,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -1682,7 +1786,7 @@ export default {
     "config": [
       {
         "default": 2000,
-        "max": 2000,
+        "max": 100000,
         "min": 0,
         "name": "atk",
         "title": 1550,
@@ -1730,6 +1834,12 @@ export default {
         "name": "cold_glow_consumed",
         "title": 2128,
         "type": "int"
+      },
+      {
+        "name": "effect_active",
+        "title": 3706,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -1792,7 +1902,20 @@ export default {
     "description": 483,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Yae.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "effect_active",
+        "title": 3707,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "stellar_conduct",
+        "title": 3713,
+        "type": "bool",
+        "default": true
+      }
+    ]
   },
   "YaeMikoC2": {
     "name": "YaeMikoC2",
@@ -2084,6 +2207,12 @@ export default {
         "name": "def_minus",
         "title": 2189,
         "type": "bool"
+      },
+      {
+        "name": "marked",
+        "title": 3714,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -2692,6 +2821,33 @@ export default {
         "name": "hexerei_secret_rite",
         "title": 3454,
         "type": "bool"
+      },
+      {
+        "name": "effect_active",
+        "title": 3708,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "white_flame",
+        "title": 3715,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "reaction_element",
+        "title": 3717,
+        "type": "option",
+        "default": 0,
+        "options": [
+          "请选择",
+          "草（燃烧）",
+          "雷（超载）",
+          "风（火扩散）",
+          "岩（火结晶）",
+          "水（蒸发，仅二命）",
+          "冰（融化，仅二命）"
+        ]
       }
     ]
   },
@@ -2726,7 +2882,29 @@ export default {
     "description": 2956,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/692f7d8b/5c560e25f4233835ed39a98ac6a04c5d.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "effect_active",
+        "title": 3709,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "reaction_element",
+        "title": 3718,
+        "type": "option",
+        "default": 0,
+        "options": [
+          "请选择",
+          "草（燃烧）",
+          "雷（超载）",
+          "风（火扩散）",
+          "岩（火结晶）",
+          "水（蒸发，仅二命）",
+          "冰（融化，仅二命）"
+        ]
+      }
+    ]
   },
   "DurinC6": {
     "name": "DurinC6",
@@ -2759,7 +2937,14 @@ export default {
     "description": 873,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6966dc8c/b7ea76f3f77eec4997dad6576c183939.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "lunar_phase_active",
+        "title": 3690,
+        "type": "bool",
+        "default": true
+      }
+    ]
   },
   "LinneaTalent1": {
     "name": "LinneaTalent1",
@@ -2835,6 +3020,32 @@ export default {
         "name": "c6",
         "title": 488,
         "type": "bool"
+      },
+      {
+        "name": "stacks_available",
+        "title": 3686,
+        "type": "int",
+        "default": 18,
+        "min": 0,
+        "max": 18
+      },
+      {
+        "name": "hit_mode",
+        "title": 3692,
+        "type": "option",
+        "default": 0,
+        "options": [
+          "队伍月结晶",
+          "莉奈娅百万吨重锤"
+        ]
+      },
+      {
+        "name": "nuke_stacks",
+        "title": 3693,
+        "type": "int",
+        "default": 5,
+        "min": 1,
+        "max": 5
       }
     ]
   },
@@ -2870,6 +3081,12 @@ export default {
         ],
         "title": 1447,
         "type": "option"
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3687,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -2879,7 +3096,14 @@ export default {
     "description": 1895,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/69d58c7d/d1c44e49e1fcfdf9474ba6c2d2c9369d.png",
     "genre": "Character",
-    "config": []
+    "config": [
+      {
+        "name": "full_moon",
+        "title": 1892,
+        "type": "bool",
+        "default": true
+      }
+    ]
   },
   "IfaTalent2": {
     "name": "IfaTalent2",
@@ -2895,6 +3119,12 @@ export default {
         "name": "rescue_essentials",
         "title": 1480,
         "type": "float"
+      },
+      {
+        "name": "effect_active",
+        "title": 3710,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -2963,8 +3193,22 @@ export default {
         "max": 3,
         "min": 0,
         "name": "team_hydro_geo_count",
-        "title": 3242,
+        "title": 3694,
         "type": "int"
+      },
+      {
+        "name": "stacks_available",
+        "title": 3686,
+        "type": "int",
+        "default": 1,
+        "min": 0,
+        "max": 36
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3687,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -3230,6 +3474,18 @@ export default {
         "name": "c6",
         "title": 1173,
         "type": "bool"
+      },
+      {
+        "name": "effect_active",
+        "title": 3711,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3716,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -3682,6 +3938,14 @@ export default {
         "name": "crescent_verse_active",
         "title": 92,
         "type": "bool"
+      },
+      {
+        "name": "overlap_rate",
+        "title": 3695,
+        "type": "float",
+        "default": 1,
+        "min": 0,
+        "max": 1
       }
     ]
   },
@@ -3732,6 +3996,24 @@ export default {
         "name": "rate",
         "title": 1469,
         "type": "float"
+      },
+      {
+        "name": "favor_active",
+        "title": 3696,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "moondrift_present",
+        "title": 3697,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "recipient_is_wielder",
+        "title": 3698,
+        "type": "bool",
+        "default": false
       }
     ]
   },
@@ -3933,7 +4215,7 @@ export default {
         "min": 0,
         "name": "stacks",
         "title": 1961,
-        "type": "float"
+        "type": "int"
       }
     ]
   },
@@ -4071,10 +4353,10 @@ export default {
     "config": [
       {
         "default": 0.1,
-        "max": 0.4,
+        "max": 0.2,
         "min": 0,
         "name": "rate",
-        "title": 1911,
+        "title": 3700,
         "type": "float"
       },
       {
@@ -4087,6 +4369,12 @@ export default {
         ],
         "title": 1897,
         "type": "option"
+      },
+      {
+        "name": "effect_active",
+        "title": 3701,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -4099,11 +4387,17 @@ export default {
     "config": [
       {
         "default": 0.1,
-        "max": 0.4,
+        "max": 0.2,
         "min": 0,
         "name": "rate",
-        "title": 1911,
+        "title": 3702,
         "type": "float"
+      },
+      {
+        "name": "effect_active",
+        "title": 3703,
+        "type": "bool",
+        "default": true
       }
     ]
   },
@@ -4154,6 +4448,12 @@ export default {
         "name": "rate",
         "title": 1471,
         "type": "float"
+      },
+      {
+        "name": "edict_active",
+        "title": 3699,
+        "type": "bool",
+        "default": true
       }
     ]
   },
