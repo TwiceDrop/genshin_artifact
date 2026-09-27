@@ -1,0 +1,386 @@
+这两行现在可以恢复，而且建议把“技能数值”“状态规则”“命座/满辉复合”拆开存，不要压成一个字段。
+
+## 17. `LaumaSkillResMinus`
+
+### 技能等级表
+
+`霜林圣域抗性降低` 的完整 Lv.1–15 数值：
+
+| 技能等级 | 水/草抗降低 |
+|---:|---:|
+| 1 | 2.5% |
+| 2 | 5.0% |
+| 3 | 7.5% |
+| 4 | 10.0% |
+| 5 | 12.5% |
+| 6 | 15.0% |
+| 7 | 17.5% |
+| 8 | 20.0% |
+| 9 | 22.5% |
+| 10 | 25.0% |
+| 11 | 28.0% |
+| 12 | 31.0% |
+| 13 | 34.0% |
+| 14 | 37.0% |
+| 15 | 40.0% |
+
+Lv.1–13 可由 KQM 的完整表核对；Lv.14–15 的原始数据同样是 37%/40%。:chatgpt-content-reference{index="0"}
+
+建议直接存：
+
+```text
+LaumaSkillResMinus = [
+  0.025, 0.050, 0.075, 0.100, 0.125,
+  0.150, 0.175, 0.200, 0.225, 0.250,
+  0.280, 0.310, 0.340, 0.370, 0.400
+]
+```
+
+### 生效规则
+
+菈乌玛的**元素战技本体或霜林圣域攻击命中敌人**后，该敌人的：
+
+```text
+DendroRES -= LaumaSkillResMinus[level]
+HydroRES  -= LaumaSkillResMinus[level]
+```
+
+持续 **10 秒**。霜林圣域后续攻击可以重新施加，因此实战可以持续刷新减抗。:chatgpt-content-reference{index="1"}
+
+这里的“共享规则”应定义成：
+
+> **目标身上的敌方 Debuff，不是角色自身增益。**
+
+因此只要打的是这个被减抗的敌人，队伍内任何角色造成的对应草/水伤害都使用降低后的 RES。
+
+实现上不建议：
+
+```text
+character.DendroResShred += ...
+```
+
+而应类似：
+
+```text
+enemy.resDebuffs.Lauma = {
+    dendro: value,
+    hydro: value,
+    expiresAt: ...
+}
+```
+
+同一次菈乌玛技能的连续命中应按**刷新持续时间**处理，不应每 2 秒继续把 25% 叠成 50%、75%。技能文本只定义了一份减抗效果。:chatgpt-content-reference{index="2"}
+
+C5 提升该元素战技等级 3 级，最高 15，因此这里必须按**实际战技等级**取表，不能固定 25%。:chatgpt-content-reference{index="3"}
+
+---
+
+# 18. `LaumaBurst`
+
+这里至少应恢复成两个等级系数，而不是一个单值。
+
+## Q 等级表
+
+### 绽放 / 超绽放 / 烈绽放
+
+```text
+LaumaBurstBloomFlatMultiplier
+```
+
+| Lv | ×菈乌玛精通 |
+|---:|---:|
+| 1 | 277.8% |
+| 2 | 298.6% |
+| 3 | 319.4% |
+| 4 | 347.2% |
+| 5 | 368.0% |
+| 6 | 388.9% |
+| 7 | 416.6% |
+| 8 | 444.4% |
+| 9 | 472.2% |
+| 10 | 500.0% |
+| 11 | 527.7% |
+| 12 | 555.5% |
+| 13 | 590.2% |
+| 14 | 625.0% |
+| 15 | 659.7% |
+
+### 月绽放
+
+```text
+LaumaBurstLunarBloomFlatMultiplier
+```
+
+| Lv | ×菈乌玛精通 |
+|---:|---:|
+| 1 | 222.2% |
+| 2 | 238.9% |
+| 3 | 255.6% |
+| 4 | 277.8% |
+| 5 | 294.5% |
+| 6 | 311.1% |
+| 7 | 333.4% |
+| 8 | 355.6% |
+| 9 | 377.8% |
+| 10 | 400.0% |
+| 11 | 422.3% |
+| 12 | 444.5% |
+| 13 | 472.3% |
+| 14 | 500.0% |
+| 15 | 527.8% |
+
+完整 Lv.1–15 表可以直接核到数据页；KQM 的公开表也给出了 Lv.1–13 完全一致的数据。:chatgpt-content-reference{index="4"}
+
+---
+
+## 苍色祷歌不是“反应增伤%”，而是定额伤害加值
+
+这是实现时最重要的地方。
+
+假设：
+
+```text
+EM_Lauma = 菈乌玛元素精通
+```
+
+有一层苍色祷歌被消费时：
+
+### 普通绽放系
+
+\[
+F_{\rm PaleHymn}
+=
+EM_{\rm Lauma}
+\times
+Q_{\rm Bloom}(Lv)
+\]
+
+### 月绽放
+
+\[
+F_{\rm PaleHymn}
+=
+EM_{\rm Lauma}
+\times
+Q_{\rm LunarBloom}(Lv)
+\]
+
+这个值属于**反应定额伤害加值**，不是：
+
+```text
+ReactionDamageBonus += 500%
+```
+
+例如 Q10、1000 精通：
+
+- 绽放/超绽放/烈绽放：额外定额值 = `1000 × 5.0 = 5000`
+- 月绽放：额外定额值 = `1000 × 4.0 = 4000`
+
+公开机制说明也明确将它描述为在原本反应计算后加入的额外基础数值，再进入后续抗性等结算。:chatgpt-content-reference{index="5"}
+
+因此普通绽放类可抽象成：
+
+\[
+D=
+\Big[
+D_{\rm reaction,preRes}
++
+F_{\rm PaleHymn}
+\Big]
+\times R
+\times C_{\rm if\ allowed}
+\]
+
+而不是：
+
+\[
+D_{\rm reaction}\times
+(1+Q\times EM)
+\]
+
+---
+
+# 苍色祷歌层数规则
+
+Q 施放立即获得：
+
+\[
+18\text{ 层}
+\]
+
+若施放 Q 时已经有「月咏」，或 Q 后 15 秒内获得月咏，则**一次性**消耗全部月咏：
+
+\[
++6\times N_{\rm MoonSong}
+\]
+
+月咏最多 3 层，所以普通情况下：
+
+\[
+18+6\times3=36
+\]
+
+即最多 36 层。这个“月咏→苍色祷歌”转换每次 Q 只能触发一次。:chatgpt-content-reference{index="6"}
+
+每层持续时间单独计算；当一段符合条件的反应伤害同时命中多个敌人时，会按命中的敌人数消费多层。:chatgpt-content-reference{index="7"}
+
+所以不要简单写：
+
+```text
+onReactionDamage:
+    stacks -= 1
+```
+
+更接近：
+
+```text
+stacksConsumed = eligibleTargetsHit
+```
+
+当然要受当前剩余层数限制。
+
+---
+
+# C2 的正确合成
+
+C2 有**两个完全不同的效果**。
+
+### ① 苍色祷歌定额值额外增加
+
+C2：
+
+- 绽放/超绽放/烈绽放：再加 `500% × 菈乌玛精通`
+- 月绽放：再加 `400% × 菈乌玛精通` :chatgpt-content-reference{index="8"}
+
+
+所以应该直接加到 Q 的定额倍率：
+
+\[
+Q_{\rm Bloom,eff}
+=
+Q_{\rm Bloom}(Lv)+5.0
+\]
+
+\[
+Q_{\rm LB,eff}
+=
+Q_{\rm LB}(Lv)+4.0
+\]
+
+例如 **Q10 + C2**：
+
+\[
+F_{\rm Bloom}=EM_{\rm Lauma}\times(5+5)
+=10EM_{\rm Lauma}
+\]
+
+\[
+F_{\rm LB}=EM_{\rm Lauma}\times(4+4)
+=8EM_{\rm Lauma}
+\]
+
+也就是说 C2 **不是把 Q 原来的效果 ×2**；只是 Q10 恰好因为基础值就是 500%/400%，所以数值看起来翻倍。
+
+如果 Q13：
+
+```text
+Bloom:      5.902 + 5.000 = 10.902 × EM
+LunarBloom: 4.723 + 4.000 =  8.723 × EM
+```
+
+因此代码应是：
+
+```text
+flatCoef =
+    burstTalentCoef[level]
+    + (c2 ? c2FlatCoef : 0)
+```
+
+而不是：
+
+```text
+flatCoef = burstTalentCoef[level] * 2
+```
+
+---
+
+### ② C2 满辉：月绽放伤害 +40%
+
+这是另一条：
+
+```text
+if C2 && Moonsign == AscendantGleam:
+    LunarBloomDamageBonus += 0.40
+```
+
+官方文本语义是“月绽放反应伤害提升 40%”，KQM也把它解释为月绽放的普通 DMG Bonus。:chatgpt-content-reference{index="9"}
+
+它**不是苍色祷歌定额加值的一部分**。
+
+所以建议不要把两者都塞进 `LaumaBurst` 一个数字。
+
+---
+
+# C6 满辉则又是第三个乘区
+
+C6 满辉文本是：
+
+> 月绽放反应伤害**擢升 25%**。:chatgpt-content-reference{index="10"}
+
+这里用了专门的“擢升”，KQM明确说明这是**与普通 Lunar-Bloom DMG Bonus 分离的新乘区**。:chatgpt-content-reference{index="11"}
+
+所以：
+
+```text
+if C6 && AscendantGleam:
+    LunarBloomElevation *= 1.25
+```
+
+而不是：
+
+```text
+LunarBloomDamageBonus += 0.25
+```
+
+于是 C2+C6+满辉同时存在时，结构应是：
+
+\[
+\boxed{
+D_{\rm LB}
+=
+D_{\rm beforeElevation}
+\times(1+0.40+\text{其他普通月绽放增伤})
+\times1.25
+}
+\]
+
+不是：
+
+\[
+D\times(1+0.40+0.25)
+\]
+
+这点和你前面在拆“普通独立倍率 / 擢升”是同一个问题。
+
+---
+
+## 我建议你把第 18 行拆成这些数据
+
+```text
+LaumaBurstBloomFlatMultiplier[level]
+LaumaBurstLunarBloomFlatMultiplier[level]
+
+LaumaBurstBaseStacks = 18
+LaumaBurstStacksPerMoonSong = 6
+LaumaBurstStackDuration = 15
+
+LaumaC2BloomFlatMultiplier = 5.0
+LaumaC2LunarBloomFlatMultiplier = 4.0
+LaumaC2LunarBloomDamageBonus = 0.40   // 仅满辉
+
+LaumaC6LunarBloomElevation = 0.25     // 仅满辉
+```
+
+这样就不会出现把**定额加值、普通月绽放增伤、擢升**三个不同乘区混在 `LaumaBurst` 里的问题。
+
+另外，菈乌玛自身的「月兆祝赐·千籁恩宠」——每点精通使月绽放**基础伤害**提高 0.0175%，上限 14%——也应另设参数，**不要并入 `LaumaBurst`**。它和苍色祷歌的定额加值是不同层。:chatgpt-content-reference{index="12"}

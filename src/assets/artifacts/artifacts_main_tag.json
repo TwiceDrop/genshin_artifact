@@ -1,0 +1,38 @@
+{
+    "flower": [
+        "lifeStatic"
+    ],
+    "feather": [
+        "attackStatic"
+    ],
+    "sand": [
+        "attackPercentage",
+        "elementalMastery",
+        "recharge",
+        "lifePercentage",
+        "defendPercentage"
+    ],
+    "cup": [
+        "thunderBonus",
+        "fireBonus",
+        "waterBonus",
+        "iceBonus",
+        "windBonus",
+        "rockBonus",
+        "dendroBonus",
+        "attackPercentage",
+        "physicalBonus",
+        "lifePercentage",
+        "defendPercentage",
+        "elementalMastery"
+    ],
+    "head": [
+        "critical",
+        "attackPercentage",
+        "criticalDamage",
+        "lifePercentage",
+        "defendPercentage",
+        "cureEffect",
+        "elementalMastery"
+    ]
+}

@@ -1,0 +1,51 @@
+.select-int {
+    cursor: pointer;
+    height: 32px;
+    width: 32px;
+    text-align: center;
+    line-height: 32px;
+    color: #444444;
+    margin-right: 12px;
+    margin-top: 12px;
+    display: inline-block;
+    border-radius: 8px;
+    font-size: 12px;
+    transition: 300ms;
+}
+
+.select-int:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.select-int.active {
+    background: #79bbff;
+    color: white;
+}
+
+/* .config-item {
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 20px 1px rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.config-title {
+    font-size: 16px;
+    color: #555555;
+    margin: 0;
+    margin-bottom: 12px;
+} */
+
+.buff-config-item {
+    background: #00000005;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 3px;
+}
+
+.buff-config-title {
+    font-size: 12px;
+    color: #555555;
+    margin: 0;
+    margin-bottom: 12px;
+}
