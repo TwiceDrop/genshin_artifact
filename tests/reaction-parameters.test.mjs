@@ -2,9 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createRequire} from 'node:module';
-import {calculateDirectLunarDamage,calculateLunarCrystallizeTeam,calculateLunarElectroTeam} from '../beta-data/lunar-damage.mjs';
+import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
 import {calculateDirectStellarConduct} from '../beta-data/direct-stellar-conduct.mjs';
-import {calculateStellarSwirlTeam} from '../beta-data/stellar-swirl-reaction.mjs';
 import {REACTION_PARAMETER_NAMES,collectReactionParameters,bindReactionBuffs,moonOmenBonus,polestarField} from '../beta-data/reaction-parameter-rules.mjs';
 import {EXTENSION_BUFF_REGISTRY,prepareExtensionBuffs} from '../beta-data/extension-buffs.mjs';
 import {withLunarDamageContexts} from '../beta-data/lunar-context-facade.mjs';
@@ -31,16 +30,6 @@ test('1 月曜三种擢升、双暴、倍率作用于各自分支，定额不乘
  near(calculateDirectLunarDamage({...base,buffs:[named('MoonReactionDamageMultiplier',{p:0})]}).expectation,120);
  assert.throws(()=>calculateDirectLunarDamage({...base,buffs:[named('MoonReactionDamageMultiplier',{p:null})]}),/无效/);
 });
-test('2 月笼参数只归属指定参与者，判暴后排序；月感电使用3的贡献系数',()=>{
- const context={baseBonus:0,resistanceMultiplier:1,participants:[{id:'geo',element:'Geo',levelBase:62.5,em:0,critRate:0,critDamage:1},{id:'hydro',element:'Hydro',levelBase:75,em:0,critRate:0,critDamage:0}]};
- const input={character:{name:'owner'},buffs:[named('CriticalMoonReaction',{p:50})]};
- const bound=bindReactionBuffs({...context,buffRecipientId:'geo'},input,{team:true});
- assert.equal(bound.participants[1].buffs,undefined);
- near(calculateLunarCrystallizeTeam(bound).expectation,129);
- const electro={...bound,participants:bound.participants.map(p=>({...p,element:p.element==='Geo'?'Electro':p.element,levelBase:p.levelBase*1.6/3}))};
- near(calculateLunarElectroTeam(electro).expectation,129);
- assert.throws(()=>bindReactionBuffs({...context,buffRecipientId:'missing'},input,{team:true}),/不在参与者/);
-});
 test('3 星超导K为加法，月曜或普通独立倍率不泄漏，F不随K变化',()=>{
  const input={owner:{id:'ssc',em:0,critRate:0,critDamage:0},scalingStat:2000,skillMultiplier:2,baseMultiplier:1.5,flatBonus:10,elevation:.1,resistanceMultiplier:1,element:'Cryo'};
  const r=calculateDirectStellarConduct({...input,buffs:[named('StellarConductBaseMultiplier',{value:.7}),named('MoonReactionDamageMultiplier',{p:300}),named('CriticalMoonReaction',{p:100}),named('IndependentDamageMultiplier',{p:500})]});
@@ -56,20 +45,11 @@ test('3 星超导K为加法，月曜或普通独立倍率不泄漏，F不随K变
  near(r.non_critical-calculateDirectStellarConduct(input).non_critical,4000*.7*1.1);
  assert.throws(()=>calculateDirectStellarConduct({...input,buffs:[named('StellarConductBaseMultiplier',{value:-2})]}),/无效/);
 });
-test('4 冰风涡系数只加给受益参与者冰伤，风伤及近似标记不变',()=>{
- const p=(id,element)=>({id,element,levelMultiplier:100,elementalMastery:0,criticalRate:0,criticalDamage:0,anemoResistanceMultiplier:1,cryoResistanceMultiplier:1});
- const x={triggerId:'wind',vortexMultiplier:2,participants:[p('wind','Anemo'),p('ice','Cryo'),p('ice2','Cryo')]};
- const baseline=calculateStellarSwirlTeam(x);
- const actual=calculateStellarSwirlTeam({...x,participants:x.participants.map(p=>p.id==='ice'?{...p,buffs:[named('StellarSwirlReactionCryoBaseMultiplier',{value:1})]}:p)});
- near(actual.stellarswirl_anemo.expectation,baseline.stellarswirl_anemo.expectation);
- near(actual.stellarswirl_cryo.expectation-baseline.stellarswirl_cryo.expectation,60);
- assert.equal(actual.expectation_is_approximate,true);
-});
-test('5 八项参数及两项共鸣注册到原生属性且通过实际适配接口，固定面板仍拒绝优化',()=>{
+test('5 七项直伤参数及两项共鸣注册到原生属性且通过实际适配接口，固定面板仍拒绝优化',()=>{
  const buffs=REACTION_PARAMETER_NAMES.map(name=>named(name,name==='ResonanceMoonOmen'?{element:'Hydro',value:30000}:name==='ResonancePolestarField'?{stacks:12}:name.endsWith('BaseMultiplier')?{value:.5}:{p:name==='MoonReactionDamageMultiplier'?150:25}));
  const input={character:{name:'owner'},buffs,direct_lunar_context:{...direct('lunar-bloom'),owner:{id:'owner',em:500,critRate:.2,critDamage:1}}};
  const compiled=prepareExtensionBuffs({...input,character:{name:'Vesna'}}).buffs;
- assert.equal(compiled.length,10);assert.ok(compiled.every(b=>b.name==='ExtensionEffect'));
+ assert.equal(compiled.length,9);assert.ok(compiled.every(b=>b.name==='ExtensionEffect'));
  const raw=collectReactionParameters(buffs),native=collectReactionParameters(compiled);
  assert.deepEqual(raw,native);
  assert.deepEqual(collectReactionParameters([...buffs,...compiled]),raw);
@@ -87,9 +67,6 @@ test('5 八项参数及两项共鸣注册到原生属性且通过实际适配接
  const ssc={...input,direct_lunar_context:undefined,direct_stellar_context:{owner:{id:'owner',em:0,critRate:0,critDamage:0},scalingStat:100,skillMultiplier:1,baseMultiplier:1,element:'Electro',resistanceMultiplier:1}};
  near(api.CalculatorInterface.get_damage_analysis(ssc).direct_stellarconduct.expectation,250);
  assert.throws(()=>createDamageEvaluator(api,ssc,'direct_stellarconduct',null,[],0),/不能用于词条收益/);
- // Syntax-only UI verification: no Webpack, Cargo or WASM build.
- const require=createRequire(import.meta.url),compiler=require('@vue/compiler-sfc');
- const source=fs.readFileSync(new URL('../src/pages/NewArtifactPlanPage/LunarDamagePanel.vue',import.meta.url),'utf8');
- const parsed=compiler.parse(source);assert.equal(parsed.errors.length,0);compiler.compileScript(parsed.descriptor,{id:'reaction-parameters'});
- assert.equal(compiler.compileTemplate({source:parsed.descriptor.template.content,filename:'LunarDamagePanel.vue',id:'reaction-parameters'}).errors.length,0);
+ // The shared manual-panel UI was removed for every character.
+ assert.equal(fs.existsSync(new URL('../src/pages/NewArtifactPlanPage/SingleHitPanel.vue',import.meta.url)),false);
 });

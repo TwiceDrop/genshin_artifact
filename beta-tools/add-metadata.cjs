@@ -13,11 +13,11 @@ const chars=read('src/assets/_gen_character.js');chars.Vodyanitsa={name:'Vodyani
  skillMap1:['一段伤害','二段伤害','三段伤害','四段伤害','重击伤害','下落期间伤害','低空坠地冲击伤害','高空坠地冲击伤害'].map((s,index)=>({index,text:t(s)})),
  skillMap2:['施放伤害','角笛伤害','单次治疗'].map((s,index)=>({index:index+8,text:t(s)})),skillMap3:[{index:11,text:t('元素爆发伤害')}],
  config:[bool('e_active','E 减抗已触发'),bool('song_active','本次命中可消耗领唱 / 和声'),bool('ordinary_mode','普通水 / 冰模式（关闭为星扩散模式）',true),bool('c1_active','C1 治疗加攻已触发'),bool('c2_active','C2 号角暴伤已触发'),int('c4_stacks','C4 生命层数',0,3),bool('on_field','当前在场',true)],
- configSkill:[bool('low_hp_heal','C4 本次治疗前目标生命低于 40%'),bool('q_song_bonus','应用歌声状态 Q 增伤（乘区待校准）')]};
+ configSkill:[bool('low_hp_heal','C4 本次治疗前目标生命低于 40%')]};
 const weapons=read('src/assets/_gen_weapon.js');weapons.HymnOfTheMaelstrom={name:'HymnOfTheMaelstrom',internalName:'Catalyst_HymnOfTheMaelstrom',nameLocale:t('漩流颂歌'),star:5,type:'Catalyst',url:image,
  effect:t('测试服 v7.0.54 D48100502：治疗加成提高4%/5%/6%/7%/8%。治疗后叠加生命加成，至多3层。依据超过40000的生命上限为当前场上角色提供攻击加成；冻结或星扩散后，生命与攻击加成提高75%。治疗加成不放大。'),
  configs:[int('stacks','治疗触发层数',0,3),bool('boosted','冻结 / 星扩散强化已触发'),bool('on_field','装备者在场（专武加攻仅场上目标）',true)]};
-const targets=read('src/assets/_gen_tf.js');targets.VodyanitsaDefault={name:'VodyanitsaDefault',nameLocale:t('沃雅妮莎-终奏（测试服）'),description:t('最大化单次元素爆发伤害；不包含未校准的歌声乘区。辅助配装可选通用最大生命目标。'),tags:[],for:'Vodyanitsa',badge:image,config:[]};
+const targets=read('src/assets/_gen_tf.js');targets.VodyanitsaDefault={name:'VodyanitsaDefault',nameLocale:t('沃雅妮莎-终奏（测试服）'),description:t('最大化单次元素爆发伤害；歌声状态开启时应用技能本体独立倍率。辅助配装可选通用最大生命目标。'),tags:[],for:'Vodyanitsa',badge:image,config:[]};
 const buffs=read('src/assets/_gen_buff.js'),ownership=read('src/algorithms/buff-groups/ownership.json');
 const common=[float('hp','来源沃雅妮莎最终生命上限（含 C4 / 武器）',60000),int('constellation','命座',0,6),int('e_level','E 显示等级（含命座）',1,15,10),bool('on_field','目标角色在场',true),bool('ordinary_mode','普通水 / 冰模式',true)];
 const defs=[['E','宣叙·晨声纷流',0,'E 命中后降低水抗与冰抗，按 E 等级计算。'],['A4','十二弦的泪歌',0,'本次命中尚有领唱 / 和声次数时，普通模式提高水 / 冰基础伤害，星扩散模式只提高星扩散基础伤害。来源需已解锁突破四。'],['C1','聚光灯下的水华',1,'治疗触发后，固定攻击力提高来源角色生命上限的0.8%。'],['C2','穿彻风雪的余响',2,'角笛触发后，普通模式目标水 / 冰暴伤提高50%，星扩散模式星扩散暴伤提高60%。六命前仅场上目标。'],['C6','永不落幕的盛歌',6,'歌声期间提高水 / 冰伤害60%，星扩散伤害擢升25%。'],['Signature','漩流颂歌',0,'当前场上目标获得专武加攻。来源生命填最终值，避免重复添加生命加成。']];

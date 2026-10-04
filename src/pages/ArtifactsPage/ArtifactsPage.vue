@@ -460,9 +460,12 @@ function getArtifactString(): string {
     return JSON.stringify(temp)
 }
 
-function handleOutputJsonClicked() {
-    const str = getArtifactString()
-    downloadString(str, 'application/json', 'artifacts_mona');
+async function handleOutputJsonClicked() {
+    try {
+        await downloadString(getArtifactString(), 'application/json', 'artifacts_mona')
+    } catch (e) {
+        ElMessage.error(e instanceof Error ? e.message : String(e))
+    }
 }
 
 
@@ -506,18 +509,20 @@ function handleClickRecommendation() {
         return
     }
 
+    recommendationList.value = [];
     showArtifactRecommendationDrawer.value = true;
 
-    getArtifactsRecommendation().then((result) => {
-        let temp = result.slice(0, 50);
+    getArtifactsRecommendation().then(({ scores, skipped }) => {
+        if (skipped.length) ElMessage.warning(`有 ${skipped.length} 个预设不支持静态推荐评分，已跳过；可在计算器使用实际配装。${skipped.join('；')}`)
+        let temp = scores.slice(0, 50);
         const maxValue = temp.map((item) => item[1]).reduce((p, c) => Math.max(p, c), 0);
 
         for (let i = 0; i < temp.length; i++) {
-            temp[i][1] /= maxValue;
+            temp[i][1] = maxValue > 0 ? temp[i][1] / maxValue : 0;
         }
 
         recommendationList.value = temp as [number, number][];
-    });
+    }).catch((error: any) => ElMessage.error(error.message || String(error)));
 }
 
 

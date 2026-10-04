@@ -1,14 +1,14 @@
 <template>
     <div class="buff-root">
         <div class="top" :class="{ lock }">
-            <p class="buff-title">{{ ta(data.nameLocale) }}</p>
+            <p class="buff-title">{{ displayName }}</p>
             <div class="buttons">
                 <el-button
                     text
                     circle
                     class="button"
                     :icon="IconEpDelete"
-                    :aria-label="`删除${ta(data.nameLocale)}`"
+                    :aria-label="`删除${displayName}`"
                     @click="emits('delete')"
                     type="primary"
                 ></el-button>
@@ -17,7 +17,7 @@
                     circle
                     class="button"
                     :icon="lock ? IconEpUnlock : IconEpLock"
-                    :aria-label="`${lock ? '启用' : '停用'}${ta(data.nameLocale)}`"
+                    :aria-label="`${lock ? '启用' : '停用'}${displayName}`"
                     @click="emits('toggle')"
                     type="primary"
                 ></el-button>
@@ -25,7 +25,7 @@
         </div>
 
         <div class="detail">
-            <img :src="data.badge">
+            <img v-if="data.badge" :src="data.badge">
             <div>
                 <p v-if="description"><span v-html="description"></span></p>
             </div>
@@ -74,14 +74,17 @@ function handleChangeConfig(v: any) {
 }
 
 const data = computed((): any => {
-    return buffData[props.buff.name]
+    return buffData[props.buff.name] || { config: [], badge: '' }
 })
+
+const displayName = computed(() => data.value.nameLocale ? ta(data.value.nameLocale) : `已移除的 BUFF：${props.buff.name}`)
 
 const lock = computed(() => {
     return props.buff.lock
 })
 
 const description = computed(() => {
+    if (!buffData[props.buff.name]) return '此旧配置已不再提供计算。可删除或停用这一项后继续，其他已保存配置会保留。'
     return data.value.description ? ta(data.value.description) : null
 })
 </script>

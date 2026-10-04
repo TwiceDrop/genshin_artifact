@@ -49,7 +49,7 @@ impl MyNode {
     }
 }
 
-const MAX_ATTRIBUTE_ENTRY: usize = 200;
+const MAX_ATTRIBUTE_ENTRY: usize = AttributeName::StellarSwirlEnabled as usize + 1;
 
 pub struct ComplicatedAttributeGraph {
     pub attributes: RefCell<[MyNode; MAX_ATTRIBUTE_ENTRY]>,

@@ -1,3 +1,7 @@
+import {dslTokens} from './dsl-tokens.mjs';
+import {stellarSwirlMultiplier,withoutStellarSwirlMultiplier} from './stellar-swirl-multiplier.mjs';
+import {STELLAR_SUPPORT_RULES} from './scoped-character-effect-rules.mjs';
+import {evaluateEffectRule} from './effect-rule-engine.mjs';
 // Extend the published character core without replacing its existing kits.
 const clone = x => JSON.parse(JSON.stringify(x));
 const sum = x => Object.values(x || {}).reduce((a, b) => a + b, 0);
@@ -34,20 +38,6 @@ const SANDRONE_SKILLS = [
 // Work on DSL tokens rather than substituting whole target strings. This
 // preserves user formulas, comments, and quoted text while allowing several
 // direct Stellar hits in the same expression.
-function dslTokens(source) {
-    const tokens=[];
-    for(let i=0;i<source.length;) {
-        const start=i, c=source[i];
-        if(/\s/.test(c)) {i++;continue;}
-        if(source.startsWith('//',i)) {i=source.indexOf('\n',i+2);if(i<0)i=source.length;continue;}
-        if(source.startsWith('/*',i)) {const end=source.indexOf('*/',i+2);i=end<0?source.length:end+2;continue;}
-        if(c==='"') {i++;while(i<source.length){if(source[i++]==='\\')i++;else if(source[i-1]==='"')break;}tokens.push({value:source.slice(start,i),start,end:i,type:'string'});continue;}
-        if(/[A-Za-z_]/.test(c)){i++;while(i<source.length&&/[A-Za-z_0-9]/.test(source[i]))i++;tokens.push({value:source.slice(start,i),start,end:i,type:'id'});continue;}
-        if(/[0-9]/.test(c)){i++;while(i<source.length&&/[0-9.]/.test(source[i]))i++;tokens.push({value:source.slice(start,i),start,end:i,type:'number'});continue;}
-        i++;tokens.push({value:c,start,end:i,type:'symbol'});
-    }
-    return tokens;
-}
 function dslDamageBindings(tokens) {
     const bindings=new Map();
     for(let i=0;i+5<tokens.length;i++) {
@@ -72,6 +62,10 @@ function dslDamageBindings(tokens) {
     }
     return bindings;
 }
+const NATIVE_STELLAR_SKILLS={
+    Odette:['CodaStellarSwirl','PlumeStellarSwirl','WingStellarSwirl','C1StellarSwirl','C4StellarSwirl'],
+    AetherCryo:['StellarSwirlBurst','ChargedIceCondensation1','ChargedIceCondensation2'],
+};
 const DSL_DAMAGE_FIELDS={e:'e',expect:'e',expectation:'e',c:'c',crit:'c',critical:'c',n:'n',non_crit:'n',non_critical:'n'};
 function sandroneRatio(input, index) {
     const c=input.character, p=input.skill?.config?.Sandrone || {}, table=SANDRONE_STELLAR_RATIOS;
@@ -86,33 +80,25 @@ function sandroneRatio(input, index) {
 }
 
 export function stellarSupportState(input) {
-    const state = {bonus: 0, flat: 0, base: 0, baseSources: {}, labels: {}};
+    const state = {bonus: 0, flat: 0, base: 0, baseSources: {}, flatSources: {}, crit_damage: 0, elevation: 0, labels: {}};
     const seen = new Set();
     for (const b of input?.buffs || []) {
         if (seen.has(b.name)) continue;
         seen.add(b.name);
         const p = b.config?.[b.name] || {};
-        if (b.name === 'QiqiTalent2StellarConduct') {
-            state.bonus += .5;
-            state.labels['七七·七宝奉真：星扩散'] = .5;
-        }
-        if (b.name === 'SandroneC1') {
-            state.bonus += .3;
-            state.labels['桑多涅一命：星扩散'] = .3;
-        }
-        if (b.name === 'QiqiC6StellarConduct' && input.character?.name !== 'Qiqi')
-            state.flat += finite(p.atk, '七七来源攻击力') * 6;
-        if (b.name === 'SandroneTalent1') {
-            const amount = Math.min(finite(p.atk, '桑多涅来源攻击力') * .00007, .14);
-            state.base += amount;
-            state.baseSources['桑多涅·星耀祝礼：星扩散'] = amount;
-        }
-        if (b.name === 'VesnaTalent1' && input.character?.name !== 'Vesna') {
-            const amount = Math.min(finite(p.atk, '薇斯纳来源最终攻击力') * .00007, .14)
-                * finite(p.coverage ?? 1, '薇斯纳星耀祝礼覆盖率', 1);
-            state.base += amount;
-            state.baseSources['薇斯纳·星耀祝礼：星扩散'] = amount;
-        }
+        if(b.lock||p.active===false)continue;
+        const rule=STELLAR_SUPPORT_RULES[b.name];if(!rule)continue;
+        // Vesna already consumes Vodyanitsa support in its native adapter.
+        if(input.character?.name==='Vesna'&&b.name.startsWith('Vodyanitsa'))continue;
+        if(['QiqiC6StellarConduct','SandroneTalent1','VesnaTalent1'].includes(b.name))finite(p.atk,'来源攻击力');
+        if(b.name==='VesnaTalent1')finite(p.coverage??1,'覆盖率',1);
+        const value=evaluateEffectRule(rule,p,input);
+        state.bonus+=value.bonus||0;state.flat+=value.flat||0;state.base+=value.base||0;
+        state.crit_damage+=value.crit_damage||0;state.elevation+=value.elevation||0;
+        if(value.flat)state.flatSources[b.name==='VodyanitsaA4'?'沃雅妮莎·十二弦的泪歌：直接星扩散':'七七六命·洞玄：直接星扩散']=value.flat;
+        const label={'QiqiTalent2StellarConduct':'七七·七宝奉真：星扩散','SandroneC1':'桑多涅一命：星扩散','SandroneTalent1':'桑多涅·星耀祝礼：星扩散','VesnaTalent1':'薇斯纳·星耀祝礼：星扩散'}[b.name];
+        if(value.bonus)state.labels[label]=value.bonus;
+        if(value.base)state.baseSources[label]=value.base;
     }
     if(input?.character?.name==='Sandrone' && input.character.constellation>=1 && input.character.params?.Sandrone?.c1_team_stellar!==false) {
         state.bonus += .3;
@@ -147,10 +133,8 @@ export function createStellarSupportFacade(base, original) {
             if (existing) existing.config.EnhanceStellarGlimmerReaction.p += bonus * 100;
             else input.buffs.push(named('EnhanceStellarGlimmerReaction', {p: bonus * 100}));
         } else {
-            // These two native attributes cancel in Stellar-Conduct only.
-            // Both are evaluated afresh for every optimization candidate.
-            input.buffs.push(named('EnhanceStellarGlimmerReaction', {p: bonus * 100}));
-            input.buffs.push(named('CynoC2StellarConduct', {stack: -bonus * 10}));
+            // Dedicated Stellar-Swirl slot; evaluated for each optimization candidate.
+            input.buffs.push({name:'ExtensionEffect',config:{ExtensionEffect:{label:'BUFF: 星烁反应伤害加成',values:{StellarSwirlBonus:bonus}}}});
         }
     }
     function prepare(input) {
@@ -159,19 +143,23 @@ export function createStellarSupportFacade(base, original) {
         const state = stellarSupportState(input);
         const sandrone=input.character.name==='Sandrone';
         const synthetic = input.buffs?.some(b => b.name === 'VesnaTalent1');
-        if (!state.bonus && !state.flat && !state.base && !sandrone && !synthetic) return input;
+        if (!state.bonus && !state.flat && !state.base && !state.crit_damage && !state.elevation && !sandrone && !synthetic) return input;
         const x = clone(input); x.buffs ||= [];
         if (native(x)) {
             // The extension has no published Qiqi/Sandrone buff enums.
             x.buffs = x.buffs.filter(b => !['QiqiTalent2StellarConduct', 'QiqiC6StellarConduct', 'SandroneC1', 'SandroneTalent1', 'VesnaTalent1'].includes(b.name));
-            if (state.flat || state.base) x.buffs.push(named('VesnaSupport', {flat: state.flat, base: state.base, bonus: 0, crit_damage: 0, elevation: 0, anemo_res: 0}));
+            if (state.flat || state.base || state.crit_damage || state.elevation) x.buffs.push(named('VesnaSupport', {flat: state.flat, base: state.base, bonus: 0, crit_damage: state.crit_damage, elevation: state.elevation, anemo_res: 0}));
         }
+        if(!native(x))for(const [value,attribute,label]of [
+            [state.crit_damage,'StellarSwirlCritDamage','沃雅妮莎二命：星扩散暴伤'],
+            [state.elevation,'StellarSwirlElevation','沃雅妮莎六命：星扩散擢升'],
+        ])if(value)x.buffs.push({name:'ExtensionEffect',config:{ExtensionEffect:{label,values:{[attribute]:value}}}});
         addStarBonus(x, state.bonus);
         if (!native(x)) x.buffs = x.buffs.filter(b => b.name !== 'VesnaTalent1');
         if (state.base && !native(x)) {
             // Odette's native mode-2 talent has exactly the same .007/100 ATK,
             // 14% cap and Stellar-Swirl-only scope. Preserve all existing buffs.
-            for (const b of input.buffs || []) if (['SandroneTalent1', 'VesnaTalent1'].includes(b.name)) {
+            for (const b of input.buffs || []) if (['SandroneTalent1', 'VesnaTalent1'].includes(b.name)&&!b.lock&&b.config?.[b.name]?.active!==false) {
                 if (b.name === 'VesnaTalent1') {
                     const p = b.config?.VesnaTalent1 || {};
                     const atk = Math.min(finite(p.atk, '薇斯纳来源最终攻击力'), 2000)
@@ -182,7 +170,10 @@ export function createStellarSupportFacade(base, original) {
         }
         if(sandrone) {
             const p=x.character.params?.Sandrone || {};
-            if(p.stellar_base_active!==false && !x.__stellar_dynamic_target) {
+            // Native targets evaluate their own Conduct talent per candidate.
+            // Synthetic Swirl targets emit a live ATK expression instead; never
+            // read or freeze an equipped panel from an optimizer request.
+            if(p.stellar_base_active!==false && !x.__stellar_dynamic_target && !x.target_function && !x.tf) {
                 const panel=base.CommonInterface.get_attribute(x);
                 x.buffs.push(named('OdetteTalent1',{atk:sum(panel.atk),radiance_mode:2}));
             }
@@ -205,11 +196,7 @@ export function createStellarSupportFacade(base, original) {
             result.direct_stellarswirl_compose[generic] = (result.direct_stellarswirl_compose[generic] ?? 0) - state.bonus;
             if (Math.abs(result.direct_stellarswirl_compose[generic]) < 1e-12) delete result.direct_stellarswirl_compose[generic];
             Object.assign(result.direct_stellarswirl_compose, state.labels);
-            if (result.direct_stellarconduct_compose) {
-                result.direct_stellarconduct_compose[generic] = (result.direct_stellarconduct_compose[generic] ?? 0) - state.bonus;
-                result.direct_stellarconduct_compose[counter] = (result.direct_stellarconduct_compose[counter] ?? 0) + state.bonus;
-                for (const key of [generic, counter]) if (Math.abs(result.direct_stellarconduct_compose[key]) < 1e-12) delete result.direct_stellarconduct_compose[key];
-            }
+
         }
         if (state.base && result.direct_stellarswirl_base_compose) {
             const key = 'BUFF: 奥黛塔「星耀祝礼·银晓之舞」';
@@ -219,21 +206,27 @@ export function createStellarSupportFacade(base, original) {
         }
         return result;
     }
-    function applyFlat(input, result, flat) {
+    function applyFlat(input, result, state, fumo) {
+        const flat=state.flat;
         if (!flat || !result.direct_stellarswirl) return result;
-        const skillBase = sum(input.character.name==='YumemizukiMizuki' ? result.em : result.atk)
-            * sum(result.direct_stellarswirl_ratio) + sum(result.direct_stellarswirl_extra_damage);
+        // At 0% the skill body is zero, but the separate support flat remains.
+        // A neutral reference supplies only its unchanged post factors.
+        const reference=stellarSwirlMultiplier(input)===0
+            ? base.CalculatorInterface.get_damage_analysis(prepare(withoutStellarSwirlMultiplier(input)),fumo)
+            : result;
+        const skillBase = sum(input.character.name==='YumemizukiMizuki' ? reference.em : reference.atk)
+            * sum(reference.direct_stellarswirl_ratio) + sum(reference.direct_stellarswirl_extra_damage);
         const existingFlat = sum(result.direct_stellarswirl_extra_fixed);
-        if (existingFlat) throw Error('直接星扩散已有未核对的定额加值，不能重复加入七七六命。');
-        const amplified = skillBase * (1 + sum(result.direct_stellarswirl_base_compose))
-            * (1 + sum(result.direct_stellarswirl_compose));
-        if (amplified <= 0) throw Error('无法确定该直接星扩散技能的基础伤害，不能加入七七六命。');
+        if (existingFlat) throw Error('直接星扩散已有未核对的定额加值，不能重复加入支援定额。');
+        const amplified = skillBase * (1 + sum(reference.direct_stellarswirl_base_compose))
+            * (1 + sum(reference.direct_stellarswirl_compose));
+        if (amplified <= 0) throw Error('无法确定该直接星扩散技能的基础伤害，不能加入支援定额。');
         // The published hit already includes RES, CRIT and elevation. Adding
         // the flat after base/EM bonuses therefore scales by the amplified
         // pre-resistance amount, not the raw skill multiplier.
         for (const key of ['non_critical', 'critical', 'expectation'])
-            result.direct_stellarswirl[key] *= (amplified + flat) / amplified;
-        result.direct_stellarswirl_extra_fixed['七七六命·洞玄：直接星扩散'] = flat;
+            result.direct_stellarswirl[key] += reference.direct_stellarswirl[key] * flat / amplified;
+        Object.assign(result.direct_stellarswirl_extra_fixed,state.flatSources);
         return result;
     }
     function withoutReactionFlat(input) {
@@ -262,14 +255,16 @@ export function createStellarSupportFacade(base, original) {
         const critical=clamp(sum(reference.critical)+sum(reference.critical_stellarswirl),0,1);
         const c2=descriptor.index===18 && input.character.constellation>=2 ? .4+.2*clamp(finite(input.skill.config?.Sandrone?.c2_ray_stacks ?? 0,'冷凝射线暴伤层数',3),0,3) : 0;
         const cd=sum(reference.critical_damage)+sum(reference.critical_damage_stellarswirl)+c2;
-        const nonCritical=raw*unit+flat*postFactor;
+        const multiplier=stellarSwirlMultiplier(input);
+        const nonCritical=raw*multiplier*unit+flat*postFactor;
         result.normal={critical:0,non_critical:0,expectation:0,is_heal:false,is_shield:false};
         delete result.melt; delete result.direct_stellarconduct;
         result.direct_stellarswirl={non_critical:nonCritical,critical:nonCritical*(1+cd),expectation:nonCritical*(1+critical*cd),is_heal:false,is_shield:false};
         result.atk_ratio={};result.em_ratio={};
         result.direct_stellarswirl_ratio={[descriptor.label]:ratio};
+        if(multiplier!==1&&ratio)result.direct_stellarswirl_ratio['直接星扩散独立倍率修正']=ratio*(multiplier-1);
         if(c2)result.critical_damage_stellarswirl['桑多涅二命·冷凝射线']=c2;
-        if(state.flat && ratio>0)result.direct_stellarswirl_extra_fixed['七七六命·洞玄：直接星扩散']=state.flat;
+        if(state.flat && ratio>0)Object.assign(result.direct_stellarswirl_extra_fixed,state.flatSources);
         const ownBase=input.character.params?.Sandrone?.stellar_base_active!==false?Math.min(sum(result.atk)*.00007,.14):0;
         relabel(result,state);
         if(ownBase) {
@@ -305,6 +300,7 @@ export function createStellarSupportFacade(base, original) {
             const binding=bindings.get(r.name);
             if(!binding)throw Error('直接星扩散 DSL 缺少 dmg 声明：'+r.name);
             let expression;
+            const nativeSkill=NATIVE_STELLAR_SKILLS[binding.character]?.includes(binding.skill);
             const descriptor=binding.character==='Sandrone'&&SANDRONE_SKILLS.find(s=>s.name===binding.skill);
             if(descriptor) {
                 x.__stellar_dynamic_target=true;
@@ -320,9 +316,9 @@ export function createStellarSupportFacade(base, original) {
                 expression=source.slice(r.start,r.end);
                 if(state.flat){
                     if(mizukiPostFactor===undefined){
-                        const reference=base.CalculatorInterface.get_damage_analysis(prepare(x),null);
+                        const reference=base.CalculatorInterface.get_damage_analysis(prepare({...x,artifacts:x.artifacts||[],skill:x.skill||{index:0,config:'NoConfig'}}),null);
                         const coreFlat=sum(reference.direct_stellarswirl_extra_fixed);
-                        if(coreFlat)throw Error('瑞希直接星扩散含未核对的定额加值，不能用于七七六命 DSL。');
+                        if(coreFlat)throw Error('瑞希直接星扩散含未核对的定额加值，不能用于支援定额 DSL。');
                         const factors=(1+sum(reference.direct_stellarswirl_base_compose))
                             *(1+sum(reference.direct_stellarswirl_compose));
                         if(factors<=0)throw Error('瑞希星扩散增益乘区无效');
@@ -334,8 +330,29 @@ export function createStellarSupportFacade(base, original) {
                     // the enemy and the configured support state.
                     expression=`(${expression} + ${state.flat*mizukiPostFactor} * ${r.name}.stellarswirl_anemo.${field} / max(0.000000000001, ${r.name}.stellarswirl_anemo.n))`;
                 }
+            } else if(nativeSkill) {
+                expression=source.slice(r.start,r.end);
+                if(state.flat) {
+                    // A neutral Cryo hit excludes skill-only bonuses such as Cold Glow.
+                    const reference=base.CalculatorInterface.get_damage_analysis(prepare({...x,artifacts:x.artifacts||[],skill:{index:0,config:'NoConfig'}}),'Cryo');
+                    const rawReaction=anemoReactionBase(x.character.level)/.75*reference.stellarswirl_reaction_cryo_base_multiplier*reference.stellarswirl_vortex_coefficient;
+                    const factors=(1+sum(reference.direct_stellarswirl_base_compose))*(1+sum(reference.direct_stellarswirl_compose));
+                    let postFactor=String(reference.stellarswirl_cryo.non_critical/rawReaction/factors);
+                    const odetteMultiplier=reference.stellar_glimmer_reaction_damage_multiplier['奥黛塔天赋：赤忱者的悲歌'];
+                    if(binding.character==='Odette'&&odetteMultiplier!==undefined) {
+                        if(!synthetic.has(r.name)) {
+                            let attack=`__stellar_attack_${r.name}`;
+                            while(tokens.some(t=>t.type==='id'&&t.value===attack))attack+='_';
+                            synthetic.set(r.name,{attack});
+                            props.push(`prop ${attack} = Odette.atk`);
+                        }
+                        const attack=synthetic.get(r.name).attack;
+                        postFactor=`${Number(postFactor)/(1+odetteMultiplier)} * (1 + min(max(${attack} - 1000, 0) * 0.00015, 0.3))`;
+                    }
+                    expression=`(${expression} + ${state.flat} * (${postFactor}) * ${r.name}.stellarswirl_cryo.${field} / max(0.000000000001, ${r.name}.stellarswirl_cryo.n))`;
+                }
             } else if(state.flat) {
-                throw Error('七七六命定额加值尚不能用于此直接星扩散技能：'+binding.character+'.'+binding.skill);
+                throw Error('支援定额加值尚不能用于此直接星扩散技能：'+binding.character+'.'+binding.skill);
             } else continue;
             replacements.push({start:r.start,end:r.end,expression});
         }
@@ -357,7 +374,7 @@ export function createStellarSupportFacade(base, original) {
         x.skill={index:descriptor.index,config:{Sandrone:config}};
         x.__stellar_dynamic_target=true;
         const refInput=clone(x);refInput.skill.index=descriptor.original;
-        const reference=base.CalculatorInterface.get_damage_analysis(prepare(refInput),null);
+        const reference=base.CalculatorInterface.get_damage_analysis(prepare({...refInput,artifacts:refInput.artifacts||[]}),null);
         const ratio=sandroneRatio(x,descriptor.index), state=stellarSupportState(x);
         const rawReaction=anemoReactionBase(x.character.level)/.75*reference.stellarswirl_reaction_cryo_base_multiplier*reference.stellarswirl_vortex_coefficient;
         if(!Number.isFinite(rawReaction)||rawReaction<=0)throw Error('桑多涅星扩散反应乘区无效');
@@ -373,7 +390,7 @@ export function createStellarSupportFacade(base, original) {
         const liveCrit=`min(1, max(0, (${react('e')} - ${react('n')}) / max(0.000000000001, ${react('c')} - ${react('n')})))`;
         const reaction=field==='c'?`(${react('c')} + ${react('n')} * ${c2})`:
             field==='n'?react('n'):`(${react('e')} + ${react('n')} * ${liveCrit} * ${c2})`;
-        let expression=`${reaction} * (${attack} * ${ratio}) / ${rawReaction}`;
+        let expression=`${reaction} * (${attack} * ${ratio} * ${stellarSwirlMultiplier(input)}) / ${rawReaction}`;
         if(x.character.params?.Sandrone?.stellar_base_active!==false)
             expression=`(${expression}) * (1 + ${baseFromTeam} + min(${attack} * 0.00007, 0.14)) / (1 + ${baseFromTeam})`;
         if(state.flat&&ratio>0)
@@ -433,7 +450,7 @@ export function createStellarSupportFacade(base, original) {
             const prepared = prepare(input);
             const result = fn(prepared, ...args.slice(1));
             if (className === 'CalculatorInterface' && method === 'get_damage_analysis' && !native(input))
-                return applyFlat(input, relabel(result, state), state.flat);
+                return applyFlat(input, relabel(result, state), state, args[1]);
             return result;
         };
     }})]));

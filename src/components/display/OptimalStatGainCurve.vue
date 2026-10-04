@@ -3,7 +3,6 @@
         <div class="intro">
             <div class="eyebrow">培养规划 · 当前角色</div>
             <h2>每一条，提升多少？</h2>
-            <p>固定当前配装、套装、技能、敌人和已配置的增益，为每个预算独立寻找最高期望伤害。</p>
         </div>
 
         <div class="controls">
@@ -29,8 +28,6 @@
                 </el-checkbox>
             </el-checkbox-group>
         </div>
-        <p class="scope-note">理论额外增加副词条，不消耗或修改库存；不限制实际强化次数、主副词条冲突。队友增益沿用当前手动配置，不自动重新配装。</p>
-        <el-alert v-if="tooMany" type="warning" :closable="false" title="组合超过 100 万，请减少参与分配的属性；不会用截断搜索冒充最优结果。" />
         <el-alert v-if="error" type="error" :closable="false" :title="error" />
         <div class="progress-line" role="status" aria-live="polite">
             <span>{{ status }}</span><span>{{ evaluations.toLocaleString() }} / {{ combinations.toLocaleString() }} 种组合</span>
@@ -51,28 +48,25 @@
                     <el-radio-button label="damage">期望伤害</el-radio-button>
                 </el-radio-group>
             </div>
-            <p v-if="points[0].damage === 0" class="scope-note">当前伤害为 0，无法定义百分比提升，请切换到期望伤害查看。</p>
             <v-chart class="main-chart" :option="chartOptions" autoresize @click="selectChartPoint" />
-            <div class="chart-heading"><span>多投入一条的收益</span><small>相邻预算的最优伤害差</small></div>
+            <div class="chart-heading"><span>多投入一条的收益</span></div>
             <v-chart class="marginal-chart" :option="marginalOptions" autoresize @click="selectChartPoint" />
 
             <div class="allocation">
-                <div class="chart-heading"><strong>增加 {{ activePoint.rolls }} 条 · 最优分配</strong><small>点击曲线或拖动滑块查看</small></div>
+                <div class="chart-heading"><strong>增加 {{ activePoint.rolls }} 条 · 最优分配</strong></div>
                 <el-slider v-model="activeBudget" :min="0" :max="points.length - 1" :step="1" show-stops aria-label="查看词条预算" />
                 <div class="allocation-tags">
                     <el-tag v-for="stat in activeStats" :key="stat.key" size="large">{{ stat.label }} × {{ activePoint.allocation[stat.key] }}（+{{ formatRoll(stat, activePoint.allocation[stat.key]) }}）</el-tag>
                     <span v-if="!activeStats.length">当前配装，尚未增加词条。</span>
                 </div>
-                <p class="scope-note">每个预算独立求最优。下一点的最佳分配可能重新调整已有分配，并非上一点只追加一条。</p>
                 <el-table :data="panelRows" size="small">
                     <el-table-column prop="label" label="面板属性" />
                     <el-table-column prop="before" label="当前" />
                     <el-table-column prop="after" label="增加后" />
                 </el-table>
             </div>
-            <div class="footer"><span>仅对勾选属性、当前技能和已配置条件保证枚举最优。</span><el-button :disabled="!complete" @click="exportResults">导出完整结果 JSON</el-button></div>
+            <div class="footer"><el-button :disabled="!complete" @click="exportResults">导出完整结果 JSON</el-button></div>
         </template>
-        <el-empty v-else-if="!running && !error" description="选择参与分配的属性，查看 0～20 条的培养收益。" />
     </section>
 </template>
 
@@ -183,7 +177,6 @@ function exportResults() {
 .stat-selector { margin-top: 20px; padding: 16px; border: 1px solid #e6edf5; border-radius: 8px; }
 .field-label { display: block; font-size: 13px; margin-bottom: 6px; font-weight: 600; }
 .roll-value { color: #8592a3; font-size: 11px; }
-.scope-note { font-size: 12px; color: #7a8797; line-height: 1.7; }
 .progress-line, .chart-heading, .footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .progress-line { font-size: 12px; color: #7a8797; margin: 18px 0 8px; }
 .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0; div { background: #f5f8fd; border-radius: 8px; padding: 16px; } span { display: block; color: #7a8797; font-size: 12px; margin-bottom: 10px; } strong { font-size: 23px; } .accent { color: #287bdb; } }

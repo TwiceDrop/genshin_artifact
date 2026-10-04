@@ -42,6 +42,7 @@ export function scoreRanking(item) {
     const a = toScoreArtifact(item)
     if (!a) return { score: 0, characters: [] }
     const ranking = analyzeArtifact({ pos: a.pos, main: a.mainKey, value: a.mainValue, subs: a.subs }, { topN: 1000 })
+    ranking.characters = ranking.characters.filter(row => row.name !== '薇斯纳')
     for (const [name, mode] of [['薇斯纳', 'normal'], ['薇斯纳·星扩散', 'stellar']]) {
         const evaluator = scoreEvaluator({ name: '薇斯纳', options: { scoreMode: mode } }, [a])
         ranking.characters.push({ name, score: round(evaluator.score(a)) })
@@ -109,7 +110,8 @@ export function scoreSetNames(items, sets, locale) {
         if (positions.size < 4) continue
         const name = locale[sets[key]?.nameLocale] || key
         names.push(name)
-        if (name === '绝缘之旗印') names.push('绝缘')
+        const alias = { '绝缘之旗印': '绝缘', '冰风迷途的勇士': '冰套' }[name]
+        if (alias) names.push(alias)
     }
     return names
 }

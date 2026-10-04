@@ -8,10 +8,10 @@ export function mizukiStellarTarget(target, character) {
     // DSL. Keep their source and only normalize the enum for the old core.
     if(target.use_dsl)return {...target,name:'YumemizukiMizukiDefault',params:'NoConfig'};
     const mode=target.params?.[MIZUKI_STELLAR_TARGET]?.mode??0;
-    if(!Number.isInteger(mode)||mode<0||mode>3)throw Error('瑞希星扩散目标类型无效');
+    if(!Number.isInteger(mode)||mode<0||mode>1)throw Error('瑞希星扩散目标类型无效');
     if(mode===1&&character.constellation<1)throw Error('一命额外星扩散目标需要解锁瑞希一命');
     const skill=mode===1?'C1StellarSwirl':'TalentStellarSwirl';
-    const reaction=['direct_stellarswirl','direct_stellarswirl','stellarswirl_anemo','stellarswirl_cryo'][mode];
+    const reaction='direct_stellarswirl';
     return {name:'YumemizukiMizukiDefault',params:'NoConfig',use_dsl:true,dsl_source:`dmg hit = YumemizukiMizuki.${skill}\nresult = hit.${reaction}.e`};
 }
 export function createStrengthenedFacade(base, transformStellarTarget = input => input) {
@@ -20,18 +20,6 @@ export function createStrengthenedFacade(base, transformStellarTarget = input =>
     function prepare(input) {
         if(!input||typeof input!=='object')return input;
         if(Array.isArray(input.single_interfaces))return {...input,single_interfaces:input.single_interfaces.map(prepare)};
-        const selected=input.target_function||input.tf;
-        if(input.enemy&&newTargets.has(selected?.name)&&!selected.use_dsl){
-            // Published optimization uses a fixed 10% enemy resistance. These
-            // targets each deal one element, so an additive resistance offset
-            // preserves every candidate's own debuffs and all resistance branches.
-            const mode=selected.params?.[selected.name]?.mode??0;
-            const key=selected.name==='SandroneStellarSwirl'||mode===3?'cryo_res':'anemo_res';
-            const resistance=input.enemy[key]??.1;
-            if(typeof resistance!=='number'||!Number.isFinite(resistance))throw Error('星扩散目标的敌人抗性无效');
-            const offset=(.1-resistance)*100;
-            input={...input,enemy:null,buffs:[...(input.buffs||[]),...(offset?[{name:'ResMinus',config:{ResMinus:{p:offset}}}]:[])]};
-        }
         if(input.target_function?.name!==MIZUKI_STELLAR_TARGET&&input.tf?.name!==MIZUKI_STELLAR_TARGET)return input;
         const out={...input};
         for(const key of ['target_function','tf'])if(out[key])out[key]=mizukiStellarTarget(out[key],input.character);

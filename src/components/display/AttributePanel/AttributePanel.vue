@@ -1,6 +1,5 @@
 <template>
     <div>
-        <p v-if="baseline" class="comparison-note">替换前 → 当前（差值） · 红增绿减<br>角色、武器和 BUFF 按当前设置，仅对比圣遗物。</p>
         <h3 class="class">{{ t("stat.base") }}</h3>
         <attribute-item :title="t('stat.lifeStatic')" :composition="attribute.hp" :baseline="baseline?.hp"></attribute-item>
         <attribute-item :title="t('stat.attackStatic')" :composition="attribute.atk" :baseline="baseline?.atk"></attribute-item>
@@ -70,7 +69,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.comparison-note{font-size:12px;line-height:1.6;color:var(--el-text-color-secondary)}
+
 .attribute {
     margin-bottom: 8px;
 }

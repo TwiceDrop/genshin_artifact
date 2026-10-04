@@ -10,7 +10,7 @@
                 <img class="image" :src="data.url" >
                 <div class="detail-body">
                     <p class="name">{{ ta(nameLocaleIndex) }}</p>
-                    <p class="description" v-if="data.effect" v-html="ta(effectLocaleIndex)"></p>
+                    <p class="description" v-if="data.effect && ta(effectLocaleIndex)" v-html="ta(effectLocaleIndex)"></p>
                 </div>
 
             </div>

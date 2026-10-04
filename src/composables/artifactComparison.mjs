@@ -29,12 +29,6 @@ export function useArtifactComparison({ storage, key, items, gameBaseline }) {
     const baseline = computed(() => !enabled.value ? null : mode.value === 'game' ? gameBaseline.value?.items
         : mode.value === 'history' ? historyRow.value?.items : sessionBaseline.value)
     const changes = computed(() => compareEquipment(items.value, baseline.value))
-    const description = computed(() => {
-        if (!enabled.value) return '圣遗物对比已关闭'
-        if (mode.value === 'game') return gameBaseline.value?.description || '该 UID 的角色尚无游戏内穿戴记录，请先同步角色'
-        if (mode.value === 'history') return historyRow.value ? `对比历史：${historyRow.value.label} · ${new Date(historyRow.value.time).toLocaleString()}` : '暂无该角色的配装历史，可保存当前配装或开始计算'
-        return sessionBaseline.value ? '对比本次开始计算前穿戴的圣遗物' : '开始计算后，将与本次计算前的穿戴进行对比'
-    })
     function record(label, equipment = items.value) {
         const frozen = snapshotEquipment(equipment)
         if (!frozen.some(Boolean)) return
@@ -53,5 +47,5 @@ export function useArtifactComparison({ storage, key, items, gameBaseline }) {
     }
     function reset() { sessionBaseline.value = null; selectedHistoryId.value = '' }
     watch(key, reset, { flush: 'sync' })
-    return { enabled, mode, history, historyId, baseline, changes, description, record, begin, reset }
+    return { enabled, mode, history, historyId, baseline, changes, record, begin, reset }
 }

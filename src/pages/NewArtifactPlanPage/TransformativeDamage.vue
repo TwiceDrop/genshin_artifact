@@ -32,6 +32,7 @@
                     >{{ row.value.toFixed(1) }}</span>
                     <span v-else>{{ row.value.toFixed(1) }}</span>
                 </template>
+                <span v-else>暂无结果</span>
             </template>
         </el-table-column>
     </el-table>
@@ -61,18 +62,7 @@ export default defineComponent({
             results.push({ value: this.data.swirl_hydro, key: "swirlHydro" })
             results.push({ value: this.data.crystallize, key: "crystallize" })
             
-            // 添加月感电和月绽放反应（如果存在数据）
-            if (Number.isFinite(this.data.moonelectro)) {
-                results.push({ value: this.data.moonelectro, key: "moonelectro", title: "月感电" })
-            }
-            if (Number.isFinite(this.data.direct_moonelectro)) {
-                results.push({ value: this.data.direct_moonelectro, key: "direct_moonelectro", title: "直接月感电" })
-            }
-            if (Number.isFinite(this.data.moonfall)) {
-                results.push({ value: this.data.moonfall, key: "moonfall", title: "月绽放" })
-            }
-            
-            return results
+            return results.filter(row => Number.isFinite(row.value))
         }
     },
     methods: {

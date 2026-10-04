@@ -10,7 +10,9 @@ const nl=raw.includes('\r\n')?'\r\n':'\n';
 const weapons=JSON.parse(raw.slice(raw.indexOf('{')));
 const zh=JSON.parse(fs.readFileSync(zhFile,'utf8'));
 const en=JSON.parse(fs.readFileSync(enFile,'utf8'));
-if(zh.length!==en.length)throw Error('Locale arrays differ');
+// Existing Chinese-only additions retain their indexes; use Chinese fallbacks.
+if(en.length>zh.length)throw Error('English locale exceeds source locale');
+while(en.length<zh.length)en.push(zh[en.length]);
 const specs={
   AthameArtis:[['burst_hit','bool',false,'元素爆发命中','Elemental Burst hit'],['secret_rite','bool',false,'魔导·秘仪生效','Hexerei Secret Rite active'],['rate','float',1,'白昼之刃覆盖率','Blade of the Daylight Hours coverage']],
   MoonweaverDawn:[['energy_cost','int',0,'装备者元素能量上限（0 为未知）','Wielder Energy capacity (0 if unknown)',0,100]],
@@ -27,6 +29,7 @@ const specs={
   NocturnesCurtainCall:[['lunar_active','bool',false,'已触发／造成月曜反应','Lunar reaction triggered or dealt'],['rate','float',1,'神酒效果覆盖率','Sacred Wine coverage']],
   AngelosHeptades:[['shield_active','bool',false,'装备者已创造护盾','Wielder created a Shield'],['rate','float',1,'先导之光覆盖率','Pathfinder’s Light coverage']],
 };
+for(const name of ['NightweaversLookingGlass','ReliquaryOfTruth'])specs[name].push(['overlap_rate','float',-1,'同时生效比例（-1 自动；双部分覆盖需填写）','Overlap (-1 auto; required for two partial states)',-1,1]);
 const add=(a,b)=>{const i=zh.length;zh.push(a);en.push(b);return i;};
 const created={};
 const inactiveDefaults={
@@ -44,6 +47,7 @@ const coverageControls={
   NightweaversLookingGlass:[['skill_rate','终北圣言覆盖率','Prayer of the Far North coverage'],['lunar_rate','朔月诗篇覆盖率','New Moon Verse coverage']],
   ReliquaryOfTruth:[['skill_rate','伪言之秘覆盖率','Secret of Lies coverage'],['lunar_rate','真识之月覆盖率','Moon of Truth coverage']],
 };
+for(const name of ['NightweaversLookingGlass','ReliquaryOfTruth'])coverageControls[name].push(['overlap_rate','同时生效比例（-1 自动；双部分覆盖需填写）','Overlap (-1 auto; required for two partial states)',-1,-1]);
 let updated=false;
 // The published UI already calls this weapon MoonweaverDawn. Remove the
 // earlier duplicate spelling emitted by this script before canonicalization.
@@ -63,8 +67,8 @@ for(const w of source.weapons){
     for(const config of meta.configs||[])if(inactiveDefaults[w.name]?.includes(config.name)&&config.default!==0&&config.default!==false){
       config.default=config.type==='bool'?false:0;updated=true;
     }
-    for(const [name,titleZh,titleEn] of coverageControls[w.name]||[])if(!meta.configs?.some(c=>c.name===name)){
-      (meta.configs??=[]).push({name,title:add(titleZh,titleEn),type:'float',min:0,max:1,default:1});updated=true;
+    for(const [name,titleZh,titleEn,min=0,def=1] of coverageControls[w.name]||[])if(!meta.configs?.some(c=>c.name===name)){
+      (meta.configs??=[]).push({name,title:add(titleZh,titleEn),type:'float',min,max:1,default:def});updated=true;
     }
     continue;
   }

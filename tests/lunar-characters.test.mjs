@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 import {LUNAR_CHARACTER_NAMES,LUNAR_CHARACTER_RULES,linneaCatalogHit} from '../beta-data/lunar-character-rules.mjs';
 import {EXTENSION_BUFF_REGISTRY,prepareExtensionBuffs} from '../beta-data/extension-buffs.mjs';
 import {collectReactionParameters,lunarParameters} from '../beta-data/reaction-parameter-rules.mjs';
-import {calculateDirectLunarDamage,calculateLunarCrystallizeTeam} from '../beta-data/lunar-damage.mjs';
+import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
 import {calculateBloomFamilyDamage} from '../beta-data/bloom-damage.mjs';
 import {withLunarDamageContexts} from '../beta-data/lunar-context-facade.mjs';
 import {NATIVE_EFFECT_ATTRIBUTES} from '../beta-data/buff-rule-schema.mjs';
@@ -49,11 +49,6 @@ test('3 兹白、莉奈娅和叶洛亚：月结晶双定额、直伤限定、来
  const buffs=[named('ZibaiTalent1'),named('LinneaTalent1'),named('ZibaiC2'),named('LinneaC1',{def:2000}),named('IllugaQ',{em:100,skill_level:10,team_hydro_geo_count:2}),named('LinneaC6')];
  near(calculateDirectLunarDamage(direct('lunar-crystallize',buffs)).non_critical,(160*1.28*1.3+1500+502.66)*1.25);
  near(values('IllugaQ',{em:100,skill_level:10,team_hydro_geo_count:2}).ExtraDmgGeo,74.48);
- const participant=(id,element,buffs=[])=>({id,element,buffs,levelBase:100,em:0,critRate:0,critDamage:0});
- const team={resistanceMultiplier:1,participants:[participant('Zibai','Geo'),participant('hydro','Hydro')]};
- const normal=calculateLunarCrystallizeTeam(team).expectation;
- const qOnly={...team,participants:[participant('Zibai','Geo',[named('IllugaQ')]),participant('hydro','Hydro')]};near(calculateLunarCrystallizeTeam(qOnly).expectation,normal);
- near(calculateLunarCrystallizeTeam({...team,participants:[participant('Zibai','Geo',[named('LinneaC1',{def:2000})]),participant('hydro','Hydro')]}).expectation-normal,900);
  const hit=linneaCatalogHit({def:2000,c6:true,stacks_available:18},input);near(hit.flat,4500);assert.equal(hit.consumed,2);
  near(values('LinneaC1',{c6:true,stacks_available:1}).ExtraDmgMoonCrystallize,0);
  assert.throws(()=>values('LinneaC1',{hit_mode:1}),/莉奈娅自身/);
@@ -86,5 +81,5 @@ test('5 实际单次API绑定、参数回归、优化隔离与修改后面板语
  const bloom={character:{name:'Vesna'},buffs:[named('LaumaBurst',{em:100})],ordinary_bloom_context:{kind:'hyperbloom',owner:{id:'Vesna',em:0},levelBase:100,resistanceMultiplier:1}};
  near(api.CalculatorInterface.get_damage_analysis(bloom).hyperbloom.expectation,800);
  assert.throws(()=>api.OptimizeSingleWasm.optimize(config,[]),/仅支持单次/);assert.throws(()=>api.OptimizeSingleWasm.optimize(bloom,[]),/仅支持单次/);
- const compiler=createRequire(import.meta.url)('@vue/compiler-sfc');const file=new URL('../src/pages/NewArtifactPlanPage/LunarDamagePanel.vue',import.meta.url);const source=fs.readFileSync(file,'utf8');const p=compiler.parse(source);assert.equal(p.errors.length,0);compiler.compileScript(p.descriptor,{id:'lunar-characters'});assert.equal(compiler.compileTemplate({source:p.descriptor.template.content,filename:'LunarDamagePanel.vue',id:'lunar-characters'}).errors.length,0);
+ assert.equal(fs.existsSync('src/pages/NewArtifactPlanPage/SingleHitPanel.vue'),false);
 });

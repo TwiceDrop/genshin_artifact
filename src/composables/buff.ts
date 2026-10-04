@@ -47,6 +47,7 @@ export function useBuff() {
     function addBuff(name: string, configured?: any) {
         if (name === POLESTAR_FIELD) { polestarEnabled.value = true; return }
         const data = buffData[name]
+        if (!data) throw new Error(`此 BUFF 已移除或不存在：${name}`)
         let defaultConfig: any = {}
         for (let c of data.config) {
             defaultConfig[c.name] = c.default

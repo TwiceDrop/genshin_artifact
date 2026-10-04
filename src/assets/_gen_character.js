@@ -13100,7 +13100,7 @@ export default {
     "weapon": "Catalyst",
     "star": 5,
     "avatar": "/characters/vodyanitsa.webp",
-    "splash": "/beta/vodyanitsa.svg",
+    "splash": "/characters/vodyanitsa-splash.png",
     "skillName1": 3518,
     "skillName2": 3519,
     "skillName3": 3520,
@@ -13208,12 +13208,6 @@ export default {
       {
         "name": "low_hp_heal",
         "title": 3532,
-        "type": "bool",
-        "default": false
-      },
-      {
-        "name": "q_song_bonus",
-        "title": 3533,
         "type": "bool",
         "default": false
       }

@@ -27,8 +27,6 @@
                     <el-button type="primary" :icon="IconEpCpu" @click="handleClickStart">{{ t("teamPage.start") }}</el-button>
                     <el-button :icon="IconEpPlus" @click="handleClickAddMember">{{ t("teamPage.add") }}</el-button>
                 </div>
-                <el-alert v-if="searchComplete === false" type="warning" :closable="false" show-icon
-                    title="已按搜索预算返回候选" description="这批配装已逐组复算；库存较大时搜索可能未覆盖全部组合。" />
 
                 <div
                     v-for="(presetName, index) in presetNames"

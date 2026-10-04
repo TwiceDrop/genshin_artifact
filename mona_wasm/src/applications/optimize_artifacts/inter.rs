@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::applications::common::{ArtifactFilterConfig, BuffInterface, CharacterInterface, TargetFunctionInterface, WeaponInterface};
+use crate::applications::common::{EnemyInterface, ArtifactFilterConfig, BuffInterface, CharacterInterface, TargetFunctionInterface, WeaponInterface};
 use crate::applications::optimize_artifacts::algorithm::SingleOptimizeAlgorithmName;
 use mona::artifacts::{Artifact, ArtifactSetName};
 use mona::artifacts::effect_config::{ArtifactConfigInterface, ArtifactEffectConfig};
@@ -70,6 +70,7 @@ impl Default for ConstraintConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct OptimizeArtifactInterface {
+    pub enemy: Option<EnemyInterface>,
     pub artifact_config: Option<ArtifactConfigInterface>,
     pub character: CharacterInterface,
     pub weapon: WeaponInterface,

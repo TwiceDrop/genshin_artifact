@@ -145,18 +145,26 @@ async function handleImport() {
     }
 }
 
-function handleDownload(name: string) {
+async function handleDownload(name: string) {
     const entry = presetStore.presets.value[name]
     const temp = [entry]
     const str = JSON.stringify(temp)
 
-    downloadString(str, "application/json", name)
+    try {
+        await downloadString(str, "application/json", name)
+    } catch (e) {
+        ElMessage.error(e instanceof Error ? e.message : String(e))
+    }
 }
 
-function handleExportAll() {
+async function handleExportAll() {
     const str = JSON.stringify(presetStore.allFlat.value)
 
-    downloadString(str, "application/json", t("misc.preset"))
+    try {
+        await downloadString(str, "application/json", t("misc.preset"))
+    } catch (e) {
+        ElMessage.error(e instanceof Error ? e.message : String(e))
+    }
 }
 
 

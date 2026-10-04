@@ -1,7 +1,5 @@
 <template>
     <section class="mys-import">
-        <p class="mys-lead">登录一次，把游戏里的养成数据带进莫娜。</p>
-        <p class="mys-help">同步国服账号拥有的角色、等级、命座、天赋、武器及已装备圣遗物。未装备的背包圣遗物请继续用 YAS／OCR 导入。</p>
         <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
         <div class="mys-section-title"><h3>Cookie 账号管理</h3><span>{{ savedAccounts.length }} 个账号</span></div>
         <div class="mys-roster">
@@ -17,14 +15,12 @@
                 </div>
             </div>
         </div>
-        <p class="mys-help">Cookie 在本机加密长期保存，关闭窗口、刷新页面或重启服务均保留。米游社使凭证失效时可扫码更新。删除 Cookie 不影响已导入的角色和装备。</p>
         <div class="mys-login">
             <div v-if="qrImage && !loggedIn" class="mys-qr">
                 <img :src="qrImage" alt="米游社登录二维码" width="200" height="200" />
                 <p>{{ qrStatus }}</p>
-                <small>使用米游社 App 扫码并确认登录 · {{ secondsLeft }} 秒</small>
+                <span>{{ secondsLeft }} 秒</span>
                 <el-button v-if="isNative" @click="saveQr">保存登录二维码</el-button>
-                <p v-if="isNative" class="mys-help">可在米游社扫一扫中从相册识别，或用另一台设备扫码。也支持从电脑导入 UID 数据包。</p>
             </div>
             <div class="mys-actions">
                 <el-button v-if="!loggedIn" type="primary" :loading="busy" @click="login">{{ qrImage ? '刷新二维码' : '米游社扫码登录' }}</el-button>
@@ -49,7 +45,6 @@
         <ul v-if="result?.warnings?.length" class="mys-warnings"><li v-for="(w, i) in result.warnings" :key="i">{{ w }}</li></ul>
         <div class="mys-section-title"><h3>已保存的角色</h3><span>{{ store.uidGroups.value.length }} 个 UID · 共 {{ entries.length }} 名</span></div>
         <miyoushe-character-picker :disabled="busy" @apply="name => emit('apply', name)" />
-        <p class="mys-help">导入天赋采用游戏显示等级（含命座等级加成）。队伍增益、武器层数和技能触发条件仍按计算页设置，请计算前确认。</p>
         <div class="mys-backup">
             <el-button type="primary" :disabled="!store.selectedUid.value || busy" @click="exportUid">导出此 UID 到手机 / 电脑</el-button>
             <el-checkbox v-model="includeInventory">附带未标记 UID 的仓库圣遗物（归入此 UID）</el-checkbox>
@@ -57,9 +52,7 @@
             <el-button size="small" :disabled="busy" @click="fileInput?.click()">导入 UID 数据包 / 角色快照</el-button>
             <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
         </div>
-        <p class="mys-help">此 UID 将导出 {{ exportArtifactCount }} 件圣遗物，包含已穿戴和闲置装备；已标记为其他 UID 的装备不包含在内。旧版 YAS／OCR 仓库没有 UID 标记时，可勾选上方选项一并带入。</p>
         <div class="mys-section-title"><h3>导入记录</h3><span>保存在当前莫娜账号 · {{ importRecords.length }} 条</span></div>
-        <p class="mys-help">撤销会恢复导入前的角色、预设和归属，仅移除本次非重复新增且未被修改或引用的装备；去重复用的原有装备始终保留。同一 UID 请从最新记录向前撤销；后续手动修改会保留。更新前的导入无法追溯。</p>
         <p v-if="undoResult" class="mys-result">{{ undoResult }}</p>
         <el-empty v-if="!importRecords.length" description="暂无导入记录" :image-size="65" />
         <div v-else class="mys-import-history">
@@ -91,7 +84,6 @@ import backend from '@/store/backend'
 import { useMona } from '@/wasm/mona'
 import { isNative, MonaLocal, saveText } from '@/platform/native.mjs'
 import { captureImportState, appendImportRecord, undoImportRecord } from '@/import/import-history.mjs'
-import { selectUidInventory } from '@/import/uid-inventory.mjs'
 import { useKumiStore } from '@/store/pinia/kumi'
 import { exportUidPackage, importUidPackage } from '@/import/uid-package.mjs'
 import { useArtifactStore } from '@/store/pinia/artifact'
@@ -105,7 +97,6 @@ const savedAccounts = ref([]), activeId = ref(''), manualOpen = ref(false), manu
 const includeInventory = ref(true)
 const importRecords = computed(() => store.data.value.importRecords || [])
 const undoResult = ref('')
-const exportArtifactCount = computed(() => selectUidInventory(store.selectedUid.value, store.data.value, usePresetStore().presets.value, useArtifactStore().artifacts.value, includeInventory.value).length)
 async function persistImport(accountId) {
     const saved = JSON.parse(JSON.stringify({ miyoushe: store.data.value, artifacts: artifactsContent(), presets: presetsContent() }))
     await new Promise(resolve => setTimeout(resolve, 0))
@@ -317,5 +308,5 @@ onBeforeUnmount(() => {
 .mys-import-history{max-height:420px;overflow:auto}.mys-import-record{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--el-border-color-light)}.mys-import-record strong{overflow-wrap:anywhere}.mys-import-record small{display:block;color:var(--el-text-color-secondary);margin-top:5px}.mys-import-record .el-button{flex-shrink:0}
 
 .mys-account-buttons{display:flex;flex-direction:column;gap:8px}.mys-account-buttons .el-button{margin-left:0}.mys-manual{display:flex;gap:10px;margin-top:14px}
-.mys-import{color:var(--el-text-color-primary)}.mys-lead{font-size:20px;font-weight:600;margin-top:0}.mys-help{font-size:13px;line-height:1.7;color:var(--el-text-color-secondary)}.mys-login{background:var(--el-fill-color-light);border:1px solid var(--el-border-color-light);border-radius:12px;padding:18px;margin:18px 0}.mys-qr{text-align:center;margin-bottom:18px}.mys-qr img{border-radius:10px}.mys-qr p{margin:8px 0}.mys-qr small{color:var(--el-text-color-secondary)}.mys-actions,.mys-backup{display:flex;gap:10px;flex-wrap:wrap}.mys-actions .el-button+.el-button{margin-left:0}.mys-section-title{display:flex;align-items:center;justify-content:space-between}.mys-section-title span{color:var(--el-text-color-secondary);font-size:13px}.mys-roster{max-height:340px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}.mys-character{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px;background:var(--el-fill-color-light);border-radius:8px}.mys-character small{display:block;font-size:11px;color:var(--el-text-color-secondary);margin-top:5px;line-height:1.5}.mys-result{color:#218354}.mys-warnings{color:#a46410!important;font-size:12px;line-height:1.7;max-height:150px;overflow:auto}.mys-backup{border-top:1px solid var(--el-border-color-light);padding-top:15px}@media(max-width:600px){.mys-roster{grid-template-columns:1fr}}
+.mys-import{color:var(--el-text-color-primary)}.mys-login{background:var(--el-fill-color-light);border:1px solid var(--el-border-color-light);border-radius:12px;padding:18px;margin:18px 0}.mys-qr{text-align:center;margin-bottom:18px}.mys-qr img{border-radius:10px}.mys-qr p{margin:8px 0}.mys-qr small{color:var(--el-text-color-secondary)}.mys-actions,.mys-backup{display:flex;gap:10px;flex-wrap:wrap}.mys-actions .el-button+.el-button{margin-left:0}.mys-section-title{display:flex;align-items:center;justify-content:space-between}.mys-section-title span{color:var(--el-text-color-secondary);font-size:13px}.mys-roster{max-height:340px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}.mys-character{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px;background:var(--el-fill-color-light);border-radius:8px}.mys-character small{display:block;font-size:11px;color:var(--el-text-color-secondary);margin-top:5px;line-height:1.5}.mys-result{color:#218354}.mys-warnings{color:#a46410!important;font-size:12px;line-height:1.7;max-height:150px;overflow:auto}.mys-backup{border-top:1px solid var(--el-border-color-light);padding-top:15px}@media(max-width:600px){.mys-roster{grid-template-columns:1fr}}
 </style>

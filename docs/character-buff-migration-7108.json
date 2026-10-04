@@ -1,0 +1,1265 @@
+{
+  "version": "7.1.08beta",
+  "scope": [
+    "single-hit",
+    "single-character-optimization"
+  ],
+  "counts": {
+    "data-rule": 174,
+    "scoped-data-rule": 11
+  },
+  "nativeAttributeSlots": {
+    "USER1": 0,
+    "USER2": 1,
+    "HealingBonus": 2,
+    "IncomingHealingBonus": 3,
+    "ElementalMastery": 4,
+    "ElementalMasteryExtra": 5,
+    "ATKFromSecondaryConversion": 6,
+    "ATKExcludingSecondaryConversion": 7,
+    "Recharge": 8,
+    "ShieldStrength": 9,
+    "DefMinus": 10,
+    "DefPenetration": 11,
+    "ResMinusBase": 12,
+    "ResMinusElectro": 13,
+    "ResMinusPyro": 14,
+    "ResMinusHydro": 15,
+    "ResMinusCryo": 16,
+    "ResMinusGeo": 17,
+    "ResMinusAnemo": 18,
+    "ResMinusDendro": 19,
+    "ResMinusPhysical": 20,
+    "SpeedNormalAttack": 21,
+    "SpeedChargedAttack": 22,
+    "HPBase": 23,
+    "HPFixed": 24,
+    "HPPercentage": 25,
+    "HP": 26,
+    "ATKBase": 27,
+    "ATKFixed": 28,
+    "ATKPercentage": 29,
+    "ATK": 30,
+    "DEFBase": 31,
+    "DEFFixed": 32,
+    "DEFPercentage": 33,
+    "DEF": 34,
+    "ATKBonusForOther": 35,
+    "HealBonusForOther": 36,
+    "CriticalBase": 37,
+    "CriticalAttacking": 38,
+    "CriticalNormalAttack": 39,
+    "CriticalChargedAttack": 40,
+    "CriticalPlungingAttack": 41,
+    "CriticalElementalSkill": 42,
+    "CriticalElementalBurst": 43,
+    "CriticalElectro": 44,
+    "CriticalPyro": 45,
+    "CriticalHydro": 46,
+    "CriticalCryo": 47,
+    "CriticalAnemo": 48,
+    "CriticalGeo": 49,
+    "CriticalDendro": 50,
+    "CriticalPhysical": 51,
+    "CriticalDamageBase": 52,
+    "CriticalDamageNormalAttack": 53,
+    "CriticalDamageChargedAttack": 54,
+    "CriticalDamagePlungingAttack": 55,
+    "CriticalDamageElementalSkill": 56,
+    "CriticalDamageElementalBurst": 57,
+    "CriticalDamageElectro": 58,
+    "CriticalDamagePyro": 59,
+    "CriticalDamageHydro": 60,
+    "CriticalDamageCryo": 61,
+    "CriticalDamageAnemo": 62,
+    "CriticalDamageGeo": 63,
+    "CriticalDamageDendro": 64,
+    "CriticalDamagePhysical": 65,
+    "BonusBase": 66,
+    "BonusNormalAttack": 67,
+    "BonusChargedAttack": 68,
+    "BonusPlungingAttack": 69,
+    "BonusElementalSkill": 70,
+    "BonusElementalBurst": 71,
+    "BonusElectro": 72,
+    "BonusPyro": 73,
+    "BonusHydro": 74,
+    "BonusCryo": 75,
+    "BonusAnemo": 76,
+    "BonusGeo": 77,
+    "BonusDendro": 78,
+    "BonusPhysical": 79,
+    "BonusNormalAndElemental": 80,
+    "EnhanceBurgeon": 81,
+    "EnhanceHyperbloom": 82,
+    "EnhanceBloom": 83,
+    "EnhanceOverload": 84,
+    "EnhanceBurning": 85,
+    "EnhanceShatter": 86,
+    "EnhanceElectroCharged": 87,
+    "EnhanceSuperconduct": 88,
+    "EnhanceSwirlElectro": 89,
+    "EnhanceSwirlPyro": 90,
+    "EnhanceSwirlHydro": 91,
+    "EnhanceSwirlCryo": 92,
+    "EnhanceSwirlBase": 93,
+    "EnhanceVaporize": 94,
+    "EnhanceMelt": 95,
+    "EnhanceAggravate": 96,
+    "EnhanceSpread": 97,
+    "ExtraDmgBase": 190,
+    "ExtraDmgNormalAttack": 191,
+    "ExtraDmgChargedAttack": 192,
+    "ExtraDmgPlungingAttack": 193,
+    "ExtraDmgPlungingAttackLowHigh": 194,
+    "ExtraDmgElementalSkill": 195,
+    "ExtraDmgElementalBurst": 196,
+    "ExtraDmgElectro": 197,
+    "ExtraDmgPyro": 198,
+    "ExtraDmgHydro": 199,
+    "ExtraDmgCryo": 200,
+    "ExtraDmgAnemo": 201,
+    "ExtraDmgGeo": 202,
+    "ExtraDmgDendro": 203,
+    "ExtraDmgPhysical": 204,
+    "EnhanceStellarSuperconduct": 213,
+    "StellarSwirlBonus": 220,
+    "StellarSwirlBaseBonus": 221,
+    "StellarConductBaseBonus": 214,
+    "StellarSwirlCritRate": 223,
+    "StellarSwirlCritDamage": 224,
+    "EnhanceMoonelectro": 98,
+    "EnhanceMoonReaction": 105,
+    "ElevateMoonelectro": 106,
+    "ElevateMoonbloom": 107,
+    "ElevateMoonCrystallize": 108,
+    "CriticalMoonReaction": 138,
+    "CriticalDamageMoonReaction": 139,
+    "SwirlExtraDmg": 205,
+    "EnhanceMoonbloom": 102,
+    "EnhanceMoonCrystallize": 100,
+    "StellarConductCritDamage": 217,
+    "StellarSwirlReactionAnemoFlat": 231
+  },
+  "legacyScopeCompatibility": [
+    "OdetteTalent1",
+    "OdetteMarvelousSplendor",
+    "OdetteC4SnowSwanDream",
+    "OdetteC6MarvelousSplendor",
+    "DionaC6StellarConduct",
+    "YumemizukiMizukiE",
+    "YumemizukiMizukiC6"
+  ],
+  "rows": [
+    {
+      "name": "AlbedoTalent2",
+      "label": "阿贝多-「瓶中人的天慧」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AlbedoC4",
+      "label": "阿贝多-「神性之陨」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AlbedoC6",
+      "label": "阿贝多-「无垢之土」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AlbedoWitchEve",
+      "label": "阿贝多-「魔女的前夜礼·白芒之书」",
+      "route": "data-rule",
+      "legacyPolicy": "def=0 uses native dependency"
+    },
+    {
+      "name": "AmberC6",
+      "label": "安柏-「疾如野火」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AloyTalent1",
+      "label": "埃洛伊-「战斗覆盖」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AratakiIttoC4",
+      "label": "荒泷一斗-「奉行牢狱，茶饭之所」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "BeidouC6",
+      "label": "北斗-「北斗祓幽孽」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "BeidouC6StellarConduct",
+      "label": "北斗-「辛映·星超导」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "BennettQ",
+      "label": "班尼特-「美妙旅程」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "BennettC6",
+      "label": "班尼特-「烈火与勇气」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "FischlWitchEve",
+      "label": "菲谢尔-「魔女的前夜礼·宵世幻奏」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ChongyunTalent2",
+      "label": "重云-「追冰剑诀」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DionaC6G50",
+      "label": "迪奥娜-「猫尾打烊之时」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DionaC6StellarConduct",
+      "label": "迪奥娜-「辉映·星烁」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "QiqiTalent2StellarConduct",
+      "label": "七七·七宝奉真（辉映·星烁）",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "QiqiC6StellarConduct",
+      "label": "七七六命·洞玄（直接星烁伤害）",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CynoC1StellarConduct",
+      "label": "赛诺-「立仪·俯览昼冥」偕日共升（辉映·星超导）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CynoC2StellarConduct",
+      "label": "赛诺-「令仪·引谒归灵」（辉映·星超导）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "EscoffierTalent3",
+      "label": "爱可菲-「灵感浸入调味」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "EscoffierC1",
+      "label": "爱可菲-C1-「味蕾绽放的餐前旋舞」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "EscoffierC2",
+      "label": "爱可菲-C2-「鲜香味腴的炖煮艺术」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "EulaE",
+      "label": "优菈-「冰潮的涡旋」减抗",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "GanyuTalent2",
+      "label": "甘雨-「天地交泰」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "GanyuC1",
+      "label": "甘雨-「饮露」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "GorouE1",
+      "label": "五郎-「大将旗指物」-1",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "GorouE3",
+      "label": "五郎-「大将旗指物」-3",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "GorouTalent1",
+      "label": "五郎-「不畏风雨」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "GorouC6",
+      "label": "五郎-「犬勇•忠如山」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "HuTaoTalent1",
+      "label": "胡桃-「蝶隐之时」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AinoC1",
+      "label": "爱诺-C1「灰与力场的平衡理论」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AinoC6",
+      "label": "爱诺-C6「天才之为构造之责任」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IneffaMoonelectroRelay",
+      "label": "伊涅芙-「月兆祝赐·象拟中继」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IneffaTalent3",
+      "label": "伊涅芙-「全相重构协议」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "JeanC4",
+      "label": "琴-「蒲公英的国土」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KaedeharaKazuhaTalent2",
+      "label": "枫原万叶-「风物之诗咏」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KaedeharaKazuhaC2",
+      "label": "枫原万叶-「山岚残芯」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KamisatoAyakaC4",
+      "label": "神里绫华-「盈缺流返」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KleeC1",
+      "label": "可莉-「连环轰隆」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KleeC2",
+      "label": "可莉-「破破弹片」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KleeC6",
+      "label": "可莉-「火力全开」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KujouSaraEOrQ",
+      "label": "九条裟罗-「天狗咒雷」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "FlinsTalent1",
+      "label": "菲林斯-「月兆祝赐·旧世潜藏」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "FlinsC6",
+      "label": "菲林斯-「歌与亡者之舞」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LaumaTalent1",
+      "label": "菈乌玛-「月兆祝赐·千籁恩宠」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LaumaTalent2",
+      "label": "菈乌玛-「奉向霜夜的明光」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LaumaSkillResMinus",
+      "label": "菈乌玛-霜林圣域抗性降低",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LaumaBurst",
+      "label": "菈乌玛-「苍色祷歌」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LaumaC6",
+      "label": "菈乌玛-「我愿将这血与泪奉予月明」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ColumbinaP1",
+      "label": "哥伦比娅-「月兆祝赐·借汝月光」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ColumbinaQ",
+      "label": "哥伦比娅-「万古潮汐·月之领域」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ColumbinaC2",
+      "label": "哥伦比娅-「为夜增辉，与君遥伴」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ColumbinaConstellation",
+      "label": "哥伦比娅-「多重之月擢升」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ColumbinaC6",
+      "label": "哥伦比娅-「夜昏且暗，且随月光」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NeferTalent1",
+      "label": "奈芙尔-「月兆祝赐·廊下暮影」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LisaTalent2",
+      "label": "丽莎-「静电场力」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "MonaQ",
+      "label": "莫娜-「星异」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "MonaC1",
+      "label": "莫娜-「沉没的预言」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "MonaC2",
+      "label": "莫娜-「星月的连珠」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "MonaMagusGlow",
+      "label": "莫娜-「水星天的辉光」（魔导·秘仪）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NingguangTalent2",
+      "label": "凝光-「储之千日，用之一刻」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "RaidenShogunE",
+      "label": "雷电将军-「雷罚恶曜之眼」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "RaidenShogunC4",
+      "label": "雷电将军-「誓奉常道」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "RazorC4",
+      "label": "雷泽-「撕咬」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "RosariaTalent2",
+      "label": "罗莎莉亚-「暗中支援的黯色」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "RosariaC6",
+      "label": "罗莎莉亚-「代行裁判」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SethosC4",
+      "label": "赛索斯-C4「真念鸵羽集」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ShenheE",
+      "label": "申鹤-「冰翎」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ShenheQ",
+      "label": "申鹤-「神女遣灵真诀」减抗",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ShenheTalent1",
+      "label": "申鹤-「大洞弥罗尊法」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ShenheTalent2",
+      "label": "申鹤-「缚灵通真法印」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SucroseTalent1",
+      "label": "砂糖-「触媒置换术」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SucroseTalent2",
+      "label": "砂糖-「小小的慧风」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SucroseTalentMagusE",
+      "label": "砂糖-「魔导·秘仪」（小型风灵）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SucroseTalentMagusQ",
+      "label": "砂糖-「魔导·秘仪」（大型风灵）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SucroseC6",
+      "label": "砂糖-「混元熵增论」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ThomaTalent1",
+      "label": "托马-「甲衣交叠」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ThomaC6",
+      "label": "托马-「炽烧的至心」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VentiC2",
+      "label": "温迪-「眷恋的泠风」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VentiC6",
+      "label": "温迪-「抗争的暴风」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VentiSongOfTime",
+      "label": "温迪-「魔女的前夜礼·颂时风若」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VentiTalentFreedom",
+      "label": "温迪-「自由的凛风」（魔导·秘仪）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XianglingTalent2",
+      "label": "香菱-「绝云朝天椒」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XianglingC1",
+      "label": "香菱-「外酥里嫩」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "TravelerElements",
+      "label": "旅行者-强化共鸣",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AetherCryoTalent1",
+      "label": "冰旅行者-「星耀祝礼·幻变冰镜」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AetherCryoC2",
+      "label": "冰旅行者-二命「嗡鸣的陨冰」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AetherCryoC6",
+      "label": "冰旅行者-六命「肃杀的熙冰」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "TravelerEnhancedAttribute",
+      "label": "旅行者-强化属性",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XianglingC6",
+      "label": "香菱-「大龙卷旋火轮」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XingqiuC2",
+      "label": "行秋-「天青现虹」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XinyanC4",
+      "label": "辛焱-「节奏的传染」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XinyanTalent2",
+      "label": "辛焱-「这才是摇滚!」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YaeMikoC1",
+      "label": "八重神子-「野狐供真篇」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YaeMikoC2",
+      "label": "八重神子-「望月吼哕声」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YaeMikoC4",
+      "label": "八重神子-「绯樱引雷章」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YoimiyaTalent2",
+      "label": "宵宫-「炎昼风物诗」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YunjinQ",
+      "label": "云堇-「飞云旗阵」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YunjinC2",
+      "label": "云堇-「诸般切末」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ZhongliShield",
+      "label": "钟离-「玉璋护盾」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YelanTalent2",
+      "label": "夜兰-「妙转随心」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YelanC4",
+      "label": "夜兰-「诓惑者，接树移花」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KamisatoAyatoQ",
+      "label": "神里绫人-「水囿」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ShikanoinHeizouTalent2",
+      "label": "鹿野院平藏-因由勘破",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "TighnariC4",
+      "label": "提纳里-「由片叶管窥枯荣」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DoriC4",
+      "label": "多莉-「酌盈剂虚」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "FurinaQ",
+      "label": "芙宁娜-「万众狂欢」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NilouTalent1",
+      "label": "妮露-「折旋落英之庭」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NilouTalent2",
+      "label": "妮露-「翩舞永世之梦」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CandaceQ",
+      "label": "坎蒂丝-「赤冕祝祷」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CandaceTalent2",
+      "label": "坎蒂丝-「漫沙陨穹」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NahidaTalent1",
+      "label": "纳西妲-「净善摄受明论」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NahidaC2",
+      "label": "纳西妲-「正等善见之根」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "FaruzanQ",
+      "label": "法露珊 - 「抟风秘道」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "Mika",
+      "label": "米卡 -「灵风」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KavehQ",
+      "label": "卡维Q",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "BaizhuTalent2",
+      "label": "白术-「在地为化」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "BaizhuC4",
+      "label": "白术-「法古观冥」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XianyunTalent1",
+      "label": "闲云-「霜翎高逐祥风势」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XianyunTalent2",
+      "label": "闲云-「细想应是洞中仙」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "KachinaC4",
+      "label": "卡齐娜-「敌人越多，越要小心」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XilonenE",
+      "label": "希诺宁-「音火锻淬」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XilonenC2",
+      "label": "希诺宁-「献予灼原的五重奏」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "XilonenC4",
+      "label": "希诺宁-「荣花之赐」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LaylaC4",
+      "label": "莱依拉-「星示昭明」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CitlaliTalent1",
+      "label": "茜特菈莉-「五重天的寒雨」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CitlaliC1",
+      "label": "茜特菈莉-「四百星的芒刃」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "CitlaliC6",
+      "label": "茜特菈莉-「原动天的密契」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "EmilieC2",
+      "label": "艾梅莉埃-「湖光顶调」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YumemizukiMizukiC1",
+      "label": "梦见月瑞希-「宿雾若水遥」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YumemizukiMizukiC2",
+      "label": "梦见月瑞希-「缠忆君影梦相见」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "YumemizukiMizukiC6",
+      "label": "梦见月瑞希-「慕念萦心间」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "YumemizukiMizukiE",
+      "label": "梦见月瑞希-「秋沙歌枕巡礼」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "YumemizukiMizukiEnhancedEM",
+      "label": "梦见月瑞希-「廓然梦生」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IansanTalent2",
+      "label": "伊安珊-「动能标示」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ChevreuseTalent1",
+      "label": "夏沃蕾-「尖兵协同战法」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ChevreuseTalent2",
+      "label": "夏沃蕾-「纵阵武力统筹」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ChevreuseC6",
+      "label": "夏沃蕾-「终结罪恶的追缉」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "MavuikaTalent2",
+      "label": "玛薇卡-「基扬戈兹」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "MavuikaC6",
+      "label": "玛薇卡-「焚曜之环·灼象」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "OroronC6",
+      "label": "欧洛伦-C6「致深泉的颂赞」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DurinTalent2",
+      "label": "杜林-「光灵遵神数显现」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DurinC1",
+      "label": "杜林-「红土之逆」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DurinC2",
+      "label": "杜林-「无底之想」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "DurinC6",
+      "label": "杜林-「双重诞生」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ZibaiTalent1",
+      "label": "兹白-「月兆祝赐·浮明若流」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "ZibaiC2",
+      "label": "兹白-「化于生而死于尸」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaTalent1",
+      "label": "莉奈娅-「栖地考察」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaTalent2",
+      "label": "莉奈娅-「野外观察手记」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaTalent3",
+      "label": "莉奈娅-「万类博物图鉴」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaC1",
+      "label": "莉奈娅-「历览编录」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaC2",
+      "label": "莉奈娅-「喜或悲的谕告」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaC4",
+      "label": "莉奈娅-「专家的直感觉」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LinneaC6",
+      "label": "莉奈娅-「黄金猎犬之梦」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IfaTalent2",
+      "label": "伊法-「救援要义」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "JahodaTalent2",
+      "label": "雅珂达-「蜜莓的嘉赏」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "JahodaC6",
+      "label": "雅珂达-「最渺小的幸运」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IllugaP2",
+      "label": "叶洛亚-「铸灯者的盟约」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IllugaQ",
+      "label": "叶洛亚-「魇夜的莺歌」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "IllugaC4",
+      "label": "叶洛亚-「逐日之狼」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "PruneTalent1",
+      "label": "布伦妮-「魔女的前夜礼·寻魔之誓」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "PruneTalent2",
+      "label": "布伦妮-「振铃同心」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "PruneC6",
+      "label": "布伦妮-「故事结尾在这儿」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LohenTalent2",
+      "label": "洛恩-「戏言的杰作」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "LohenC2",
+      "label": "洛恩-「凡飞翔者，皆为靶标」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NicoleE",
+      "label": "尼可-「虚己之赐」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NicoleC2",
+      "label": "尼可-「我要教导你，指引你应走的路」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NicoleC4",
+      "label": "尼可-「向左或向右，无论你行往何方」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "NicoleC6",
+      "label": "尼可-「这便是正确的道路，莫要彷徨」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SandroneTalent1",
+      "label": "桑多涅·星耀祝礼·唯理为光",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "SandroneC1",
+      "label": "桑多涅一命·鎏金未凋，夕暮已远",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "AlyoshaHunterPrecision",
+      "label": "阿罗夏-「猎者之准」",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "OdetteTalent1",
+      "label": "奥黛塔-「星耀祝礼·银晓之舞」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "OdetteMarvelousSplendor",
+      "label": "奥黛塔-「华彩」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "OdetteC2MarvelousSplendor",
+      "label": "奥黛塔-「她想，我要见证雪鹄未见之梦」（华彩）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "OdetteC2SoloDance",
+      "label": "奥黛塔-「她想，我要见证雪鹄未见之梦」（独舞倒影）",
+      "route": "data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "OdetteC4SnowSwanDream",
+      "label": "奥黛塔-「向上，坠往恍惚、燃烧的蓝空」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "OdetteC6MarvelousSplendor",
+      "label": "奥黛塔-「伸出手，触及苍穹永恒的面容」",
+      "route": "data-rule",
+      "legacyPolicy": "native scope retained"
+    },
+    {
+      "name": "VodyanitsaE",
+      "label": "沃雅妮莎-「宣叙·晨声纷流」",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VodyanitsaA4",
+      "label": "沃雅妮莎-「十二弦的泪歌」",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VodyanitsaC1",
+      "label": "沃雅妮莎-「聚光灯下的水华」",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VodyanitsaC2",
+      "label": "沃雅妮莎-「穿彻风雪的余响」",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VodyanitsaC6",
+      "label": "沃雅妮莎-「永不落幕的盛歌」",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VodyanitsaA1",
+      "label": "沃雅妮莎-「最后的塑诗者」",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    },
+    {
+      "name": "VesnaTalent1",
+      "label": "薇斯纳·突破被动·星扩散基础伤害",
+      "route": "scoped-data-rule",
+      "legacyPolicy": "compile supported attributes; otherwise retain entire native buff"
+    }
+  ]
+}

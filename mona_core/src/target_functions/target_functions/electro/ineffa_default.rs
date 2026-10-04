@@ -8,7 +8,6 @@ use crate::common::i18n::locale;
 use crate::common::item_config_type::{ItemConfig, ItemConfigType};
 use crate::common::{StatName, WeaponType, Element, SkillType};
 use crate::damage::{DamageContext, SimpleDamageBuilder};
-use crate::damage::level_coefficient::LEVEL_MULTIPLIER;
 use crate::target_functions::{TargetFunction, TargetFunctionConfig, TargetFunctionName};
 use crate::target_functions::target_function::TargetFunctionMetaTrait;
 use crate::target_functions::target_function_meta::{TargetFunctionFor, TargetFunctionMeta, TargetFunctionMetaImage};
@@ -32,8 +31,8 @@ impl TargetFunctionMetaTrait for IneffaDefaultTargetFunction {
             en: "Ineffa-Mechanical Moon"
         ),
         description: locale!(
-            zh_cn: "一轮输出：一次反应月感电+一次直伤月感电+一次薇尔琪塔放电伤害",
-            en: "One Round: Reaction Moon Electro + Direct Moon Electro + Vilkita Discharge DMG"
+            zh_cn: "单次组合：一次直伤月感电+一次薇尔琪塔放电伤害",
+            en: "One Direct Moon Electro + One Vilkita Discharge Hit"
         ),
         tags: "输出",
         four: TargetFunctionFor::SomeWho(CharacterName::Ineffa),
@@ -116,15 +115,8 @@ impl TargetFunction for IneffaDefaultTargetFunction {
         let dmg_vilkita = Ineffa::damage_internal::<SimpleDamageBuilder>(&context, S::VilkitaDischarge as usize, &config, None);
         let electro_damage = dmg_vilkita.normal.expectation;
 
-        // 一次反应月感电伤害（假设基于E技能触发，手动计算反应伤害）
-        let character_level = character.common_data.level;
         let em = attribute.get_em_all();
-        
-        // 使用正确的等级系数和月感电基础倍率
-        let level_multiplier = LEVEL_MULTIPLIER[character_level - 1];
-        let moonelectro_base_multiplier = 3.0 * 0.6; // Legacy single leading contributor target, NOT a full team result
-        let em_multiplier = 1.0 + (6.0 * em) / (em + 2000.0);
-        
+
         // 获取月感电相关加成
         let moonelectro_base_enhance = attribute.get_value(AttributeName::EnhanceMoonelectroBase); // 被动天赋基础伤害提升
         let moonelectro_enhance = attribute.get_value(AttributeName::EnhanceMoonelectro); // 一命伤害提升
@@ -132,11 +124,6 @@ impl TargetFunction for IneffaDefaultTargetFunction {
         let crit_damage = attribute.get_value(AttributeName::CriticalDamageBase);
         let resistance_ratio = enemy.get_resistance_ratio(Element::Electro, attribute.get_enemy_res_minus(Element::Electro, SkillType::NoneType));
         
-        // 反应月感电计算：等级系数 × 基础倍率 × (1+基础提升%) × (1+EM加成+月感电增伤+通用月曜增伤) × 抗性系数 × 暴击区
-        let enhanced_base_multiplier = moonelectro_base_multiplier * (1.0 + moonelectro_base_enhance);
-        let moonelectro_base_damage = level_multiplier * enhanced_base_multiplier * (em_multiplier + moonelectro_enhance + attribute.get_value(AttributeName::EnhanceMoonReaction));
-        let moonelectro_reaction_damage = crate::damage::reaction_parameters::finish_lunar(attribute,crate::damage::reaction_parameters::LunarKind::Electro,moonelectro_base_damage,0.0,crit_rate,crit_damage,resistance_ratio).expectation;
-
         // 一次直伤月感电（天赋2：频率超限回路）
         // 公式：直伤月感电 = 3 × 攻击力 × 倍率 × (1+基础提升%) × (1+(6×元素精通)/(元素精通+2000)+月感电增伤%) × 抗性系数 × 暴击区
         let atk = attribute.get_atk(); // 使用完整的攻击力计算，包括所有来源
@@ -148,8 +135,8 @@ impl TargetFunction for IneffaDefaultTargetFunction {
         let direct_moonelectro_base = multiplier_3x * atk * talent_ratio * (1.0 + moonelectro_base_enhance);
         let direct_moonelectro_damage = crate::damage::reaction_parameters::finish_lunar(attribute,crate::damage::reaction_parameters::LunarKind::Electro,direct_moonelectro_base*(1.0+direct_em_multiplier+moonelectro_enhance+attribute.get_value(AttributeName::EnhanceMoonReaction)),0.0,crit_rate,crit_damage,resistance_ratio).expectation;
 
-        // 总伤害 = 一次反应月感电 + 一次直伤月感电 + 一次薇尔琪塔放电伤害
-        let total_damage = electro_damage + moonelectro_reaction_damage + direct_moonelectro_damage;
+        // 总伤害 = 一次直伤月感电 + 一次薇尔琪塔放电伤害
+        let total_damage = electro_damage + direct_moonelectro_damage;
 
         total_damage
     }

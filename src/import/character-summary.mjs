@@ -1,3 +1,5 @@
+import { resolveActiveTalents } from './character-talents.mjs'
+
 export const ELEMENT_NAMES = { Pyro: '火', Hydro: '水', Anemo: '风', Electro: '雷', Dendro: '草', Cryo: '冰', Geo: '岩' }
 const ELEMENT_ALIAS = { Fire: 'Pyro', Water: 'Hydro', Wind: 'Anemo', Electric: 'Electro', Grass: 'Dendro', Ice: 'Cryo', Rock: 'Geo' }
 const WEAPON_NAMES = { Sword: '单手剑', Claymore: '双手剑', Polearm: '长柄武器', Bow: '弓', Catalyst: '法器' }
@@ -20,8 +22,12 @@ export function characterSummary(entry, { preset, raw, characters, weapons, arti
     const element = meta?.element || ELEMENT_ALIAS[raw?.base?.element] || raw?.base?.element || ''
     const weaponMeta = weapons[weapon?.name]
     const label = meta ? locale[meta.nameLocale] : entry.label
-    const talents = character ? [character.skill1, character.skill2, character.skill3].map(n => n === undefined ? '—' : shownNumber(Number(n) + 1))
-        : [0, 1, 2].map(i => shownNumber(raw?.skills?.filter(s => Number(s.skill_type) === 1)[i]?.level))
+    let talents = ['—', '—', '—'], talentError = ''
+    if (character) talents = [character.skill1, character.skill2, character.skill3].map(n => n === undefined ? '—' : shownNumber(Number(n) + 1))
+    else if (raw) {
+        try { talents = resolveActiveTalents(raw.skills, meta, locale).map(skill => shownNumber(skill.level)) }
+        catch (error) { talentError = error.message }
+    }
     const gear = preset ? (preset.artifactIds || entry.artifactIds || []).map(id => inventory.get(id))
         : (raw?.relics || []).map(r => ({ position: r.pos, setName: r.set?.name || Object.keys(artifacts).find(k => ['flower', 'feather', 'sand', 'cup', 'head'].some(p => locale[artifacts[k][p]?.text] === r.name)) }))
     return {
@@ -32,7 +38,7 @@ export function characterSummary(entry, { preset, raw, characters, weapons, arti
         talents: `天赋：${talents.join('、')}`,
         set: fourPieceSet(gear, artifacts, locale),
         weapon: `${locale[weaponMeta?.nameLocale] || raw?.weapon?.name || '未知武器'} 精炼${shownNumber(weapon?.refine ?? raw?.weapon?.affix_level)}阶 ${shownNumber(weapon?.level ?? raw?.weapon?.level)}级`,
-        warning: entry.warning || (preset && entry.error?.startsWith('本次同步未返回该角色') ? entry.error : ''),
+        warning: entry.warning || (preset && entry.error?.startsWith('本次同步未返回该角色') ? entry.error : '') || (!entry.error ? talentError : ''),
         error: (preset && entry.error?.startsWith('本次同步未返回该角色') ? '' : entry.error) || (!preset ? '计算预设已删除，请重新同步角色' : ''),
     }
 }

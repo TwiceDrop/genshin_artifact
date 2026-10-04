@@ -97,7 +97,10 @@ export function createDamageEvaluator(mona, input, reaction, fumo, stats, tier) 
         panel(allocation) {
             apply(allocation)
             const panel = mona.CommonInterface.get_attribute(config)
-            return Object.fromEntries(Object.entries(panel).map(([key, values]) => [key, Object.values(values).reduce((sum, n) => sum + n, 0)]))
+            // Facades also attach weapon metadata. Only numeric attribute maps are panels.
+            return Object.fromEntries(Object.entries(panel)
+                .filter(([, values]) => values && typeof values === 'object' && !Array.isArray(values) && Object.values(values).every(Number.isFinite))
+                .map(([key, values]) => [key, Object.values(values).reduce((sum, n) => sum + n, 0)]))
         },
     }
 }

@@ -15,13 +15,13 @@
 
 ## 安装说明
 
-在 [7.1.07 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.07) 选择对应版本：
+在 [7.1.07 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.08) 选择对应版本：
 
 | 平台 | 下载与使用 |
 | --- | --- |
-| Windows 10/11（64 位） | 下载 [EXE 安装包](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.07/genshin_artifact_V7.1.07_windows_x64_setup.exe)，退出旧版后安装，从开始菜单打开。安装包自带 Node.js，无需另装。 |
-| Android | 下载 [APK 安装包](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.07/genshin_artifact_V7.1.07_android.apk)，在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
-| 网页版 | 下载 [网页 ZIP](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.07/genshin_artifact_V7.1.07_web.zip)，安装 Node.js 20 或更新版本，解压后运行 `启动7.1.07.bat`，访问 http://127.0.0.1:4183/#/calculate 。使用时保留服务窗口。 |
+| Windows 10/11（64 位） | 下载 [EXE 安装包](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.08/genshin_artifact_V7.1.08_windows_x64_setup.exe)，退出旧版后安装，从开始菜单打开。安装包自带 Node.js，无需另装。 |
+| Android | 下载 [APK 安装包](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.08/genshin_artifact_V7.1.08_android.apk)，在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
+| 网页版 | 下载 [网页 ZIP](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.08/genshin_artifact_V7.1.08_web.zip)，安装 Node.js 20 或更新版本，解压后运行 `启动7.1.07.bat`，访问 http://127.0.0.1:4183/#/calculate 。使用时保留服务窗口。 |
 
 ## 其他
 

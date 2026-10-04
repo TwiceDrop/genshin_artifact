@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {api,vesna,sum} from '../beta-tools/runtime-7106.mjs';
+import {calculateSingleHit} from '../beta-data/single-hit-damage.mjs';
+import {EXTENSION_BUFF_REGISTRY} from '../beta-data/extension-buffs.mjs';
+const named=(p={})=>({name:'AlyoshaHunterPrecision',config:{AlyoshaHunterPrecision:p}});
+const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} != ${b}`);
+export const gear=['Flower','Feather','Sand','Goblet','Head'].map((slot,i)=>({id:i+1,set_name:'GladiatorsFinale',slot,level:20,star:5,main_stat:[i===0?'HPFixed':i===1?'ATKFixed':'ATKPercentage',i===0?4780:i===1?311:.466],sub_stats:[]}));
+test('Pilot: declarative Alyosha buff, single hit and real WASM optimization',()=>{
+ const buff=named({c6:true,skill_level:10,stacks:2});
+ const value=EXTENSION_BUFF_REGISTRY.compile(buff,{character:{name:'Vesna'}})[0].config.ExtensionEffect.values;
+ assert.deepEqual(value,{ATKPercentage:.424,ElementalMastery:100,EnhanceStellarSuperconduct:.4});
+ assert.deepEqual(EXTENSION_BUFF_REGISTRY.compile(named({recipient_on_field:false}),{}),[]);
+ const manual={kind:'ordinary',character:{name:'Vesna'},panelMode:'before-buffs',panel:{ATK:2000,ATKBase:1000,ATKPercentage:1,em:0,critRate:0,critDamage:0,damageBonus:0},skillMultiplier:1,resistanceBeforeBuffs:0};
+ near(calculateSingleHit({...manual,buffs:[buff]}).non_critical,1212);
+ const input={...structuredClone(vesna),buffs:[buff],artifacts:gear,target_function:{name:'VesnaDefault',params:'NoConfig'},algorithm:'Naive',constraint:{set_mode:'Any'},filter:null};
+ const base=api.CommonInterface.get_attribute({...input,buffs:[]}), boosted=api.CommonInterface.get_attribute(input);
+ near(sum(boosted.elemental_mastery)-sum(base.elemental_mastery),100);
+ assert.ok(sum(boosted.atk)>sum(base.atk));
+ const candidate={...gear[2],id:6,main_stat:['ElementalMastery',187]};
+ const inventory=[...gear,candidate];
+ const scores=[gear,[...gear.slice(0,2),candidate,...gear.slice(3)]].map(artifacts=>api.CalculatorInterface.get_damage_analysis({...input,artifacts}).direct_stellarswirl.expectation);
+ const rows=api.OptimizeSingleWasm.optimize(input,inventory);
+ assert.ok(rows.length);near(rows[0].value,Math.max(...scores));
+ assert.equal(rows[0].sand,scores[0]>=scores[1]?3:6);
+});

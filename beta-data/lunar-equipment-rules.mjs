@@ -18,7 +18,7 @@ const isSet=n=>MOONLIGHT_SETS.includes(n);
 // Resolve the shared team total once. Preserve claims so repeated preparation and
 // raw/compiled mixtures remain idempotent; don't add two declarations of 20%.
 export function prepareLunarEquipmentBuffs(buffs=[],input={}){
- const out=[],sets=new Map(),seen=new Set();
+ const out=[],sets=new Map(),seen=new Map();
  for(const b of buffs){
   const name=b.name==='ExtensionEffect'?b.source_buff:b.name;
   if(!LUNAR_EQUIPMENT_RULES[name]){out.push(b);continue;}
@@ -30,7 +30,15 @@ export function prepareLunarEquipmentBuffs(buffs=[],input={}){
    effect={...b,name:'ExtensionEffect',source_buff:name,config:{ExtensionEffect:{label:name,values}}};
   }
   const values=effect.config?.ExtensionEffect?.values||{};
-  if(!isSet(name)){if(!seen.has(name)){seen.add(name);out.push(effect);}continue;}
+  if(!isSet(name)){
+   if(!seen.has(name)){seen.set(name,out.length);out.push(effect);}
+   else {const index=seen.get(name),old=out[index].config.ExtensionEffect.values;
+    // Copies of one named source don't stack. Choose its strongest scaled effect.
+    const strength=x=>Math.max(0,...Object.values(x));
+    if(strength(values)>strength(old))out[index]=effect;
+   }
+   continue;
+  }
   const claim=effect.moonlight_claim??values.EnhanceMoonReaction??0;
   const em=values.ElementalMastery||0;
   if(!Number.isFinite(claim)||claim<0||claim>.2||!Number.isFinite(em)||![0,60,120].includes(em))throw Error('月辉明光编译属性无效');

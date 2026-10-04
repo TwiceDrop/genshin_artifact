@@ -1,3 +1,5 @@
+import { resolveActiveTalents } from './character-talents.mjs'
+
 export const POSITIONS = ['flower', 'feather', 'sand', 'cup', 'head']
 const PROPERTY = { 2: 'lifeStatic', 3: 'lifePercentage', 5: 'attackStatic', 6: 'attackPercentage', 8: 'defendStatic', 9: 'defendPercentage', 20: 'critical', 22: 'criticalDamage', 23: 'recharge', 26: 'cureEffect', 28: 'elementalMastery', 30: 'physicalBonus', 40: 'fireBonus', 41: 'thunderBonus', 42: 'waterBonus', 43: 'dendroBonus', 44: 'windBonus', 45: 'rockBonus', 46: 'iceBonus' }
 const FLAT = new Set([2, 5, 8, 28])
@@ -53,10 +55,7 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
         if (!weaponName) throw new Error(`未知武器：${raw.weapon?.name || raw.weapon?.id}`)
         if (weapons[weaponName].type !== characters[name].weapon) throw new Error('角色与武器类型不匹配')
         const level = integer(base.level, 1, 100, '角色等级')
-        const active = (raw.skills || []).filter(s => Number(s.skill_type) === 1)
-        const named = [1, 2, 3].map(i => active.find(s => s.name === locale[characters[name][`skillName${i}`]]))
-        const skills = named.every(Boolean) ? named : active
-        if (skills.length !== 3) throw new Error('无法确定三个主动天赋的对应关系')
+        const skills = resolveActiveTalents(raw.skills, characters[name], locale)
         const c = { name, level, ascend: false, constellation: integer(base.actived_constellation_num, 0, 6, '命座'),
             skill1: integer(skills[0].level, 1, 15, '普攻天赋') - 1, skill2: integer(skills[1].level, 1, 15, '战技天赋') - 1, skill3: integer(skills[2].level, 1, 15, '爆发天赋') - 1, params: defaults(name, characters[name].config) }
         const wl = integer(raw.weapon.level, 1, 90, '武器等级'), wp = integer(raw.weapon.promote_level, 0, 6, '武器突破')

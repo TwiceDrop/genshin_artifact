@@ -25,6 +25,7 @@ test('Mona percent/fixed units and five positions map to the source scorer', () 
 
 test('all supported default builds and ranked scores agree with the pinned scorer', () => {
     for (const name of Object.keys(data.usefulAttr)) {
+        if (name === '薇斯纳') continue // Local modes have their own dedicated test.
         const context = rankingContext(name)
         const expected = calcArtifactScore(name, five.map(toScoreArtifact), context.options)
         const actual = scoreBuild(five, context)

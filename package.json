@@ -1,6 +1,6 @@
 {
   "name": "genshin_artifacts",
-  "version": "7.1.7",
+  "version": "7.1.8",
   "private": true,
   "scripts": {
     "start": "node server/local.mjs",
@@ -32,7 +32,9 @@
     "test:strengthened": "node beta-tools/smoke-strengthened.mjs",
     "test:stellar-support": "node beta-tools/smoke-stellar-support.mjs",
     "test:7106": "node --test tests/release-7106.test.mjs",
-    "test:7107": "node --test tests/release-7107.test.mjs"
+    "test:7107": "node --test tests/release-7107.test.mjs",
+    "test:7108": "node --test tests/refactor-7108-*.test.mjs",
+    "build:effect-bridge": "python script/build-effect-bridge.py"
   },
   "dependencies": {
     "@capacitor/android": "8.5.1",
@@ -94,5 +96,5 @@
     "unplugin-icons": "^0.14.5",
     "unplugin-vue-components": "^0.19.6"
   },
-  "displayVersion": "7.1.07"
+  "displayVersion": "7.1.08"
 }

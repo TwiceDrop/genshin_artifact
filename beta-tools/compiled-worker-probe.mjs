@@ -16,7 +16,7 @@ export function probeCompiledOptimizer(dist,input,artifacts){
    global.postMessage=message=>{if(message.type==='ready')queueMicrotask(()=>{try{global.onmessage({data:{optimizeConfig:input,artifacts}})}catch(error){parentPort.postMessage({type:'uncaught',error:error.message})}});else parentPort.postMessage(message);};
    process.on('unhandledRejection',error=>parentPort.postMessage({type:'uncaught',error:error?.message||String(error)}));
    vm.runInThisContext(fs.readFileSync(path.join(dist,'js',entry),'utf8'),{filename:entry});
-  `,{eval:true,workerData:{dist:path.resolve(dist),entry,input,artifacts}});
+  `,{eval:true,execArgv:[],workerData:{dist:path.resolve(dist),entry,input,artifacts}});
   const timer=setTimeout(()=>{worker.terminate();reject(Error('compiled worker timeout'))},15000);
   worker.once('message',message=>{clearTimeout(timer);worker.terminate();resolve(message)});
   worker.once('error',error=>{clearTimeout(timer);worker.terminate();reject(error)});

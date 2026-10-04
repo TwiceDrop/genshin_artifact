@@ -366,6 +366,7 @@ async function handleClickRun() {
 
         const mona = await useMona()
 
+        try {
         const ret = mona.DSLInterface.run(source, x, artifacts)
 
         if (ret.is_error) {
@@ -378,6 +379,10 @@ async function handleClickRun() {
             for (const item of ret.output.split("\n")) {
                 appendOutput(item)
             }
+        }
+        } catch (error: any) {
+            appendOutput('[error]')
+            appendOutput(error.message || String(error))
         }
     }
 }

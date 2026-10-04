@@ -1,7 +1,9 @@
 import {prepareExtensionBuffs} from './extension-buffs.mjs';
+import {VODYANITSA_SUPPORT_RULES} from './scoped-character-effect-rules.mjs';
+import {evaluateEffectRule} from './effect-rule-engine.mjs';
 import {normalizeSignatureWeapon, chrysalisEffects} from './weapon-effects.mjs';
 import {isLimitedWeapon, limitedWeaponEffects, LIMITED_WEAPONS} from './limited-weapons.mjs';
-import {withStellarSwirlTeam} from './facade.mjs';
+import {markReactionAvailability} from './reaction-availability.mjs';
 const clone=x=>JSON.parse(JSON.stringify(x)),named=(name,config)=>({name,config:{[name]:config}});
 const sum=x=>Object.values(x||{}).reduce((a,b)=>a+b,0);
 export function createBeta2(base,extension,support){
@@ -28,6 +30,14 @@ export function createBeta2(base,extension,support){
     if(id==='A4'&&star&&on)state.flat=Math.max(state.flat,Math.min(Math.max(hp-40000,0)*.26,6500));
     if(id==='C1'&&co>=1)buffs.push(named('ATKFixed',{value:hp*.008}));
     if(id==='C2'&&co>=2&&star&&(on||co>=6))state.crit_damage=Math.max(state.crit_damage,.6);
+    if(id==='C2'&&!star){
+     const values={};
+     for(const element of ['Hydro','Cryo']){
+      const {CriticalDamageBase}=evaluateEffectRule(VODYANITSA_SUPPORT_RULES.VodyanitsaC2,{...p,constellation:co},{...x,effect_element:element,damage_scope:true});
+      if(CriticalDamageBase)values['CriticalDamage'+element]=CriticalDamageBase;
+     }
+     if(Object.keys(values).length)buffs.push(named('ExtensionEffect',{label:b.name,values}));
+    }
     if(id==='C6'&&co>=6)state.elevation=Math.max(state.elevation,.25);
     if(id==='Signature'&&on){const r=Number(p.refine),n=Number(p.stacks);if(!Number.isInteger(r)||r<1||r>5||!Number.isInteger(n)||n<0||n>3)throw Error('队友专武精炼/层数无效');const k=.03+.01*r;buffs.push(named('ATKPercentage',{p:100*Math.min(Math.max(hp-40000,0)/1000*k/10,k*2)*n*(p.boosted?1.75:1)}));}
    }else if(b.name==='EnhanceStellarGlimmerReaction')state.bonus+=Number(b.config?.[b.name]?.p||0)/100;
@@ -89,7 +99,7 @@ export function createBeta2(base,extension,support){
     r.elevate_stellarswirl_compose={'薇斯纳六命':co>=6?.2:0,'队友':state.elevation};
     r.beta2_model={revision:'7.1.0 D48145775',discipline:stacks,flat_order:'after_base_and_em'};
    }
-   return withStellarSwirlTeam(r,x,direct?['direct_stellarswirl']:[]);
+   return markReactionAvailability(r,direct?['direct_stellarswirl']:[]);
   }
   return r;
  };}});

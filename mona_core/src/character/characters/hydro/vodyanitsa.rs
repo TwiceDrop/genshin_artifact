@@ -49,6 +49,7 @@ pub struct VodyanitsaEffect { pub e:bool,pub song:bool,pub ordinary:bool,pub c1:
 impl<A:Attribute> ChangeAttribute<A> for VodyanitsaEffect {
  fn change_attribute(&self,a:&mut A) {
   use AttributeName::*;
+  if self.song {a.set_value_by(VodyanitsaSong,"遥久之歌状态",1.0);}
   if self.c4>0 {a.add_hp_percentage("沃雅妮莎 C4（测试服）",self.c4.min(3) as f64*0.2);}
   if self.e {a.set_value_by(ResMinusHydro,"沃雅妮莎 E",SKILL.e_res_shred[self.e_level]);a.set_value_by(ResMinusCryo,"沃雅妮莎 E",SKILL.e_res_shred[self.e_level]);}
   if self.a4 && self.song && self.ordinary && self.on {
@@ -70,12 +71,12 @@ impl CharacterTrait for Vodyanitsa {
  #[cfg(not(target_family="wasm"))]
  const SKILL_MAP:CharacterSkillMap=CharacterSkillMap{skill1:skill_map!(VodyanitsaDamageEnum Normal1 locale!(zh_cn: "Normal1", en: "Normal1") Normal2 locale!(zh_cn: "Normal2", en: "Normal2") Normal3 locale!(zh_cn: "Normal3", en: "Normal3") Normal4 locale!(zh_cn: "Normal4", en: "Normal4") Charged locale!(zh_cn: "Charged", en: "Charged") Plunging1 locale!(zh_cn: "Plunging1", en: "Plunging1") Plunging2 locale!(zh_cn: "Plunging2", en: "Plunging2") Plunging3 locale!(zh_cn: "Plunging3", en: "Plunging3")),skill2:skill_map!(VodyanitsaDamageEnum EInitial locale!(zh_cn: "施放伤害", en: "施放伤害") EHorn locale!(zh_cn: "角笛伤害", en: "角笛伤害") EHeal locale!(zh_cn: "单次治疗", en: "单次治疗")),skill3:skill_map!(VodyanitsaDamageEnum Burst locale!(zh_cn: "爆发伤害", en: "爆发伤害"))};
  fn damage_internal<D:DamageBuilder>(ctx:&DamageContext<'_,D::AttributeType>,s:usize,c:&CharacterSkillConfig,fumo:Option<Element>)->D::Result {
-  let(s1,s2,s3)=ctx.character_common_data.get_3_skill();let(low,q)=match c {CharacterSkillConfig::Vodyanitsa{low_hp_heal,q_song_bonus}=>(*low_hp_heal,*q_song_bonus),_=>(false,false)};
+  let(s1,s2,s3)=ctx.character_common_data.get_3_skill();let(low,_q)=match c {CharacterSkillConfig::Vodyanitsa{low_hp_heal,q_song_bonus}=>(*low_hp_heal,*q_song_bonus),_=>(false,false)};
   let values=[SKILL.normal_dmg1[s1],SKILL.normal_dmg2[s1],SKILL.normal_dmg3[s1],SKILL.normal_dmg4[s1],SKILL.charged_dmg[s1],SKILL.plunging_dmg1[s1],SKILL.plunging_dmg2[s1],SKILL.plunging_dmg3[s1],SKILL.e_initial_hp_ratio[s2],SKILL.e_horn_hp_ratio[s2],SKILL.e_heal_hp_ratio[s2],SKILL.q_hp_ratio[s3]];
   let mut b=D::new();
   if s==10 {let rate=if low && ctx.character_common_data.constellation>=4 {1.5}else{1.0};b.add_hp_ratio("技能倍率",values[s]*rate);b.add_extra_damage("固定治疗",SKILL.e_heal_flat[s2]*rate);return b.heal(ctx.attribute);}
   if s<8 {b.add_atk_ratio("技能倍率",values[s]);}else{b.add_hp_ratio("技能倍率",values[s]);}
-  if s==11 && q {b.add_extra_bonus("歌声状态（测试服待校准）",SKILL.q_song_bonus[s3]);}
+  if s==11 && ctx.attribute.get_value(AttributeName::VodyanitsaSong)>0.0 {b.add_hp_ratio("遥久之歌·独立倍率",values[s]*SKILL.q_song_bonus[s3]);}
   let t=match s {0..=3=>SkillType::NormalAttack,4=>SkillType::ChargedAttack,5=>SkillType::PlungingAttackInAction,6|7=>SkillType::PlungingAttackOnGround,8|9=>SkillType::ElementalSkill,_=>SkillType::ElementalBurst};
   b.damage(ctx.attribute,ctx.enemy,Element::Hydro,t,ctx.character_common_data.level,fumo)
  }

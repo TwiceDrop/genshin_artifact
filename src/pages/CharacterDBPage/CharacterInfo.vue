@@ -1,6 +1,5 @@
 <template>
     <div v-loading="!loaded">
-        <p v-if="analysisResult?.source === 'local-presets'">本机配装统计：统计当前仓库已保存的计算预设，副词条按五星平均强化档位折算。{{ hasCharacter ? `当前角色 ${characterResult[characterName].sample_count} 个预设。` : '先导入角色或保存计算预设即可查看。' }}</p>
         <el-empty v-if="!loaded"></el-empty>
         <div v-if="loaded && error">
             Error

@@ -1,7 +1,22 @@
-﻿param([switch]$SkipWebBuild, [string]$SigningDirectory)
+﻿param([switch]$SkipWebBuild, [string]$SigningDirectory, [string]$OutputSuffix, [string]$OutputDirectory)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $projectRoot
+if ($OutputSuffix -and $OutputSuffix -notmatch '^[a-z0-9][a-z0-9-]*$') { throw '输出后缀只能包含小写字母、数字和连字符' }
+$package = Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json
+$version = if ($package.displayVersion) { $package.displayVersion } else { $package.version }
+$suffix = if ($OutputSuffix) { "-$OutputSuffix" } else { '' }
+$filename = "genshin_artifact_V${version}${suffix}_android.apk"
+$outputRoot = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $projectRoot 'releases' }
+$apk = Join-Path $outputRoot $filename
+if ((Test-Path -LiteralPath $apk) -or (Test-Path -LiteralPath "$apk.sha256")) { throw "输出已经存在，已保留旧包：$apk" }
+if ($SigningDirectory) {
+    $signingRoot = (Resolve-Path -LiteralPath $SigningDirectory).Path
+    if (-not (Test-Path -LiteralPath (Join-Path $signingRoot 'android-signing.jks')) -or
+        -not (Test-Path -LiteralPath (Join-Path $signingRoot 'android-signing.json'))) {
+        throw '指定的升级签名不完整，停止构建以免生成不同签名'
+    }
+}
 if (-not $env:JAVA_HOME) { $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr' }
 if (-not (Test-Path -LiteralPath "$env:JAVA_HOME\bin\java.exe")) { throw '需要 Java 21，请设置 JAVA_HOME。' }
 $sdkRoot = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:LOCALAPPDATA 'Android\Sdk' }
@@ -34,14 +49,8 @@ try {
     }
     & .\android\gradlew.bat -p android assembleRelease --console=plain
     if ($LASTEXITCODE -ne 0) { throw 'APK 构建失败' }
-    New-Item -ItemType Directory -Path releases -Force | Out-Null
-    $package = Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json
-    $version = if ($package.displayVersion) { $package.displayVersion } else { $package.version }
-    $filename = "genshin_artifact_V${version}_android.apk"
-    $apk = Join-Path $projectRoot "releases/$filename"
+    New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
     Copy-Item -LiteralPath 'android/app/build/outputs/apk/release/app-release.apk' -Destination $apk
-    $hash = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant()
-    [IO.File]::WriteAllText("$apk.sha256", "$hash  $filename`n", [Text.UTF8Encoding]::new($false))
     Write-Output "APK 已生成：$apk"
 } finally {
     Remove-Item Env:MONA_SIGN_PASSWORD -ErrorAction SilentlyContinue

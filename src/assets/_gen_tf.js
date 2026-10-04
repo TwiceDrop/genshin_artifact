@@ -2472,9 +2472,7 @@ export default {
         "default": 0,
         "options": [
           "廓然梦生·直接星扩散",
-          "一命·直接星扩散",
-          "反应星扩散·风",
-          "反应星扩散·冰"
+          "一命·直接星扩散"
         ]
       }
     ]
@@ -2985,7 +2983,7 @@ export default {
     "description": 3540,
     "tags": [],
     "for": "Vodyanitsa",
-    "badge": "/beta/vodyanitsa.svg",
+    "badge": "/characters/vodyanitsa.webp",
     "config": []
   },
   "VesnaDefault": {

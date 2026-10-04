@@ -26,10 +26,15 @@ export async function wasmGetArtifactsRankByCharacter(characterInterface, weapon
     // const wasm = await initWasm()
     const mona = await useMona()
 
+    try {
     return mona.CommonInterface.get_artifacts_rank_by_character(
         characterInterface,
         weaponInterface,
         tfInterface,
         artifacts
     )
+    } catch (error) {
+        if (error?.message === 'unreachable') throw new Error('此目标的静态评分未实现，请使用实际单人配装')
+        throw error
+    }
 }

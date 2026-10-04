@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 use crate::applications::bonus_per_stat::bonus_per_stat::{BonusPerStatInput, BonusPerStatOutput};
-use crate::applications::common::{BuffInterface, CharacterInterface, TargetFunctionInterface, WeaponInterface};
+use crate::applications::common::{EnemyInterface, BuffInterface, CharacterInterface, TargetFunctionInterface, WeaponInterface};
 use mona::artifacts::Artifact;
 use mona::artifacts::effect_config::ArtifactEffectConfig;
 use mona::target_functions::TargetFunction;
@@ -12,6 +12,7 @@ use super::bonus_per_stat::bonus_per_stat;
 
 #[derive(Serialize, Deserialize)]
 pub struct WasmInput {
+    pub enemy: Option<EnemyInterface>,
     pub character: CharacterInterface,
     pub weapon: WeaponInterface,
     pub artifacts: Vec<Artifact>,
@@ -64,12 +65,13 @@ impl BonusPerStat {
         };
         let buffs: Vec<_> = input.buffs.iter().map(|b| b.to_buff()).collect();
         let config_ref = input.artifacts_config.as_ref();
+        let enemy = input.enemy.as_ref().map(|value| value.to_enemy()).unwrap_or_default();
 
         let result = bonus_per_stat(BonusPerStatInput {
             character: &character,
             weapon: &weapon,
             artifacts: &artifacts_ref,
-            enemy: &Default::default(),
+            enemy: &enemy,
             tf: &tf,
             buffs: &buffs,
             artifacts_config: config_ref

@@ -1,9 +1,5 @@
 <template>
     <div>
-        <el-alert v-if="uncalibratedReactions.length" type="warning" :closable="false" show-icon
-            title="反应结果待校准" :description="uncalibratedReactions.join('、') + '：尚未完成该角色的效果接入与完整结算校准。'" />
-        <el-alert v-if="approximateReactions.length" type="info" :closable="false" show-icon
-            title="星扩散期望为近似值" :description="approximateReactions.join('、') + '：3～4人暂按个人期望贡献排序；独立判暴及重排时点尚待确认。'" />
         <el-table
             :data="tableData"
         >
@@ -12,6 +8,9 @@
                 min-width="90"
                 :label="t('misc.type1')"
             >
+                <template #default="{ row }">
+                    <span>{{ row.name }}</span>
+                </template>
             </el-table-column>
             <el-table-column v-for="column in damageColumns" :key="column.key" :label="t(column.label)" min-width="120">
                 <template #default="{ row }">
@@ -27,7 +26,7 @@
 
 <script>
 import { damageComparison } from '@/algorithms/damage-comparison.mjs'
-import { ADDITIONAL_DAMAGE_REACTIONS, damageReactionLabel } from '@/algorithms/reaction-labels.mjs'
+import { visibleDamageReactionKeys, damageReactionLabel } from '@/algorithms/reaction-labels.mjs'
 import {useI18n} from "@/i18n/i18n";
 
 export default {
@@ -38,16 +37,7 @@ export default {
     },
     data: () => ({ damageColumns: [{ key: "expectation", label: "dmg.expect" }, { key: "critical", label: "dmg.crit" }, { key: "nonCritical", label: "dmg.nonCrit" }] }),
     computed: {
-        uncalibratedReactions() {
-            return Object.entries(this.analysisFromWasm?.reaction_availability || {})
-                .filter(([, value]) => value?.status === 'uncalibrated')
-                .map(([key]) => damageReactionLabel(key))
-        },
-        approximateReactions() {
-            return Object.entries(this.analysisFromWasm?.reaction_availability || {})
-                .filter(([, value]) => value?.status === 'approximate')
-                .map(([key]) => damageReactionLabel(key))
-        },
+        visibleKeys() { return visibleDamageReactionKeys(this.analysisFromWasm) },
         element() {
             return this.analysisFromWasm.element
         },
@@ -77,68 +67,12 @@ export default {
         },
 
         tableData() {
-            let temp = []
-            const NO_DATA = "无数据"
-
-            const r = (x) => Number.isFinite(x) ? Math.round(x) : NO_DATA
-
-            const push = (name, title) => {
-                temp.push({
-                    expectation: damageComparison(this.analysisFromWasm[name]?.expectation, this.baseline?.[name]?.expectation),
-                    critical: damageComparison(this.analysisFromWasm[name]?.critical, this.baseline?.[name]?.critical),
-                    nonCritical: damageComparison(this.analysisFromWasm[name]?.non_critical, this.baseline?.[name]?.non_critical),
-                    name: title,
-                })
-            }
-
-            // temp.push({
-            //     expectation: r(this.analysisFromWasm.normal?.expectation) ?? NO_DATA,
-            //     critical: r(this.analysisFromWasm.normal?.critical) ?? NO_DATA,
-            //     nonCritical: r(this.analysisFromWasm.normal?.non_critical) ?? NO_DATA,
-            //     name: this.normalDamageTitle
-            //     // name: t("dmg", this.element)
-            // })
-
-            if (!this.analysisFromWasm.beta2_model) push("normal", this.normalDamageTitle)
-
-            if (this.analysisFromWasm.melt) {
-                push("melt", this.t("dmg.melt"))
-                // temp.push({
-                //     expectation: r(this.analysisFromWasm.melt?.expectation) ?? NO_DATA,
-                //     critical: r(this.analysisFromWasm.melt?.critical) ?? NO_DATA,
-                //     nonCritical: r(this.analysisFromWasm.melt?.non_critical) ?? NO_DATA,
-                //     name: this.t("dmg.melt")
-                // })
-            }
-            if (this.analysisFromWasm.vaporize) {
-                push("vaporize", this.t("dmg.vaporize"))
-                // temp.push({
-                //     expectation: r(this.analysisFromWasm.vaporize?.expectation) ?? NO_DATA,
-                //     critical: r(this.analysisFromWasm.vaporize?.critical) ?? NO_DATA,
-                //     nonCritical: r(this.analysisFromWasm.vaporize?.non_critical) ?? NO_DATA,
-                //     name: this.t("dmg.vaporize")
-                // })
-            }
-            if (this.analysisFromWasm.spread) {
-                push("spread", this.t("dmg.spread"))
-            }
-            if (this.analysisFromWasm.aggravate) {
-                push("aggravate", this.t("dmg.aggravate"))
-            }
-            if (this.analysisFromWasm.moonfall) {
-                push("moonfall", "月绽放")
-            }
-            if (this.analysisFromWasm.moonelectro) {
-                push("moonelectro", "月感电")
-            }
-            if (this.analysisFromWasm.direct_moonelectro) {
-                push("direct_moonelectro", "直接月感电")
-            }
-            for (const key of ADDITIONAL_DAMAGE_REACTIONS) {
-                if (Number.isFinite(this.analysisFromWasm[key]?.expectation)) push(key, damageReactionLabel(key))
-            }
-
-            return temp
+            return this.visibleKeys.map(key => ({
+                expectation: damageComparison(this.analysisFromWasm[key].expectation, this.baseline?.[key]?.expectation),
+                critical: damageComparison(this.analysisFromWasm[key].critical, this.baseline?.[key]?.critical),
+                nonCritical: damageComparison(this.analysisFromWasm[key].non_critical, this.baseline?.[key]?.non_critical),
+                name: (key === 'normal' ? this.normalDamageTitle : damageReactionLabel(key)),
+            }))
         }
     },
     setup() {

@@ -1,11 +1,12 @@
 // MIT. Normalization follows miao-plugin's ArtisMark/ArtisMarkCfg and extra.js.
-// Upstream revision and local compatibility conventions: see README.md here.
+// Current data revision and retained local modes: see docs/character-score-20261002.md.
 import { usefulAttr as upstreamWeights } from './weights.mjs'
 import rules from './rules.mjs'
 import facts from './character-facts.mjs'
+import { usefulAttr as variantWeights } from './character-variants.mjs'
 
 const { baseAttrMap, charElemMap } = facts
-const usefulAttr = Object.fromEntries(Object.entries(upstreamWeights).filter(([name]) => name in baseAttrMap))
+const usefulAttr = Object.fromEntries(Object.entries({ ...upstreamWeights, ...variantWeights }).filter(([name]) => name in baseAttrMap))
 const elements = { pyro: '火', hydro: '水', anemo: '风', electro: '雷', dendro: '草', cryo: '冰', geo: '岩' }
 const elementKey = key => Object.keys(elements).find(e => e === key || elements[e] === key)
 const ratios = { atk: 1.5, atkPlus: 5, def: 1.875, defPlus: 6, hp: 1.5, hpPlus: 76.875,
@@ -33,13 +34,12 @@ function resolveWeights(name, artifacts, options) {
     const slots = Object.fromEntries(artifacts.map((a, i) => [String((a.pos ?? i) + 1), { ...a, main: { key: a.mainKey, value: a.mainValue } }]))
     const artis = { ...options.artis, names: options.artis?.names || sets, artis: options.artis?.artis || slots,
         is(query, position) {
-            return query.split(',').some(key => {
-                if (position) {
-                    const main = this.artis[String(position)]?.main?.key
-                    return key === 'dmg' ? main === 'dmg' || !!elementKey(main) : main === key
-                }
-                return sets.includes(key) || sets.includes(key.replace(/4$/, ''))
+            const keys = query.split(',')
+            if (position) return String(position).split(',').every(pos => {
+                const main = this.artis[pos]?.main?.key
+                return keys.includes(main) || pos === '4' && keys.includes('dmg') && !!elementKey(main)
             })
+            return keys.some(key => sets.includes(key) || sets.includes(key.replace(/4$/, '')))
         }
     }
     const def = (weights = usefulAttr[name], labels = []) => {
@@ -85,7 +85,7 @@ export function createScoreEvaluator(name, artifacts = [], options = {}) {
         const coefficient = meta.base ? weight / attrMap[meta.base].value * 100 / ((base[meta.base] || 1) + (meta.base === 'atk' ? 520 : 0)) : weight / meta.value
         effective[key] = { weight, coefficient, normalized: coefficient * meta.value }
     }
-    const best = (keys, exclude) => keys.filter(k => k !== exclude && effective[k]).sort((a, b) => effective[b].normalized - effective[a].normalized)
+    const best = (keys, exclude) => keys.filter(k => k !== exclude && effective[k]).sort((a, b) => effective[a].normalized - effective[b].normalized).reverse()
     const limits = mainOptions.map((keys, pos) => {
         const main = pos < 2 ? ['hpPlus', 'atkPlus'][pos] : best(keys)[0]
         const mainWeight = pos < 2 ? 0 : effective[main]?.normalized || 0

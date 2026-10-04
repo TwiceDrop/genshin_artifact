@@ -13,9 +13,9 @@ export function calculateDirectStellarConduct(input){
  const coefficient=finite(finite(input.baseMultiplier,'极星系数')+(values.StellarConductBaseMultiplier||0),'最终极星系数');
  const main=finite(input.scalingStat,'面板')*finite(input.skillMultiplier,'技能倍率')*coefficient
   *(1+finite(input.baseBonus===undefined?0:input.baseBonus,'基础提升',-1)+(values.StellarConductBaseBonus||0))
-  *(1+6*em/(em+2000)+finite(input.reactionBonus===undefined?0:input.reactionBonus,'星反应增伤',-1)+(values.EnhanceStellarSuperconduct||0))
+  *(1+6*em/(em+2000)+finite(input.reactionBonus===undefined?0:input.reactionBonus,'星反应增伤',-1)+(values.EnhanceStellarSuperconduct||0)+(values.EnhanceStellarGlimmerReaction||0))
   *finite(input.independentMultiplier===undefined?1:input.independentMultiplier,'星专属独立倍率');
- const n=(main+finite(input.flatBonus===undefined?0:input.flatBonus,'定额'))*reactionResistance(input.resistanceMultiplier,input.resistanceBeforeBuffs,(values.ResMinusBase||0)+(values['ResMinus'+input.element]||0))*(1+finite(input.elevation===undefined?0:input.elevation,'擢升',-1));
+ const n=(main+finite(input.flatBonus===undefined?0:input.flatBonus,'定额'))*reactionResistance(input.resistanceMultiplier,input.resistanceBeforeBuffs,(values.ResMinusBase||0)+(values['ResMinus'+input.element]||0))*(1+finite(input.elevation===undefined?0:input.elevation,'擢升',-1)+(values.ElevateStellarGlimmerReaction||0));
  const c=finite(n*(1+cd),'暴击结果'),e=finite(n*(1+cr*cd),'期望结果');
  return {kind:'direct-stellarconduct',element:input.element,coefficient,owner:{...owner},non_critical:n,critical:c,expectation:e,n,c,e,is_heal:false,is_shield:false};
 }

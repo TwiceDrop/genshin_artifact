@@ -11,7 +11,7 @@ fn default_false() -> bool {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum CharacterSkillConfig {
     Vesna { stance: bool, disciplinary_stacks: usize },
-    Vodyanitsa { low_hp_heal: bool, q_song_bonus: bool },
+    Vodyanitsa { low_hp_heal: bool, #[serde(default)] q_song_bonus: bool },
     Albedo { fatal_count: usize },
     Aloy { coil_count: usize },
     AratakiItto { after_q: bool },

@@ -52,7 +52,6 @@ import rule50 from './rules/神里绫华.mjs'
 import rule51 from './rules/米卡.mjs'
 import rule52 from './rules/绮良良.mjs'
 import rule53 from './rules/罗莎莉亚.mjs'
-import rule54 from './rules/胡桃.mjs'
 import rule55 from './rules/芙宁娜.mjs'
 import rule56 from './rules/芭芭拉.mjs'
 import rule57 from './rules/茜特菈莉.mjs'
@@ -129,7 +128,6 @@ export default {
 "米卡": rule51,
 "绮良良": rule52,
 "罗莎莉亚": rule53,
-"胡桃": rule54,
 "芙宁娜": rule55,
 "芭芭拉": rule56,
 "茜特菈莉": rule57,

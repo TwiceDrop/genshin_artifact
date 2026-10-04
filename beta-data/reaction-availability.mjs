@@ -1,10 +1,8 @@
 // The published and extension kernels expose preview fields even when a new
 // character has no calibrated path to that reaction. Keep the reason alongside
-// the result instead of treating an absent field as zero damage.
+// the result. Uncalibrated values are visible previews, never certified results.
 export const NEW_REACTION_RESULTS = Object.freeze([
-    'moonfall', 'moonelectro', 'mooncrystallize',
     'direct_moonbloom', 'direct_moonelectro', 'direct_mooncrystallize',
-    'stellarconduct', 'stellarswirl_anemo', 'stellarswirl_cryo',
     'direct_stellarconduct', 'direct_stellarswirl',
 ]);
 
@@ -18,10 +16,13 @@ export function markReactionAvailability(result, calibrated = []) {
                 availability[key] = { status: 'calibrated' };
             continue;
         }
-        delete result[key];
+        // Keep the kernel preview, including a genuine zero; do not invent a value.
         availability[key] = {
             status: 'uncalibrated',
-            reason: '该角色的此类反应尚未完成效果接入与完整结算校准',
+            has_value: Number.isFinite(result[key]?.expectation) || Number.isFinite(result[key]),
+            reason: Number.isFinite(result[key]?.expectation) || Number.isFinite(result[key])
+                ? '已有技能直伤预览值，角色效果接入尚待校准'
+                : '当前选择的技能未返回这类直伤数值，请核对技能及辉映状态',
         };
     }
     result.reaction_availability = availability;

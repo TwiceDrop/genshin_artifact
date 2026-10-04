@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {calculateLunarCrystallizeTeam,calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
+import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
 import {api,vody,vesna,read,named,sum} from '../beta-tools/runtime-7106.mjs';
 import {createDamageEvaluator} from '../src/algorithms/stat-gain/curve.mjs';
 const clone=structuredClone;
@@ -11,20 +11,6 @@ const team=()=>({baseBonus:0,resistanceMultiplier:1,participants:[
  {id:'hydro',element:'Hydro',levelBase:75,em:0,critRate:0,critDamage:0},
 ]});
 
-test('1 月笼独立判暴再排序，定额按1.6归一化后的权重结算',()=>{
- const result=calculateLunarCrystallizeTeam(team());
- // Geo contributes 100/200, Hydro contributes 120. The leader switches on crit.
- near(result.non_critical,.6*120+.3*100);
- near(result.critical,.6*200+.3*120);
- near(result.expectation,.5*102+.5*156);
- assert.notEqual(result.expectation,.6*150+.3*120,'sorting individual expectations is wrong');
- near(result.three_hit_expectation,387);
- near(result.critical_states.reduce((a,s)=>a+s.probability,0),1);
- assert.equal(result.critical_states.find(s=>s.mask===0).ranked[0].id,'hydro');
- assert.equal(result.critical_states.find(s=>s.mask===1).ranked[0].id,'geo');
- const duplicate=team();duplicate.participants[1].id='geo';
- assert.throws(()=>calculateLunarCrystallizeTeam(duplicate),/重复/);
-});
 
 test('2 直伤月结晶与月绽放各用本人面板，擢升最终放大本体及定额',()=>{
  const input={kind:'lunar-crystallize',owner:{id:'owner',em:500,critRate:.6,critDamage:1.2},scalingStat:2000,skillMultiplier:2,
@@ -76,21 +62,3 @@ test('4 直接星扩散独立范围隔离，定额不乘I，原生配装同样�
  near(api.OptimizeSingleWasm.optimize(optimized,gear)[0].value,damage(optimized).direct_stellarswirl.expectation);
 });
 
-test('5 月曜上下文进入实际接口，固定面板不得冒充配装和收益',()=>{
- const input={...clone(vody),lunar_crystallize_context:team()};
- const result=damage(input);
- near(result.mooncrystallize.expectation,129);
- assert.equal(result.reaction_availability.mooncrystallize.status,'calibrated');
- near(result.lunar_model.three_hit_expectation,387);
- assert.throws(()=>api.OptimizeSingleWasm.optimize(input,[]),/仅支持单次/);
- assert.throws(()=>api.DSLInterface.run('result = 1',input,[]),/仅支持单次/);
- assert.throws(()=>createDamageEvaluator(api,input,'mooncrystallize',null,[],0),/不能用于词条收益/);
- const stellarContext={triggerId:'wind',vortexMultiplier:3,participants:[['wind','Anemo'],['ice','Cryo'],['ice2','Cryo']].map(([id,element])=>({id,element,levelMultiplier:100,elementalMastery:0,criticalRate:.5,criticalDamage:1,anemoResistanceMultiplier:1,cryoResistanceMultiplier:1}))};
- const stellar={...clone(vesna),stellar_swirl_context:stellarContext};
- assert.equal(damage(stellar).reaction_availability.stellarswirl_anemo.status,'approximate');
- assert.throws(()=>api.OptimizeSingleWasm.optimize(stellar,[]),/仅支持单次/);
- assert.throws(()=>api.DSLInterface.run('result = 1',stellar,[]),/仅支持单次/);
- assert.throws(()=>createDamageEvaluator(api,stellar,'stellarswirl_anemo',null,[],0),/不能用于词条收益/);
- const legacy={...clone(vody),character:{name:'Kaeya',level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:'NoConfig'},buffs:[named('StellarSwirlDamageMultiplier',{p:200})]};
- assert.throws(()=>damage(legacy),/旧角色原内核/);
-});

@@ -1,0 +1,13 @@
+export const op=(op,...args)=>({op,args});
+export const P=(name,fallback)=>fallback===undefined?{ref:'parameters.'+name}:op('coalesce',{ref:'parameters.'+name},fallback);
+export const I=path=>({ref:'input.'+path});
+export const V=local=>({local});
+export const E=(attribute,value,when)=>({attribute,value,...(when===undefined?{}:{when})});
+export const R=(effects,options={})=>({version:1,...options,effects});
+export const mul=(...a)=>op('mul',...a),add=(...a)=>op('add',...a),sub=(a,b)=>op('sub',a,b),min=(...a)=>op('min',...a),max=(...a)=>op('max',...a),eq=(a,b)=>op('eq',a,b),and=(...a)=>op('and',...a),or=(...a)=>op('or',...a),not=a=>op('not',a),choose=(c,a,b)=>op('if',c,a,b),at=(a,i)=>op('at',a,i),includes=(a,b)=>op('includes',a,b),floor=a=>op('floor',a);
+export const elements=['Pyro','Hydro','Electro','Cryo','Anemo','Geo','Dendro','Physical'];
+export const recipient=I('character.name');
+export const onField=op('coalesce',P('recipient_on_field'),I('team_effects.recipient_on_field'),I('team_effects.on_field'),I('recipient_on_field'),true);
+export const rate=P('rate',1);
+export const allElements=(prefix,value,when)=>elements.map(e=>E(prefix+e,value,when));
+export const skills=(prefix,value,when)=>['NormalAttack','ChargedAttack','PlungingAttack','ElementalSkill','ElementalBurst'].map(s=>E(prefix+s,value,when));

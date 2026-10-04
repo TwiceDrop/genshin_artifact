@@ -1,8 +1,10 @@
+import {CHARACTER_EFFECT_RULES} from './character-effect-rules.mjs';
+import {evaluateEffectRule} from './effect-rule-engine.mjs';
 import {REMAINING_CHARACTER_RULES,REMAINING_CHARACTER_NAMES} from './remaining-character-rules.mjs';
 import {LUNAR_EQUIPMENT_NAMES,prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
 import {normalizeBuffParameters} from './buff-rule-registry.mjs';
 import {LUNAR_CHARACTER_RULES,LUNAR_CHARACTER_NAMES,LUNAR_CHARACTER_ATTRIBUTES} from './lunar-character-rules.mjs';
-// Eight scoped reaction parameters and two non-stacking resonances. Native values are additive deltas.
+// Scoped direct-reaction parameters and two non-stacking resonances. Native values are additive deltas.
 const numeric=(p,key,fallback,min=-100000)=>{
  const value=p[key]===undefined?fallback:p[key];
  if(typeof value!=='number'||!Number.isFinite(value)||value<min)throw Error('反应参数无效：'+key);
@@ -21,6 +23,8 @@ export function polestarField(p){
  return {coefficient,bonus:stacks===0?.2:.28+.01*stacks,physicalShred:.4};
 }
 export const REACTION_PARAMETER_RULES=Object.freeze({
+ EnhanceStellarGlimmerReaction:p=>({EnhanceStellarGlimmerReaction:numeric(p,'p',0,-100)/100}),
+ ElevateStellarGlimmerReaction:p=>({ElevateStellarGlimmerReaction:numeric(p,'p',0,-100)/100}),
  ResonanceMoonOmen:p=>({EnhanceMoonReaction:moonOmenBonus(p)}),
  ResonancePolestarField:p=>{const field=polestarField(p);return {BonusCryo:field.bonus,BonusElectro:field.bonus,ResMinusPhysical:field.physicalShred,StellarConductBaseMultiplier:field.coefficient-1};},
  ElevateMoonelectro:p=>({ElevateMoonelectro:numeric(p,'p',0,-100)/100}),
@@ -30,7 +34,6 @@ export const REACTION_PARAMETER_RULES=Object.freeze({
  CriticalDamageMoonReaction:p=>({CriticalDamageMoonReaction:numeric(p,'p',0,-100)/100}),
  MoonReactionDamageMultiplier:p=>({MoonReactionDamageMultiplier:numeric(p,'p',100,0)/100-1}),
  StellarConductBaseMultiplier:p=>({StellarConductBaseMultiplier:numeric(p,'value',0)}),
- StellarSwirlReactionCryoBaseMultiplier:p=>({StellarSwirlReactionCryoBaseMultiplier:numeric(p,'value',0)}),
 });
 export const REACTION_PARAMETER_NAMES=Object.freeze(Object.keys(REACTION_PARAMETER_RULES));
 export const REACTION_BUFF_NAMES=Object.freeze([...REACTION_PARAMETER_NAMES,...LUNAR_CHARACTER_NAMES,...LUNAR_EQUIPMENT_NAMES,...REMAINING_CHARACTER_NAMES]);
@@ -45,7 +48,9 @@ export function collectReactionParameters(buffs=[],input={}){
   if(buff.name==='ExtensionEffect'){
    if(names.has(buff.source_buff)){if(seen.has(buff.source_buff))continue;seen.add(buff.source_buff);}
    // Compiled effects already have named-source deduplication applied.
-   for(const [key,value]of Object.entries(buff.config?.ExtensionEffect?.values||{}))if(attributes.has(key)){
+   for(const [nativeKey,value]of Object.entries(buff.config?.ExtensionEffect?.values||{})){
+    const key=buff.source_buff==='EnhanceStellarGlimmerReaction'&&nativeKey==='StellarSwirlBonus'?'EnhanceStellarGlimmerReaction':buff.source_buff==='ElevateStellarGlimmerReaction'&&nativeKey==='StellarSwirlElevation'?'ElevateStellarGlimmerReaction':nativeKey;
+    if(!attributes.has(key))continue;
     if(typeof value!=='number'||!Number.isFinite(value))throw Error('反应原生属性无效：'+key);
     values[key]=(values[key]||0)+value;
    }
@@ -56,12 +61,14 @@ export function collectReactionParameters(buffs=[],input={}){
   if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('反应 BUFF 配置无效：'+buff.name);
   if(raw.active===false||seen.has(buff.name))continue;
   seen.add(buff.name);
-  for(const [key,value]of Object.entries((REMAINING_CHARACTER_RULES[buff.name]||LUNAR_CHARACTER_RULES[buff.name]||REACTION_PARAMETER_RULES[buff.name])(normalizeBuffParameters(buff.name,raw),input)))if(attributes.has(key))values[key]=(values[key]||0)+value;
+  const rule=CHARACTER_EFFECT_RULES[buff.name]||REMAINING_CHARACTER_RULES[buff.name]||LUNAR_CHARACTER_RULES[buff.name]||REACTION_PARAMETER_RULES[buff.name];
+  const p=normalizeBuffParameters(buff.name,raw);
+  for(const [key,value]of Object.entries(typeof rule==='function'?rule(p,input):evaluateEffectRule(rule,p,input)))if(attributes.has(key))values[key]=(values[key]||0)+value;
  }
  for(const value of Object.values(values))if(!Number.isFinite(value))throw Error('反应属性合计超出范围');
  return values;
 }
-export function lunarParameters(kind,buffs=[],{ownerId,recipientOnField,direct=true}={}){
+export function lunarParameters(kind,buffs=[],{ownerId,recipientOnField}={}){
  const suffix={'lunar-electro':'Moonelectro','lunar-bloom':'Moonbloom','lunar-crystallize':'MoonCrystallize'}[kind];
  if(!suffix)throw Error('未知月曜类型');
  if(recipientOnField!==undefined&&typeof recipientOnField!=='boolean')throw Error('反应受益者前后台状态无效');
@@ -71,7 +78,7 @@ export function lunarParameters(kind,buffs=[],{ownerId,recipientOnField,direct=t
   critRate:(values.CriticalMoonReaction||0)+(kind==='lunar-bloom'?(values.CriticalMoonbloom||0):0),
   critDamage:(values.CriticalDamageMoonReaction||0)+(kind==='lunar-bloom'?(values.CriticalDamageMoonbloom||0):0)+(values['CriticalDamage'+element]||0),
   reactionBonus:(values.EnhanceMoonReaction||0)+(values['Enhance'+suffix]||0),baseBonus:values['Enhance'+suffix+'Base']||0,
-  flatBonus:(values['ExtraDmg'+suffix]||0)+(kind==='lunar-crystallize'&&direct?(values.ExtraDmgDirectMoonCrystallize||0):0),
+  flatBonus:(values['ExtraDmg'+suffix]||0)+(kind==='lunar-crystallize'?(values.ExtraDmgDirectMoonCrystallize||0):0),
   resMinus:(values.ResMinusBase||0)+(values['ResMinus'+element]||0),multiplier:1+(values.MoonReactionDamageMultiplier||0),
   enabled:(values['Lunar'+{'lunar-electro':'Electro','lunar-bloom':'Bloom','lunar-crystallize':'Crystallize'}[kind]+'Enabled']||0)>0};
 }
@@ -82,27 +89,23 @@ export function reactionResistance(resistanceMultiplier,resistanceBeforeBuffs,sh
  const r=resistanceBeforeBuffs-shred;return r<0?1-r/2:r<.75?1-r:1/(4*r+1);
 }
 // The outer input BUFFs belong to one beneficiary, never to every contributor.
-export function bindReactionBuffs(context,input,{team=false}={}){
+export function bindReactionBuffs(context,input){
  const {buffRecipientId,...out}=structuredClone(context);
  const own=input.character?.name;
  const id=buffRecipientId===undefined?own:buffRecipientId;
- const beneficiary=team?out.participants?.find(p=>p.id===id):out.owner;
+ const beneficiary=out.owner;
  const recipientInput={...input,character:{...input.character,name:id},team_effects:{...input.team_effects,...(beneficiary?.recipientOnField===undefined?{}:{recipient_on_field:beneficiary.recipientOnField})}};
- const added=prepareLunarEquipmentBuffs(input.buffs||[],recipientInput).filter(b=>names.has(b.name)||(b.name==='ExtensionEffect'&&Object.keys(b.config?.ExtensionEffect?.values||{}).some(k=>attributes.has(k)))).map(b=>{
+ const added=prepareLunarEquipmentBuffs(input.buffs||[],recipientInput).filter(b=>names.has(b.name)||(b.name==='ExtensionEffect'&&(Object.keys(b.config?.ExtensionEffect?.values||{}).some(k=>attributes.has(k))))).map(b=>{
   const rule=REMAINING_CHARACTER_RULES[b.name]||LUNAR_CHARACTER_RULES[b.name];
   if(!rule)return b;
   const raw=b.config==='NoConfig'||b.config===undefined?{}:b.config?.[b.name];
   if(b.lock||raw?.active===false)return {...b,lock:true};
-  const values=rule(normalizeBuffParameters(b.name,raw),recipientInput);
+  const parameters=normalizeBuffParameters(b.name,raw);
+  const values=typeof rule==='function'?rule(parameters,recipientInput):evaluateEffectRule(rule,parameters,recipientInput);
   return {...b,name:'ExtensionEffect',source_buff:b.name,config:{ExtensionEffect:{label:b.name,values}}};
  });
  if(buffRecipientId!==undefined&&(typeof id!=='string'||!id))throw Error('反应 BUFF 受益者 ID 无效');
- if(team){
-  if(buffRecipientId!==undefined&&!out.participants?.some(p=>p.id===id))throw Error('反应 BUFF 受益者不在参与者中');
-  out.participants=out.participants?.map(p=>p.id===id?{...p,buffs:[...(p.buffs||[]),...added]}:p);
- }else{
-  if(buffRecipientId!==undefined&&out.owner?.id!==id)throw Error('反应 BUFF 受益者必须是伤害所有者');
-  if(out.owner?.id===id)out.buffs=[...(out.buffs||[]),...added];
- }
+ if(buffRecipientId!==undefined&&out.owner?.id!==id)throw Error('反应 BUFF 受益者必须是伤害所有者');
+ if(out.owner?.id===id)out.buffs=[...(out.buffs||[]),...added];
  return out;
 }

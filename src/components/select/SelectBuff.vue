@@ -31,7 +31,7 @@
                         <img :src="buff.badge" class="buff-image" >
                         <div class="detail-right">
                             <p class="buff-name">{{ buff.title }}</p>
-                            <p class="buff-description" v-html="buff.description"></p>
+                            <p v-if="buff.description" class="buff-description" v-html="buff.description"></p>
                         </div>
                         
                     </div>

@@ -11,7 +11,6 @@ import {calculateSingleHit,singleHitBuffs} from '../beta-data/single-hit-damage.
 import {calculateDirectStellarConduct} from '../beta-data/direct-stellar-conduct.mjs';
 import {calculateBloomFamilyDamage} from '../beta-data/bloom-damage.mjs';
 import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
-import {calculateStellarSwirlTeam} from '../beta-data/stellar-swirl-reaction.mjs';
 import {api,vody,vesna,sum} from '../beta-tools/runtime-7106.mjs';
 const named=(name,p={})=>({name,config:{[name]:p}});
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),String(a)+' != '+b);
@@ -37,7 +36,6 @@ test('2 阿罗夏全等级和六命、星反应分流、排除冰旅行者自身
  const buffs=[named('CynoC2StellarConduct'),named('YaeMikoC1'),named('AetherCryoC6'),named('AetherCryoTalent1',{atk:5000}),named('AlyoshaHunterPrecision',{c6:true})];
  const direct={element:'Cryo',owner:{id:'Vesna',em:0,critRate:0,critDamage:0},scalingStat:100,skillMultiplier:1,baseMultiplier:1,resistanceMultiplier:1,buffs};near(calculateDirectStellarConduct(direct).expectation,100*1.07*2.8);
  near(values('AetherCryoTalent1',{radiance_mode:2,atk:5000}).StellarSwirlBaseBonus,.07);assert.equal(values('AetherCryoTalent1',{radiance_mode:2}).StellarConductBaseBonus,undefined);
- const team={triggerId:'wind',vortexMultiplier:2,participants:[{id:'wind',element:'Anemo',levelMultiplier:100,anemoResistanceMultiplier:1,cryoResistanceMultiplier:1,buffs:[named('AetherCryoTalent1',{radiance_mode:2}),named('AetherCryoC6')]},{id:'ice',element:'Cryo',levelMultiplier:100,anemoResistanceMultiplier:1,cryoResistanceMultiplier:1}]};near(calculateStellarSwirlTeam(team).individual.anemo[0].damage.expectation,75*1.07*1.4);
  near(calculateSingleHit({...manual,kind:'stellar-swirl',element:'Anemo',buffs:[named('AetherCryoC6')]}).expectation,2800);
 });
 test('3 纳西妲与菈乌玛：普通绽放暴击率相加、固定暴伤不翻倍、燃烧与月绽放隔离',()=>{
@@ -60,7 +58,7 @@ test('4 杜林限定反应与魔导、伊法三分支、手动面板API及优化
  assert.throws(()=>singleHitBuffs([named('UnknownBuff')],{name:'Vesna'}),/尚无此BUFF/);
 });
 test('5 发布检查：新面板语法、版本、真实内核加载和构建文件',async()=>{
- const require=createRequire(import.meta.url),compiler=require('@vue/compiler-sfc');const file='src/pages/NewArtifactPlanPage/SingleHitPanel.vue';const parsed=compiler.parse(fs.readFileSync(file,'utf8'));assert.deepEqual(parsed.errors,[]);compiler.compileScript(parsed.descriptor,{id:'singlehit7107'});assert.deepEqual(compiler.compileTemplate({source:parsed.descriptor.template.content,filename:file,id:'singlehit7107'}).errors,[]);
+ assert.equal(fs.existsSync('src/pages/NewArtifactPlanPage/SingleHitPanel.vue'),false);
  assert.equal(JSON.parse(fs.readFileSync('package.json')).displayVersion,'7.1.07');
  const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');assert.equal(hash('mona_wasm/pkg/mona_wasm_bg.wasm'),'fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90');assert.notEqual(hash('mona_wasm/extension/mona_extension_bg.wasm'),'f2671ff81d77ef45c2c9cad87f2cb087f2e0565cfe92d225c2fcaa9532f8f561');
  assert.ok(Number.isFinite(api.CalculatorInterface.get_damage_analysis(vesna).direct_stellarswirl.expectation));

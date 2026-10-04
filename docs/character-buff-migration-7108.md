@@ -1,0 +1,193 @@
+# 7.1.08beta 角色 BUFF 迁移清单
+
+data-rule: 174；scoped-data-rule: 11。共 185 项 BUFF，非角色人数。
+
+统一规则并不表示所有旧内核属性已经互通。旧内核遇到尚无精确属性映射的规则，会整条保留原生实现；不把星超导属性冒充星扩散，也不关闭原有适配拦截。
+
+| BUFF | 标识 | 公式来源 | 旧内核处理 |
+|---|---|---|---|
+| 阿贝多-「瓶中人的天慧」 | AlbedoTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 阿贝多-「神性之陨」 | AlbedoC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 阿贝多-「无垢之土」 | AlbedoC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 阿贝多-「魔女的前夜礼·白芒之书」 | AlbedoWitchEve | data-rule | def=0 uses native dependency |
+| 安柏-「疾如野火」 | AmberC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 埃洛伊-「战斗覆盖」 | AloyTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 荒泷一斗-「奉行牢狱，茶饭之所」 | AratakiIttoC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 北斗-「北斗祓幽孽」 | BeidouC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 北斗-「辛映·星超导」 | BeidouC6StellarConduct | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 班尼特-「美妙旅程」 | BennettQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 班尼特-「烈火与勇气」 | BennettC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菲谢尔-「魔女的前夜礼·宵世幻奏」 | FischlWitchEve | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 重云-「追冰剑诀」 | ChongyunTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 迪奥娜-「猫尾打烊之时」 | DionaC6G50 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 迪奥娜-「辉映·星烁」 | DionaC6StellarConduct | data-rule | native scope retained |
+| 七七·七宝奉真（辉映·星烁） | QiqiTalent2StellarConduct | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 七七六命·洞玄（直接星烁伤害） | QiqiC6StellarConduct | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 赛诺-「立仪·俯览昼冥」偕日共升（辉映·星超导） | CynoC1StellarConduct | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 赛诺-「令仪·引谒归灵」（辉映·星超导） | CynoC2StellarConduct | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 爱可菲-「灵感浸入调味」 | EscoffierTalent3 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 爱可菲-C1-「味蕾绽放的餐前旋舞」 | EscoffierC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 爱可菲-C2-「鲜香味腴的炖煮艺术」 | EscoffierC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 优菈-「冰潮的涡旋」减抗 | EulaE | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 甘雨-「天地交泰」 | GanyuTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 甘雨-「饮露」 | GanyuC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 五郎-「大将旗指物」-1 | GorouE1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 五郎-「大将旗指物」-3 | GorouE3 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 五郎-「不畏风雨」 | GorouTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 五郎-「犬勇•忠如山」 | GorouC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 胡桃-「蝶隐之时」 | HuTaoTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 爱诺-C1「灰与力场的平衡理论」 | AinoC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 爱诺-C6「天才之为构造之责任」 | AinoC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 伊涅芙-「月兆祝赐·象拟中继」 | IneffaMoonelectroRelay | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 伊涅芙-「全相重构协议」 | IneffaTalent3 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 琴-「蒲公英的国土」 | JeanC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 枫原万叶-「风物之诗咏」 | KaedeharaKazuhaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 枫原万叶-「山岚残芯」 | KaedeharaKazuhaC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 神里绫华-「盈缺流返」 | KamisatoAyakaC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 可莉-「连环轰隆」 | KleeC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 可莉-「破破弹片」 | KleeC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 可莉-「火力全开」 | KleeC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 九条裟罗-「天狗咒雷」 | KujouSaraEOrQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菲林斯-「月兆祝赐·旧世潜藏」 | FlinsTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菲林斯-「歌与亡者之舞」 | FlinsC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菈乌玛-「月兆祝赐·千籁恩宠」 | LaumaTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菈乌玛-「奉向霜夜的明光」 | LaumaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菈乌玛-霜林圣域抗性降低 | LaumaSkillResMinus | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菈乌玛-「苍色祷歌」 | LaumaBurst | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 菈乌玛-「我愿将这血与泪奉予月明」 | LaumaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 哥伦比娅-「月兆祝赐·借汝月光」 | ColumbinaP1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 哥伦比娅-「万古潮汐·月之领域」 | ColumbinaQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 哥伦比娅-「为夜增辉，与君遥伴」 | ColumbinaC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 哥伦比娅-「多重之月擢升」 | ColumbinaConstellation | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 哥伦比娅-「夜昏且暗，且随月光」 | ColumbinaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 奈芙尔-「月兆祝赐·廊下暮影」 | NeferTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 丽莎-「静电场力」 | LisaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莫娜-「星异」 | MonaQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莫娜-「沉没的预言」 | MonaC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莫娜-「星月的连珠」 | MonaC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莫娜-「水星天的辉光」（魔导·秘仪） | MonaMagusGlow | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 凝光-「储之千日，用之一刻」 | NingguangTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 雷电将军-「雷罚恶曜之眼」 | RaidenShogunE | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 雷电将军-「誓奉常道」 | RaidenShogunC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 雷泽-「撕咬」 | RazorC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 罗莎莉亚-「暗中支援的黯色」 | RosariaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 罗莎莉亚-「代行裁判」 | RosariaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 赛索斯-C4「真念鸵羽集」 | SethosC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 申鹤-「冰翎」 | ShenheE | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 申鹤-「神女遣灵真诀」减抗 | ShenheQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 申鹤-「大洞弥罗尊法」 | ShenheTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 申鹤-「缚灵通真法印」 | ShenheTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 砂糖-「触媒置换术」 | SucroseTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 砂糖-「小小的慧风」 | SucroseTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 砂糖-「魔导·秘仪」（小型风灵） | SucroseTalentMagusE | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 砂糖-「魔导·秘仪」（大型风灵） | SucroseTalentMagusQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 砂糖-「混元熵增论」 | SucroseC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 托马-「甲衣交叠」 | ThomaTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 托马-「炽烧的至心」 | ThomaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 温迪-「眷恋的泠风」 | VentiC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 温迪-「抗争的暴风」 | VentiC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 温迪-「魔女的前夜礼·颂时风若」 | VentiSongOfTime | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 温迪-「自由的凛风」（魔导·秘仪） | VentiTalentFreedom | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 香菱-「绝云朝天椒」 | XianglingTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 香菱-「外酥里嫩」 | XianglingC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 旅行者-强化共鸣 | TravelerElements | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 冰旅行者-「星耀祝礼·幻变冰镜」 | AetherCryoTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 冰旅行者-二命「嗡鸣的陨冰」 | AetherCryoC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 冰旅行者-六命「肃杀的熙冰」 | AetherCryoC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 旅行者-强化属性 | TravelerEnhancedAttribute | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 香菱-「大龙卷旋火轮」 | XianglingC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 行秋-「天青现虹」 | XingqiuC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 辛焱-「节奏的传染」 | XinyanC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 辛焱-「这才是摇滚!」 | XinyanTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 八重神子-「野狐供真篇」 | YaeMikoC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 八重神子-「望月吼哕声」 | YaeMikoC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 八重神子-「绯樱引雷章」 | YaeMikoC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 宵宫-「炎昼风物诗」 | YoimiyaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 云堇-「飞云旗阵」 | YunjinQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 云堇-「诸般切末」 | YunjinC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 钟离-「玉璋护盾」 | ZhongliShield | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 夜兰-「妙转随心」 | YelanTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 夜兰-「诓惑者，接树移花」 | YelanC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 神里绫人-「水囿」 | KamisatoAyatoQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 鹿野院平藏-因由勘破 | ShikanoinHeizouTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 提纳里-「由片叶管窥枯荣」 | TighnariC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 多莉-「酌盈剂虚」 | DoriC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 芙宁娜-「万众狂欢」 | FurinaQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 妮露-「折旋落英之庭」 | NilouTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 妮露-「翩舞永世之梦」 | NilouTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 坎蒂丝-「赤冕祝祷」 | CandaceQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 坎蒂丝-「漫沙陨穹」 | CandaceTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 纳西妲-「净善摄受明论」 | NahidaTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 纳西妲-「正等善见之根」 | NahidaC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 法露珊 - 「抟风秘道」 | FaruzanQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 米卡 -「灵风」 | Mika | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 卡维Q | KavehQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 白术-「在地为化」 | BaizhuTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 白术-「法古观冥」 | BaizhuC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 闲云-「霜翎高逐祥风势」 | XianyunTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 闲云-「细想应是洞中仙」 | XianyunTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 卡齐娜-「敌人越多，越要小心」 | KachinaC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 希诺宁-「音火锻淬」 | XilonenE | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 希诺宁-「献予灼原的五重奏」 | XilonenC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 希诺宁-「荣花之赐」 | XilonenC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莱依拉-「星示昭明」 | LaylaC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 茜特菈莉-「五重天的寒雨」 | CitlaliTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 茜特菈莉-「四百星的芒刃」 | CitlaliC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 茜特菈莉-「原动天的密契」 | CitlaliC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 艾梅莉埃-「湖光顶调」 | EmilieC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 梦见月瑞希-「宿雾若水遥」 | YumemizukiMizukiC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 梦见月瑞希-「缠忆君影梦相见」 | YumemizukiMizukiC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 梦见月瑞希-「慕念萦心间」 | YumemizukiMizukiC6 | data-rule | native scope retained |
+| 梦见月瑞希-「秋沙歌枕巡礼」 | YumemizukiMizukiE | data-rule | native scope retained |
+| 梦见月瑞希-「廓然梦生」 | YumemizukiMizukiEnhancedEM | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 伊安珊-「动能标示」 | IansanTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 夏沃蕾-「尖兵协同战法」 | ChevreuseTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 夏沃蕾-「纵阵武力统筹」 | ChevreuseTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 夏沃蕾-「终结罪恶的追缉」 | ChevreuseC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 玛薇卡-「基扬戈兹」 | MavuikaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 玛薇卡-「焚曜之环·灼象」 | MavuikaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 欧洛伦-C6「致深泉的颂赞」 | OroronC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 杜林-「光灵遵神数显现」 | DurinTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 杜林-「红土之逆」 | DurinC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 杜林-「无底之想」 | DurinC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 杜林-「双重诞生」 | DurinC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 兹白-「月兆祝赐·浮明若流」 | ZibaiTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 兹白-「化于生而死于尸」 | ZibaiC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「栖地考察」 | LinneaTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「野外观察手记」 | LinneaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「万类博物图鉴」 | LinneaTalent3 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「历览编录」 | LinneaC1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「喜或悲的谕告」 | LinneaC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「专家的直感觉」 | LinneaC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 莉奈娅-「黄金猎犬之梦」 | LinneaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 伊法-「救援要义」 | IfaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 雅珂达-「蜜莓的嘉赏」 | JahodaTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 雅珂达-「最渺小的幸运」 | JahodaC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 叶洛亚-「铸灯者的盟约」 | IllugaP2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 叶洛亚-「魇夜的莺歌」 | IllugaQ | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 叶洛亚-「逐日之狼」 | IllugaC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 布伦妮-「魔女的前夜礼·寻魔之誓」 | PruneTalent1 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 布伦妮-「振铃同心」 | PruneTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 布伦妮-「故事结尾在这儿」 | PruneC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 洛恩-「戏言的杰作」 | LohenTalent2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 洛恩-「凡飞翔者，皆为靶标」 | LohenC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 尼可-「虚己之赐」 | NicoleE | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 尼可-「我要教导你，指引你应走的路」 | NicoleC2 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 尼可-「向左或向右，无论你行往何方」 | NicoleC4 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 尼可-「这便是正确的道路，莫要彷徨」 | NicoleC6 | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 桑多涅·星耀祝礼·唯理为光 | SandroneTalent1 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 桑多涅一命·鎏金未凋，夕暮已远 | SandroneC1 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 阿罗夏-「猎者之准」 | AlyoshaHunterPrecision | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 奥黛塔-「星耀祝礼·银晓之舞」 | OdetteTalent1 | data-rule | native scope retained |
+| 奥黛塔-「华彩」 | OdetteMarvelousSplendor | data-rule | native scope retained |
+| 奥黛塔-「她想，我要见证雪鹄未见之梦」（华彩） | OdetteC2MarvelousSplendor | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 奥黛塔-「她想，我要见证雪鹄未见之梦」（独舞倒影） | OdetteC2SoloDance | data-rule | compile supported attributes; otherwise retain entire native buff |
+| 奥黛塔-「向上，坠往恍惚、燃烧的蓝空」 | OdetteC4SnowSwanDream | data-rule | native scope retained |
+| 奥黛塔-「伸出手，触及苍穹永恒的面容」 | OdetteC6MarvelousSplendor | data-rule | native scope retained |
+| 沃雅妮莎-「宣叙·晨声纷流」 | VodyanitsaE | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 沃雅妮莎-「十二弦的泪歌」 | VodyanitsaA4 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 沃雅妮莎-「聚光灯下的水华」 | VodyanitsaC1 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 沃雅妮莎-「穿彻风雪的余响」 | VodyanitsaC2 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 沃雅妮莎-「永不落幕的盛歌」 | VodyanitsaC6 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 沃雅妮莎-「最后的塑诗者」 | VodyanitsaA1 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |
+| 薇斯纳·突破被动·星扩散基础伤害 | VesnaTalent1 | scoped-data-rule | compile supported attributes; otherwise retain entire native buff |

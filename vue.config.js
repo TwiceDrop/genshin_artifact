@@ -13,7 +13,7 @@ const IconsResolver = require("unplugin-icons/resolver")
 const Icons = require("unplugin-icons/webpack")
 const webpack = require('webpack')
 
-const revision = '7.1.07'
+const revision = JSON.parse(readFileSync("./package.json").toString()).displayVersion
 console.log("revision: ", revision)
 
 const version = JSON.parse(readFileSync("./package.json").toString()).displayVersion || "no version"

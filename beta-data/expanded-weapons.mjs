@@ -8,12 +8,16 @@ const nativeRole=name=>name==='Vesna'||name==='Vodyanitsa';
 const travelerRole=name=>/^(?:Aether|Manekina)(?:Anemo|Geo|Electro|Dendro|Hydro|Pyro|Cryo)$/.test(name||'');
 // Marginal coverages determine overlap only when one state is absent or full.
 // Two partial coverages need timing information; min(a,b) invents nesting.
-function knownOverlap(a,b){
-  if(a===0||b===0)return 0;
-  if(a===1)return b;
-  if(b===1)return a;
-  throw Error('真语秘匣的两个状态均为部分覆盖，无法仅凭覆盖率确定重叠时长；请将其中一个状态设为完整覆盖或关闭。');
+export function knownOverlap(a,b,provided){
+ const lo=Math.max(0,a+b-1),hi=Math.min(a,b);
+ if(provided!==undefined&&provided!==-1){
+  if(!pct(provided)||provided<lo-1e-9||provided>hi+1e-9)throw Error(`两状态同时生效比例须在 ${lo}～${hi} 之间`);
+  return provided;
+ }
+ if(Math.abs(lo-hi)<1e-12)return hi;
+ throw Error('两个状态均为部分覆盖，请填写同时生效比例；不能仅凭各自覆盖率推算重叠。');
 }
+const effect=(label,values,source_buff)=>({name:'ExtensionEffect',...(source_buff?{source_buff}:{}),config:{ExtensionEffect:{label,values}}});
 export const isExpandedWeapon=weapon=>catalog.has(weapon?.name);
 export const expandedWeaponCatalog=Object.freeze(data.weapons.map(w=>Object.freeze({id:w.id,name:w.name,displayName:w.displayName,type:w.weaponType,rarity:w.rarity,maxRefine:w.refinements.length,availability:w.name==='PrizedIsshinBlade'?'quest-only':'catalog'})));
 
@@ -28,8 +32,8 @@ function config(name,old){
   case 'WhitelakeFrostfeather': return {stacks:p.stacks??p.stack??0,rate:p.rate??1};
   case 'ExaiphanesBlade': return {hit_active:p.hit_active??p.active??false,rate:p.rate??1,resonated_elements:p.resonated_elements??0};
   case 'AmberBead': return {stacks:p.stacks??p.stack??0};
-  case 'NightweaversLookingGlass': return {skill_active:p.skill_active??p.northernmost_runo_active??false,lunar_bloom_active:p.lunar_bloom_active??p.crescent_verse_active??false,skill_rate:p.skill_rate??1,lunar_rate:p.lunar_rate??1};
-  case 'ReliquaryOfTruth': return {skill_active:p.skill_active??p.false_secret_active??false,lunar_bloom_hit:p.lunar_bloom_hit??p.true_moon_active??false,skill_rate:p.skill_rate??1,lunar_rate:p.lunar_rate??1};
+  case 'NightweaversLookingGlass': return {skill_active:p.skill_active??p.northernmost_runo_active??false,lunar_bloom_active:p.lunar_bloom_active??p.crescent_verse_active??false,skill_rate:p.skill_rate??1,lunar_rate:p.lunar_rate??1,overlap_rate:p.overlap_rate??-1};
+  case 'ReliquaryOfTruth': return {skill_active:p.skill_active??p.false_secret_active??false,lunar_bloom_hit:p.lunar_bloom_hit??p.true_moon_active??false,skill_rate:p.skill_rate??1,lunar_rate:p.lunar_rate??1,overlap_rate:p.overlap_rate??-1};
   case 'DawningFrost': return {charged_active:p.charged_active??(Number(p.rate_charged)>0),skill_active:p.skill_active??(Number(p.rate_skill)>0),charged_rate:p.charged_rate??p.rate_charged??1,skill_rate:p.skill_rate??p.rate_skill??1};
   case 'EtherlightSpindlelute': return {skill_active:p.skill_active??(Number(p.rate)>0),rate:p.rate??1};
   case 'BlackmarrowLantern': return {moon_full:p.moon_full??(p.moon_state===2)};
@@ -55,7 +59,8 @@ export function normalizeExpandedWeapon(weapon){
     if(p.energy_cost!==undefined&&(!Number.isInteger(p.energy_cost)||p.energy_cost<0||p.energy_cost>100))throw Error(`${w.displayName}元素能量上限无效`);
     if(p.resonated_elements!==undefined&&(!Number.isInteger(p.resonated_elements)||p.resonated_elements<0||p.resonated_elements>7))throw Error(`${w.displayName}共鸣元素数无效`);
   }
-  if(weapon.name==='ReliquaryOfTruth')knownOverlap(p.skill_active?p.skill_rate:0,p.lunar_bloom_hit?p.lunar_rate:0);
+  if(weapon.name==='ReliquaryOfTruth')knownOverlap(p.skill_active?p.skill_rate:0,p.lunar_bloom_hit?p.lunar_rate:0,p.overlap_rate);
+  if(weapon.name==='NightweaversLookingGlass')knownOverlap(p.skill_active?p.skill_rate:0,p.lunar_bloom_active?p.lunar_rate:0,p.overlap_rate);
   return {...weapon,params:p?{[weapon.name]:p}:'NoConfig'};
 }
 
@@ -96,14 +101,14 @@ export function expandedWeaponEffects(weapon,{characterName,sourceAttack}={}){
     const skill=p.skill_active?p.skill_rate:0,lunar=p.lunar_bloom_active?p.lunar_rate:0;
     fx.elementalMastery=v[0]*skill+v[2]*lunar;
     if(skill>0&&lunar>0){
-      const coverage=skill===1?lunar:lunar===1?skill:null;
+      const coverage=knownOverlap(skill,lunar,p.overlap_rate);
       fx.teamEffects.push({kind:'reactionBonus',target:'nearby party',bloom:v[4],hyperbloom:v[5],burgeon:v[5],lunarBloom:v[6],coverage,coverageBounds:{min:Math.max(0,skill+lunar-1),max:Math.min(skill,lunar)},trigger:'both states'});
-      if(coverage===null)fx.unmodeled.push('纺夜天镜两个部分覆盖状态的重叠时长未知');
+      
     }
     break;
   }
   case 'ReliquaryOfTruth':{
-    const skill=p.skill_active?p.skill_rate:0,lunar=p.lunar_bloom_hit?p.lunar_rate:0,overlap=knownOverlap(skill,lunar);
+    const skill=p.skill_active?p.skill_rate:0,lunar=p.lunar_bloom_hit?p.lunar_rate:0,overlap=knownOverlap(skill,lunar,p.overlap_rate);
     fx.criticalRate=v[5];fx.elementalMastery=v[0]*(skill+.5*overlap);fx.criticalDamage=v[1]*(lunar+.5*overlap);break;
   }
   case 'DawningFrost':fx.elementalMastery=(p.charged_active?v[0]*p.charged_rate:0)+(p.skill_active?v[2]*p.skill_rate:0);break;
@@ -112,8 +117,7 @@ export function expandedWeaponEffects(weapon,{characterName,sourceAttack}={}){
   case 'NocturnesCurtainCall':fx.hpPercentage=[.1,.12,.14,.16,.18][r]+(p.lunar_active?v[0]*p.rate:0);fx.lunarReactionCriticalDamage=p.lunar_active?v[1]*p.rate:0;if(p.lunar_active)fx.directEnergy={amount:v[3],intervalSeconds:v[4],target:'wielder',trigger:'lunar reaction'};break;
   case 'AngelosHeptades':fx.attackPercentage=v[0];if(p.shield_active){const bonus=Number.isFinite(sourceAttack)?Math.min(sourceAttack/v[1]*v[2],v[3])*p.rate:null;fx.teamEffects.push({kind:'damageBonus',target:'active party member',amount:bonus,formula:{sourceStat:'attack',per:v[1],increment:v[2],cap:v[3],coverage:p.rate},hexereiOffFieldRatio:v[7],duration:v[4],trigger:'wielder creates shield'});fx.directEnergy={amount:v[5],intervalSeconds:v[6],target:'wielder',trigger:'wielder creates shield'};}break;
   }
-  if(fx.lunarCrystallizeBonus)fx.unmodeled.push('月结晶反应乘区尚未接入');
-  if(fx.lunarReactionCriticalDamage)fx.unmodeled.push('月曜反应专属暴伤乘区尚未接入');
+
   if(fx.teamEffects.length)fx.unmodeled.push('队友效果必须由队伍效果求值层施加');
   return fx;
 }
@@ -156,13 +160,13 @@ function publishedWeapon(w,characterName){
  }[w.name];
  switch(w.name){
  case 'LightbearingMoonshard':
-  if(p.skill_active&&p.rate>0&&p.rate<1)throw Error('朏魄含光的部分覆盖需要月结晶专属增伤通道；原内核通用 BUFF 不能替代，请设为完整覆盖或关闭。');
+  cfg.extra_active=false;
+  if(p.skill_active)buffs.push(effect('朏魄含光·覆盖率',{EnhanceMoonCrystallize:v[0]*p.rate}));
   break;
  case 'WhitelakeFrostfeather':
-  if(p.stacks===3&&p.rate>0&&p.rate<1)throw Error('白湖冬羽满3层时包含星烁反应专属暴伤，部分覆盖尚未校准；请使用完整覆盖、0覆盖或不足3层。');
-  // The original core accepts fractional stacks; below three this is exactly
-  // the ATK graph coefficient, without accidentally granting the 3-stack bonus.
-  cfg.stack=p.stacks*p.rate;
+  cfg.stack=0;
+  add('ATKPercentage','p',v[1]*p.stacks*p.rate*100);
+  if(p.stacks===3)buffs.push(effect('白湖冬羽·满层覆盖率',{StellarConductCritDamage:v[4]*p.rate,StellarSwirlCritDamage:v[4]*p.rate}));
   break;
  case 'ExaiphanesBlade':
   // Published factory f1480 excludes AetherCryo despite accepting the other
@@ -175,12 +179,13 @@ function publishedWeapon(w,characterName){
   }
   break;
  case 'NightweaversLookingGlass':
-  if(cfg.northernmost_runo_active&&cfg.crescent_verse_active)throw Error('纺夜天镜的双状态队友反应增益与重叠时长尚未校准，请关闭其中一个状态。');
-  if(cfg.northernmost_runo_active&&p.skill_rate!==1){cfg.northernmost_runo_active=false;add('ElementalMastery','value',v[0]*p.skill_rate);}
-  if(cfg.crescent_verse_active&&p.lunar_rate!==1){cfg.crescent_verse_active=false;add('ElementalMastery','value',v[2]*p.lunar_rate);}
+  cfg.northernmost_runo_active=false;cfg.crescent_verse_active=false;
+  add('ElementalMastery','value',v[0]*(p.skill_active?p.skill_rate:0)+v[2]*(p.lunar_bloom_active?p.lunar_rate:0));
+  {const overlap=knownOverlap(p.skill_active?p.skill_rate:0,p.lunar_bloom_active?p.lunar_rate:0,p.overlap_rate);
+   if(overlap)buffs.push(effect('纺夜天镜·双状态',{EnhanceBloom:v[4]*overlap,EnhanceHyperbloom:v[5]*overlap,EnhanceBurgeon:v[5]*overlap,EnhanceMoonbloom:v[6]*overlap},'NightweaversLookingGlass'));}
   break;
  case 'ReliquaryOfTruth':{
-  const skill=p.skill_active?p.skill_rate:0,lunar=p.lunar_bloom_hit?p.lunar_rate:0,overlap=knownOverlap(skill,lunar);
+  const skill=p.skill_active?p.skill_rate:0,lunar=p.lunar_bloom_hit?p.lunar_rate:0,overlap=knownOverlap(skill,lunar,p.overlap_rate);
   // Retain permanent CRIT Rate in the weapon. Recreate only the two conditional
   // stats through the same attribute graph used by damage and optimization.
   if((p.skill_active&&skill!==1)||(p.lunar_bloom_hit&&lunar!==1)){
@@ -191,13 +196,36 @@ function publishedWeapon(w,characterName){
   break;
  }
  }
- return {weapon:{...w,params:cfg?{[w.name]:cfg}:'NoConfig'},buffs};
+ const source=catalog.get(w.name),actual=source.levels.find(row=>row.level===w.level&&row.ascend===w.ascend),reference=source.levels.find(row=>row.level===90&&!row.ascend);
+ if(w.level!==90){
+  const attribute={Critical:'CriticalBase',CriticalDamage:'CriticalDamageBase',ATKPercentage:'ATKPercentage',ElementalMastery:'ElementalMastery',Recharge:'Recharge',HPPercentage:'HPPercentage',DEFPercentage:'DEFPercentage'}[source.secondaryStat];
+  if(!attribute)throw Error('武器副属性未建立精确映射：'+source.secondaryStat);
+  buffs.push(effect(w.name+'·等级校正',{ATKBase:actual.attack-reference.attack,[attribute]:actual.subStat-reference.subStat}));
+ }
+ return {weapon:{...w,level:90,ascend:false,params:cfg?{[w.name]:cfg}:'NoConfig'},buffs};
 }
 function publishedArguments(args,verified){
  const prepare=(character,weapon,buffs)=>{
-  if(!isExpandedWeapon(weapon)||nativeRole(character?.name)||verified.has(character?.name))return {weapon,buffs};
+  if(!isExpandedWeapon(weapon)||verified.has(character?.name))return {weapon,buffs};
+  if(nativeRole(character?.name)){
+   const fx=expandedWeaponEffects(weapon,{characterName:character.name});
+   // These native weapon implementations have permanent stats only; inject scoped passives.
+   if(weapon.name==='LightbearingMoonshard'&&fx.lunarCrystallizeBonus)return {weapon,buffs:[...(buffs||[]),effect('朏魄含光·月结晶',{EnhanceMoonCrystallize:fx.lunarCrystallizeBonus})]};
+   if(weapon.name==='NocturnesCurtainCall'&&fx.lunarReactionCriticalDamage)return {weapon,buffs:[...(buffs||[]),effect('帷间夜曲·月曜暴伤',{CriticalDamageMoonReaction:fx.lunarReactionCriticalDamage})]};
+   if(!['NightweaversLookingGlass','ReliquaryOfTruth'].includes(weapon.name))return {weapon,buffs};
+   const p=weapon.params[weapon.name];
+   const extra=[];
+   if(fx.elementalMastery)extra.push(effect('武器·双状态精通',{ElementalMastery:fx.elementalMastery}));
+   if(fx.criticalDamage)extra.push(effect('武器·双状态暴伤',{CriticalDamageBase:fx.criticalDamage}));
+   for(const e of fx.teamEffects)if(e.kind==='reactionBonus'&&e.coverage)extra.push(effect('纺夜天镜·双状态',{
+    EnhanceBloom:e.bloom*e.coverage,EnhanceHyperbloom:e.hyperbloom*e.coverage,
+    EnhanceBurgeon:e.burgeon*e.coverage,EnhanceMoonbloom:e.lunarBloom*e.coverage},'NightweaversLookingGlass'));
+   // Keep permanent CR and real level in the extension; replace both conditional states.
+   const params={...p,skill_active:false,lunar_bloom_active:false,lunar_bloom_hit:false,skill_rate:0,lunar_rate:0,overlap_rate:0};
+   return {weapon:{...weapon,params:{[weapon.name]:params}},buffs:[...(buffs||[]),...extra]};
+  }
   if(!character?.name)throw Error('新增武器的覆盖率换算缺少装备角色。');
-  if(weapon.level!==90)throw Error('旧角色使用新增目录武器的1～89级白值尚未校准，请使用90级武器。');
+
   const result=publishedWeapon(weapon,character.name);
   return {weapon:result.weapon,buffs:result.buffs.length?[...(buffs||[]),...result.buffs]:buffs};
  };
@@ -217,8 +245,7 @@ function publishedArguments(args,verified){
  return args.map(walk);
 }
 
-// The published WASM has no base-ATK override. Old roles can use the rebuilt
-// extension only after their kit parity has been verified against the release.
+// Legacy level corrections use the calibrated base-ATK bridge; kits stay native.
 export function createExpandedWeaponsFacade(base,original,extension,{verifiedOldRoles=[]}={}){
   const verified=new Set(verifiedOldRoles);
   const wrap=className=>new Proxy(base[className]||{}, {get(target,method){
@@ -235,7 +262,7 @@ export function createExpandedWeaponsFacade(base,original,extension,{verifiedOld
       if(!weapons.length)return fn(...args);
       const role=prepared[0]?.character?.name||prepared[0]?.name||prepared[1]?.character?.name;
       const oldRole=role&&!nativeRole(role);
-      if(oldRole&&!verified.has(role)&&weapons.some(w=>w.level!==90))throw Error('旧角色使用新增目录武器的1～89级白值尚未校准，请使用90级武器。');
+
       const engine=oldRole&&verified.has(role)?extension:base;
       let callArgs=engine===extension?prepared:publishedArguments(prepared,verified);
       // This interface has positional character/weapon arguments and no BUFF

@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
+import { createInterface } from 'node:readline'
 
+const trayMode = process.argv.includes('--tray')
 const port = Number(process.env.MONA_PORT || 4183)
 const base = `http://127.0.0.1:${port}`
 const url = `${base}/#/calculate`
@@ -25,7 +27,7 @@ async function main() {
         })
     } catch (error) {
         server.close()
-        if (error.code !== 'EADDRINUSE') throw error
+        if (error.code !== 'EADDRINUSE' || trayMode) throw error
         const response = await fetch(`${base}/`, { signal: AbortSignal.timeout(3000), redirect: 'error' }).catch(() => null)
         if (!response?.ok || await response.text() !== index) {
             throw new Error(`端口 ${port} 被其他服务占用，请关闭占用程序后重试。`)
@@ -35,7 +37,24 @@ async function main() {
         return
     }
     console.log(`莫娜已启动：${url}`)
-    console.log('使用期间请保留此窗口；关闭窗口或按 Ctrl+C 可停止服务。')
+    if (trayMode) {
+        const control = createInterface({ input: process.stdin })
+        let stopping = false
+        const shutdown = () => {
+            if (stopping) return
+            stopping = true
+            console.log('正在关闭莫娜本地服务。')
+            control.close()
+            process.stdin.pause()
+            server.close(() => console.log('莫娜本地服务已关闭。'))
+            server.closeAllConnections()
+        }
+        control.on('line', line => { if (line === 'shutdown') shutdown() })
+        process.stdin.on('end', shutdown)
+        console.log('MONA_LAUNCHER_READY')
+    } else {
+        console.log('使用期间请保留此窗口；关闭窗口或按 Ctrl+C 可停止服务。')
+    }
     openPage()
 }
 

@@ -61,7 +61,7 @@ export function calculateSingleHit(input){
  const bonus=num(panel.damageBonus??0,'普通伤害加成',-1)+(before?read('BonusBase')+read('Bonus'+element)+read('Bonus'+skillType):0);
  const additive=flat+read('ExtraDmgBase')+read('ExtraDmg'+element)+read('ExtraDmg'+skillType);
  const al=num(input.characterLevel??90,'主C等级'),el=num(input.enemyLevel??90,'敌人等级');
- const def=Math.min(1,num(input.defMinus??0,'减防')+read('DefMinus')),pen=Math.min(1,read('DefPenetration'));
+ const def=Math.min(.9,num(input.defMinus??0,'减防')+read('DefMinus')),pen=Math.min(1,read('DefPenetration'));
  const defense=(al+100)/((al+100)+(el+100)*(1-def)*(1-pen));
  n=(scaled*mult*(1+read('IndependentBaseMultiplier'))+additive)*(1+bonus)*defense*reactionResistance(undefined,res.resistanceBeforeBuffs,read('ResMinusBase')+read('ResMinus'+element));
  return result(n,cr,cd,{kind,scalingStat:scaled,em,defenseMultiplier:defense});

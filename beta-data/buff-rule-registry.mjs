@@ -1,3 +1,4 @@
+import {evaluateEffectRule} from './effect-rule-engine.mjs';
 import {BUFF_RULE_SCHEMA,NATIVE_EFFECT_ATTRIBUTES} from './buff-rule-schema.mjs';
 
 const ELEMENTS=['Pyro','Hydro','Electro','Cryo','Anemo','Geo','Dendro','Physical'];
@@ -48,7 +49,8 @@ export function createBuffRuleRegistry(definitions){
    const raw=buff.config==='NoConfig'||buff.config==null?{}:buff.config?.[buff.name]??{};
    if(raw.active===false)return [];
    const p=normalizeBuffParameters(buff.name,raw);
-   const effects=rules[buff.name](p,input)||{};
+   const rule=rules[buff.name];
+   const effects=(typeof rule==='function'?rule(p,input):evaluateEffectRule(rule,p,input))||{};
    const {star={},...values}=effects;
    for(const [key,value]of Object.entries(star)){
     if(!stellarAttributes[key])throw Error('未知星扩散效果：'+key);

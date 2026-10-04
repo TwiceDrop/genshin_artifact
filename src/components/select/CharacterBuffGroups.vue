@@ -8,7 +8,6 @@
                 <el-option v-for="g in groups" :key="g.character" :value="g.character" :label="`${g.label} · ${g.buffs.length}项${profile(g.character).imported ? ' · 已保存角色' : ''}`" />
             </el-select>
         </div>
-        <p class="group-note">展开角色后可逐条添加。命座、天赋优先读取所选 UID 的已保存角色；添加时使用这里的参数，不修改原角色数据。</p>
         <el-collapse v-model="expanded" accordion>
             <el-collapse-item v-for="g in visibleGroups" :key="g.character" :name="g.character">
                 <template #title><div class="character-group-title"><img :src="g.badge" alt="" loading="lazy" /><strong>{{ g.label }}</strong><span>{{ g.buffs.length }}项 BUFF</span><el-tag v-if="profile(g.character).imported" size="small">{{ profile(g.character).constellation }}命 · 已保存</el-tag></div></template>
@@ -21,12 +20,11 @@
                         </template>
                         <el-button class="add-all-buffs" type="primary" :disabled="!available(g).length" :aria-label="`添加${g.label}全部可用 BUFF`" @click="addAll(g)">{{ available(g).length ? `添加全部可用 BUFF（${available(g).length}）` : '无待添加的可用 BUFF' }}</el-button>
                     </div>
-                    <p class="group-note">天赋使用游戏显示等级（含命座加成），手动改命座后请按需调整天赋。突破被动、队伍条件、层数及来源角色的面板数值请确认后添加。已有 BUFF 可在计算页调整。</p>
                     <article v-for="buff in g.buffs" :key="buff.name" class="group-buff-row" :class="{ unavailable: !availability(buff,g).allowed }">
                         <div class="group-buff-heading"><strong>{{ buff.title }}</strong><el-tag :type="availability(buff,g).allowed ? 'info' : 'warning'" size="small">{{ availability(buff,g).label }}</el-tag>
                             <el-button size="small" type="primary" :disabled="!availability(buff,g).allowed || selectedNames.includes(buff.name)" :aria-label="`${selectedNames.includes(buff.name) ? '已添加' : '添加'}${buff.title}`" @click="add(buff,g)">{{ selectedNames.includes(buff.name) ? '已添加' : '添加此 BUFF' }}</el-button>
                         </div>
-                        <p v-html="buff.description" />
+                        <p v-if="buff.description" v-html="buff.description" />
                         <details v-if="manualFields(buff,g).length && availability(buff,g).allowed" class="group-buff-params"><summary>调整 BUFF 参数</summary>
                             <item-config :model-value="config(buff,g)" :item-name="buff.name" :configs="manualFields(buff,g)" @update:modelValue="v => setConfig(buff,g,v)" />
                         </details>
@@ -73,5 +71,5 @@ function addAll(g) { for (const buff of available(g)) add(buff,g) }
 </script>
 <style scoped>
 .character-buff-profile .add-all-buffs{margin-left:auto;min-height:36px}@media(max-width:600px){.character-buff-profile .add-all-buffs{width:100%;margin-left:0}}
-.group-filters{display:flex;gap:12px;flex-wrap:wrap}.group-filters>.el-select{flex:1;min-width:230px}.group-note{font-size:12px;color:#7b8492;line-height:1.7;margin:12px 0}.character-group-title{display:flex;align-items:center;gap:10px;min-width:0;width:100%;text-align:left;line-height:1.5;padding:6px 0;flex-wrap:wrap}.character-group-title img{width:40px;height:40px;object-fit:contain}.character-group-title>span{color:#8b94a2;font-size:12px}.character-buff-groups :deep(.el-collapse-item__header){height:auto;min-height:56px}.character-buff-profile{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;background:#f2f7ff;padding:14px;border-radius:8px}.character-buff-profile label{display:flex;flex-direction:column;gap:6px;font-size:12px}.character-buff-profile .el-input-number{width:130px}.group-buff-row{padding:16px 8px;border-bottom:1px solid #e8edf3}.group-buff-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.group-buff-heading .el-button{margin-left:auto}.group-buff-row p{margin:8px 0;color:#6b7280;line-height:1.7}.group-buff-row.unavailable{background:#fafafa}.group-buff-params summary{cursor:pointer;color:#409eff;padding:8px 0}.group-buff-params :deep(.config-root){margin-top:8px}@media(max-width:600px){.group-filters>.el-select{width:100%;min-width:0;flex-basis:100%}.character-buff-profile label{flex:1 1 40%}.character-buff-profile .el-input-number{width:100%}.group-buff-heading strong{flex-basis:100%}.group-buff-heading .el-button{min-height:38px}}
+.group-filters{display:flex;gap:12px;flex-wrap:wrap}.group-filters>.el-select{flex:1;min-width:230px}.character-group-title{display:flex;align-items:center;gap:10px;min-width:0;width:100%;text-align:left;line-height:1.5;padding:6px 0;flex-wrap:wrap}.character-group-title img{width:40px;height:40px;object-fit:contain}.character-group-title>span{color:#8b94a2;font-size:12px}.character-buff-groups :deep(.el-collapse-item__header){height:auto;min-height:56px}.character-buff-profile{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;background:#f2f7ff;padding:14px;border-radius:8px}.character-buff-profile label{display:flex;flex-direction:column;gap:6px;font-size:12px}.character-buff-profile .el-input-number{width:130px}.group-buff-row{padding:16px 8px;border-bottom:1px solid #e8edf3}.group-buff-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.group-buff-heading .el-button{margin-left:auto}.group-buff-row p{margin:8px 0;color:#6b7280;line-height:1.7}.group-buff-row.unavailable{background:#fafafa}.group-buff-params summary{cursor:pointer;color:#409eff;padding:8px 0}.group-buff-params :deep(.config-root){margin-top:8px}@media(max-width:600px){.group-filters>.el-select{width:100%;min-width:0;flex-basis:100%}.character-buff-profile label{flex:1 1 40%}.character-buff-profile .el-input-number{width:100%}.group-buff-heading strong{flex-basis:100%}.group-buff-heading .el-button{min-height:38px}}
 </style>

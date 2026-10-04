@@ -52,6 +52,7 @@ impl OptimizeSingleWasm {
         };
 
         let algorithm = input.algorithm.get_algorithm();
+        let enemy = input.enemy.as_ref().map(|value| value.to_enemy()).unwrap_or_default();
 
         let result = algorithm.optimize(
             &artifacts,
@@ -59,7 +60,7 @@ impl OptimizeSingleWasm {
             &character,
             &weapon,
             &target_function,
-            &Default::default(),
+            &enemy,
             &buffs,
             &constraint,
             100

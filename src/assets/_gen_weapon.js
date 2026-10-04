@@ -3565,6 +3565,14 @@ export default {
         "min": 0,
         "max": 1,
         "default": 1
+      },
+      {
+        "name": "overlap_rate",
+        "title": 3719,
+        "type": "float",
+        "min": -1,
+        "max": 1,
+        "default": -1
       }
     ]
   },
@@ -3604,6 +3612,14 @@ export default {
         "min": 0,
         "max": 1,
         "default": 1
+      },
+      {
+        "name": "overlap_rate",
+        "title": 3720,
+        "type": "float",
+        "min": -1,
+        "max": 1,
+        "default": -1
       }
     ]
   },
@@ -4695,7 +4711,7 @@ export default {
     "nameLocale": 3534,
     "star": 5,
     "type": "Catalyst",
-    "url": "/beta/vodyanitsa.svg",
+    "url": "/weapons/hymn-of-the-maelstrom.png",
     "effect": 3601,
     "configs": [
       {

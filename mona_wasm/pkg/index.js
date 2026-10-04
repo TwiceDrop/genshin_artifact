@@ -1,3 +1,7 @@
+import {withDirectReactionScope} from '../../beta-data/direct-reaction-scope.mjs';
+import {withLegacyEnemyBridge} from '../../beta-data/enemy-interface.mjs';
+import {withInterfaceContracts} from '../../beta-data/interface-contracts.mjs';
+import {withLegacyEffectBridge} from '../../beta-data/legacy-effect-bridge.mjs';
 import * as bridge from './mona_wasm_bg.js';
 import {withLunarDamageContexts} from '../../beta-data/lunar-context-facade.mjs';
 import { bindings } from './bindings.js';
@@ -14,18 +18,19 @@ import signatureData from '../../beta-data/weapons-signature-release-71.json';
 import data from '../../beta-data/vodyanitsa.json';
 import support from '../../beta-data/extension-support.json';
 import characters from '../../src/assets/_gen_character.js';
-const response = await fetch(new URL('./mona_wasm_bg.wasm?raw-wasm', import.meta.url));
+const response = await fetch(new URL('./mona_effect_bridge.wasm?raw-wasm', import.meta.url));
 if (!response.ok) throw new Error('Mona calculation core could not be loaded');
 const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), { './mona_wasm_bg.js': bridge });
 bindings.lI(instance.exports);
 const extensionResponse = await fetch(new URL('../extension/mona_extension_bg.wasm?raw-wasm', import.meta.url));
-if (!extensionResponse.ok) throw new Error('7.1.04 计算内核加载失败');
+if (!extensionResponse.ok) throw new Error('7.1.04 璁＄畻鍐呮牳鍔犺浇澶辫触');
 await initExtension(await extensionResponse.arrayBuffer());
-const originalApi = {BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,
+const rawOriginalApi = {BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,
 CommonInterface:bindings.Ps,DSLInterface:bindings.ZB,OptimizeSingleWasm:bindings.E2,PotentialInterface:bindings.gF,
 TeamOptimizationWasm:bindings.B8,TransformativeDamage:bindings.PX};
+const originalApi = withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginalApi,instance.exports),instance.exports);
 const baseApi = createFacade(originalApi,extension,data,support,characters);
 const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(baseApi,extension,support),originalApi,weaponData,signatureData),originalApi);
 const strengthened = createStrengthenedFacade(stellar.facade,stellar.transformStellarTarget);
-const api = withLunarDamageContexts(withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension)));
+const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension)))));
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;

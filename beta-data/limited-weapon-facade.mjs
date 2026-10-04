@@ -65,11 +65,12 @@ export function createLimitedWeaponFacade(base, original, data, signatureData = 
         x.buffs.push(named('HealingBonus',{p:100*coef}));
         if(p.stacks)x.buffs.push(named('HPPercentage',{p:100*coef*p.stacks*m}));
         if(p.on_field&&p.stacks) {
-            // A zero custom HP means the weapon uses its bearer's final HP,
-            // including its own secondary stat and passive HP stacks.
-            const hp=p.hp||Object.values(base.CommonInterface.get_attribute(x).hp).reduce((a,b)=>a+b,0);
-            const attack=Math.min(Math.max(hp-40000,0)/1000*coef/10,2*coef)*p.stacks*m;
-            if(attack)x.buffs.push(named('ATKPercentage',{p:100*attack}));
+            if(p.hp){
+                const attack=Math.min(Math.max(p.hp-40000,0)/1000*coef/10,2*coef)*p.stacks*m;
+                if(attack)x.buffs.push(named('ATKPercentage',{p:100*attack}));
+            }else{
+                x.buffs.push(named('ExtensionEffect',{label:'漩流颂歌·场上加攻',values:{HymnHPToATKPercentage:coef*p.stacks*m/10000}}));
+            }
         }
     }
     function addEffects(x,e) {
@@ -138,7 +139,6 @@ export function createLimitedWeaponFacade(base, original, data, signatureData = 
         const fn=Reflect.get(target,method);if(typeof fn!=='function')return fn;
         return (...args)=>{
             if(className==='DSLInterface'&&method==='run') {
-                if(args[1]?.character?.name==='Vesna')throw Error('薇斯纳暂不支持 MONA-DSL，请使用薇斯纳的原生目标。');
                 return fn(args[0],prepare(args[1]),...args.slice(2));
             }
             if(className==='CommonInterface'&&method==='get_artifacts_rank_by_character') {

@@ -1,11 +1,5 @@
 <template>
     <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
-        <el-alert v-if="characterName === 'Vodyanitsa'" type="info" :closable="false" show-icon style="margin-bottom:16px"
-            title="沃雅妮莎 · 计算说明"
-            description="已接入普通技能、治疗、命座条件、专武及单人配装。天赋填游戏显示等级（含命座）；BUFF 开关需按战斗状态设置。星扩散定额加值可用于队友直接星扩散；星扩·风/冰须明确实际挂冰、挂风参与者与风涡档位，页面尚无完整配置入口，未配置时仍标为待校准。歌声 Q 需同时启用歌声状态并手动确认乘区。" />
-        <el-alert v-if="characterName === 'Vesna'" type="info" :closable="false" show-icon style="margin-bottom:16px"
-            title="薇斯纳 · 计算说明"
-            description="已接入角色、蝶变、普通/直接星扩散伤害、单人配装和词条曲线。辉映需先触发冰扩散；二命列装自动满层整肃。星扩散定额加值在基础及精通增伤后结算；旧方案的定额位置开关已忽略。天赋填游戏显示等级。自身被动由下方角色配置控制。" />
         <nav class="calc-mobile-tabs" aria-label="计算器分区">
             <button :class="{ active: mobileCalcTab === 'character' }" @click="mobileCalcTab = 'character'">角色与配置</button>
             <button :class="{ active: mobileCalcTab === 'equipment' }" @click="mobileCalcTab = 'equipment'">圣遗物与伤害</button>
@@ -277,12 +271,11 @@
         <el-dialog v-model="showMyCharacters" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
-        <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" description="此组合暂不显示计算结果。请更换未适配的装备或 BUFF；原有角色的原版组合仍可使用。" style="margin-bottom:16px" />
-        <el-alert v-if="betaSupportActive" type="info" :closable="false" title="沃雅妮莎队友 BUFF" description="角色技能支援请填写来源角色战斗状态下的最终生命；自身效果已在角色设置启用时，请勿重复添加同名支援。漩流颂歌队友武器特效请在「武器」分组添加。" style="margin-bottom:16px" />
+        <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />
         <el-row class="big-container">
             <el-col class="left-container mona-scroll-hidden" :sm="24" :md="6">
                 <div class="config-character">
-                    <img v-if="characterSplash && !characterSplash.endsWith('/vodyanitsa.svg')"
+                    <img v-if="characterSplash"
                         :src="characterSplash" alt="" aria-hidden="true" class="character-splash" />
                     <div class="select-character">
                         <p class="common-title">{{ t("misc.character") }}</p>
@@ -396,7 +389,6 @@
                                 :item-name="weaponName"
                                 :configs="weaponConfigConfig"
                             ></item-config>
-                            <signature-weapon-effects :weapon="weaponInterface" />
                         </div>
                     </div>
                 </div>
@@ -427,7 +419,6 @@
 
                     <div class="optimization-debug-control">
                         <el-switch v-model="optimizationDebugEnabled" active-text="Debug 模式" aria-label="Debug 模式" />
-                        <p>开启后再点“开始计算”，记录本次参数、候选圣遗物和错误。记录仅保存在当前页面，不自动上传，不读取登录凭据。</p>
                         <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
                         <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
                         <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
@@ -436,8 +427,6 @@
 
                     <div class="artifact-borrowing-control">
                         <label><span>是否允许替换其他角色已穿戴的圣遗物</span><el-switch v-model="allowBorrowEquipped" aria-label="是否允许替换其他角色已穿戴的圣遗物" /></label>
-                        <p v-if="ownershipUid">UID {{ ownershipUid }} · {{ allowBorrowEquipped ? '允许使用其他角色装备' : `已排除其他角色穿戴的 ${reservedArtifactIds.size} 件圣遗物` }}。依据最近导入／同步的穿戴记录，开关仅影响自动配装。</p>
-                        <p v-else>暂无 UID 穿戴记录，请先导入或同步角色数据以识别其他角色的装备。</p>
                     </div>
 
                     <div class="my-button-list" style="margin-bottom: 12px">
@@ -486,7 +475,7 @@
                                 ></item-config>
                             </div>
 
-                            <div class="target-function-detail">
+                            <div v-if="targetFunctionDescription" class="target-function-detail">
                                 <div class="detail-left">
                                     <img :src="targetFunctionBadge" />
                                 </div>
@@ -540,7 +529,6 @@
                                 :label="`${entry.name} · ${teamCharacterLabel(entry.item.character.name)}`"
                                 :value="entry.name" />
                         </el-select>
-                        <p>按所选预设当前装备和已配置的战斗状态计算来源面板；条件效果需在下方启用。单人配装会保留队友现穿的圣遗物。</p>
                         <template v-if="teamContextSources.length">
                             <div class="team-context-row">
                                 <span>受益伤害模式</span>
@@ -549,8 +537,6 @@
                                     <el-radio-button :label="true">星扩散</el-radio-button>
                                 </el-radio-group>
                             </div>
-                            <el-alert v-if="targetFunctionUseDSL" type="warning" :closable="false"
-                                title="混合普通伤害与星扩散的 DSL 不能按分支自动切换队友 BUFF；请分别计算单一模式。" />
                             <div v-for="source in teamContextSources" :key="source.presetName" class="team-source-card">
                                 <strong>{{ source.presetName }} · {{ teamCharacterLabel(presetStore.presets.value[source.presetName]?.item.character.name) }}</strong>
                                 <span class="team-source-gear">{{ teamSourceGearLabel(source.presetName) }}</span>
@@ -600,7 +586,6 @@
                                     </div>
                                     <el-switch v-model="source.triggers.odetteDouble" active-text="独舞倒影在场（二命）" />
                                     <el-switch v-model="source.triggers.odetteDream" active-text="雪鹄之梦已触发（四命）" />
-                                    <p>使用来源预设的命座和最终爆发等级；按受益角色实际获得的层数计算，不自动模拟华彩转移。</p>
                                 </template>
                                 <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Qiqi'">
                                     <el-switch v-model="source.triggers.qiqiTalisman" active-text="辉映·星烁：度厄真符条件已触发" />
@@ -610,10 +595,8 @@
                                     <el-switch v-model="source.triggers.sandroneBlessing" active-text="星耀祝礼·星扩散已触发" />
                                     <el-switch v-model="source.triggers.sandroneC1" active-text="一命队友星扩散增益已触发" />
                                 </template>
-                                <p>当前自动效果：{{ teamSourceEffects(source.sourceId).join('、') || '条件未触发或无已校准效果' }}</p>
                             </div>
                             <el-alert v-for="issue in teamContextResult.issues" :key="issue" type="error" :closable="false" :title="issue" />
-                            <p v-if="teamContextResult.automatic.length">已关联 {{ teamContextResult.automatic.length }} 项队友效果。其他武器触发条件沿用来源预设。固定面板属性与平均覆盖率按配置计入；直接回能不换算为充能效率。</p>
                         </template>
                     </div>
                     <div class="buff-tool" style="margin-bottom: 12px">
@@ -631,7 +614,6 @@
                             <!-- This Element Plus version sets aria-disabled only on mount. -->
                             <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
                         </div>
-                        <p>0～12 层；应用冰/雷增伤、星超导基础倍率及领域物理减抗，参与伤害计算和词条收益曲线。</p>
                     </div>
                     <selected-buff-groups class="buffs" v-if="otherBuffs.length > 0" :buffs="otherBuffs" v-slot="{ buff }">
                         <buff-item
@@ -681,10 +663,9 @@
 
                 <div class="artifact-grade-summary" aria-label="角色圣遗物评分">
                     <div><span>{{ artifactScoreContext.label }} · 圣遗物总分</span><strong>{{ artifactBuildScore.total === null ? '—' : artifactBuildScore.total.toFixed(1) }}</strong><b>{{ artifactBuildScore.grade }}</b></div>
-                    <p>{{ artifactBuildScore.title }} · 已装备 {{ artifactBuildScore.count }}/5 件 · 毕业度按五件平均分判定</p>
                 </div>
                 <artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
-                    v-model:history-id="comparisonHistoryId" :history="comparisonHistory" :description="comparisonDescription"
+                    v-model:history-id="comparisonHistoryId" :history="comparisonHistory"
                     @save="saveComparisonHistory" />
                 <div class="artifacts">
                     <div
@@ -703,7 +684,7 @@
                             @click="scoreArtifactIndex = index; showArtifactScore = true"
                             class="artifact-display"
                         >
-                            <template #footer><div class="artifact-piece-score"><span>喵喵评分：{{ artifactPieceScore(index) }}</span><span v-if="artifactChanges[index]" class="artifact-change-marker" :title="comparisonDescription">{{ artifactChanges[index] }}</span></div></template>
+                            <template #footer><div class="artifact-piece-score"><span>喵喵评分：{{ artifactPieceScore(index) }}</span><span v-if="artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span></div></template>
                         </artifact-display>
                         <add-button
                             v-else
@@ -741,9 +722,6 @@
                 </div>
 
                 <el-divider></el-divider>
-
-                <single-hit-panel :character="characterInterface" :buffs="effectiveBuffs" />
-                <lunar-damage-panel :attribute="attributeFromWasm" :character="characterInterface" :buffs="effectiveBuffs" />
 
                 <p class="common-title">{{ t("calcPage.dmg") }}</p>
                 <div class="my-button-list" style="margin-bottom: 12px">
@@ -815,7 +793,6 @@
 </template>
 
 <script setup lang="ts">
-import SignatureWeaponEffects from '@/components/display/SignatureWeaponEffects.vue'
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import ArtifactComparisonControls from '@/components/display/ArtifactComparisonControls.vue'
 import { useArtifactComparison, snapshotEquipment } from '@/composables/artifactComparison.mjs'
@@ -844,8 +821,6 @@ import SelectBuff from "@/components/select/SelectBuff.vue"
 import ArtifactDisplay from "@c/display/ArtifactDisplay"
 import AddButton from "@c/misc/AddButton"
 import DamagePanel from "./DamagePanel"
-import SingleHitPanel from "./SingleHitPanel.vue"
-import LunarDamagePanel from "./LunarDamagePanel.vue"
 import AttributePanel from "@c/display/AttributePanel"
 import ItemConfig from "@c/config/ItemConfig"
 import BuffItem from "./BuffItem"
@@ -1013,6 +988,7 @@ const {
     targetFunctionInterface
 } = useTargetFunction(characterName)
 const miscTargetFunctionTab = ref<"normal" | "dsl">("normal")
+
 
 watch(() => miscTargetFunctionTab.value, v => {
     targetFunctionUseDSL.value = v === "dsl"
@@ -1373,9 +1349,6 @@ function teamSourceGearLabel(name: string) {
     if (!Array.isArray(ids)) return '未保存当前装备'
     return `当前装备 ${ids.filter(id => id >= 0 && !!artifactStore.getArtifact(id)).length}/5 件`
 }
-function teamSourceEffects(sourceId: string) {
-    return teamContextResult.value.sources.find((source: any) => source.sourceId === sourceId)?.effectNames || []
-}
 const selectedTeamArtifactIds = computed(() => new Set(teamContextSources.value.flatMap(source =>
     (presetStore.presets.value[source.presetName]?.item.artifactIds || []).filter(id => Number.isInteger(id) && id >= 0))))
 const teamContextResult = computed(() => deriveSingleTeamContext(mona, {
@@ -1487,8 +1460,8 @@ const attributeCalculation = computed(() => {
     catch (error: any) { return { value: null, error: error.message || String(error) } }
 })
 const attributeFromWasm = computed(() => attributeCalculation.value.value || {})
+
 const betaCalculationError = computed(() => teamContextError.value || attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
-const betaSupportActive = computed(() => effectiveBuffs.value.some((b: any) => b.name.startsWith('Vodyanitsa') && b.name !== 'VodyanitsaSignature'))
 
 const artifactScoreContext = computed(() => {
     const c = scoreCharacters[characterName.value]
@@ -1531,8 +1504,12 @@ const bonusPerStatWasmInterface = computed(() => {
 
 function handleClickAttributeAnalysis() {
     if (betaCalculationError.value) return ElMessage.error(betaCalculationError.value)
-    miscPerStatBonus.value = mona.BonusPerStat.bonus_per_stat(bonusPerStatWasmInterface.value)
-    showArtifactPerBonusDialog.value = true
+    try {
+        miscPerStatBonus.value = mona.BonusPerStat.bonus_per_stat(bonusPerStatWasmInterface.value)
+        showArtifactPerBonusDialog.value = true
+    } catch (error: any) {
+        ElMessage.error(error.message || String(error))
+    }
 }
 
 const ArtifactPerStatBonus = defineAsyncComponent({
@@ -1699,7 +1676,7 @@ const gameEquipment = computed(() => {
 })
 const {
     enabled: comparisonEnabled, mode: comparisonMode, history: comparisonHistory, historyId: comparisonHistoryId,
-    baseline: comparisonBaseline, changes: artifactChanges, description: comparisonDescription, record: recordComparisonHistory,
+    baseline: comparisonBaseline, changes: artifactChanges, record: recordComparisonHistory,
     begin: beginArtifactComparison, reset: resetComparisonBaseline,
 } = useArtifactComparison({ storage: comparisonStorage, key: comparisonKey, items: artifactItems, gameBaseline: gameEquipment })
 const comparisonAttribute = computed(() => {
@@ -1851,7 +1828,7 @@ const optimizationError = ref('')
 const optimizationDebugDetail = computed(() => JSON.stringify({events:optimizationDebugRecord.value?.events,error:optimizationDebugRecord.value?.error},null,2))
 async function exportOptimizationDebug() {
     if (!optimizationDebugRecord.value) return
-    try { await downloadString(JSON.stringify(optimizationDebugRecord.value,null,2),'application/json',`mona-debug-7.1.07alpha1-${Date.now()}.json`) }
+    try { await downloadString(JSON.stringify(optimizationDebugRecord.value,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`) }
     catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
 }
 function handleOptimizeArtifact() {
@@ -1942,11 +1919,11 @@ watch(() => accountStore.currentAccountId.value, () => {
 </script>
 
 <style lang="scss" scoped>
-.optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control p{font-size:12px;line-height:1.6;color:#606266}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 
-.team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control p{margin:8px 0;color:#606b7b;font-size:12px;line-height:1.6}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}
 .manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:#667085;font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
-.artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}.artifact-borrowing-control p{margin:6px 0 0;color:#909399;font-size:12px;line-height:1.6}
+.artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}
 .calc-mobile-tabs{display:none}
 @media(max-width:991px){
     .calc-mobile-tabs{position:sticky;top:48px;z-index:100;display:flex;background:#f5f7fb;padding:6px 0 10px;gap:6px}
@@ -1959,7 +1936,7 @@ watch(() => accountStore.currentAccountId.value, () => {
     .config-character .character-splash{max-width:100%}
 }
 .artifact-grade-summary{padding:12px 16px;margin-bottom:12px;background:var(--el-color-primary-light-9);border-radius:6px;color:var(--el-text-color-primary)}
-.artifact-grade-summary>div{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:14px}.artifact-grade-summary strong{font-size:25px;color:var(--el-color-primary)}.artifact-grade-summary b{font-size:19px;color:var(--el-color-primary)}.artifact-grade-summary p{margin:6px 0 0;font-size:12px;color:var(--el-text-color-secondary)}
+.artifact-grade-summary>div{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:14px}.artifact-grade-summary strong{font-size:25px;color:var(--el-color-primary)}.artifact-grade-summary b{font-size:19px;color:var(--el-color-primary)}
 .artifact-piece-score{padding:7px 8px;border-top:1px solid var(--el-border-color-lighter);font-size:12px;color:var(--el-color-primary);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
 .artifact-change-marker{display:inline-block;border-radius:3px;padding:2px 6px;background:var(--el-color-warning-light-9);color:var(--el-color-warning-dark-2);font-size:12px;line-height:1.4}
 .polestar-field-control {
@@ -1969,7 +1946,6 @@ watch(() => accountStore.currentAccountId.value, () => {
     border-radius: 6px;
     .polestar-field-stacks { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 14px; }
     .el-input-number { width: 100%; }
-    p { color: var(--el-text-color-secondary); font-size: 12px; line-height: 1.6; margin: 10px 0 0; }
 }
 .my-characters-import { display: flex; gap: 8px; margin: 0 0 12px; }
 .my-characters-import .el-select { min-width: 0; flex: 1; }
