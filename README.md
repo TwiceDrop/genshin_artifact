@@ -15,7 +15,7 @@
 
 ## 安装说明
 
-在 [7.1.07 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.08) 选择对应版本：
+在 [7.1.08 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.08) 选择对应版本：
 
 | 平台 | 下载与使用 |
 | --- | --- |
