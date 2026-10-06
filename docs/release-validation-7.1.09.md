@@ -31,4 +31,4 @@ Windows 前端和手机前端分别从当前源码构建，Windows ZIP、Inno Se
 
 自动更新的合成下载／完整回读、取消、Windows 临时目录 ZIP 覆盖及 Astra 后续路径修复沿用既有证据；Android APK 大小读取为实际依赖和 API 合同核对。本轮没有执行真实 Windows 覆盖安装或 Android 后台下载、授权及覆盖安装。包体版本和签名通过不代表这些系统流程已实机重测。Android 系统导出／回读及 7.1.07 导出兼容沿用 7.1.08 已完成的证据，没有重新运行，也没有据此声称本轮重新验证。
 
-当前完成构建与上传前核对，GitHub 正式发布结果将在发布后补记。发布目标为 TwiceDrop/genshin_artifact、标签 v7.1.09；库存原生静态推荐权重继续按用户要求暂缓。
+GitHub 正式发布已完成并回读确认：[莫娜占卜铺 7.1.09](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.09)。标签 v7.1.09 对应发布源码提交 a68afdee117409ce483d9d890a6e9b05dcb778bd；不是草稿或预发布，三项资产名称、公开状态及大小与本地一致。README 与准备的正文一致，更新说明保留本版全部 15 个编号。发布结果位于私有 .build-target/release-7109/github-final.json。库存原生静态推荐权重继续按用户要求暂缓。
