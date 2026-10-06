@@ -126,6 +126,124 @@ public class MonaLocalPlugin extends Plugin {
             call.reject("导出准备失败：" + e.getMessage(), "EXPORT_PREPARE", e);
         }
     }
+    private android.app.DownloadManager downloads() {
+        return (android.app.DownloadManager) getContext().getSystemService(android.content.Context.DOWNLOAD_SERVICE);
+    }
+    private android.content.SharedPreferences updatePreferences() {
+        return getContext().getSharedPreferences("mona-updates", 0);
+    }
+    private long updateId() { return updatePreferences().getLong("downloadId", -1); }
+
+    @PluginMethod public void probeUpdate(PluginCall call) {
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            java.net.HttpURLConnection connection = null;
+            try {
+                long start = System.currentTimeMillis();
+                connection = (java.net.HttpURLConnection) new java.net.URL(call.getString("url")).openConnection();
+                connection.setConnectTimeout(6000);
+                connection.setReadTimeout(6000);
+                connection.setRequestProperty("Range", "bytes=0-262143");
+                connection.setRequestProperty("Accept-Encoding", "identity");
+                int code = connection.getResponseCode();
+                if (code < 200 || code >= 300) throw new IOException("HTTP " + code);
+                int bytes = 0;
+                try (InputStream input = connection.getInputStream()) {
+                    byte[] buffer = new byte[8192];
+                    while (bytes < 262144 && System.currentTimeMillis() - start < 10000) {
+                        int count = input.read(buffer);
+                        if (count < 0) break;
+                        bytes += count;
+                    }
+                }
+                if (bytes == 0) throw new IOException("未收到文件内容");
+                long elapsed = Math.max(1, System.currentTimeMillis() - start);
+                call.resolve(new JSObject().put("elapsed", elapsed).put("speed", bytes * 1000.0 / elapsed));
+            } catch (Exception e) {call.reject("线路检测失败：" + e.getMessage(), "UPDATE_PROBE", e);}
+            finally {if (connection != null) connection.disconnect();}
+        });
+    }
+
+    @PluginMethod public void downloadUpdate(PluginCall call) {
+        try {
+            long size = call.getData().getLong("size");
+            long previous = updateId();
+            if (previous != -1) downloads().remove(previous);
+            android.app.DownloadManager.Request request = new android.app.DownloadManager.Request(Uri.parse(call.getString("url")));
+            request.setTitle("莫娜占卜铺更新");
+            request.setMimeType("application/vnd.android.package-archive");
+            request.setDestinationInExternalFilesDir(getContext(), android.os.Environment.DIRECTORY_DOWNLOADS, "mona-update.apk");
+            request.setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.addRequestHeader("Accept-Encoding", "identity");
+            long id = downloads().enqueue(request);
+            updatePreferences().edit().putLong("downloadId", id).putLong("size", size)
+                .putString("version", call.getString("version")).apply();
+            call.resolve(new JSObject().put("phase", "downloading").put("downloaded", 0).put("total", size));
+        } catch (Exception e) {call.reject("更新下载启动失败：" + e.getMessage(), "UPDATE_DOWNLOAD", e);}
+    }
+
+    private JSObject downloadStatus() throws IOException {
+        long id = updateId(), expected = updatePreferences().getLong("size", 0);
+        if (id == -1) return new JSObject().put("phase", "idle").put("downloaded", 0).put("total", 0);
+        try (android.database.Cursor cursor = downloads().query(new android.app.DownloadManager.Query().setFilterById(id))) {
+            if (!cursor.moveToFirst()) throw new IOException("更新下载记录不存在，请重新下载");
+            int status = cursor.getInt(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_STATUS));
+            long bytes = cursor.getLong(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+            String phase = status == android.app.DownloadManager.STATUS_SUCCESSFUL ? "ready" :
+                status == android.app.DownloadManager.STATUS_FAILED ? "error" : "downloading";
+            String error = "";
+            if ("error".equals(phase)) error = "下载失败（代码 " + cursor.getInt(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_REASON)) + "）";
+            if ("ready".equals(phase) && bytes != expected) {
+                phase = "error";
+                error = "下载不完整：收到 " + bytes + "／" + expected + " 字节";
+            }
+            return new JSObject().put("phase", phase).put("downloaded", bytes).put("total", expected).put("error", error)
+                .put("version", updatePreferences().getString("version", ""));
+        }
+    }
+
+    @PluginMethod public void updateStatus(PluginCall call) {
+        try {call.resolve(downloadStatus());}
+        catch (Exception e) {call.reject("无法读取更新进度：" + e.getMessage(), "UPDATE_STATUS", e);}
+    }
+    @PluginMethod public void cancelUpdate(PluginCall call) {
+        try {
+            long id = updateId();
+            if (id != -1) downloads().remove(id);
+            updatePreferences().edit().remove("downloadId").remove("size").remove("version").apply();
+            call.resolve(new JSObject().put("phase", "cancelled").put("downloaded", 0).put("total", 0));
+        } catch (Exception e) {call.reject("取消下载失败：" + e.getMessage(), "UPDATE_CANCEL", e);}
+    }
+
+    @PluginMethod public void installUpdate(PluginCall call) {
+        try {
+            if (!"ready".equals(downloadStatus().getString("phase"))) throw new IOException("更新包尚未下载完成");
+            getBridge().executeOnMainThread(() -> {
+                try {
+                    if (android.os.Build.VERSION.SDK_INT >= 26 && !getContext().getPackageManager().canRequestPackageInstalls()) {
+                        Intent settings = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            Uri.parse("package:" + getContext().getPackageName()));
+                        startActivityForResult(call, settings, "updatePermissionSelected");
+                    } else openUpdateInstaller(call);
+                } catch (Exception e) {call.reject("无法打开安装界面：" + e.getMessage(), "UPDATE_INSTALL", e);}
+            });
+        } catch (Exception e) {call.reject(e.getMessage(), "UPDATE_INSTALL", e);}
+    }
+    private void openUpdateInstaller(PluginCall call) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(downloads().getUriForDownloadedFile(updateId()), "application/vnd.android.package-archive");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        getActivity().startActivity(intent);
+        call.resolve(new JSObject().put("phase", "installing"));
+    }
+    @android.annotation.TargetApi(26)
+    @ActivityCallback void updatePermissionSelected(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+        try {
+            if (!getContext().getPackageManager().canRequestPackageInstalls()) throw new IOException("未允许莫娜安装应用");
+            openUpdateInstaller(call);
+        } catch (Exception e) {call.reject("安装授权失败：" + e.getMessage(), "UPDATE_PERMISSION", e);}
+    }
+
     @PluginMethod public void openExternal(PluginCall call) {
         try {
             String url = call.getString("url", "");

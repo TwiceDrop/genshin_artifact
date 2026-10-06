@@ -22,10 +22,12 @@
             <div class="buttons" v-if="props.buttons">
                 <el-button
                     v-if="props.lockButton"
-                    :icon="props.item.omit ? IconEpUnlock : IconEpLock"
+                    :icon="props.item.omit ? IconEpLock : IconEpUnlock"
                     circle
                     size="small"
-                    text
+                    :type="props.item.omit ? 'primary' : undefined"
+                    :text="!props.item.omit"
+                    :aria-pressed="props.item.omit"
                     :title="props.item.omit ? t('misc.unlock') : t('misc.lock')"
                     class="mybutton"
                     @click.stop="emits('toggle')"

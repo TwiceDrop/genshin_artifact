@@ -31,4 +31,8 @@ if($LASTEXITCODE -ne 0){throw 'Tray launcher compilation failed'}
 foreach($name in @('node.exe','LICENSE')){
     Copy-Item -LiteralPath (Join-Path $NodeRuntime $name) -Destination (Join-Path $output 'runtime')
 }
+if([IO.Path]::GetFullPath($output) -ne [IO.Path]::GetFullPath($sourceRoot)){
+    [IO.Directory]::CreateDirectory((Join-Path $output 'script')) | Out-Null
+    Copy-Item -LiteralPath (Join-Path $sourceRoot 'script/install-update.ps1') -Destination (Join-Path $output 'script')
+}
 Write-Output $exe

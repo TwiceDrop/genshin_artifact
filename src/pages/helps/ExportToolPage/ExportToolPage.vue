@@ -32,6 +32,18 @@ import IconFa6BrandsGithub from "~icons/fa6-brands/github"
 
 const items = [
     {
+        name: "GOODScanner",
+        description: "",
+        buttons: [
+            {
+                label: "项目地址",
+                primary: true,
+                link: "https://github.com/Anyrainel/GOODScanner",
+                icon: IconFa6BrandsGithub
+            }
+        ]
+    },
+    {
         name: "yas",
         description: "当前维护的 Yet Another Scanner（YAS）圣遗物扫描器",
         buttons: [

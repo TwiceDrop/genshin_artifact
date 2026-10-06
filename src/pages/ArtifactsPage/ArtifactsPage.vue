@@ -406,8 +406,9 @@ async function importJson(text: string, deleteUnseen: boolean, backupKumiDir: bo
         const rawObj = JSON.parse(text)
         await importMonaJson(rawObj, deleteUnseen, backupKumiDir)
     } catch (e) {
+        console.error('圣遗物文件导入失败', e)
         ElMessage({
-            message: t("artPage.wrongFormat"),
+            message: e instanceof Error ? e.message : String(e),
             type: "error"
         })
     }
@@ -428,7 +429,7 @@ function handleImportJson() {
         fileUploader.value
             .getReadPromise()
             .then((text: string) => {
-                importJson(text, importDeleteUnseen.value, importBackupKumiDir.value)
+                return importJson(text, importDeleteUnseen.value, importBackupKumiDir.value)
             })
             .catch((e: any) => {
                 ElMessage({

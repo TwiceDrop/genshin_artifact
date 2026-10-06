@@ -440,7 +440,18 @@
                             <template v-else>{{ t("calcPage.savePreset") }}「{{ miscCurrentPresetName }}」</template>
 
                             <template #dropdown>
-                                <el-dropdown-menu>
+                                <div class="preset-menu">
+                                    <div class="preset-menu-filters">
+                                        <el-select v-model="presetElement" :teleported="false" aria-label="筛选预设元素">
+                                            <el-option label="全部元素" value="" />
+                                            <el-option v-for="element in presetElements" :key="element" :value="element" :label="t('ele', element)" />
+                                        </el-select>
+                                        <el-select v-model="presetSort" :teleported="false" aria-label="预设排序">
+                                            <el-option label="最近更新" value="recent" />
+                                            <el-option label="元素属性" value="element" />
+                                        </el-select>
+                                    </div>
+                                <el-dropdown-menu class="preset-menu-list">
                                     <el-dropdown-item
                                         v-if="miscCurrentPresetName"
                                         icon="el-icon-s-tools"
@@ -448,13 +459,14 @@
                                     >{{ t("calcPage.saveAsPreset") }}</el-dropdown-item>
 
                                     <el-dropdown-item
-                                        v-for="(item, index) in presetStore.allFlat.value"
+                                        v-for="(item, index) in presetMenuEntries"
                                         :divided="index === 0 && !!miscCurrentPresetName"
                                         :key="item.name"
                                         :icon="IconEpMenu"
                                         :command="'apply-' + item.name"
                                     >{{ item.name }}</el-dropdown-item>
                                 </el-dropdown-menu>
+                                </div>
                             </template>
                         </el-dropdown>
                     </div>
@@ -799,6 +811,7 @@ import { useArtifactComparison, snapshotEquipment } from '@/composables/artifact
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { createMysConverter } from '@/import/miyoushe.mjs'
 import scoreCharacters from '@/assets/_gen_character'
+import {characterByElement} from '@/assets/character'
 import scoreWeapons from '@/assets/_gen_weapon'
 import scoreLocale from '@/i18n/generated/zh-cn.json'
 import { scoreBuild, scoreSetNames, panelScoreAttributes } from '@/algorithms/artifact-score/score.mjs'
@@ -1103,6 +1116,19 @@ function handleClickArtifactConfig() {
 ///////////////////////////////////////////////////////////////
 // save and use presets
 const miscCurrentPresetName = ref<null | string>(null)
+const presetElement = ref("")
+const presetSort = ref("recent")
+const presetElements = Object.keys(characterByElement)
+const presetMenuEntries = computed(() => {
+    const entries = presetStore.allFlat.value.filter(entry =>
+        !presetElement.value || scoreCharacters[entry.item.character.name].element === presetElement.value)
+    return entries.sort((a, b) => {
+        const recent = (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
+        if (presetSort.value === "recent") return recent
+        return presetElements.indexOf(scoreCharacters[a.item.character.name].element)
+            - presetElements.indexOf(scoreCharacters[b.item.character.name].element) || recent
+    })
+})
 const presetDefaultName = computed((): string => {
     const cName = characterLocale.value
     const wName = weaponLocale.value
@@ -1919,6 +1945,12 @@ watch(() => accountStore.currentAccountId.value, () => {
 </script>
 
 <style lang="scss" scoped>
+.preset-menu { width: 360px; max-width: calc(100vw - 32px); }
+.preset-menu-filters { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--el-border-color-light); }
+.preset-menu-filters .el-select { flex: 1; min-width: 0; }
+.preset-menu-list { max-height: min(55vh, 480px); overflow-y: auto; }
+.preset-menu-list :deep(.el-dropdown-menu__item) { white-space: normal; overflow-wrap: anywhere; }
+
 .optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 
 .team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}

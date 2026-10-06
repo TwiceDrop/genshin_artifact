@@ -17,6 +17,7 @@ import { hash, hashExceptValue } from "@/utils/artifactHash"
 import { positions } from "@/constants/artifact"
 import {useI18n} from "@/i18n/i18n";
 import {useKumiStore} from "@/store/pinia/kumi";
+import { convertGoodArtifacts } from '@/import/good'
 
 
 const artifactStore = useArtifactStore()
@@ -101,13 +102,32 @@ interface ImportJsonResult {
 }
 
 export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupImportDir: boolean): ImportJsonResult {
+    if (rawObj?.format === 'GOOD') rawObj = convertGoodArtifacts(rawObj)
+    for (const position of positions) {
+        if (rawObj?.[position] !== undefined && !Array.isArray(rawObj[position])) throw new Error(`圣遗物部位 ${position} 必须是数组`)
+    }
+    const importFlat = positions.flatMap(position => rawObj?.[position] ?? [])
+    if (importFlat.length === 0) throw new Error('文件中没有可导入的圣遗物')
+    const matchesInitialSubstats = (previous: IArtifact, next: IArtifactContentOnly) =>
+        previous.level < 4 && previous.normalTags.length === 3 &&
+        previous.setName === next.setName && previous.position === next.position &&
+        previous.star === next.star && previous.mainTag.name === next.mainTag.name &&
+        next.level >= previous.level && previous.normalTags.every(oldTag =>
+            next.normalTags.some(tag => tag.name === oldTag.name && tag.value.toFixed(5) === oldTag.value.toFixed(5)))
+    const fourthStatUpgrades = importFlat.map(next => {
+        if (next.level < 4 || next.normalTags.length !== 4) return undefined
+        const matches = [...artifactStore.artifacts.value.values()].filter(previous => matchesInitialSubstats(previous, next))
+        if (matches.length !== 1) return undefined
+        const previous = matches[0]
+        return importFlat.filter(item => matchesInitialSubstats(previous, item)).length === 1 ? previous : undefined
+    })
     // hash of level, main stat, sub stats, rarity, set name, slot
     let hashAll: Record<string, IArtifact> = {}
     // hash of level, main stat without value, sub stats without value, rarity, set name, slot
     let hashEV: Record<string, IArtifact> = {}
     let existingIds = new Set()
 
-    let equips: Map<string, number[]> = new Map()
+    let equips: Map<string, (number | null)[]> = new Map()
 
     for (let artifact of artifactStore.artifacts.value.values()) {
         const h = hash(artifact)
@@ -121,11 +141,11 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
     let upgradeCount = 0
     let newCount = 0
 
-    let importFlat: any[] = [].concat(rawObj.flower ?? []).concat(rawObj.feather ?? []).concat(rawObj.sand ?? []).concat(rawObj.cup ?? []).concat(rawObj.head ?? [])
-    for (let artifact of importFlat) {
+    for (const [index, artifact] of importFlat.entries()) {
         const h = hash(artifact)
         const hev = hashExceptValue(artifact)
         let artifactId = 0
+        const upgraded = hashEV[hev] && artifact.level > hashEV[hev].level ? hashEV[hev] : fourthStatUpgrades[index]
 
         if (hashAll[h]) {
             // this artifacts exists
@@ -133,13 +153,10 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
             skipCount += 1
             existingIds.add(id)
             artifactId = id
-        } else if (hashEV[hev] && artifact.level > hashEV[hev].level) {
-            // this artifacts is upgraded
-            // console.log("upgrade")
-            // console.log("old", JSON.stringify(hashEV[hev]))
-            // console.log("new", JSON.stringify(artifact))
-            const id = hashEV[hev].id
-            updateArtifact(id, artifact)
+        } else if (upgraded) {
+            const id = upgraded.id
+            const content = { ...artifact, omit: upgraded.omit }
+            updateArtifact(id, content)
             upgradeCount += 1
             existingIds.add(id)
             artifactId = id
@@ -154,10 +171,10 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
             const equipCharacter = artifact.equip
             let arr = equips.get(equipCharacter)
             if (arr === undefined) {
-                arr = []
+                arr = [null, null, null, null, null]
                 equips.set(equipCharacter, arr)
             }
-            arr.push(artifactId)
+            arr[positionToIndex(artifact.position)] = artifactId
         }
     }
 

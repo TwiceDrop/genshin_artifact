@@ -4,6 +4,10 @@
             <el-select v-if="store.uidGroups.value.length" v-model="uid" aria-label="BUFF 来源 UID" placeholder="选择 UID">
                 <el-option v-for="g in store.uidGroups.value" :key="g.uid" :value="g.uid" :label="`${g.nickname} · UID ${g.uid}`" />
             </el-select>
+            <el-select v-model="buffElement" aria-label="筛选 BUFF 元素" @change="changeElement">
+                <el-option label="全部元素" value="" />
+                <el-option v-for="element in elements" :key="element" :value="element" :label="t('ele', element)" />
+            </el-select>
             <el-select v-model="focusedCharacter" filterable clearable placeholder="选择角色，展开对应 BUFF" aria-label="选择 BUFF 角色" @change="openCharacter">
                 <el-option v-for="g in groups" :key="g.character" :value="g.character" :label="`${g.label} · ${g.buffs.length}项${profile(g.character).imported ? ' · 已保存角色' : ''}`" />
             </el-select>
@@ -39,6 +43,7 @@
 import { computed, ref, watch } from 'vue'
 import { buffData } from '@/assets/buff'
 import characters from '@/assets/_gen_character'
+import {characterByElement} from '@/assets/character'
 import { useI18n } from '@/i18n/i18n'
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { usePresetStore } from '@/store/pinia/preset'
@@ -47,8 +52,10 @@ import rules from '@/algorithms/buff-groups/ownership.json'
 import { groupCharacterBuffs, characterBuffProfile, buffAvailability, bindBuffConfig, isBoundBuffField, availableCharacterBuffs } from '@/algorithms/buff-groups/index.mjs'
 const props = defineProps({ buffs: { type: Array, default: () => [] }, search: { type: String, default: '' }, preferredUid: String, selectedNames: { type: Array, default: () => [] } })
 const emit = defineEmits(['select'])
-const store = useMiyousheStore(), presets = usePresetStore(), { ta } = useI18n()
+const store = useMiyousheStore(), presets = usePresetStore(), { t, ta } = useI18n()
 const uid = ref(''), expanded = ref(''), focusedCharacter = ref(''), overrides = ref({}), configs = ref({})
+const buffElement = ref('')
+const elements = Object.keys(characterByElement)
 const skills = { skill1: '普攻天赋', skill2: '战技天赋', skill3: '爆发天赋' }
 watch(() => [props.preferredUid, store.selectedUid.value, store.uidGroups.value.map(g => g.uid).join(',')], () => {
     uid.value = props.preferredUid || store.selectedUid.value || ''
@@ -58,8 +65,9 @@ function profile(character) { return { ...characterBuffProfile(character,uid.val
 function clearConfigs(character) { const prefix = key(character) + ':'; for (const k of Object.keys(configs.value)) if (k.startsWith(prefix)) delete configs.value[k] }
 function setProfile(character, field, value) { if (value === '' || value == null) return; const number = Number(value); if (!Number.isInteger(number)) return; overrides.value[key(character)] = { ...overrides.value[key(character)], [field]: Math.min(field === 'constellation' ? 6 : 15, Math.max(field === 'constellation' ? 0 : 1, number)) } }
 function reset(character) { delete overrides.value[key(character)]; clearConfigs(character) }
-const groups = computed(() => groupCharacterBuffs(props.buffs,rules).map(g => ({ ...g, label: characters[g.character] ? ta(characters[g.character].nameLocale) : g.character === 'Traveler' ? '旅行者 · 通用' : '未分类角色效果', badge: g.buffs[0].badge })).sort((a,b) => Number(profile(b.character).imported)-Number(profile(a.character).imported) || a.label.localeCompare(b.label,'zh-CN')))
+const groups = computed(() => groupCharacterBuffs(props.buffs,rules).filter(g => !buffElement.value || characters[g.character]?.element === buffElement.value).map(g => ({ ...g, label: characters[g.character] ? ta(characters[g.character].nameLocale) : g.character === 'Traveler' ? '旅行者 · 通用' : '未分类角色效果', badge: g.buffs[0].badge })).sort((a,b) => Number(profile(b.character).imported)-Number(profile(a.character).imported) || a.label.localeCompare(b.label,'zh-CN')))
 const visibleGroups = computed(() => groups.value.filter(g => (!focusedCharacter.value || focusedCharacter.value === g.character) && (!props.search || `${g.label} ${g.buffs.map(b => b.title+' '+b.description).join(' ')}`.toLowerCase().includes(props.search.toLowerCase()))))
+function changeElement() { focusedCharacter.value = ''; expanded.value = '' }
 function openCharacter(value) { expanded.value = value || '' }
 function availability(buff,g) { return buffAvailability(rules[buff.name],profile(g.character)) }
 function config(buff,g) { return bindBuffConfig(buffData[buff.name],profile(g.character),configs.value[key(g.character)+':'+buff.name]) }

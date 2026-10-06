@@ -3,11 +3,12 @@ import { randomBytes } from 'node:crypto'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { LocalUpdater } from './updates.mjs'
 import { MysClient } from './mys.mjs'
 import { CredentialStore, normalizeCookie, publicAccount } from './credentials.mjs'
 
 export function createLocalServer({ clientFactory = () => new MysClient(), root = fileURLToPath(new URL('../dist/', import.meta.url)),
-    credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
+    updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     const sessions = new Map()
     const cleanup = s => { s.cancelled = true; s.client.clear() }
     const timer = setInterval(() => { for (const [id, s] of sessions) if (Date.now() > s.expires) { cleanup(s); sessions.delete(id) } }, 60000).unref()
@@ -51,6 +52,22 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                 })
             }
             try {
+                if (url.pathname.startsWith('/api/update/')) {
+                    if (url.pathname === '/api/update/info' && req.method === 'GET') return json(updater.info())
+                    if (url.pathname === '/api/update/status' && req.method === 'GET') return json(updater.status())
+                    const body = await input()
+                    if (req.method !== 'POST') return json({error: '方法无效'}, 405)
+                    if (url.pathname === '/api/update/latest') return json(await updater.latest(body.accelerated))
+                    if (url.pathname === '/api/update/probe') return json(await updater.probe(body.version, body.source))
+                    if (url.pathname === '/api/update/download') return json(await updater.start(body.version, body.source))
+                    if (url.pathname === '/api/update/cancel') return json(await updater.cancel())
+                    if (url.pathname === '/api/update/install') {
+                        const status = await updater.install(port)
+                        res.once('finish', () => updater.notify())
+                        return json(status)
+                    }
+                    return json({error: '接口不存在'}, 404)
+                }
                 if (url.pathname === '/api/mys/accounts' && req.method === 'GET') {
                     const accounts = (await credentialStore.all()).map(publicAccount).sort((a, b) => (b.lastUsedAt || '').localeCompare(a.lastUsedAt || ''))
                     return json({ accounts, activeId: session?.accountId || null })

@@ -27,7 +27,8 @@ function loadPresetOrDefault(payload: any) {
 export interface PresetEntry {
     name: string,
     item: IPreset,
-    version: number
+    version: number,
+    updatedAt?: number
 }
 
 function f() {
@@ -41,7 +42,8 @@ function f() {
         presets.value[name] = {
             name,
             item,
-            version: VERSION
+            version: VERSION,
+            updatedAt: Date.now()
         }
     }
 

@@ -107,6 +107,7 @@ internal sealed class TrayApp : ApplicationContext
     private bool guardActive;
     private bool openWhenReady = true;
     private bool stopping;
+    private volatile bool updateRequested;
     private DateTime restartAt;
 
     internal TrayApp(string root, EventWaitHandle openEvent, Action<string> openPage)
@@ -169,12 +170,14 @@ internal sealed class TrayApp : ApplicationContext
             StandardErrorEncoding = Encoding.UTF8
         };
         start.EnvironmentVariables["MONA_PORT"] = "4184";
+        start.EnvironmentVariables["MONA_LAUNCHER_PID"] = Process.GetCurrentProcess().Id.ToString();
         var child = new Process { StartInfo = start };
         server = child;
         child.OutputDataReceived += (s, e) =>
         {
             if (e.Data == null) return;
             if (e.Data == "MONA_LAUNCHER_READY") ready = true;
+            else if (e.Data == "MONA_LAUNCHER_UPDATE") updateRequested = true;
             else Log(e.Data);
         };
         child.ErrorDataReceived += (s, e) =>
@@ -200,6 +203,7 @@ internal sealed class TrayApp : ApplicationContext
 
     private void Tick()
     {
+        if (updateRequested) { ExitThread(); return; }
         DrainLogs();
         if (ready && !running)
         {

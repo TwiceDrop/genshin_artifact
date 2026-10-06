@@ -184,7 +184,7 @@ function store() {
         return result
     })
 
-    function addKumi(dirId: number, name: string, artifactIds: number[]): number | null {
+    function addKumi(dirId: number, name: string, artifactIds: (number | null)[]): number | null {
         let dir = kumiById.value.get(dirId)
         if (dir) {
             let item: KumiItem = {

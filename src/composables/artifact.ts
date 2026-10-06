@@ -132,7 +132,7 @@ export function use5Artifacts() {
         for (let id of artifactIds.value) {
             if (id >= 0) {
                 const a = artifactStore.artifacts.value.get(id)
-                if (a && !a.omit) {
+                if (a) {
                     const artifactWasm = convertArtifact(a)
                     temp.push(artifactWasm)
                 }

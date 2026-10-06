@@ -44,33 +44,27 @@ function resolveWeights(name, artifacts, options) {
     }
     const def = (weights = usefulAttr[name], labels = []) => {
         const result = { ...weights }
-        let title = labels.length ? `${name}-${labels.join('')}` : `${name}-通用`
-        // Keep the existing app's named-build convention: named special builds
-        // specify their final weights; unnamed builds receive weapon/set tuning.
-        if (!labels.length) {
-            const tune = weaponCfg[weapon.name]
-            if (result.atk > 0 && tune && (result[tune.attr] || 0) < 100) {
-                result[tune.attr] = Math.min(100, Math.round((result[tune.attr] || 0) + (tune.min || 10) + ((tune.max || 20) - (tune.min || 10)) * (weapon.affix - 1) / 4))
-                title = `${tune.abbr || weapon.name}加成`
-            }
-            if (artis.is('绝缘4') && result.recharge > 0) {
-                const highest = Math.max(...['atk', 'hp', 'def', 'mastery'].map(k => result[k] || 0))
-                if (result.recharge < highest) { result.recharge = Math.min(highest, 75); title = title.endsWith('-通用') ? '绝缘4' : title + '+绝缘4' }
-            }
-            if (/^西风(长枪|大剑|剑|猎弓|秘典)$/.test(weapon.name) && (result.cpct || 0) < 100) {
-                result.cpct = 100; title = title.endsWith('-通用') ? '西风' : title + '+西风'
+        const title = [...labels]
+        const tune = weaponCfg[weapon.name]
+        if (result.atk > 0 && tune && (result[tune.attr] || 0) < 100) {
+            result[tune.attr] = Math.min(100, Math.round((result[tune.attr] || 0) + (tune.min || 10) + ((tune.max || 20) - (tune.min || 10)) * (weapon.affix - 1) / 4))
+            title.push(tune.abbr || weapon.name)
+        }
+        if (artis.is('绝缘4')) {
+            const highest = Math.max(...['atk', 'hp', 'def', 'mastery'].map(k => result[k] || 0))
+            const recharge = result.recharge || 0
+            if (recharge < highest) {
+                result.recharge = Math.min(Math.round(recharge + 75), highest)
+                title.push('绝缘4')
             }
         }
-        return { title, attrWeight: result }
+        if (/^西风(长枪|大剑|剑|猎弓|秘典)$/.test(weapon.name) && (result.cpct || 0) < 100) {
+            result.cpct = 100
+            title.push('西风')
+        }
+        return { title: `${name}-${title.length ? title.join('|') : '通用'}`, attrWeight: result }
     }
     const attr = { cpct: 0, cdmg: 0, mastery: 0, ...options.charAttrs }
-    // Preserve this app's default Mavuika reaction build (an explicit local rule).
-    if (name === '玛薇卡') {
-        const weights = { ...usefulAttr[name], mastery: 100 }
-        const pure = attr.mastery > 0 && attr.mastery < 40
-        if (pure) Object.assign(weights, { atk: 85, mastery: 0 })
-        return { title: pure ? '玛薇卡-纯火/超载' : '玛薇卡-精通', attrWeight: weights }
-    }
     return rules[name]?.({ attr, artis, weapon, cons: options.cons || 0, elem: options.elem || '', def,
         rule: (title, attrWeight) => ({ title, attrWeight }) }) || def()
 }
@@ -106,7 +100,7 @@ export function createScoreEvaluator(name, artifacts = [], options = {}) {
             value += (effective[key]?.coefficient || 0) * (a.mainValue || 0) / 4
         }
         for (const [sub, amount] of Object.entries(a.subs || {})) value += (effective[sub]?.coefficient || 0) * amount
-        return 66 * value / limit * (1 + factor) / 2
+        return value * (1 + factor) / 2 / limit * 66
     } }
 }
 export function calcArtifactScore(name, artifacts = [], options = {}) {
