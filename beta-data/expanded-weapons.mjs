@@ -1,11 +1,12 @@
 import data from './weapons-expanded-runtime.mjs';
+import silverLight from './silver-light-runtime.mjs';
 
-const catalog=new Map(data.weapons.map(w=>[w.name,w]));
+const catalog=new Map([...data.weapons,silverLight].map(w=>[w.name,w]));
 const bool=x=>typeof x==='boolean';
 const pct=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1;
 const count=(x,max)=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=max;
 const nativeRole=name=>name==='Vesna'||name==='Vodyanitsa';
-const travelerRole=name=>/^(?:Aether|Manekina)(?:Anemo|Geo|Electro|Dendro|Hydro|Pyro|Cryo)$/.test(name||'');
+const travelerRole=name=>/^(?:Aether|Lumine|Manekina)(?:Anemo|Geo|Electro|Dendro|Hydro|Pyro|Cryo)$/.test(name||'');
 // Marginal coverages determine overlap only when one state is absent or full.
 // Two partial coverages need timing information; min(a,b) invents nesting.
 export function knownOverlap(a,b,provided){
@@ -19,11 +20,12 @@ export function knownOverlap(a,b,provided){
 }
 const effect=(label,values,source_buff)=>({name:'ExtensionEffect',...(source_buff?{source_buff}:{}),config:{ExtensionEffect:{label,values}}});
 export const isExpandedWeapon=weapon=>catalog.has(weapon?.name);
-export const expandedWeaponCatalog=Object.freeze(data.weapons.map(w=>Object.freeze({id:w.id,name:w.name,displayName:w.displayName,type:w.weaponType,rarity:w.rarity,maxRefine:w.refinements.length,availability:w.name==='PrizedIsshinBlade'?'quest-only':'catalog'})));
+export const expandedWeaponCatalog=Object.freeze([...catalog.values()].map(w=>Object.freeze({id:w.id,name:w.name,displayName:w.displayName,type:w.weaponType,rarity:w.rarity,maxRefine:w.refinements.length,availability:w.name==='PrizedIsshinBlade'?'quest-only':'catalog'})));
 
 function config(name,old){
   const p=old||{};
   switch(name){
+  case 'SilverLight': return {stacks:p.stacks??0};
   case 'PrizedIsshinBlade': return null;
   case 'AthameArtis': return {burst_hit:p.burst_hit??(Number(p.rate)>0),secret_rite:p.secret_rite??p.magus??false,rate:p.rate??1};
   case 'MoonweaverDawn': return {energy_cost:p.energy_cost??p.max_energy??0};
@@ -55,7 +57,7 @@ export function normalizeExpandedWeapon(weapon){
       if(['rate','skill_rate','lunar_rate','charged_rate'].includes(key)&&!pct(value))throw Error(`${w.displayName} ${key} 覆盖率应为0～1`);
       if((key.endsWith('_active')||key.endsWith('_hit')||['secret_rite','moon_full'].includes(key))&&!bool(value))throw Error(`${w.displayName} ${key} 开关无效`);
     }
-    if(p.stacks!==undefined&&!count(p.stacks,weapon.name==='AmberBead'?2:3))throw Error(`${w.displayName}叠层无效`);
+    if(p.stacks!==undefined&&!count(p.stacks,['AmberBead','SilverLight'].includes(weapon.name)?2:3))throw Error(`${w.displayName}叠层无效`);
     if(p.energy_cost!==undefined&&(!Number.isInteger(p.energy_cost)||p.energy_cost<0||p.energy_cost>100))throw Error(`${w.displayName}元素能量上限无效`);
     if(p.resonated_elements!==undefined&&(!Number.isInteger(p.resonated_elements)||p.resonated_elements<0||p.resonated_elements>7))throw Error(`${w.displayName}共鸣元素数无效`);
   }
@@ -76,12 +78,13 @@ export function expandedWeaponEffects(weapon,{characterName,sourceAttack}={}){
   const w=normalizeExpandedWeapon(weapon);
   if(!isExpandedWeapon(w))return null;
   const source=catalog.get(w.name),r=w.refine-1,p=w.params?.[w.name]||{};
-  const v=source.refinements[r],fx={source:w.name,sourceVersion:data.revision,averageCoverage:true,
+  const v=source.refinements[r],fx={source:w.name,sourceVersion:source.revision??data.revision,averageCoverage:true,
     attackPercentage:0,hpPercentage:0,defensePercentage:0,elementalMastery:0,
     criticalRate:0,criticalDamage:0,burstBonus:0,burstCriticalDamage:0,allElementalBonus:0,
     bloomBonus:0,lunarBloomBonus:0,lunarCrystallizeBonus:0,lunarReactionCriticalDamage:0,stellarReactionCriticalDamage:0,
     teamEffects:[],directEnergy:null,unmodeled:[]};
   switch(w.name){
+  case 'SilverLight':fx.elementalMastery=v[0]*p.stacks;break;
   case 'PrizedIsshinBlade':fx.allDamageBonus=-.5;fx.unmodeled.push('每8秒一次的范围伤害与治疗需轮转模型');break;
   case 'AthameArtis':{
     fx.burstCriticalDamage=v[0];const m=p.secret_rite?1.75:1;
@@ -140,6 +143,16 @@ function normalizeArguments(args){
 // UI's newer switch names back to that core instead of replacing an old character.
 function publishedWeapon(w,characterName){
  const p=w.params?.[w.name]||{},v=catalog.get(w.name).refinements[w.refine-1],buffs=[];
+ if(w.name==='SilverLight'){
+  // The Flute has the same 510/ATK90 stat family and no panel passive.
+  // Keep both old and extension characters on their existing character core.
+  const stats=expandedWeaponStats(w),fx=expandedWeaponEffects(w,{characterName});
+  buffs.push(effect('翦霞照水',{
+   ATKBase:stats.attack-510,ATKPercentage:stats.subStat-.413,
+   ElementalMastery:fx.elementalMastery,
+  }));
+  return {weapon:{...w,name:'TheFlute',level:90,ascend:false,params:'NoConfig'},buffs};
+ }
  const add=(name,key,value)=>{if(value)buffs.push({name,config:{[name]:{[key]:value}},source:'weapon-coverage',source_effect:w.name+':'+name});};
  const cfg={
   PrizedIsshinBlade:null,
@@ -206,6 +219,10 @@ function publishedWeapon(w,characterName){
 }
 function publishedArguments(args,verified){
  const prepare=(character,weapon,buffs)=>{
+  if(weapon?.name==='SilverLight'){
+   const result=publishedWeapon(weapon,character?.name);
+   return {weapon:result.weapon,buffs:[...(buffs||[]),...result.buffs]};
+  }
   if(!isExpandedWeapon(weapon)||verified.has(character?.name))return {weapon,buffs};
   if(nativeRole(character?.name)){
    const fx=expandedWeaponEffects(weapon,{characterName:character.name});
@@ -279,7 +296,7 @@ export function createExpandedWeaponsFacade(base,original,extension,{verifiedOld
         const sourceAttack=attackValues.length&&attackValues.every(Number.isFinite)?attackValues.reduce((sum,value)=>sum+value,0):undefined;
         const effect=expandedWeaponEffects(weapons[0],{characterName:role,sourceAttack});
         if(['CommonInterface','CalculatorInterface'].includes(className))result.weapon_effects=effect;
-        result.weapon_precision={levelCurve:'exact',sourceRevision:data.revision,oldRoleParity:nativeRole(role)||verified.has(role),characterCore:oldRole&&!verified.has(role)?'published':'extension'};
+        result.weapon_precision={levelCurve:'exact',sourceRevision:catalog.get(weapons[0].name).revision??data.revision,oldRoleParity:nativeRole(role)||verified.has(role),characterCore:oldRole&&!verified.has(role)?'published':'extension'};
       }
       return result;
     };

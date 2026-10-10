@@ -67,7 +67,7 @@ const genres = [
 // })
 
 interface Emits {
-    (e: "select", buffName: string, options?: { config: any, keepOpen: boolean }): void
+    (e: "select", buffName: string, options?: { config?: any, keepOpen: boolean }): void
 }
 
 const emits = defineEmits<Emits>()
@@ -128,7 +128,7 @@ const buffByGenre = computed(() => {
 
 function handleClick(name: string) {
     // if (!props.selectable) {
-        emits("select", name)
+        emits("select", name, { keepOpen: true })
     // }
 }
 </script>

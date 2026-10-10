@@ -7,17 +7,6 @@
             <span class="footer-item"><a target="_blank" href="https://github.com/TwiceDrop/genshin_artifact">Github</a></span>
 
         </div>
-        <div
-            style="text-align: center"
-        >
-            <a
-                v-if="needBeian"
-                target="_blank"
-                href="https://beian.miit.gov.cn"
-                class="fs-14"
-                style="font-size: 0.8rem"
-            >浙ICP备2021004987号-2</a>
-        </div>
     </div>
 
 </template>
@@ -27,9 +16,7 @@ export default {
     name: "Footer",
     data() {
         return {
-            number: process.env.MONA_BEIAN_NUMBER,
             revision: process.env.MONA_REVISION,
-            needBeian: process.env.MONA_NEED_BEIAN,
             date: process.env.MONA_BUILD_DATE,
             year: (new Date()).getFullYear(),
         }

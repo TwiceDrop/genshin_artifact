@@ -3719,5 +3719,16 @@
   "本次火反应的另一元素",
   "本次火反应的另一元素",
   "Overlap (-1 auto; required for two partial states)",
-  "Overlap (-1 auto; required for two partial states)"
+  "Overlap (-1 auto; required for two partial states)",
+  "Silver Light",
+  "Increases Elemental Mastery by <span style=\"color: #409EFF;\">52-65-78-91-104</span> for 12s after Elemental Skill use. Max 2 stacks, and each stack's duration is independent of the others.",
+  "Lumine(Anemo)",
+  "Lumine(Geo)",
+  "Lumine(Electro)",
+  "Lumine(Dendro)",
+  "Lumine(Hydro)",
+  "Lumine(Pyro)",
+  "Lumine(Cryo)",
+  "Lumine(Dendro)-Lea Lotus Lamp DPS",
+  "Lumine(Cryo)-Glacial Spear DPS"
 ]

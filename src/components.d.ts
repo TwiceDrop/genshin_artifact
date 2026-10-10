@@ -118,7 +118,6 @@ declare module '@vue/runtime-core' {
     SelectElementMulti: typeof import('./components/select/SelectElementMulti.vue')['default']
     SelectElementType: typeof import('./components/select/SelectElementType.vue')['default']
     SelectLevel: typeof import('./components/select/SelectLevel.vue')['default']
-    SelectPotentialFunctionName: typeof import('./components/select/SelectPotentialFunctionName.vue')['default']
     SelectPreset: typeof import('./components/select/SelectPreset.vue')['default']
     SelectReactionType: typeof import('./components/select/SelectReactionType.vue')['default']
     SelectSkillType: typeof import('./components/select/SelectSkillType.vue')['default']

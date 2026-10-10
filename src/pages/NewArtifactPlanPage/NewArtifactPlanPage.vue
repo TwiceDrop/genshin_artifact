@@ -176,12 +176,24 @@
             </div>
 
             <p class="common-title2">{{ t("calcPage.filKumi") }}</p>
+            <el-input v-model="filterKumiSearch" :placeholder="t('misc.search')" clearable class="filter-kumi-search" />
             <div style="max-height: 50vh; overflow: auto" class="mona-scroll">
                 <el-tree
-                    :data="kumiTreeDataForElementUI"
+                    :data="filterKumiTreeData"
+                    node-key="id"
+                    :default-checked-keys="filteredKumiIds"
+                    :filter-node-method="filterKumiNode"
                     show-checkbox
                     ref="filterKumiRef"
+                    @check="handleFilterKumiCheck"
                 >
+                    <template #default="{ data }">
+                        <span class="filter-kumi-node">
+                            <img v-for="character in data.characters" :key="character.name"
+                                :src="character.avatar" :alt="character.label" />
+                            <span>{{ data.label }}</span>
+                        </span>
+                    </template>
                 </el-tree>
             </div>
         </el-dialog>
@@ -1096,6 +1108,8 @@ const {
     constraintInterface,
 } = useComputeConstraint()
 const filterKumiRef = ref<InstanceType<typeof ElTree> | null>(null)
+const filterKumiSearch = ref("")
+const filteredKumiIds = ref<number[]>([])
 
 function handleClickSetupOptimization() {
     showConstraintDialog.value = true
@@ -1409,7 +1423,7 @@ function handleClickToggleBuff(id: number) {
     toggleBuff(id)
 }
 
-function handleSelectBuff(name: string, options?: { config: any, keepOpen: boolean }) {
+function handleSelectBuff(name: string, options?: { config?: any, keepOpen: boolean }) {
     if (options?.keepOpen && buffs.value.some(b => b.name === name)) return
     if (!options?.keepOpen) showSelectBuffDialog.value = false
     addBuff(name, options?.config)
@@ -1554,6 +1568,11 @@ interface Node {
     id: number,
 }
 
+interface FilterKumiNode extends Node {
+    characters: { name: string, label: string, avatar: string }[],
+    children?: FilterKumiNode[],
+}
+
 const kumiDefaultName = computed((): string => {
     let name = characterLocale.value
     for (const setName in artifactSetCount.value) {
@@ -1592,6 +1611,42 @@ const kumiTreeDataForElementUI = computed(() => {
 
     return data
 })
+
+const filterKumiTreeData = computed((): FilterKumiNode[] => {
+    const compare = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' }).compare
+    const sortNodes = (a: Node, b: Node) => compare(a.label, b.label) || a.id - b.id
+    return kumiTreeDataForElementUI.value.map(dir => ({
+        ...dir,
+        characters: [],
+        children: dir.children!.map(node => {
+            const ids = kumiStore.kumiById.value.get(node.id)!.artifactIds!
+            const names = ids.length === 5
+                && ids.every(id => id !== null && id >= 0 && artifactStore.artifacts.value.has(id))
+                ? [...new Set(presetStore.allFlat.value.filter(entry =>
+                    entry.item.artifactIds?.length === 5
+                    && ids.every((id, i) => id === entry.item.artifactIds![i]))
+                    .map(entry => entry.item.character.name))] : []
+            return { id: node.id, label: node.label, characters: names.map(name => ({
+                name, label: ta(scoreCharacters[name].nameLocale), avatar: scoreCharacters[name].avatar,
+            })) }
+        }).sort(sortNodes),
+    })).sort(sortNodes)
+})
+
+function filterKumiNode(value: string, data: FilterKumiNode, node: any): boolean {
+    const query = value.trim().toLowerCase()
+    const matches = (item: FilterKumiNode) => `${item.label} ${item.characters.map(character =>
+        `${character.name} ${character.label}`).join(' ')}`.toLowerCase().includes(query)
+    return matches(data) || (node.parent.level > 0 && matches(node.parent.data))
+}
+
+function handleFilterKumiCheck(_node: FilterKumiNode, checked: { checkedNodes: FilterKumiNode[] }) {
+    filteredKumiIds.value = checked.checkedNodes.filter(node => !node.children).map(node => node.id)
+}
+
+watch([filterKumiSearch, filterKumiTreeData], () => {
+    nextTick(() => filterKumiRef.value?.filter(filterKumiSearch.value))
+}, { flush: 'post' })
 
 function handleClickSaveAsKumi() {
     showSaveKumiDialog.value = true
@@ -1778,19 +1833,16 @@ function getOptimizeArtifactWasmInterface() {
 }
 
 function getAllArtifactsFiltered(): IArtifact[] {
-    const component = filterKumiRef.value
-
     // s is artifact ids to be filtered
     let s = new Set([...(allowBorrowEquipped.value ? [] : reservedArtifactIds.value), ...selectedTeamArtifactIds.value])
 
     // filter kumi
-    if (component) {
-        const nodes = component.getCheckedNodes(true)
-        for (let node of nodes) {
-            const kumiId = node.id
-            const kumiItem = kumiStore.kumiById.value.get(kumiId)
-            if (kumiItem && kumiItem.artifactIds) {
-                for (const artifactId of kumiItem.artifactIds) {
+    const currentArtifactIds = new Set(artifactIds.value)
+    for (const kumiId of filteredKumiIds.value) {
+        const kumiItem = kumiStore.kumiById.value.get(kumiId)
+        if (kumiItem && kumiItem.artifactIds) {
+            for (const artifactId of kumiItem.artifactIds) {
+                if (!currentArtifactIds.has(artifactId as number)) {
                     s.add(artifactId)
                 }
             }
@@ -1945,6 +1997,10 @@ watch(() => accountStore.currentAccountId.value, () => {
 </script>
 
 <style lang="scss" scoped>
+.filter-kumi-search { margin-bottom: 12px; }
+.filter-kumi-node { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.filter-kumi-node img { width: 24px; height: 24px; border-radius: 50%; }
+.filter-kumi-node > span { overflow: hidden; text-overflow: ellipsis; }
 .preset-menu { width: 360px; max-width: calc(100vw - 32px); }
 .preset-menu-filters { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--el-border-color-light); }
 .preset-menu-filters .el-select { flex: 1; min-width: 0; }

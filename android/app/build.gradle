@@ -7,8 +7,8 @@ android {
         applicationId "com.mona.artifact.local"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 70109
-        versionName "7.1.09"
+        versionCode 70110
+        versionName "7.1.10"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

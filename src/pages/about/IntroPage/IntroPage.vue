@@ -16,22 +16,17 @@
 <!--        <el-button @click="handleTest"></el-button>-->
 
         <el-row :gutter="16">
-            <el-col :sm="6" :xs="24" class="mb16">
+            <el-col :sm="8" :xs="24" class="mb16">
                 <use-case-item :text="t('intro.useCase1')" url="/calculate" :icon="IconFa6SolidCalculator"
                     :description="t('intro.useCase1Description')"
                 ></use-case-item>
             </el-col>
-            <el-col :sm="6" :xs="24" class="mb16">
+            <el-col :sm="8" :xs="24" class="mb16">
                 <use-case-item :text="t('intro.useCase2')" url="/team-optimization" :icon="IconFa6SolidUserGroup"
                                :description="t('intro.useCase2Description')"
                 ></use-case-item>
             </el-col>
-            <el-col :sm="6" :xs="24" class="mb16">
-                <use-case-item :text="t('intro.useCase3')" url="/potential" :icon="IconFa6SolidRuler"
-                               :description="t('intro.useCase3Description')"
-                ></use-case-item>
-            </el-col>
-            <el-col :sm="6" :xs="24" class="mb16">
+            <el-col :sm="8" :xs="24" class="mb16">
                 <use-case-item :text="t('intro.useCase4')" url="/help/export-tools" :icon="IconFa6SolidFileExport"
                                :description="t('intro.useCase4Description')"
                 ></use-case-item>
@@ -40,17 +35,22 @@
 
         <h2>{{ t("intro.opensource") }}</h2>
         <el-row :gutter="16">
-            <el-col :xs="24" :sm="12" class="mb16">
+            <el-col :xs="24" :sm="8" class="mb16">
                 <use-case-item text="MONA" :icon="IconFa6BrandsGithub"
                                :description="t('intro.opensourceMonaDescription')"
                                @click="newPage('https://github.com/TwiceDrop/genshin_artifact')"
                 ></use-case-item>
 
             </el-col>
-            <el-col :xs="24" :sm="12" class="mb16">
+            <el-col :xs="24" :sm="8" class="mb16">
                 <use-case-item text="Yas" :icon="IconFa6BrandsGithub"
                                :description="t('intro.opensourceYasDescription')"
                                @click="newPage('https://github.com/1803233552/yas')"
+                ></use-case-item>
+            </el-col>
+            <el-col :xs="24" :sm="8" class="mb16">
+                <use-case-item text="GOODScanner" :icon="IconFa6BrandsGithub"
+                               @click="newPage('https://github.com/Anyrainel/GOODScanner')"
                 ></use-case-item>
             </el-col>
         </el-row>
@@ -63,7 +63,6 @@
 import IconFa6SolidUserGroup from "~icons/fa6-solid/user-group"
 import IconFa6SolidFileExport from "~icons/fa6-solid/file-export"
 import IconFa6SolidCalculator from "~icons/fa6-solid/calculator"
-import IconFa6SolidRuler from "~icons/fa6-solid/ruler"
 import IconFa6BrandsGithub from "~icons/fa6-brands/github"
 
 import UseCaseItem from "./UseCaseItem.vue"

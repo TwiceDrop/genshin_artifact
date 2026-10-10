@@ -61,7 +61,7 @@ function importSnapshot(snapshot: any, converter: any, source = '米游社同步
             if (existing.item.weapon.name === item.weapon.name) item.weapon.params = existing.item.weapon.params
         }
         presets.addOrOverwrite(name, item)
-        return { key: e.key, uid, label: e.label, presetName: name, artifactIds, equippedArtifacts: JSON.parse(JSON.stringify(e.gear)), level: e.preset.character.level, constellation: e.preset.character.constellation, updatedAt: snapshot.importedAt }
+        return { key: e.key, uid, id: e.id, gender: e.gender, element: e.element, label: e.label, presetName: name, artifactIds, equippedArtifacts: JSON.parse(JSON.stringify(e.gear)), level: e.preset.character.level, constellation: e.preset.character.constellation, updatedAt: snapshot.importedAt }
     })
     const missing = data.value.entries.filter((e: any) => e.uid === uid && !keys.has(e.key)).map((e: any) => ({ ...e, warning: '本次同步未返回该角色，使用已保存数据' }))
     data.value = { ...data.value, selectedUid: uid, snapshots: { ...data.value.snapshots, [uid]: snapshot }, entries: [...data.value.entries.filter((e: any) => e.uid !== uid), ...entries, ...rejected, ...missing] }

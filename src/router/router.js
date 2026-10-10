@@ -1,11 +1,7 @@
 import NewArtifactPlanPage from "@page/NewArtifactPlanPage"
 import TeamOptimizationPage from "@page/TeamOptimizationPage"
-import NewArtifactPotentialPage from "@page/NewArtifactPotentialPage"
-import CharacterDBPage from "@page/CharacterDBPage"
-import CharacterInfo from "@page/CharacterDBPage/CharacterInfo"
 import MonaPlaygroundPage from "@page/MonaPlaygroundPage"
 import ArtifactsPage from "@page/ArtifactsPage"
-import CalcBestArtifactSetPage from "@/pages/CalcBestArtifactSetPage"
 import AccountPage from "@page/AccountPage"
 import SetupPage from "@page/SetupPage"
 
@@ -27,14 +23,6 @@ const webName = process.env.MONA_TITLE;
 const routes = [
     { path: '/uid-data', component: () => import('@page/UidDataPage.vue'), meta: { title: 'UID 数据' } },
     {
-        path: "/best-set",
-        component: CalcBestArtifactSetPage,
-        name: "calcBest",
-        meta: {
-            title: "套装优化",
-        }
-    },
-    {
         path: "/setup",
         component: SetupPage,
         name: "setup",
@@ -49,23 +37,6 @@ const routes = [
         meta: {
             title: "Playground",
         }
-    },
-    {
-        path: "/character",
-        component: CharacterDBPage,
-        meta: {
-            title: "角色",
-            keepAlive: true
-        },
-        children: [
-            {
-                path: ":name",
-                component: CharacterInfo,
-                meta: {
-                    title: "角色"
-                }
-            },
-        ]
     },
     {
         path: "/team-optimization",
@@ -129,14 +100,6 @@ const routes = [
     {
         path: "/tomodachi",
         redirect: { name: "home" },
-    },
-    {
-        path: "/potential",
-        component: NewArtifactPotentialPage,
-        meta: {
-            keepAlive: true,
-            title: "圣遗物潜力",
-        }
     },
     {
         path: "/presets",

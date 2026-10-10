@@ -13,8 +13,8 @@ import {
 const weapon=(name,params={},level=90,ascend=false,refine=1)=>({name,level,ascend,refine,params:{[name]:params}});
 
 test('all fifteen published sword and catalyst records cover legal level, promotion, and refinement states',()=>{
-  assert.equal(expandedWeaponCatalog.length,15);
-  assert.equal(new Set(expandedWeaponCatalog.map(w=>w.id)).size,15);
+  assert.equal(expandedWeaponCatalog.length,16);
+  assert.equal(new Set(expandedWeaponCatalog.map(w=>w.id)).size,16);
   assert.equal(data.weapons.filter(w=>w.weaponType==='Sword').length,7);
   assert.equal(data.weapons.filter(w=>w.weaponType==='Catalyst').length,8);
   for(const source of data.weapons){

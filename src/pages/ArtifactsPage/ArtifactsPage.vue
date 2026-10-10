@@ -7,8 +7,6 @@
             @confirm="handleConfirmAddArtifact"
         ></add-artifact-dialog>
 
-        <yas-ui-dialog v-model:visible="showYasUIDialog"></yas-ui-dialog>
-
         <el-dialog
             v-model="showOutputShareDialog"
             title="分享"
@@ -127,7 +125,6 @@
 
             <div class="tool-right">
                 <el-button-group>
-                    <el-button @click="handleYasUIClicked" size="small" type="primary" v-if="deviceIsPC">{{ t("misc.scan") }}</el-button>
                     <el-button @click="handleImportJsonClicked" size="small" type="primary">{{ t("misc.import") }}</el-button>
 
                     <el-dropdown split-button size="small" @click="handleOutputJsonClicked" @command="handleOutputCommand">
@@ -220,7 +217,6 @@ import gobletIcon from '@image/misc/goblet.png';
 import headIcon from '@image/misc/head.png';
 
 import AddArtifactDialog from './AddArtifactDialog';
-import YasUiDialog from './YasUIDialog';
 import SelectArtifactSet from '@c/select/SelectArtifactSet';
 import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
 import ArtifactDisplay from '@c/display/ArtifactDisplay';
@@ -340,15 +336,6 @@ function handleConfirmAddArtifact(a: IArtifactContentOnly) {
     newDialogVisible.value = false
     artifactStore.addArtifact(a)
     activeName.value = position
-}
-
-
-///////////////////////////////////////////////////////////////////
-// YAS-UI
-const showYasUIDialog = ref(false)
-
-function handleYasUIClicked() {
-    showYasUIDialog.value = true
 }
 
 

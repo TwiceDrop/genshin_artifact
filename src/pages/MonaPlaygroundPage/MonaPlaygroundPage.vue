@@ -292,7 +292,7 @@ const {
 } = useBuff()
 const showSelectBuffDialog = ref(false)
 
-function handleSelectBuff(name: string, options?: { config: any, keepOpen: boolean }) {
+function handleSelectBuff(name: string, options?: { config?: any, keepOpen: boolean }) {
     if (options?.keepOpen && buffs.value.some(b => b.name === name)) return
     if (!options?.keepOpen) showSelectBuffDialog.value = false
     addBuff(name, options?.config)

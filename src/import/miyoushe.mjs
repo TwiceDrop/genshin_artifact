@@ -1,4 +1,5 @@
 import { resolveActiveTalents } from './character-talents.mjs'
+import { travelerName } from '../../beta-data/traveler-model.mjs'
 
 export const POSITIONS = ['flower', 'feather', 'sand', 'cup', 'head']
 const PROPERTY = { 2: 'lifeStatic', 3: 'lifePercentage', 5: 'attackStatic', 6: 'attackPercentage', 8: 'defendStatic', 9: 'defendPercentage', 20: 'critical', 22: 'criticalDamage', 23: 'recharge', 26: 'cureEffect', 28: 'elementalMastery', 30: 'physicalBonus', 40: 'fireBonus', 41: 'thunderBonus', 42: 'waterBonus', 43: 'dendroBonus', 44: 'windBonus', 45: 'rockBonus', 46: 'iceBonus' }
@@ -46,10 +47,7 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
     function character(raw, uid) {
         const base = raw.base || {}, id = integer(base.id, 1, 999999999, '角色 ID')
         let name = find(characters, base)
-        if ([10000005, 10000007].includes(id)) {
-            const element = { Wind: 'Anemo', Rock: 'Geo', Electric: 'Electro', Grass: 'Dendro', Water: 'Hydro', Fire: 'Pyro', Ice: 'Cryo' }[base.element] || base.element
-            name = (id === 10000005 ? 'Aether' : 'Lumine') + element
-        }
+        name = travelerName(id, base.element) || name
         if (!characters[name]) throw new Error(`未知角色：${base.name || id}`)
         const weaponName = find(weapons, raw.weapon)
         if (!weaponName) throw new Error(`未知武器：${raw.weapon?.name || raw.weapon?.id}`)
@@ -75,7 +73,8 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
         if (!Array.isArray(raw.relics)) throw new Error('已装备圣遗物列表缺失')
         const gear = raw.relics.map(artifact)
         if (new Set(gear.map(a => a.position)).size !== gear.length) throw new Error('圣遗物部位重复')
-        return { key: `${uid}:${id}:${base.element || ''}`, label: locale[characters[name].nameLocale], id, gear,
+        return { key: `${uid}:${id}:${base.element || ''}`, label: locale[characters[name].nameLocale], id,
+            gender: id === 10000007 ? 'Lumine' : id === 10000005 ? 'Aether' : undefined, element: characters[name].element, gear,
             preset: { name: `米游社 ${uid} · ${locale[characters[name].nameLocale]}`, character: c, weapon: w,
                 targetFunction: { name: tf.name, params: defaults(tf.name, tf.config) }, buffs: [], artifactEffectMode: 'auto' } }
     }

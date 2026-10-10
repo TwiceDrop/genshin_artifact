@@ -1,4 +1,3 @@
-// Weapon metadata: published catalog with 7.1 beta additions.
 export default {
   "MistsplitterReforged": {
     "name": "MistsplitterReforged",
@@ -4880,6 +4879,26 @@ export default {
         "min": 0,
         "max": 1,
         "default": 0
+      }
+    ]
+  },
+  "SilverLight": {
+    "name": "SilverLight",
+    "internalName": "SilverLight",
+    "id": 11438,
+    "nameLocale": 3721,
+    "star": 4,
+    "url": "/weapons/silver-light.png",
+    "type": "Sword",
+    "effect": 3722,
+    "configs": [
+      {
+        "default": 0,
+        "max": 2,
+        "min": 0,
+        "name": "stacks",
+        "title": 1152,
+        "type": "int"
       }
     ]
   }

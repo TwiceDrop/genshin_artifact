@@ -13350,5 +13350,678 @@ export default {
       }
     ],
     "configSkill": []
+  },
+  "LumineAnemo": {
+    "name": "LumineAnemo",
+    "nameLocale": 3723,
+    "element": "Anemo",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1660,
+    "skillName2": 3382,
+    "skillName3": 3381,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 3151
+      },
+      {
+        "index": 6,
+        "text": 3154
+      },
+      {
+        "index": 7,
+        "text": 218
+      },
+      {
+        "index": 8,
+        "text": 370
+      },
+      {
+        "index": 9,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 592
+      },
+      {
+        "index": 11,
+        "text": 1850
+      },
+      {
+        "index": 12,
+        "text": 593
+      },
+      {
+        "index": 13,
+        "text": 1882
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 14,
+        "text": 3513
+      },
+      {
+        "index": 15,
+        "text": 3295
+      },
+      {
+        "index": 18,
+        "text": 3294
+      },
+      {
+        "index": 17,
+        "text": 3296
+      },
+      {
+        "index": 16,
+        "text": 3293
+      }
+    ],
+    "config": [],
+    "configSkill": []
+  },
+  "LumineGeo": {
+    "name": "LumineGeo",
+    "nameLocale": 3724,
+    "element": "Geo",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1655,
+    "skillName2": 1596,
+    "skillName3": 1162,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 2299
+      },
+      {
+        "index": 6,
+        "text": 3159
+      },
+      {
+        "index": 7,
+        "text": 3160
+      },
+      {
+        "index": 8,
+        "text": 218
+      },
+      {
+        "index": 9,
+        "text": 370
+      },
+      {
+        "index": 10,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 11,
+        "text": 1334
+      },
+      {
+        "index": 12,
+        "text": 282
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 13,
+        "text": 833
+      }
+    ],
+    "config": [
+      {
+        "default": false,
+        "name": "c1_active",
+        "title": 879,
+        "type": "bool"
+      }
+    ],
+    "configSkill": []
+  },
+  "LumineElectro": {
+    "name": "LumineElectro",
+    "nameLocale": 3725,
+    "element": "Electro",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1656,
+    "skillName2": 3320,
+    "skillName3": 3336,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 3159
+      },
+      {
+        "index": 6,
+        "text": 3160
+      },
+      {
+        "index": 7,
+        "text": 218
+      },
+      {
+        "index": 8,
+        "text": 370
+      },
+      {
+        "index": 9,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 1334
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 11,
+        "text": 1334
+      },
+      {
+        "index": 12,
+        "text": 1059
+      },
+      {
+        "index": 13,
+        "text": 1060
+      }
+    ],
+    "config": [
+      {
+        "default": false,
+        "name": "amulet_active",
+        "title": 1372,
+        "type": "bool"
+      },
+      {
+        "default": false,
+        "name": "c2_active",
+        "title": 739,
+        "type": "bool"
+      }
+    ],
+    "configSkill": []
+  },
+  "LumineDendro": {
+    "name": "LumineDendro",
+    "nameLocale": 3726,
+    "element": "Dendro",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1659,
+    "skillName2": 2723,
+    "skillName3": 391,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 3159
+      },
+      {
+        "index": 6,
+        "text": 3160
+      },
+      {
+        "index": 7,
+        "text": 218
+      },
+      {
+        "index": 8,
+        "text": 370
+      },
+      {
+        "index": 9,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 1334
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 11,
+        "text": 2722
+      },
+      {
+        "index": 12,
+        "text": 2197
+      }
+    ],
+    "config": [
+      {
+        "default": 0,
+        "max": 10,
+        "min": 0,
+        "name": "p1_stacks",
+        "title": 2763,
+        "type": "int"
+      },
+      {
+        "default": 0,
+        "name": "burst_transform",
+        "options": [
+          "无",
+          "水",
+          "雷",
+          "火"
+        ],
+        "title": 2762,
+        "type": "option"
+      }
+    ],
+    "configSkill": []
+  },
+  "LumineHydro": {
+    "name": "LumineHydro",
+    "nameLocale": 3727,
+    "element": "Hydro",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1657,
+    "skillName2": 2062,
+    "skillName3": 1331,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 3159
+      },
+      {
+        "index": 6,
+        "text": 3160
+      },
+      {
+        "index": 7,
+        "text": 218
+      },
+      {
+        "index": 8,
+        "text": 370
+      },
+      {
+        "index": 9,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 776
+      },
+      {
+        "index": 11,
+        "text": 3356
+      },
+      {
+        "index": 12,
+        "text": 2215
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 13,
+        "text": 1334
+      }
+    ],
+    "config": [
+      {
+        "default": true,
+        "name": "suffusion",
+        "title": 467,
+        "type": "bool"
+      },
+      {
+        "default": 0,
+        "max": 12000,
+        "min": 0,
+        "name": "hp_consumed",
+        "title": 466,
+        "type": "float"
+      }
+    ],
+    "configSkill": []
+  },
+  "LuminePyro": {
+    "name": "LuminePyro",
+    "nameLocale": 3728,
+    "element": "Pyro",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1658,
+    "skillName2": 2109,
+    "skillName3": 2223,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 3151
+      },
+      {
+        "index": 6,
+        "text": 3154
+      },
+      {
+        "index": 7,
+        "text": 218
+      },
+      {
+        "index": 8,
+        "text": 370
+      },
+      {
+        "index": 9,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 2261
+      },
+      {
+        "index": 11,
+        "text": 3212
+      },
+      {
+        "index": 12,
+        "text": 2222
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 13,
+        "text": 1334
+      }
+    ],
+    "config": [
+      {
+        "default": false,
+        "name": "nightsoul_state",
+        "title": 918,
+        "type": "bool"
+      },
+      {
+        "default": false,
+        "name": "after_q",
+        "title": 1529,
+        "type": "bool"
+      },
+      {
+        "default": false,
+        "name": "foreign_starfire_active",
+        "title": 1239,
+        "type": "bool"
+      }
+    ],
+    "configSkill": []
+  },
+  "LumineCryo": {
+    "name": "LumineCryo",
+    "nameLocale": 3729,
+    "element": "Cryo",
+    "weapon": "Sword",
+    "star": 5,
+    "avatar": "/characters/lumine-avatar.png",
+    "splash": "/characters/lumine-splash.png",
+    "skillName1": 1654,
+    "skillName2": 550,
+    "skillName3": 2663,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 151
+      },
+      {
+        "index": 1,
+        "text": 298
+      },
+      {
+        "index": 2,
+        "text": 201
+      },
+      {
+        "index": 3,
+        "text": 797
+      },
+      {
+        "index": 4,
+        "text": 319
+      },
+      {
+        "index": 5,
+        "text": 3159
+      },
+      {
+        "index": 6,
+        "text": 3160
+      },
+      {
+        "index": 15,
+        "text": 3143
+      },
+      {
+        "index": 16,
+        "text": 3144
+      },
+      {
+        "index": 7,
+        "text": 218
+      },
+      {
+        "index": 8,
+        "text": 370
+      },
+      {
+        "index": 9,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 10,
+        "text": 1334
+      },
+      {
+        "index": 11,
+        "text": 542
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 12,
+        "text": 1355
+      },
+      {
+        "index": 13,
+        "text": 3061
+      },
+      {
+        "index": 14,
+        "text": 3055
+      }
+    ],
+    "config": [
+      {
+        "default": 8,
+        "max": 8,
+        "min": 0,
+        "name": "cold_glow_stacks",
+        "title": 1110,
+        "type": "int"
+      },
+      {
+        "default": 1,
+        "name": "radiance_mode",
+        "options": [
+          "无",
+          "星超导",
+          "星扩散"
+        ],
+        "title": 3067,
+        "type": "option"
+      },
+      {
+        "default": 2,
+        "name": "c2_em_state",
+        "options": [
+          "未触发",
+          "+60元素精通",
+          "+120元素精通"
+        ],
+        "title": 276,
+        "type": "option"
+      }
+    ],
+    "configSkill": [
+      {
+        "default": true,
+        "name": "e_infusion",
+        "title": 1763,
+        "type": "bool"
+      }
+    ]
   }
 }

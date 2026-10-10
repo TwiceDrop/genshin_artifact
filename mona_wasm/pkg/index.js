@@ -13,6 +13,7 @@ import { createStrengthenedFacade } from '../../beta-data/strengthened-facade.mj
 import { createStellarSupportFacade } from '../../beta-data/stellar-support-facade.mjs';
 import { withHybridTeamOptimization } from '../../beta-data/hybrid-team-optimizer.mjs';
 import { createExpandedWeaponsFacade } from '../../beta-data/expanded-weapons.mjs';
+import { withLumineTraveler } from '../../beta-data/lumine-traveler-facade.mjs';
 import weaponData from '../../beta-data/weapons-release-71.json';
 import signatureData from '../../beta-data/weapons-signature-release-71.json';
 import data from '../../beta-data/vodyanitsa.json';
@@ -32,5 +33,5 @@ const originalApi = withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginalApi,
 const baseApi = createFacade(originalApi,extension,data,support,characters);
 const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(baseApi,extension,support),originalApi,weaponData,signatureData),originalApi);
 const strengthened = createStrengthenedFacade(stellar.facade,stellar.transformStellarTarget);
-const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension)))));
+const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withLumineTraveler(withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension))))));
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;

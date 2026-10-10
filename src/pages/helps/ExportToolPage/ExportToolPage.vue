@@ -54,18 +54,6 @@ const items = [
                 icon: IconFa6BrandsGithub
             }
         ]
-    },
-    {
-        name: "「天目」Amenoma",
-        description: "fork自Genshin Art Scanner",
-        buttons: [
-            {
-                label: "项目地址",
-                primary: true,
-                link: "https://github.com/daydreaming666/Amenoma",
-                icon: IconFa6BrandsGithub
-            }
-        ]
     }
 ]
 

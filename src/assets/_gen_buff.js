@@ -4882,5 +4882,71 @@ export default {
         "default": 1
       }
     ]
+  },
+  "LumineCryoTalent1": {
+    "name": "LumineCryoTalent1",
+    "nameLocale": 537,
+    "description": 1549,
+    "badge": "/characters/lumine-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "default": 2000,
+        "max": 100000,
+        "min": 0,
+        "name": "atk",
+        "title": 1550,
+        "type": "float"
+      },
+      {
+        "default": 1,
+        "name": "radiance_mode",
+        "options": [
+          "无",
+          "星超导",
+          "星扩散"
+        ],
+        "title": 3066,
+        "type": "option"
+      }
+    ]
+  },
+  "LumineCryoC2": {
+    "name": "LumineCryoC2",
+    "nameLocale": 538,
+    "description": 543,
+    "badge": "/characters/lumine-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "default": true,
+        "name": "stellar_triggered",
+        "title": 1174,
+        "type": "bool"
+      }
+    ]
+  },
+  "LumineCryoC6": {
+    "name": "LumineCryoC6",
+    "nameLocale": 539,
+    "description": 1545,
+    "badge": "/characters/lumine-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "default": 8,
+        "max": 8,
+        "min": 0,
+        "name": "cold_glow_consumed",
+        "title": 2128,
+        "type": "int"
+      },
+      {
+        "name": "effect_active",
+        "title": 3706,
+        "type": "bool",
+        "default": true
+      }
+    ]
   }
 }

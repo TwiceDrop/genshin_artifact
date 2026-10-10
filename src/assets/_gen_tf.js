@@ -3042,5 +3042,36 @@ export default {
         "max": 10
       }
     ]
+  },
+  "LumineDendroDefault": {
+    "name": "LumineDendroDefault",
+    "nameLocale": 3730,
+    "description": 1873,
+    "tags": [
+      "输出"
+    ],
+    "for": "LumineDendro",
+    "badge": "/characters/lumine-avatar.png",
+    "config": [
+      {
+        "default": 0,
+        "max": 1,
+        "min": 0,
+        "name": "spread_rate",
+        "title": 2815,
+        "type": "float"
+      }
+    ]
+  },
+  "LumineCryoDefault": {
+    "name": "LumineCryoDefault",
+    "nameLocale": 3731,
+    "description": 1857,
+    "tags": [
+      "输出"
+    ],
+    "for": "LumineCryo",
+    "badge": "/characters/lumine-avatar.png",
+    "config": []
   }
 }

@@ -738,5 +738,17 @@
   "VesnaTalent1": {
     "character": "Vesna",
     "minConstellation": 0
+  },
+  "LumineCryoTalent1": {
+    "character": "LumineCryo",
+    "minConstellation": 0
+  },
+  "LumineCryoC2": {
+    "character": "LumineCryo",
+    "minConstellation": 2
+  },
+  "LumineCryoC6": {
+    "character": "LumineCryo",
+    "minConstellation": 6
   }
 }
