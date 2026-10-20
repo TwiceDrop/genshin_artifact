@@ -1,19 +1,17 @@
-# AGENTS.md — 莫娜占卜铺 7.1.10 项目交接与维护约定
+# AGENTS.md — 莫娜占卜铺 7.1.11 项目交接与维护约定
 
-状态快照：2026-10-11。当前项目为 **7.1.10**，源码目录为 **D:/Documents/ChatGPT/v7.1.10/source**。本副本从已正式发布的 7.1.09 当前源码复制，保留已完成修复、规则、WASM、资源及维护文档。7.1.09 原源码和成品保留。本副本不是 Git 仓库，node_modules 仅复用既有依赖目录联接；两份项目源码各自独立。
+状态快照：2026-10-20。当前常规开发项目为 **7.1.11**，源码目录为 **D:/Documents/ChatGPT/v7.1.11/source**。按用户确认，从 **D:/Documents/ChatGPT/v7.1.10/source** 新建独立源码副本；原 7.1.10 源码、正式成品和 Beta 均保留。本副本不是 Git 仓库；根 node_modules 联接至 7.1.09 既有依赖，mobile/node_modules 联接至 7.1.10 既有手机依赖，业务源码独立。
 
 ## 先按任务选择目录
 
 | 任务 | 工作目录与指引 |
 | --- | --- |
-| 多人配装优化的开发、排查、测试，包括相关计算 BUG | [7.1.10Beta/source/AGENTS.md](../../v7.1.10Beta/source/AGENTS.md)，工作目录 D:/Documents/ChatGPT/v7.1.10Beta/source |
-| 其他功能、通用 BUG、单次伤害和单人配装优化 | [7.1.10/source/AGENTS.md](../../v7.1.10/source/AGENTS.md)，工作目录 D:/Documents/ChatGPT/v7.1.10/source |
+| 多人配装优化的开发、排查、测试及相关计算 BUG | [7.1.10Beta/source/AGENTS.md](../../v7.1.10Beta/source/AGENTS.md)，D:/Documents/ChatGPT/v7.1.10Beta/source |
+| 其他功能、通用 BUG、单次伤害和单人配装优化 | 本文件，D:/Documents/ChatGPT/v7.1.11/source |
 
-**7.1.10Beta 项目仅做多人优化测试用。** 多人优化请到 Beta 文件夹；其他功能和 BUG 改动请到 7.1.10 文件夹。接到任务先读取对应目录的 AGENTS.md，并把命令工作目录切到对应 source。不要在旧 genshin-artifact、7.1.09 或另一份副本代为修改。
+**本目录是当前常规副本。** 用户本轮明确要求新建 7.1.11，取代旧入口所述的常规 7.1.10 开发目录；不要回旧 7.1.10、7.1.09 或 genshin-artifact 代改业务代码。多人任务仍走 Beta。
 
-**当前目录为常规开发副本。** 其他功能、通用 BUG、单次伤害和单人配装优化在这里修改；多人优化相关任务切到 7.1.10Beta，不在本目录开展实验。
-
-这次复制只是建立分开的开发环境，没有实现或验证新的多人优化功能。两份副本都继承 7.1.09 行为，不能把旧包装函数或旧多人入口视为多人优化已完成。建立副本时仅复制源码、同步版本声明和交接指引，不构建、不发布、不修改 README；后续按用户具体任务推进，待办与进度统一见下方“当前版本 7.1.10 待办及完成状态”。
+2026-10-15 的复制与反馈排查阶段，授权范围为复制源码、升级版本、更新交接并排查三项反馈。**计算业务代码未修改，三项反馈不能写成已修复；未构建新网页、Windows 安装包／ZIP 或 Android APK，未发布。** 已依照版本同步约定单独生成 7.1.11 启动器。7.1.10 历史完整交接保存在 [历史快照](docs/handoff-7.1.10-20261014.md)，不把继承成果当成本轮新实现。
 
 ## 已完成并继承的内容
 
@@ -38,161 +36,90 @@
 
 [7.1.09 更新说明](docs/release-7.1.09-final.md) · [评分修复](docs/artifact-score-fix-7109.md) · [Astra 修复](docs/astra-review-fixes-7109.md) · [发布核对与边界](docs/release-validation-7.1.09.md)
 
-## 当前版本 7.1.10 待办及完成状态
+### 7.1.10 已继承成果与实际边界
 
-更新日期：2026-10-11。本节维护**常规版 7.1.10** 的当前事项；多人优化在 [7.1.10Beta 的 AGENTS.md](../../v7.1.10Beta/source/AGENTS.md) 维护。每次调研、实现或验证后及时更新本表及下方依据；完成的事项保留完成状态和证据，不因移出待做列表而丢失记录。
+- 2026-10-11 已正式发布的 7.1.10 基线：圣遗物组搜索／拼音排序／头像与保留本人、银釭公共计算、添加 BUFF 弹窗行为统一、Web 扫描及指定页面清理、荧导入与七元素计算适配等。本版 12 项正式改动及历史验证分别见 [更新说明](docs/release-7.1.10-final.md)、[发布核对](docs/release-validation-7.1.10.md)。
+- 2026-10-14 shadcn-vue 手机试验源码已继承；当时五项定向验证属于 7.1.10 既有证据，未发布 APK。本副本不携带旧 dist／dist-mobile／.build-target 冒充新产物，手机试验状态见 [手机重构记录](docs/mobile-shadcn-7110.md)。
+- 7.1.10 的 HoYoLAB 登录／同步与属性排序仅完成调研；库存静态权重继续暂缓；更新安装故障尚未修改业务代码。完整历史完成表与来源保留在上述历史快照。
 
-### 当前待办
+## 当前版本 7.1.11 待办及完成状态
 
-| 编号 | 事项 | 调研／排查状态 | 实现状态 | 验证状态与下一步 |
-| --- | --- | --- | --- | --- |
-| 7.1.10-01 | HoYoLAB 海外角色 UID、天赋、武器及已穿戴圣遗物同步 | **调研完成**：已有海外角色列表／详情消费者，字段结构可参考现有共享转换 | **未实现** | 未进行真实海外同步／导入验证。下一步接海外路由、请求头、游戏区域、平台账号身份及两端导入链路；范围为已穿戴装备。详见 [HoYoLAB 调研](docs/hoyolab-research-7110.md) |
-| 7.1.10-02 | HoYoLAB 登录便利性与海外扫码获取 Cookie | **调研完成，扫码协议仍未确认**：已有邮箱／密码和验证码登录参考；所读扫码实现限定国服 | **未实现** | 未进行海外认证或扫码验证。海外扫码仍需确认 app_id、创建／轮询端点、扫描应用、确认响应及 Cookie 获取方式；不能猜接口或仅换域名。详见 [登录调研](docs/hoyolab-research-7110.md) |
-| 7.1.10-05 | 库存原生静态推荐权重缺项 | **已定位，用户要求暂缓** | **未实现，继续暂缓** | 部分角色／目标仍缺原生权重；原生静态接口也不接收 BUFF，需属性补偿的武器（含银釭）沿用已有接口限制。2026-10-04 用户要求“先暂时不管”。喵喵评分与实际伤害优化不替代库存推荐，不自动重启此项。依据：[暂未完成事项](docs/pending-items-20261004.md) |
-| 7.1.10-06 | 计算器按面板属性筛选与配装排序，与 Fribbels HSR Optimizer 对照 | **调研完成**：已核对 Fribbels 搜索引擎、结果表控制器及当前官网脚本；它区分搜索目标与结果表列排序，并支持属性上下限、基本／战斗属性视图和已保留结果再筛选。现有项目缺暴击率／爆伤下拉目标及多属性结果表 | **未实现新增功能** | 未运行项目功能测试或浏览器点击实测。Fribbels 默认保留 1024 组，可选 64～65536 组；表列排序及计算后筛选仅作用于已保留方案。建议复用现有约束，补齐属性目标、上下限与结果表，并让所选搜索目标参与结果保留；面板口径及保留数量需在实施时确定。详见下方调研记录 |
+更新日期：2026-10-20。以下区分排查、调研、实现与验证。用户本轮要求先搁置哥伦比娅问题，新增圣遗物仓库按所选角色的单件喵喵评分排序；该功能已实现并完成三项定向核对。随后用户明确要求修自动更新，Windows接管及Android等待／暂停状态与取消时序已修，五项目的定向验证完成；Android用户手机原始0%的具体根因仍未确认。HoYoLAB等其他待办保持原状态，发布已获用户明确授权，状态见下节。
 
-### 当前已完成事项
+### 7.1.11 正式构建与发布（进行中）
 
-| 事项 | 完成状态 | 实际完成内容与边界 |
+- 用户最新明确授权“生成7.1.11，根据要求上传到github”，并确认同步README版本及下载链接，保留现有四部分结构。本次授权覆盖Windows EXE／ZIP、沿用原升级签名的Android APK、独立公开源码目录及GitHub正式Release；用户随后要求旧Element Plus与新UI测试两种APK并行交付、包名不同，并修复新UI BUFF分类拖动；无需再次确认发布。
+- 当前四项成品已构建、前四项目的核对完成，待GitHub上传与回读；本版全部7项更新说明和独立输出已准备；旧版、Beta、旧工作区及原签名保留。待办不自动重启，不把未修事项写入已修列表。
+- 本轮最多五项定向核对：Windows构建／版本、Android构建／包身份与原签名、源码及成品内容范围、桌面／手机实际编译仓库评分功能、GitHub发布回读。结果完成后更新本段及专项发布记录。
+
+### Android双UI与分类栏（发布前追加，2026-10-20）
+
+- 已实现 `build-android.ps1 -Ui elementplus|mobiletest`：默认旧UI使用 `dist`、原包名 `com.mona.artifact.local`；新UI测试使用 `dist-mobile`、包名 `com.mona.artifact.local.mobiletest` 与独立应用名。原签名、版本70111/7.1.11、https://localhost保持；两包本地数据独立，不自动迁移。此处为用户本轮明确授权的额外测试包身份，不改正式旧包身份。
+- 7.1.11两版更新各取对应APK，不依赖Release附件顺序。已读取7.1.10正式APK内编译代码：旧客户端选择第一个APK，故本次先上传旧UI，再上传新UI测试，并在正式发布前后核对实际API附件顺序与旧包选择器结果。新UI公共Tabs增加鼠标拖动；触屏保留原生滚动；实际编译页面已验证双向拖动0→218→0、不误切换和点击元素共鸣。
+- 本轮五项目的扩展覆盖双APK、包身份／原签名及拖动；原候选保留，不发布未修复候选。
+
+### 自动更新已确认故障修复（2026-10-20）
+
+- **实现完成**：Windows改由临时目录中的Node承载不带detached的PowerShell，等待安装脚本实际输出接管确认后才关闭旧托盘／服务；启动失败保留ready并显示具体原因，承载进程不锁住原runtime/node.exe。Android保留系统下载器，返回pending／paused及真实状态／原因，界面继续轮询、显示实际等待原因并支持取消；忽略取消后迟到的状态。
+- **五项目的验证完成**：本机更新API交接与失败；真实父进程退出后的合成ZIP覆盖／重启；真实合成Inno安装器覆盖／重启；实际App.vue等待／暂停／取消组件；Android原生编译与只读模拟器的真实下载状态、取消、23067字节完整HTTPS下载／回读及不完整检查。暂停对照也实际返回nativeStatus=4、reason=1；大样本该次未完成，未写成完整下载通过。
+- **具体边界**：用户手机原始0%具体原因仍未确认；未执行Android系统APK授权／覆盖安装，也未覆盖正式Windows安装。旧客户端继续运行旧更新器，需要先手动覆盖升级一次或另行交付旧客户端补丁。本轮未改旧源码／成品、版本、README、签名、账号、UID或仓库；未构建完整网页或正式平台包，未发布。仅生成原生验证用的专用debug APK，不能作为完整7.1.11成品。
+- 修改、证据、运行命令及边界见[修复记录](docs/auto-update-fix-7111.md)。测试输出在.build-target/auto-update-7111，合成Windows临时目录已清理，独立只读模拟器已关闭。
+
+### 圣遗物仓库角色评分排序（2026-10-20）
+
+- **实现完成**：圣遗物页面筛选区新增可搜索、可清空的角色选择；选中后，在当前部位及既有套装／主词条／等级筛选结果内，按内置喵喵单件评分从高到低排列，卡片显示分数和等级；清空后恢复库存原顺序。同分保留原顺序，不修改仓库、锁定或装备内容。
+- 直接复用 scoreBuild([item], rankingContext(name)) 的单件评分口径，没有新增评分公式或依赖角色预设／BUFF。评分模块导出已有规则对应的135个角色／元素／模式选项，包括旅行者七元素及薇斯纳普通／星扩散；详情弹窗默认打开所选评分角色，仍采用单件上下文，不显示空配装总分。
+- 修改位置：src/pages/ArtifactsPage/ArtifactsPage.vue、src/algorithms/artifact-score/score.mjs、src/components/display/ArtifactScoreDialog.vue。修改前副本位于 .build-target/artifact-score-sort-7111/before。
+- **三项定向核对通过**：①页面与弹窗的 Vue 脚本／模板／SCSS 编译；②实际页面组件 setup 配合响应式合成仓库，核对角色切换、降序／同分、套装／主词条／等级筛选、部位切换、编辑重排、清空与仓库不被改写，并将代表角色／旅行者／薇斯纳两模式的分数与既有详情及内置评分器对照；③实际详情组件核对初始评分角色／模式、角色变化和单件上下文。未运行历史全量回归，未做浏览器界面实测、完整网页／平台打包或发布。版本仍为7.1.11，README未改。
+- **哥伦比娅按用户要求暂缓**：保留既有排查与诊断副本，尚未实施生产计算修复，本轮不继续该问题。
+
+### HoYoLAB 海外扫码专项调研（2026-10-17）
+
+- 用户本轮授权为先寻找现成项目，没有则自行研究。**本轮项目检索与公开源码调研完成；海外扫码协议仍未确认，未实现，未做真实账号验证。**
+- 已确认 [genshin.py](https://github.com/seriaati/genshin.py/blob/a11758e4911d4d2e906290b4db013c27d023428c/genshin/client/components/auth/client.py#L288)、[Hoyo Buddy](https://github.com/seriaati/hoyo-buddy/blob/10eba827098ff97bac7040120ded82d16e6ab3cf/hoyo_buddy/api/routers/login.py#L443) 的扫码实际限定国服；PizzaHelperUnited 的 HYPContainer 请求也仍走 ma-cn-passport。Starward、Remembrance 的海外登录是官方网页容器加原生 Cookie 回收，不能记成海外扫码实现。
+- 继续自行读取官方 account SDK 2.56.0、账号首页、实际 login-platform 桌面／移动路由及两个异步登录模块；读取模块中没有找到扫码创建／轮询／确认链。可见海外 API 包含密码、邮箱验证码和第三方登录；静态代码未命中不能证明所有原生客户端均不支持扫码。
+- 建议：扫码继续追踪真实官方海外入口及完整票据合同；登录便利性可参考官方网页容器回收 Cookie。当前 Windows 本机服务加浏览器和 Android 原生 WebView 需要分别落实凭据交接；本轮没有开始实现该替代登录方式。
+- 具体缺口：海外创建端点／app_id、扫描 App 与确认请求、同票据轮询、确认返回凭据及海外兑换、绑定角色／战绩实际消费。不能猜域名或直接复用国服 app_id／GameToken 兑换；不能仅打开网页登录或生成普通网址二维码就声称支持扫码。
+- 完整来源、固定提交、官方脚本链接与实施边界见 [专项调研](docs/hoyolab-qr-research-7111.md)。本轮只更新文档与本记录，未读取用户凭据、创建登录票据、运行功能测试、修改业务代码／README／版本、构建或发布。其余反馈和暂缓事项保持原状态。
+
+### 本轮排查
+
+| 编号 | 事项 | 已确认结论 | 实现及后续边界 |
+| --- | --- | --- | --- |
+| 7.1.11-01 | 双冰共鸣未正常计入的反馈 | **双冰实际消费已核对**。补充薇斯纳真实Debug：82.9%→97.9%，期望173422.39984686117→194767.36750851045；与通用暴击+15%一致。冰空／冰荧的普通、星扩散和默认目标也一致。基础面板不含CriticalAttacking | **未改业务代码**。未发现本轮输入的双冰漏算；不能向基础暴击率重复补加15% |
+| 7.1.11-02 | 薇斯纳只能选灵剑·爆发 | **快捷目标限制已定位**：vesna-facade要求VesnaDefault或Common前缀，实际通用目标MaxATK、AnemoDamage被拒绝。E灵剑／E收尾／爆发的现有DSL均能优化，小型候选与手算一致 | **未改业务代码**。需补快捷目标与真实通用目标消费，不能仅删拦截 |
+| 7.1.11-03 | 哥伦比娅配装超时 | **主要阶段与调用链已定位**：原724候选、43套装、Any搜索在四件套后进入高成本二加二；原生默认目标每次结算6段，3秒诊断计数约30.6万次评分／183.6万次技能结算。共享排序把负分转无符号整数归零，已在源码和实际WAT确认。MaxHP对照4.107秒、限定单个四件套对照0.184秒均返回100组 | **按用户2026-10-20指令暂缓，尚未实施生产修复**。隔离版仅纠正排序后，保留原条件45秒仍未完成，不能视为已解决原600秒超时。需继续处理二加二分支与完整评分成本；不得通过延长阈值、静默换算法或缩小候选冒充修复。见专项记录（本地排查材料，未公开） |
+
+详细输入合同、数值、代码位置、验证范围及建议见 首轮排查记录（本地排查材料，未公开）。原始哥伦比娅Debug与补充薇斯纳Debug分开；真实文件均只在原路径读取，不复制进源码或固定用例。
+
+哥伦比娅专项本轮五个核对目的为：Naive路径对照、原生计数与阶段追踪、MaxHP评分成本对照、单四件套规模对照、仅排序键修正对照。所有诊断副本在.build-target/columbina-7111，未修改生产WASM或真实数据。
+
+### 已完成
+
+| 事项 | 本轮实际完成内容 |
+| --- | --- |
+| 独立 7.1.11 源码副本 | 从 7.1.10 当前源码复制，保留原始 WASM／桥接／扩展、资源和源码文档；排除依赖实体、历史网页成品、构建缓存及账号／签名材料 |
+| 版本声明 | 根 package／锁文件、mobile package／锁文件为7.1.11；Android versionCode=70111、versionName=7.1.11 |
+| 启动器版本同步 | 通过 script/build-tray-launcher.ps1 生成 D:/Documents/ChatGPT/v7.1.11/launcher/启动7.1.11.exe；产品显示7.1.11，文件／程序集7.1.11.0，托盘与日志共用版本声明。该目录仅是启动器输出，不是已构建完整应用 |
+| 交接与排查记录 | 当前目录、继承成果及排查状态已登记；旧7.1.10交接另存历史快照；手动换装项已依用户要求删除；哥伦比娅专项证据与未修复边界已更新 |
+| 自动更新确认故障（2026-10-20） | Windows接管、Android等待／暂停信息及取消时序已修，五项目的验证完成；手机原始0%根因和正式升级验证边界见上方专项记录，未发布 |
+| 圣遗物仓库角色评分排序（2026-10-20） | 已新增可搜索／清空的评分角色选择、单件喵喵评分降序与卡片分数，详情默认跟随角色；三项定向源码／组件核对通过，未完整打包或发布，见上方专项状态 |
+| 使用文档（2026-10-15） | 按用户要求阅读7.1.11当前源码，新增[莫娜占卜铺使用文档](docs/user-guide-7.1.11.md)，采用Markdown；重点覆盖单次伤害、目标函数与自动配装、BUFF与队友来源、候选过滤、装备对比、收益曲线、预设、DSL和Debug。随后按用户要求加入19张本机实际运行截图及入口速查表、点击路径和图下操作引导，图片位于docs/images/user-guide-7.1.11；仅使用合成GOOD装备，不含真实账号或UID。为截图临时运行源码浏览器预览，完成普通目标与Mona.Q1 DSL的小规模配装、伤害对比、曲线和保存入口演示，预览已停止；图片、目录锚点与相对链接已核对。保留薇斯纳快捷目标和哥伦比娅超时的实际边界。仅改文档、插图及本记录，未改业务代码、README或版本，未跑历史回归、生成正式应用包或发布 |
+
+### 继承待办（保留各自原状态）
+
+| 原编号 | 事项 | 当前状态 |
 | --- | --- | --- |
-| 常规版 7.1.10 独立源码副本与版本声明 | **已完成** | 已从正式 7.1.09 建立独立源码、同步 package／Android 版本及任务分流；2026-10-11 发布任务已生成 7.1.10 启动器与平台包 |
-| 7.1.10 正式构建与 GitHub 上传 | **已正式发布，五项定向验证目的通过** | README 按四部分更新，完整日志列出本版 12 项改动；Windows EXE／ZIP、原签名 Android APK 已上传，启动器版本同步。包内容／版本／签名、桌面／手机编译 Worker 及 GitHub 标签／正文／资产回读通过；[正式发布](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)，详见 [发布核对](docs/release-validation-7.1.10.md) |
-| 7.1.10-03 过滤圣遗物组查找与保留本人 | **实现与针对性验证完成；Astra 头像问题已修复** | 增加名称搜索、中文拼音排序和准确匹配预设装备的角色头像；搜索及数据刷新保留勾选，组排除保留当前五件。补齐组恰好五件及仓库实际存在的匹配要求，仓库删除后头像响应更新；本轮一项头像回归通过，详见下方记录 |
-| 7.1.10-04 银釭武器适配 | **正式数据核对、实现与针对性验证完成** | 接入正式 7.1.0 release 的等级／突破／精炼、有效层参数、目录／翻译／图标；公共面板、单次、单人优化、词条收益与 DSL 共用属性效果。两项针对性验证及编译 Worker 核对通过；库存静态接口边界归入继续暂缓的 05 |
-| 7.1.10-09 BUFF 弹窗行为统一 | **实现与针对性验证完成** | 两个计算页面的五类 BUFF 添加后均保持弹窗打开，保留角色配置和其他分类默认配置；一项合成组件验证通过，连续选择与重复选择行为正常 |
-| 7.1.10-08 Web 扫描移除及追加界面清理 | **实现与针对性验证完成** | 根据用户截图移除 YAS WebUI 扫描入口／组件和 Amenoma 条目，在首页开源地址区域加入 GOODScanner；追加移除页脚备案号及圣遗物潜力／最佳圣遗物／莫娜数据库三个独立功能的导航、路由与页面。两项既有定向验证及最终网页构建通过，详见下方实施记录 |
-| 女旅行者导入与计算适配（Astra P2） | **实现与定向验证完成** | 保留原始 ID、性别、元素和身份键，补齐荧七元素目录、显示、图片及计算适配；纠正男女第二重击倍率差异，接通单次、DSL、默认目标、候选优化和词条收益，旧失败快照可通过重新同步／导入恢复且不重复增加装备。三项定向验证及最终隔离网页／编译 Worker 核对通过，详见下方记录 |
-| HoYoLAB 接入调研与记录 | **调研完成** | 已核对当前扫码、公开海外消费者与官方账号静态代码并保存来源；7.1.10-01／02 的登录和同步尚未实现 |
-| 面板属性排序与纯枚举对照 | **调研完成** | 已核对本项目设置、目标及结果区，并进一步核对 Fribbels 官方搜索／筛选／结果表逻辑及官网当前加载的脚本；仅完成能力与实现方向分析，未新增排序／筛选业务功能 |
-| 7.1.08／7.1.09 已完成修复与功能继承 | **已继承已完成基线** | GOOD 导入、软件内更新、预设／角色 BUFF 筛选、蓝底锁、锁定评分、Astra 修复及评分修复等见上方基线与原证据；不记作 7.1.10 新实现或新验证 |
-
-2026-10-10 已按用户要求由三个 sub-agent 分别完成 03、04、09，07 已删除；完成四项针对性测试和一项前端构建／编译 Worker 集成核对。当时未生成 Windows 启动器、EXE／ZIP 或 Android APK，未发布；其他待办按表维护。
-
-随后按用户提供的新截图完成 08 及追加的页脚／三个独立功能移除；本轮运行两项既有定向验证和最终前端构建。剩余待办为 01、02、06，05 继续暂缓。
-
-### 当前版本概况
-
-已建立独立源码副本、同步项目版本声明并写明任务分流；源码目录各自独立，依赖为既有目录联接。2026-10-07 完成组过滤的修复前复核与 HoYoLAB 接入调研；2026-10-08 完成面板属性排序与纯枚举对照调研；2026-10-10 实现并验证 03、04、09，删除待办 07，随后完成 08 和用户追加的界面／独立功能清理。2026-10-11 完成 Astra 提出的组头像 P3 与荧导入 P2 修复，五项定向验证目的通过。修复期隔离网页保留在 [.build-target/7110-astra-fixes/web](.build-target/7110-astra-fixes/web)。后续按用户上传 GitHub 的要求构建当前 dist／dist-mobile 和三项平台成品，已完成 7.1.10 正式发布及回读，见下方记录。7.1.08／7.1.09 历史证据保持原归属。
-
-### 7.1.10 正式发布（2026-10-11）
-
-用户要求“上传到 github，根据 agent.md 里的要求更改相关文件”。按既有正式发布方式交付源码、Windows EXE／ZIP 和 Android APK；该授权用于本次 7.1.10，不自动延续到后续版本。
-
-当前：源码及三项成品已在 [GitHub 7.1.10 正式发布](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)，不是草稿或预发布。标签 `v7.1.10` 指向源码提交 `2cc19373ecf4767d5cea8c1adad20313ccf18ea8`；独立 Git 发布目录为 `D:/Documents/ChatGPT/v7.1.10/source-publish`。README 已按软件名称、项目特色、安装说明、其他四部分更新版本、实际功能及下载链接；[更新说明](docs/release-7.1.10-final.md) 完整列出 12 项改动。`build-tray-launcher.ps1` 已重新编译启动器，标题／显示版本 7.1.10、程序集／文件版本 7.1.10.0；安装器同版本。APK 沿用原升级签名，应用 ID、来源及用户存储约定不变。
-
-本轮五项明确验证目的为 Windows 构建／版本、Android 构建／身份／签名、包回读与公开源码范围、桌面／手机编译 Worker、GitHub 发布回读，全部通过。GitHub 标签、README、12 项正文及三项资产名称／上传状态／大小与准备内容一致；未重跑历史全量测试。具体命令、大小、数值及未实机验证边界见 [发布核对](docs/release-validation-7.1.10.md)。旧版、Beta、真实存档和原始发布 WASM 保留，未新增摘要或 SHA256。
-
-### 过滤圣遗物组历史复核（2026-10-07，修复前）
-
-历史状态：**修复前调研与一项合成链路验证完成，当时未修改业务代码。** 以下保留原问题依据；2026-10-10 的修复见下一节。本项只在 D:/Documents/ChatGPT/v7.1.10/source 复核，未操作 Beta、用户存档、README 或平台成品。
-
-- “过滤圣遗物组”勾选收藏夹后，Element Plus 树默认联动勾选其所有子组。`getAllArtifactsFiltered()` 将每个勾选组的全部圣遗物 ID 加入排除集合，没有跳过目标角色自己的组。因此全选包含本人组时，本人装备也会从配装候选中移除。
-- 该弹窗没有关键词搜索、中文拼音／首字母排序、角色头像或“全选保留本人”开关。目录按 store 顺序，组按目录 `children` 顺序显示，并非按角色名排序。收藏夹管理页已有搜索，但不用于此计算设置弹窗。
-- 已有“是否允许替换其他角色已穿戴的圣遗物”开关，默认关闭。它根据当前 UID 的导入／同步穿戴记录排除其他角色、保留当前角色；无需全选组即可保护他人装备。手动组过滤与此开关叠加，仍能排除本人。没有对应 UID／角色穿戴记录时，此开关不能识别其装备归属。
-- 来源：`src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue:178`（组过滤界面）、`:429`（既有穿戴保护开关）、`:1567`（树顺序）、`:1664`（目标角色与 UID 记录）、`:1780`（实际候选过滤）；`src/algorithms/artifact-ownership.mjs:3`（他人装备排除）；`src/store/pinia/kumi.ts:187`、`src/types/kumi.ts:3`（组结构与保存顺序）。
-- 一项验证使用源码中真实的树数据、目标角色记录选择和候选过滤函数（TypeScript 转译执行），配合已安装 Element Plus 的真实 TreeStore、Vue computed/ref 及穿戴归属函数；仅合成莫娜、钟离、安柏组，不读取账号或仓库。结果：本人 ID 1–5、他人 ID 6–10、闲置 ID 11–15；默认保护且不勾组时保留 1–5／11–15；勾选整个收藏夹后仅保留 11–15；开启借用仍仅保留 11–15；取消本人组勾选后恢复 1–5／11–15。显示顺序为“钟离、莫娜、安柏”，与保存顺序一致。
-- 实际消费链：`getAllArtifactsFiltered()` → `convertArtifact` → 等级至少 16 筛选 → `wasmSingleOptimize` → Worker → `OptimizeSingleWasm.optimize`，没有将被组过滤掉的本人装备重新加入候选。
-- 建议：已有 UID 穿戴记录时可使用默认关闭的穿戴保护开关，无需全选组；若后续改进该弹窗，搜索或名称排序能直接减少查找成本。若要求全选自动保留本人，应先明确“本人组”依据当前五件装备还是游戏导入记录；现有组只有自由标题和五件 ID，没有角色绑定字段，不能把所有同名组视作唯一归属。
-- 验证边界：本轮验证实际源码筛选及树模型，未进行完整页面点击、WASM 伤害重算、构建或发布。这里只确认候选排除与列表行为，不将本轮写成锁定评分回归或伤害公式失败。
-
-### Astra 复核后修复（2026-10-10 开始，2026-10-11 完成，常规版）
-
-用户提供两份审查报告并要求两个 sub-agent 分别处理。只修改常规版 source，使用合成数据验证，未修改旧版、Beta、README 或真实账号存储。
-
-- **P3：不完整／已删除装备的圣遗物组误显示角色头像，已修复。** 原逻辑仅检查预设长度，空数组 `every` 或短数组前缀可误匹配；也不订阅仓库。`NewArtifactPlanPage.vue` 的头像 computed 现在要求组长度恰好 5、每个 ID 非空且非负并存在于响应式 `artifactStore.artifacts.value`，再沿用预设五槽精确匹配。候选过滤、树勾选逻辑未改。`node --test --test-name-pattern='filter group avatars require' tests/filter-kumi-7110.test.mjs` 返回 0，1 项通过：空／四件／六件组、无效及缺失 ID 不显示头像，完整组多角色头像去重，删除／恢复仓库记录后头像更新。此验证执行真实页面 computed 和 Vue 响应式合成仓库，不是完整浏览器操作。
-- **P2：女旅行者导入“未知角色”，实现与定向验证完成。** 属于 7.1.09 已有问题。共享旅行者解析保留原始角色 ID 10000007、性别、元素及 `UID:角色ID:元素` 键；新增荧七元素目录、名称／图片、草／冰专属目标和冰 BUFF 归属。正式 7.1.0 数据核对确认第二重击倍率存在性别差异，适配只在计算边界复用已核对的空模型，按男女第一／第二段差值修正倍率、保持定额加值。单次、DSL、候选优化和词条收益共用适配，冰默认目标按原发布内核权重构造实时 DSL；浏览器和 Node 注册一致。旧失败记录保留原身份键，通过已有重新同步／重新导入链路恢复预设并清除错误，不清空仓库。合法 DSL 对象复制及赋值保持原语义，原 DSL 禁止的重复 `dmg` 声明保留具体报错。详细修改、来源与边界见 [荧导入修复](docs/lumine-import-fix-7110.md)。
-
-本轮最多五项明确验证目的，全部使用合成数据，没有运行历史全量清单：
-
-| 项 | 命令／证据 | 结果 |
-| --- | --- | --- |
-| 1 完整组头像及仓库响应 | `node --test --test-name-pattern='filter group avatars require' tests/filter-kumi-7110.test.mjs` | 1 项通过；范围见上方 P3 说明 |
-| 2 导入身份与旧失败记录恢复 | `node --test --test-name-pattern='1 original traveler' tests/lumine-import-7110.test.mjs` | 男女七元素转换保留身份及输入；真实 store 合成失败快照恢复，重复导入复用 5 件装备、保持 1 个预设与已保存参数 |
-| 3 真实计算消费者与倍率差异 | 同一脚本 `2 female skill ratios`；[数值证据](.build-target/lumine-import-7110/consumer-evidence.json) | 七元素面板／第二重击索引正确；普通、融化、冰直接星扩散的单次、DSL、6 件候选及攻击词条收益一致。冰默认目标三模式与独立单次加权和一致；DSL 对象复制及赋值边界修正后重跑本项通过 |
-| 4 目录、目标与 BUFF 来源 | 同一脚本 `3 UI catalog` | 荧目录、草／冰专属目标、保存角色 BUFF 参数、冰来源 BUFF 实际效果、旅行者武器识别和浏览器／Node 注册一致 |
-| 5 最终网页与编译 Worker | `npm.cmd run build:local -- --dest .build-target/7110-astra-fixes/web`；[Worker 脚本](.build-target/7110-astra-fixes/compiled-worker-check.mjs)／[证据](.build-target/7110-astra-fixes/compiled-worker-evidence.json) | 构建及 Worker 命令均返回 0，荧两张本地图片已复制进新网页。编译 Worker 加载真实 chunks／WASM，6 件合成候选中两条路径均选中冠 ID 6；冰默认目标 51234.28517497756，显式重击 DSL 10472.37560855141，均与公开单次独立参考一致 |
-
-最终构建日志为 [.build-target/7110-astra-fixes/build.log](.build-target/7110-astra-fixes/build.log)。验证保留已有工具 warning，不为此更新依赖。编译 Worker 在 Node 模拟浏览器 Worker 环境执行；没有完成真实浏览器同步／页面点击、真实存量账号兼容、系统导出回读或 EXE／APK 实机验证。未修改原始发布 WASM、旧版、Beta、README 或真实用户存储，未生成平台包或发布。已修复可复现的女旅行者导入路径；issue #4 缺少操作步骤，不能据此断言其所有可能路径均已复现。
-
-### 03／04／09 实施（2026-10-10，常规版）
-
-状态：**三项实现完成，五项针对性验证目的完成。** 用户要求“完成03 04 09，07删掉”，并明确要求使用 sub-agent 分别解决三项。所有业务修改位于常规版 source；未修改 Beta、旧版本、README、用户存档或 WASM 二进制。
-
-- **03：过滤圣遗物组。** [NewArtifactPlanPage.vue](src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue) 增加搜索输入及独立过滤树，收藏夹和组按中文拼音／名称排序；组的五槽 ID 与已有预设完全一致且无空槽时显示对应角色头像，多角色匹配显示多个头像，不从自由标题推断归属。勾选 ID 独立于搜索可见性保存，搜索隐藏／清空及树刷新不丢勾选。手动组排除跳过当前已选五件，锁定、主词条、其他角色与队友占用约束继续生效。“使用圣遗物组”树和存档格式保持原逻辑。
-- **04：银釭（Silver Light，ID 11438）。** 核对 [中文正式数据](https://gi.gachabase.net/weapons/11438/silver-light/release?lang=chs)、[英文正式数据](https://gi.gachabase.net/weapons/11438/silver-light/release?lang=en)，均为 release 7.1.0，设计／资源修订 48145775。数据保存在 [silver-light-release-71.json](beta-data/silver-light-release-71.json) 和 [silver-light-runtime.mjs](beta-data/silver-light-runtime.mjs)：96 行等级／突破数据，R1～R5 每层精通 52／65／78／91／104，施放元素战技后每层持续 12 秒、最多 2 层且独立计时。界面参数表示当前有效层，默认 0，范围 0～2；不自动模拟时间轴。90 级基础攻击 510，攻击副属性按现有 expanded 精度策略由原始 .41346 取 .4135（界面 41.3%）。[expanded-weapons.mjs](beta-data/expanded-weapons.mjs) 通过同属性族的 TheFlute 与已有属性效果桥接，为旧内核和扩展内核统一注入等级差值、副属性差值和精通；接入目录、中文／英文游戏描述及[正式本地图标](public/weapons/silver-light.png)，选择器和详情通过 `/weapons/silver-light.png` 实际消费。实际面板、单次、单人优化、词条收益、DSL 和喵喵评分已核对；原生库存静态推荐的无 BUFF 接口限制继续由 05 维护。
-- **09：选择 BUFF。** 原因是角色分类已有 `keepOpen:true`，其他分类没有发送。[SelectBuff.vue](src/components/select/SelectBuff.vue) 为其他分类同样发送 `keepOpen:true`；两个父页面的事件参数将 `config` 同步为可选，保留角色配置和其他分类默认配置的创建。角色／武器／圣遗物／共鸣／自定义添加后保持弹窗打开，搜索和分类不重置；沿用已有去重处理。
-
-本轮验证使用合成数据，共五项明确目的，没有运行全量测试：
-
-| 项 | 命令／证据 | 核对结果 |
-| --- | --- | --- |
-| 1 组过滤交互与候选约束 | `node --test tests/filter-kumi-7110.test.mjs` | 1 项通过；真实页面函数、Vue 与 Element Plus TreeStore，覆盖名称排序、搜索、头像精确匹配、勾选保留、当前装备保留及其他约束优先级 |
-| 2 BUFF 连续添加 | `node --test tests/buff-dialog-7110.test.mjs` | 1 项通过；真实 SelectBuff／CharacterBuffGroups 组件与两个父页面处理函数，覆盖五分类、连续添加、角色配置、默认配置、重复选择和搜索／分类保留 |
-| 3 银釭正式数据与参数 | `node --test tests/silver-light-7110.test.mjs` 第一项 | 正式快照、等级／突破、精炼／有效层、公共面板、目录／翻译／图标通过 |
-| 4 银釭实际消费者一致性 | 同一脚本第二项；[证据](.build-target/silver-light-7110/evidence.json) | 凯亚 E 融化、薇斯纳直接星扩散的单次、Naive／AStar 候选排序、精通词条收益、DSL 和等值属性 BUFF 一致；喵喵合成样本正常评分 22.9 |
-| 5 编译网页与 Worker 集成 | `npm.cmd run build:local -- --dest .build-target/7110-items-03-04-09/web`；[Worker 脚本](.build-target/7110-items-03-04-09/compiled-worker-check.mjs)／[证据](.build-target/7110-items-03-04-09/compiled-worker-evidence.json) | 构建完成，包内本地图标存在；编译 Worker 加载真实 chunks／WASM，在 6 件合成候选中选中杯 ID 4，结果 6781.281351637214，与 Node 公共接口一致 |
-
-构建日志为 [.build-target/7110-items-03-04-09/build.log](.build-target/7110-items-03-04-09/build.log)。webpack 记录 CSS 顺序、体积及 Browserslist 旧数据等 warning，无编译错误；最终构建命令与编译 Worker 核对命令均返回 0。图标引用修正后仅重跑已有资源验证和构建集成项，未追加验证目的。未进行浏览器页面点击实测或 EXE／APK 实机安装验证，不将合成验证写成上述实测。
-
-### 08 与追加界面清理（2026-10-10，常规版）
-
-状态：**实现完成，两项既有定向验证与最终构建通过。** 用户明确以截图指定移除 YAS WebUI 扫描和「天目」Amenoma，在首页“开源地址”区域放置 GOODScanner 链接；工作期间又要求删除页脚备案号及“圣遗物潜力”“最佳圣遗物”“莫娜数据库”三个独立功能。
-
-- [ArtifactsPage.vue](src/pages/ArtifactsPage/ArtifactsPage.vue) 删除桌面“扫描”按钮、弹窗挂载、导入、状态和点击处理；核对仅此页面消费后删除 `YasUIDialog` 的四个专用文件，包括辅助插件连接与控制实现。
-- [ExportToolPage.vue](src/pages/helps/ExportToolPage/ExportToolPage.vue) 删除 Amenoma 卡片；[IntroPage.vue](src/pages/about/IntroPage/IntroPage.vue) 的开源区域新增 GOODScanner GitHub 卡片，地址为已在线核实的 [Anyrainel/GOODScanner](https://github.com/Anyrainel/GOODScanner)。沿用现有卡片交互，不新增产品说明。
-- [Footer.vue](src/pages/MainPage/Footer.vue) 删除备案号显示块和对应的未使用组件参数。
-- [SideBar.vue](src/pages/MainPage/SideBar.vue) 和 [router.js](src/router/router.js) 移除 `/potential`、`/best-set`、`/character` 及其角色子路由；首页移除潜力功能卡片，将剩余三张功能卡片排为三列。核对没有其他页面消费后删除三个页面目录及专用 Worker／JS 封装、潜力选择器与旧潜力算法文件，清除对应导出和组件类型声明。计算器仍使用的角色／武器／圣遗物元数据及公共计算内核保持既有实现。
-
-本轮仅运行以下三个定向核对，没有新增测试或运行全量清单：
-
-| 项 | 命令 | 结果 |
-| --- | --- | --- |
-| 1 实际文件读取与页面导入回调 | `node --test --test-name-pattern='actual file reader' tests/good-import.test.mjs` | 1 项通过；合成文件选择／导入、共享转换及等待完成的回调正常 |
-| 2 导入装备进入公共计算与评分 | `node --test --test-name-pattern='imported equipment crosses' tests/good-import.test.mjs` | 1 项通过；合成可莉伤害 2087.780878395502、评分 125，与等值参考一致 |
-| 3 最终网页构建 | `npm.cmd run build:local -- --dest .build-target/7110-item-08/web` | 构建命令返回 0；包含用户追加的页脚和三个独立功能移除，日志为 [.build-target/7110-item-08/build.log](.build-target/7110-item-08/build.log) |
-
-追加需求后重构建同一构建项，最终输出包含本节所有源码修改。构建仍记录 CSS 顺序、体积及依赖工具提示等 warning，无编译错误。未进行完整新页面浏览器点击实测，未生成 EXE／ZIP／APK 或发布；README、Beta、旧版本及用户存档未修改。
-
-### HoYoLAB 扫码与角色数据调研（2026-10-07，常规版）
-
-状态：**调研完成；尚未实现或实测 HoYoLAB 登录／同步。** 记录见 [HoYoLAB 接入调研](docs/hoyolab-research-7110.md)。本轮只读当前源码与公开开源／官方静态脚本，没有登录、获取票据或读取用户账号库，不构建、不发布、不修改 README。
-
-- 当前扫码实际来源为 [TwiceDrop/mhy-qdcode-to-cookie](https://github.com/TwiceDrop/mhy-qdcode-to-cookie)，使用国服 `ma-cn-passport/app` 创建／轮询，再由 SToken 换 Cookie；当前角色业务与游戏区域均限定国服。桌面与 Android 复用 `server/mys.mjs`，不能只接桌面端。
-- HoYoLAB 数据读取已有 genshin.py 海外消费者：海外绑定账号、`hk4e_global`、四个 os 游戏区域、`sg-public-api.hoyolab.com/event/game_record/genshin/api` 的 POST `character/list`／`character/detail`。详细角色模型与现有转换字段对应，适合复用共享角色／圣遗物转换和入库；实际返回与导入尚未验证。
-- 没有找到已确认完整可用的海外扫码链路。genshin.py 的扫码限定 `Region.CHINESE`；UIGF 当前扫码定义也标注 CN；已读 HoYoLAB 官方账号 SDK／账号页没有发现创建／轮询扫码登录端点。这是本轮证据边界，不能断言所有海外客户端都没有扫码，也不能将国服端点换域名冒充完成。
-- 已有海外参考实现是邮箱／密码登录、验证码及 Set-Cookie 获取；官网最新账号 SDK还包含 SG／US／EU 通行证分区。网页登录与海外 App 登录、游戏 GameToken 不能混用。
-- 后续最小方案：先在现有客户端明确平台／海外路由与请求头，复用已有 Cookie 输入验证海外 UID 和已穿戴装备同步；再单独落实方便的官方登录方式。两端账号凭据存储目前只以数字 ID 匹配，新增海外需保留平台身份；手机 `src/platform/native.mjs` 只允许国服域名；快照 source／标题和中文天赋对应也需同步。全部背包未装备圣遗物不在已查战绩接口范围。
-- 来源／固定参考及具体未决事项见调研记录。海外扫码仍缺明确 app_id、端点、扫描应用、确认响应与可用 Cookie 取得方式，不猜测、不写假兼容，不因本轮只调研而新增拦截／回退／哈希逻辑。
-
-### 面板属性排序与纯枚举对照（2026-10-08，常规版）
-
-状态：**调研完成；未新增业务实现、项目功能测试、构建或发布。** 用户本次询问计算器里的纯枚举模式，与限定四件套／主词条后按暴击率、爆伤、攻击、生命等属性筛选排序有什么区别，并进一步要求核实 Fribbels 实际功能。本项阅读常规版源码、Fribbels 官方搜索及结果控制逻辑，以及当前官网 HTML／JS；浏览器工具没有可用会话，未做页面点击实测。不操作 Beta、账号存档或 README。
-
-- “纯枚举”是算法选择，排序依据来自目标函数；将算法改为 `Naive` 不会自动把当前伤害目标换成爆伤／暴击率，也不表示保存并展示所有合法搭配。现有 `algorithm.rs:54` 将 `Naive` 映射到 `AStarCutoff`，该源码仍使用分组属性上界剪枝（`cutoff_a_star.rs:292`）；因此不能仅凭界面名称宣称每个组合均逐一计算。网页实际加载的是保留的旧桥接 WASM 和扩展，当前 Rust 源码与旧二进制并不完全一致，本次没有反编译或运行二进制验证搜索完整性。
-- 已有约束：选择一个套装转换为四件套，两个套装转换为二加二；沙／杯／冠可限定多个主词条；已有充能、精通、暴击率、爆伤下限。攻击／生命／防御下限虽然存在 Rust 接口字段，前端当前传 `null`，界面未开放；当前也没有这些属性的通用上限输入。来源：`src/composables/constraint.ts:15`、`:31`；`src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue:79`、`:129`。
-- 普通目标下拉已有 `MaxATK`、`MaxDEF`、`MaxHP`、`MaxEM`、`MaxRecharge`；未发现普通暴击率／爆伤最大化目标。目标源码实际返回对应面板属性，例如 `max_atk.rs:91` 与 `max_hp.rs:88`；这不是五件副词条的简单加总，角色、武器、套装和已选 BUFF 都参与属性计算。DSL 属性读取支持 `crit0`／`cd0`（`mona_dsl/src/object/prop.rs:38`），可作为手动表达目标的基础，但本次未运行该目标，不能据此声明所有角色路径均可用。薇斯纳扩展还限制普通目标名称（`beta-data/vesna-facade.mjs:22`），实施时必须核对实际消费者。
-- 结果区目前通过序号逐组切换，展示目标值及相对最优值，没有多属性配装表、属性列排序或计算后属性范围筛选（`NewArtifactPlanPage.vue:509`）。Rust 单人接口将结果数设为 `100`（`interface_wasm.rs:66`），结果记录器只保留有限数量并按 `value` 降序排列（`cutoff_a_star.rs:174`、`:610`）；旧 Worker 历史返回 100 组的证据见 `docs/entry-repair-7108.md:22`、`:35`。不能将“共计算 N 组”理解为总共只搜索了 N 组，也不能将返回结果当作全部合法组合。
-- Fribbels 的搜索前设置：四件套／二件套组合与主属性过滤先缩小候选，装备归属、强化、稀有度和副词条权重门槛也可排除单件；CPU Worker 遍历六槽候选组合，检查套装、属性上下限及所选目标的门槛，再把通过者送入按目标保留前 N 名的队列。它的“穷举”仍受用户候选过滤条件约束，不是无限保存仓库所有组合。来源：[官方 optimizer.ts](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/optimization/optimizer.ts)、[optimizerWorker.ts](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/worker/optimizerWorker.ts) 与 `src/lib/relics/relicFilters.ts`。
-- Fribbels 的属性目标和结果数量：`CharacterSelectorDisplay.tsx` 的真实选择器提供 HP／ATK／DEF／SPD／CR／CD 等优化目标；`optimizer.ts` 将 `resultSort` 映射到基本或战斗属性字段，用 `FixedSizeMinQueue(resultsLimit)` 保留目标值最大的方案。默认结果数为 1024；选择器按 `64 * 2^i` 生成 64～65536 的选项。可按暴击率、爆伤、攻击或生命直接搜索前 N 名，不必先按伤害找结果。来源：[CharacterSelectorDisplay.tsx](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/tabs/tabOptimizer/optimizerForm/components/CharacterSelectorDisplay.tsx)、`src/lib/optimization/defaultForm.ts` 和 `src/lib/dataStructures/fixedSizeMinQueue.ts`。
-- Fribbels 的计算后操作：结果表列定义设 `sortable: true`、降序／升序，表头点击调用 `optimizerTabController.ts` 的 `sort()`，仅重排 `controllerState.rows`；“Filter”按钮调用 `applyRowFilters()`，再按当前属性上下限遍历相同已保留结果，并分页展示，不重新执行搜索。切换表头到另一属性不会取回被初始目标淘汰的组合；放宽后筛选也不能恢复初始搜索排除的方案。要寻找另一属性在候选范围内的最高方案，应更换优化目标并重新运行。来源：[optimizerTabController.ts](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/tabs/tabOptimizer/optimizerTabController.ts)、`optimizerForm/grid/optimizerGridColumns.ts` 与 `sidebar/ResultsSection.tsx`。
-- Fribbels 的面板口径：基本／战斗属性是明确视图，搜索排序分别用 `CD`／`xCD`、`CR`／`xCR` 等字段；属性筛选也分别在基础属性或条件／BUFF 计算后执行，结果表能切换同一方案的两种属性。`ResultFilters.tsx` 和 `FilterRow.tsx` 确认攻击、生命、防御、速度、暴击率、爆伤等都有独立最小／最大输入。来源：`src/lib/optimization/sortOptions.ts`、`optimizerWorker.ts`、`sidebar/StatsViewSelect.tsx` 和 `optimizerForm/components/ResultFilters.tsx`。
-- 本次固定官方仓库提交为 `2140153da4d4b8fd212c9420f2ccf123daa5dc6b`。同时从[当前官网](https://fribbels.github.io/hsr-optimizer/)取得实际加载的 [index-AX9h356A.js](https://fribbels.github.io/hsr-optimizer/assets/index-AX9h356A.js)，核对到 `resultsLimit ?? 1024`、64～65536 选项、目标队列门槛、列升降序与 `applyRowFilters`，与上述关键源码行为一致。下载的只读源码放在系统临时目录 `C:/Users/Admin/AppData/Local/Temp/codex-fribbels-audit-20261008`；未运行 Fribbels 代码或对其全部计算公式做审计。
-- 建议最小实现：复用现有套装／主词条与下限约束，补齐最高暴击率／最高爆伤等优化目标，并添加能查看各方案面板属性的结果表。所选排序属性必须参与搜索评分／结果保留；先取伤害前 100 再按爆伤重排，无法保证找到全局爆伤最高方案。若只保留前 N 名，改变优化目标应重新搜索；真正要求计算一次后对全部合法组合任意排序／放宽筛选，则需另行设计全结果存储与分页，并评估组合数量和内存成本。
-- 实施前需确定的具体语义：属性依据无外部 BUFF 面板还是当前配置的含 BUFF 面板；保留前 N 名还是要求全部结果；结果表换列排序仅作用于已返回方案，还是需要该属性的全局最优排序。本次只解释差异并登记结论，不自动恢复历史已移除功能。
-
-2026-10-10 用户要求删除 07，已从待办移除，不继续该项排查。
-
-### 群反馈登记（2026-10-10，常规版）
-
-原始登记来源为用户提供的三张群聊／“选择 BUFF”弹窗截图；没有复制其中 UID、账号资料或图片文件到项目。**08、09 均已按后续授权完成实现和针对性验证。**
-
-- **7.1.10-08：移除 Web 扫描，现已完成。** 原建议为“群主该把web扫描删了”；后续用户截图明确对应 YAS WebUI 扫描，并要求移除 Amenoma、增加 GOODScanner 首页开源链接及追加界面清理。具体修改和证据见上方 08 实施记录。
-- **7.1.10-09：添加 BUFF 后弹窗关闭行为不一致，现已完成。** 原反馈称添加队友后不关闭，添加其他分类后关闭；已定位各分类 `keepOpen` 事件差异并统一为添加后保持打开，源码及运行验证见上方实施记录。截图保留为原始反馈依据。
+| 7.1.10-01 | HoYoLAB 海外角色与已穿戴装备同步 | 已调研，未实现；见 [调研](docs/hoyolab-research-7110.md) |
+| 7.1.10-02 | HoYoLAB 登录便利性与海外扫码 | 2026-10-17 专项检索与公开源码调研完成：未找到完整海外扫码消费者；官方桌面／移动登录模块未发现扫码链。已找到网页登录容器与原生 Cookie 回收参考；扫码协议仍未确认，未实现、未真实登录验证。建议与具体缺口见[专项调研](docs/hoyolab-qr-research-7111.md) |
+| 7.1.10-05 | 库存静态推荐权重缺项 | 用户明确要求继续暂缓；不自动重启 |
+| 7.1.10-06 | 面板属性目标、筛选与排序 | 已调研，未新增业务功能；具体语义与 Fribbels 依据见历史快照 |
+| 7.1.10-10 | Windows安装退出／Android下载0%反馈 | **7.1.11已修确认部分**：Windows独立承载与实际接管确认、Android等待／暂停原因和取消时序；五项目的验证完成。用户手机原始0%根因仍未确认，Android系统安装未验证；旧客户端需先手动升级一次。见[修复](docs/auto-update-fix-7111.md)，历史证据保留[原排查](docs/update-diagnostic-7109-to-7110.md) |
 
 ## 1. 先确认工作目录和版本
 
-- 本项目源码：D:/Documents/ChatGPT/v7.1.10/source，即本文件所在目录；项目用途以本文件顶部的分流约定为准。
-- package version 为 7.1.10，displayVersion 为 7.1.10；Android 源码 versionCode 为 70110、versionName 为 7.1.10。建立副本时仅同步源码声明；2026-10-11 发布任务已构建新版启动器和三项成品。
+- 本项目源码：D:/Documents/ChatGPT/v7.1.11/source，即本文件所在目录；项目用途以本文件顶部的分流约定为准。
+- package version／displayVersion 为 7.1.11；Android versionCode 为 70111、versionName 为 7.1.11。已完整构建当前网页、Windows EXE／ZIP与旧UI／新UI测试两APK，包内容、版本及原签名已核对；尚待GitHub上传／最终回读。此前专用原生debug APK仅属验证产物。
 - 会话默认 D:/Documents/ChatGPT/genshin-artifact 是旧 Git 工作区，package 仍为 5.30.0 且有大量已有改动；不要重置、清理、自动提交或把这些改动当成当前源码。
 - 7.1.09 正式基线为 D:/Documents/ChatGPT/v7.1.09/source，独立发布工作区为 D:/Documents/ChatGPT/v7.1.09/source-publish；这次不操作其 Git 或成品。
 - 开始工作确认对应目录、版本及已有改动，保留用户修改；没有要求的历史事项不自动恢复执行。
@@ -228,9 +155,9 @@
 
 13. **每次更新版本必须自动同步 EXE 版本。** 每次更新软件版本时，必须自动同步启动 EXE 的版本，不需要用户再次提醒或确认，不能只改网页、`package.json` 或发行包名称。以 `package.json` 的 `displayVersion` 和 `version` 为版本来源，通过 `script/build-tray-launcher.ps1` 自动生成并重新编译对应版本的 EXE；同时同步 EXE 文件名、托盘名称、日志窗口标题、程序集标题／产品显示版本（`AssemblyTitle`、`AssemblyInformationalVersion`）及数值程序集／文件版本（`AssemblyVersion`、`AssemblyFileVersion`）。交付新版本时不能继续携带旧版本启动器，也不能在启动器源码中另行硬编码显示版本。保留旧版成品，版本同步不改变既有端口、账号路径或用户存档。
 
-14. **调研完成后及时写入 AGENTS.md（2026-10-06 用户明确要求）。** 每个事项调研完成后，在当前项目 AGENTS.md 更新事项状态、结论、来源、建议方案和仍待确定的具体问题；区分“调研完成”“实现完成”“验证完成”。不要只在 Codex 回复中报告后仍让文档停留在“待调研”。纯调研或文档更新不自动开始实现、测试、构建或发布。 待办统一维护在本文件“当前版本 7.1.10 待办及完成状态”大标题下，每轮同步调研、实现、验证和暂缓状态；已经调研但未实现的事项必须保留，不能只写在分散的调研段落。
+14. **调研完成后及时写入 AGENTS.md（2026-10-06 用户明确要求）。** 每个事项调研完成后，在当前项目 AGENTS.md 更新事项状态、结论、来源、建议方案和仍待确定的具体问题；区分“调研完成”“实现完成”“验证完成”。不要只在 Codex 回复中报告后仍让文档停留在“待调研”。纯调研或文档更新不自动开始实现、测试、构建或发布。 待办统一维护在本文件“当前版本 7.1.11 待办及完成状态”大标题下，每轮同步调研、实现、验证和暂缓状态；已经调研但未实现的事项必须保留，不能只写在分散的调研段落。
 
-**2026-10-10 功能任务已完成：03、04、08、09 实施完成，07 删除。** 03／04／09 由三个 sub-agent 分别完成；后续按用户新截图完成 08、页脚备案号和三个独立功能移除，各轮定向验证及构建证据见上方记录。未修改 Beta 或旧平台包。建立副本时仅同步源码版本声明；2026-10-11 用户要求上传 GitHub，已按第 13 条生成本版启动器，当前发布进度见上方记录。7.1.09 的发布授权不作为本版依据。多人优化只去 Beta，其他功能与 BUG 只去 7.1.10。
+7.1.10 历史实现、Astra修复、手机试验与发布证据见上方继承基线及历史快照。当前工作以本文件顶部7.1.11状态为准；历史发布授权不自动延续。
 
 ### 界面文案与编程方式（2026-10-04 更新）
 
@@ -309,15 +236,15 @@
 
 ## 7. 验证与构建参考（按需执行）
 
-建立副本时没有运行功能测试、构建或发布；2026-10-10 完成 03／04／09 的四项定向测试和一项构建／Worker 集成核对，随后完成 08／追加清理的两项既有定向验证与最终网页构建；2026-10-11 完成组头像／荧导入修复的五项定向验证目的，其中第五项为新网页构建与编译 Worker。修复任务当时只输出隔离网页；后续按用户发布要求完成当前桌面／手机网页、Windows EXE／ZIP、Android APK 和 GitHub 正式版，发布轮次五项目的见上方记录。每轮最多五项针对性验证，7.1.08／7.1.09 已通过证据保留，不重跑历史全清单。调研和纯文档任务不构建。
+首轮四项计算排查目的为双冰口径、薇斯纳目标与手算、合成搜索性能、原Debug只读复现与原生采样；第五项为副本／版本及启动器元数据核对。补充数据轮的五项目的是薇斯纳真实Debug、825组四件套对照、冰空／冰荧、截图锁定杯匹配、搜索与面板套装参数一致性；该历史轮次结论按用户最新指令结案，不列待修复事项。哥伦比娅专项另按上方五个明确目的完成受控排查，未实施生产修复。详见本轮排查记录，不重跑历史全量测试。上述历史排查未构建新网页、平台安装包或APK；单独启动器编译仅履行用户明确的版本同步约定。2026-10-20自动更新修复另有专用原生debug APK和五项目的定向验证，见顶部专项记录，不属于完整正式成品。后续每轮仍最多五项针对性验证。
 
 7.1.09 的锁定、更新、GOOD 导入及评分验证脚本仍保留原文件名；按修改范围选择，不能把它们全部作为默认启动任务。现有 --baseline 或私有上游对照可能依赖历史目录，先确认实际路径，不修改基线来迎合新输出。
 
 需要交付成品时再从本文件所在 source 构建。Node.js 20 或更新版本，沿用锁文件和既有依赖，常用 NODE_OPTIONS 为 --max-old-space-size=6144；网页命令 npm.cmd run build:local，手机前端 npm.cmd run build:mobile。只复制源码不沿用旧 dist 冒充新产物。
 
-启动器由 script/build-tray-launcher.ps1 读取 package.version／displayVersion 生成；2026-10-11 已生成 启动7.1.10.exe，数值程序集／文件版本为 7.1.10.0，托盘、日志和产品显示版本共用本版声明。复用 D:/Documents/ChatGPT/v7.1.09/web/runtime，7.1.09 旧成品保留。Windows 构建脚本使用 PowerShell 7，避免旧 PowerShell 将 UTF-8 中文脚本误按系统编码读取。
+启动器由 script/build-tray-launcher.ps1 读取 package.version／displayVersion 生成。本轮已输出 D:/Documents/ChatGPT/v7.1.11/launcher/启动7.1.11.exe，文件／程序集版本7.1.11.0，托盘与日志共用7.1.11。仅生成启动器不表示新网页已经构建或应用已经发布。沿用 D:/Documents/ChatGPT/v7.1.09/web/runtime；旧成品保留。Windows构建使用PowerShell 7。
 
-Android 当前源码 versionCode 为 70110、versionName 为 7.1.10；保持 com.mona.artifact.local 及 https://localhost，不改应用 ID、端口或签名，不安装、不卸载、不清数据。2026-10-11 已构建原签名 APK 并核对版本、签名及包内网页；未进行实机安装。测试多人优化时使用合成数据和隔离测试环境，不共享或修改用户实际存档。
+Android当前versionCode=70111、versionName=7.1.11；旧UI保持com.mona.artifact.local，新UI测试按用户追加要求使用com.mona.artifact.local.mobiletest。两APK已构建并核对原签名与包内容；保持https://localhost，不安装／卸载／清用户数据。详见本版发布核对。测试使用合成数据和隔离环境；用户Debug仅供本次只读排查，不作为固定测试样本或公开源码。
 
 Android 公共保存入口仍为 MonaLocalPlugin.java；已有系统保存、目标 URI 实际写入、完整回读与导入证据见 docs/android-export-7108.md、docs/release-validation-7.1.08.md。不能仅凭界面或编译通过宣称系统流程修复。明确要求系统导出验证时，使用独立 .debug 包和 ExportRegressionTest，不触发依赖库全量测试。
 
@@ -325,18 +252,16 @@ Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unkn
 
 ## 8. 验证与交付边界
 
-- 7.1.09 的真实 Windows 覆盖安装、Android 更新下载／授权／覆盖安装未实机重测；源码、合成路径和正式包核对各自按原记录保留，不混写。
-- 复制副本本身没有新增计算验证；本轮新增的银釭公共计算及编译 Worker 证据只覆盖上述定向输入。多人优化是否支持、支持哪些目标与组合，必须在 Beta 根据具体任务和实际消费者说明，不因复制或本轮单人验证而写“已完成”。
+- 自动更新现已完成7.1.11确认故障修复及真实合成Windows覆盖／重启、Android原生状态／文本下载验证；没有覆盖正式Windows安装，Android系统授权／APK覆盖安装未实机验证。旧7.1.09／7.1.10历史证据与本轮结果分开，见上方专项记录。
+- 银釭公共计算及历史编译 Worker 证据属于7.1.10继承基线；本副本的三项反馈排查、副本／版本核对、仓库评分排序与自动更新修复分别以顶部对应记录为准。多人优化是否支持、支持哪些目标与组合，必须在Beta根据具体任务和实际消费者说明，不因复制或本轮单人排查而写“已完成”。
 - 未穷举游戏组合不是自动待适配事项；明确漏算、错误映射或缺失规则才按具体问题记录。基线已删除的功能不自动作为缺项。
 
 ## 9. 当前目录与继续阅读
 
-- 当前源码：D:/Documents/ChatGPT/v7.1.10/source。
-- 当前正式版：[GitHub 7.1.10](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)；成品位于 D:/Documents/ChatGPT/v7.1.10，Git 发布目录为 D:/Documents/ChatGPT/v7.1.10/source-publish。
+- 当前常规源码：D:/Documents/ChatGPT/v7.1.11/source。
+- 本轮排查：哥伦比娅超时专项（本地排查材料，未公开）、首轮三项反馈记录（本地排查材料，未公开）；7.1.10完整交接：[历史快照](docs/handoff-7.1.10-20261014.md)。
+- 最新已正式发布版本仍是 [GitHub 7.1.10](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)，旧源码／成品及 source-publish 保留于 D:/Documents/ChatGPT/v7.1.10。
 - 多人优化专用：[7.1.10Beta](../../v7.1.10Beta/source/AGENTS.md)。
-- 其他功能与 BUG：[7.1.10](../../v7.1.10/source/AGENTS.md)。
-- 已发布 7.1.09：D:/Documents/ChatGPT/v7.1.09，源码基线、正式成品及 source-publish 保留不变；[GitHub 正式版](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.09)。
+- 7.1.09与7.1.08旧源码、正式成品及原始WASM保留。
 
-先阅读本文件顶部的任务分流，再按实际问题读取 docs/release-7.1.09-final.md、docs/release-validation-7.1.09.md、docs/astra-review-fixes-7109.md、docs/artifact-score-fix-7109.md。计算层工作继续读 docs/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档仅作资料，不自动恢复旧范围。
-
-交付用中文说明实际修改、原因、少量验证与边界，给出当前路径。调研或状态变化及时更新对应项目的 AGENTS.md；不要把 Beta 实验、常规开发和已发布版本混写。
+计算层继续阅读 docs/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档只作资料，不恢复已删除范围。交付用中文说明实际修改、证据与限制，及时更新本文件；不要混写继承、排查、实现和发布状态。

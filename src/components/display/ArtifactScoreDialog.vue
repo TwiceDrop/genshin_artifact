@@ -54,10 +54,10 @@ import characters from '@/assets/_gen_character'
 import locale from '@/i18n/generated/zh-cn.json'
 import { scoreRanking, scoreDetails, scoreBuild, rankingContext, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 
-const props = defineProps({ modelValue: Boolean, item: Object, context: Object, equipped: { type: Array, default: () => [] } })
+const props = defineProps({ modelValue: Boolean, item: Object, context: Object, initialCharacter: { type: String, default: '' }, equipped: { type: Array, default: () => [] } })
 const emit = defineEmits(['update:modelValue', 'replace'])
-const rankName = ref(''), search = ref('')
-watch(() => [props.modelValue, props.item?.id], () => { rankName.value = ''; search.value = '' })
+const rankName = ref(props.initialCharacter), search = ref('')
+watch(() => [props.modelValue, props.item?.id, props.initialCharacter], () => { rankName.value = props.initialCharacter; search.value = '' })
 const set = computed(() => sets[props.item?.setName])
 const piece = computed(() => set.value?.[props.item?.position])
 const positionLabel = computed(() => ({ flower: '生之花', feather: '死之羽', sand: '时之沙', cup: '空之杯', head: '理之冠' }[props.item?.position]))

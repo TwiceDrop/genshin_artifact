@@ -25,6 +25,11 @@ const scoreOptions = context => {
         fixedTitle: mode === 'stellar' ? '薇斯纳-直接星扩散·固定词条评分' : '薇斯纳-普通风伤·固定词条评分' }
 }
 const scoreEvaluator = (context, artifacts) => createScoreEvaluator(context.name, artifacts, scoreOptions(context))
+const travelerElements = { 风: 'anemo', 岩: 'geo', 雷: 'electro', 草: 'dendro', 水: 'hydro', 火: 'pyro', 冰: 'cryo' }
+export const scoreCharacterNames = Object.keys(data.usefulAttr)
+    .filter(name => name !== '薇斯纳')
+    .flatMap(name => name === '旅行者' ? Object.keys(travelerElements).map(elem => `旅行者（${elem}）`) : [name])
+    .concat('薇斯纳', '薇斯纳·星扩散')
 
 export function toScoreArtifact(item) {
     if (!item) return null
@@ -87,9 +92,8 @@ export function scoreDetails(item, context, equipped = []) {
 export function rankingContext(name) {
     if (name === '薇斯纳·星扩散') return { name: '薇斯纳', label: name, options: { elem: 'anemo', scoreMode: 'stellar' } }
     const traveler = name.match(/^旅行者（(.+)）$/)
-    const elements = { 风: 'anemo', 岩: 'geo', 雷: 'electro', 草: 'dendro', 水: 'hydro', 火: 'pyro', 冰: 'cryo' }
     return { name: traveler ? '旅行者' : name, label: name,
-        options: { elem: traveler ? elements[traveler[1]] : data.charElemMap[name] || '' } }
+        options: { elem: traveler ? travelerElements[traveler[1]] : data.charElemMap[name] || '' } }
 }
 
 // Preserve percent units expected by miao (31.1, not 0.311).

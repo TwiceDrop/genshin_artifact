@@ -19,16 +19,17 @@
                 </el-radio-group>
                 <el-progress v-if="progress.phase !== 'idle'" :percentage="percentage"
                     :status="progress.phase === 'error' ? 'exception' : undefined" />
-                <p v-if="progress.phase === 'downloading'">
+                <p v-if="downloadActive">
                     {{ formatBytes(progress.downloaded) }} / {{ formatBytes(progress.total) }}
                     · {{ formatBytes(speed) }}/s
                 </p>
+                <p v-if="progress.message">{{ progress.message }}</p>
                 <p v-if="updateError" class="update-error">{{ updateError }}</p>
             </template>
             <el-checkbox v-model="suppressAutomaticUpdates">不再自动提示更新（仍可在关于页手动检查）</el-checkbox>
         </template>
         <template #footer>
-            <el-button v-if="progress.phase === 'downloading'" @click="cancelDownload">取消下载</el-button>
+            <el-button v-if="downloadActive" @click="cancelDownload">取消下载</el-button>
             <el-button v-else :disabled="busy" @click="declineUpdate">下次再说</el-button>
             <el-button type="primary" :loading="busy" :disabled="testing || !platform || !selectedSource || progress.phase === 'installing'" @click="acceptUpdate">
                 {{ progress.phase === 'installing' ? '正在安装' : progress.phase === 'ready' ? '安装更新' : platform?.canInstall ? '下载并更新' : '下载更新包' }}
@@ -50,6 +51,7 @@ const updateVisible = ref(false), availableRelease = ref(null), suppressAutomati
 const platform = ref(null), accelerated = ref(isAcceleratedUpdateEnabled()), sources = ref([])
 const selectedSource = ref('github'), testing = ref(false), busy = ref(false), updateError = ref('')
 const progress = ref({phase: 'idle', downloaded: 0, total: 0}), speed = ref(0)
+const downloadActive = computed(() => ['pending', 'downloading', 'paused'].includes(progress.value.phase))
 let cancelRequested = false
 const percentage = computed(() => progress.value.total > 0 ?
     Math.min(100, Math.round(progress.value.downloaded / progress.value.total * 100)) : 0)
@@ -115,12 +117,14 @@ async function acceptUpdate() {
             return
         }
         if (progress.value.phase !== 'ready') {
-            if (progress.value.phase !== 'downloading')
+            if (!downloadActive.value)
                 progress.value = await startUpdateDownload(availableRelease.value, platform.value.kind, selectedSource.value)
             let tick = Date.now(), previous = progress.value.downloaded
-            while (progress.value.phase === 'downloading' && !cancelRequested) {
+            while (downloadActive.value && !cancelRequested) {
                 await new Promise(resolve => setTimeout(resolve, 500))
-                progress.value = await getUpdateStatus()
+                const status = await getUpdateStatus()
+                if (cancelRequested) break
+                progress.value = status
                 const now = Date.now()
                 speed.value = (progress.value.downloaded - previous) * 1000 / Math.max(1, now - tick)
                 tick = now; previous = progress.value.downloaded

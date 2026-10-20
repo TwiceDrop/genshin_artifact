@@ -177,7 +177,7 @@ public class MonaLocalPlugin extends Plugin {
             long id = downloads().enqueue(request);
             updatePreferences().edit().putLong("downloadId", id).putLong("size", size)
                 .putString("version", call.getString("version")).apply();
-            call.resolve(new JSObject().put("phase", "downloading").put("downloaded", 0).put("total", size));
+            call.resolve(downloadStatus());
         } catch (Exception e) {call.reject("更新下载启动失败：" + e.getMessage(), "UPDATE_DOWNLOAD", e);}
     }
 
@@ -188,15 +188,37 @@ public class MonaLocalPlugin extends Plugin {
             if (!cursor.moveToFirst()) throw new IOException("更新下载记录不存在，请重新下载");
             int status = cursor.getInt(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_STATUS));
             long bytes = cursor.getLong(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-            String phase = status == android.app.DownloadManager.STATUS_SUCCESSFUL ? "ready" :
-                status == android.app.DownloadManager.STATUS_FAILED ? "error" : "downloading";
-            String error = "";
-            if ("error".equals(phase)) error = "下载失败（代码 " + cursor.getInt(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_REASON)) + "）";
+            int reason = cursor.getInt(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_REASON));
+            String phase = "downloading", message = "", error = "";
+            switch (status) {
+                case android.app.DownloadManager.STATUS_PENDING:
+                    phase = "pending";
+                    message = "等待系统开始下载";
+                    break;
+                case android.app.DownloadManager.STATUS_PAUSED:
+                    phase = "paused";
+                    switch (reason) {
+                        case android.app.DownloadManager.PAUSED_WAITING_TO_RETRY: message = "等待重试"; break;
+                        case android.app.DownloadManager.PAUSED_WAITING_FOR_NETWORK: message = "等待网络连接"; break;
+                        case android.app.DownloadManager.PAUSED_QUEUED_FOR_WIFI: message = "等待Wi-Fi"; break;
+                        default: message = "下载已暂停";
+                    }
+                    message += "（代码 " + reason + "）";
+                    break;
+                case android.app.DownloadManager.STATUS_SUCCESSFUL:
+                    phase = "ready";
+                    break;
+                case android.app.DownloadManager.STATUS_FAILED:
+                    phase = "error";
+                    error = "下载失败（代码 " + reason + "）";
+                    break;
+            }
             if ("ready".equals(phase) && bytes != expected) {
                 phase = "error";
                 error = "下载不完整：收到 " + bytes + "／" + expected + " 字节";
             }
             return new JSObject().put("phase", phase).put("downloaded", bytes).put("total", expected).put("error", error)
+                .put("nativeStatus", status).put("reason", reason).put("message", message)
                 .put("version", updatePreferences().getString("version", ""));
         }
     }

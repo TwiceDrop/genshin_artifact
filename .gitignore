@@ -62,3 +62,5 @@ inspect.js
 /beta-data/mizuki-fixture.json
 /beta-data/skirk-fixture.json
 mona-debug-*.json
+
+/mobile/shadcn.css

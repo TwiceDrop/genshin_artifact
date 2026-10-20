@@ -13,14 +13,15 @@
 
         <div class="m-toolbar hidden-md-and-up">
             <el-dropdown trigger="click" @command="handleCommand">
-                <el-button :icon="IconEpMore" size="small" text circle></el-button>
+                <el-button :icon="IconEpMore" size="small" aria-label="收藏夹操作">操作</el-button>
 
                 <template #dropdown>
                     <el-dropdown-menu>
                         <el-dropdown-item command="add" :icon="IconEpFolderAdd">{{ t("kumiPage.newFolder") }}</el-dropdown-item>
+                        <el-dropdown-item command="clear" :icon="IconEpBrush">{{ t("misc.clear") }}</el-dropdown-item>
                         <el-dropdown-item command="addKumi" :icon="IconEpPlus">{{ t("kumiPage.newKumi") }}</el-dropdown-item>
-                        <el-dropdown-item command="delete" v-if="currentDirId !== 0" :icon="IconEpDelete">{{ t("misc.del") }}"{{ currentDirTitle }}"</el-dropdown-item>
-                        <el-dropdown-item command="rename" v-if="currentDirId !== 0" :icon="IconEpEdit">{{ t("misc.rename") }}</el-dropdown-item>
+                        <el-dropdown-item command="delete" v-if="currentDirId !== 0 && currentDirId !== 1" :icon="IconEpDelete">{{ t("misc.del") }}"{{ currentDirTitle }}"</el-dropdown-item>
+                        <el-dropdown-item command="rename" v-if="currentDirId !== 0 && currentDirId !== 1" :icon="IconEpEdit">{{ t("misc.rename") }}</el-dropdown-item>
                         <el-dropdown-item
                             v-for="(item, index) in dirItems"
                             :key="item.index"
@@ -309,6 +310,8 @@ function handleCommand(command: string) {
         handleDeleteDir(currentDirId.value)
     } else if (command === "rename") {
         handleRenameDir(currentDirId.value)
+    } else if (command === "clear") {
+        handleClearDir(currentDirId.value)
     } else if (command === "addKumi") {
         handleNewKumi()
     }

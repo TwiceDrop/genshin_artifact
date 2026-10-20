@@ -3,6 +3,11 @@ import "./styles/select.css";
 import './styles/mobile.scss'
 import 'element-plus/theme-chalk/display.css'
 
+if (process.env.MONA_MOBILE) {
+    require('../mobile/shadcn.css')
+    document.documentElement.classList.add('mona-mobile')
+}
+
 import router from "./router/router"
 
 import { createApp, h } from 'vue'

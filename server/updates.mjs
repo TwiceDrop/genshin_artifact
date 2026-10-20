@@ -117,13 +117,21 @@ export class LocalUpdater {
         if (!this.info().canInstall) throw new Error('请通过莫娜启动 EXE 运行后再安装更新')
         const job = this.state
         const script = path.join(job.directory, 'install-update.ps1')
+        const worker = path.join(job.directory, 'install-update.mjs')
+        const runtime = path.join(job.directory, 'node.exe')
         await copyFile(path.join(this.root, 'script', 'install-update.ps1'), script)
-        const child = this.launch('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script,
+        await copyFile(path.join(this.root, 'server', 'install-update.mjs'), worker)
+        await copyFile(process.execPath, runtime)
+        const child = this.launch(runtime, [worker, script,
             '-Package', job.file, '-TargetRoot', this.root, '-Mode', this.kind,
             '-Version', job.version.replace(/^v/i, ''), '-LauncherPid', process.env.MONA_LAUNCHER_PID,
             '-ServerPid', String(process.pid), '-Port', String(port)],
-            {detached: true, stdio: 'ignore', windowsHide: true})
-        await new Promise((resolve, reject) => {child.once('spawn', resolve); child.once('error', reject)})
+            {detached: true, stdio: ['ignore', 'ignore', 'ignore', 'ipc'], windowsHide: true})
+        await new Promise((resolve, reject) => {
+            child.once('message', result => result.ready ? resolve() : reject(new Error(result.error)))
+            child.once('error', reject)
+            child.once('exit', code => reject(new Error('更新进程在接管安装前退出（代码 ' + code + '）')))
+        })
         child.unref()
         job.phase = 'installing'
         return this.status()

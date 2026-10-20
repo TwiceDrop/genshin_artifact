@@ -135,7 +135,7 @@ export default {
                 tooltip: {
                     trigger: 'axis'
                 },
-                toolbox: deviceIsPC ? {
+                toolbox: (deviceIsPC || process.env.MONA_MOBILE) ? {
                     feature: {
                         saveAsImage: {}
                     }

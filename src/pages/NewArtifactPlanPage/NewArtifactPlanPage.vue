@@ -317,6 +317,7 @@
                                 <el-input-number
                                     controls-position="right"
                                     v-model="characterSkill1"
+                                    :aria-label="t('skillType.a')"
                                     :min="1"
                                     :max="15"
                                     style="flex: 1; display: block; width: unset"
@@ -324,6 +325,7 @@
                                 <el-input-number
                                     controls-position="right"
                                     v-model="characterSkill2"
+                                    :aria-label="t('skillType.e')"
                                     :min="1"
                                     :max="15"
                                     style="flex: 1; display: block; width: unset"
@@ -331,6 +333,7 @@
                                 <el-input-number
                                     controls-position="right"
                                     v-model="characterSkill3"
+                                    :aria-label="t('skillType.q')"
                                     :min="1"
                                     :max="15"
                                     style="flex: 1; display: block; width: unset"

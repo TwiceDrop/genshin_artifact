@@ -29,6 +29,8 @@ function Install-PortablePackage([string]$Archive, [string]$Destination, [string
 }
 
 try {
+    [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
+    [Console]::Out.WriteLine('MONA_UPDATE_READY')
     foreach($processId in @($LauncherPid,$ServerPid)){
         $running=Get-Process -Id $processId -ErrorAction SilentlyContinue
         if($running){Wait-Process -InputObject $running -Timeout 30}

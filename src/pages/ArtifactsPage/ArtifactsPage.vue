@@ -1,6 +1,6 @@
 <template>
     <div>
-        <artifact-score-dialog v-if="showScore" v-model="showScore" :item="scoreItem" />
+        <artifact-score-dialog v-if="showScore" v-model="showScore" :item="scoreItem" :initial-character="scoreCharacter" />
         <!-- new artifact dialog -->
         <add-artifact-dialog
             v-model="newDialogVisible"
@@ -64,10 +64,10 @@
                     type="primary"
                     :icon="IconEpPlus"
                     size="small"
-                ></el-button>
+                 :aria-label="t('artPage.newArt')">{{ t("artPage.newArt") }}</el-button>
 
                 <el-dropdown @command="handleDropdownCommand" trigger="click">
-                    <el-button size="small" :icon="IconEpMore"></el-button>
+                    <el-button size="small" :icon="IconEpMore" aria-label="仓库操作">操作</el-button>
                     <template #dropdown>
                         <el-dropdown-menu>
                             <el-dropdown-item command="deleteAll" :icon="IconEpDelete">{{ t("misc.clear") }}</el-dropdown-item>
@@ -78,7 +78,7 @@
                 </el-dropdown>
 
                 <el-dropdown trigger="click" @command="handleDropdownCommand">
-                    <el-button size="small" :icon="IconFa6PaperPlane"></el-button>
+                    <el-button size="small" :icon="IconFa6PaperPlane" aria-label="导入与导出">导入 / 导出</el-button>
 
                     <template #dropdown>
                         <el-dropdown-menu>
@@ -161,6 +161,13 @@
                 ></select-artifact-main-stat>
             </div>
 
+            <div class="filter-item score-sort">
+                <el-select v-model="scoreCharacter" filterable clearable
+                    placeholder="喵喵评分排序：选择角色" aria-label="喵喵评分排序角色">
+                    <el-option v-for="name in scoreCharacterOptions" :key="name" :label="name" :value="name" />
+                </el-select>
+            </div>
+
             <el-checkbox v-model="filterGe16" class="show-only-16">{{ t("artPage.show16") }}</el-checkbox>
         </div>
 
@@ -168,14 +175,15 @@
         <el-tabs v-model="activeName">
             <el-tab-pane v-for="tab in tabs" :key="tab.name" class="panel" :name="tab.name">
                 <template #label>
-                    <img :src="tab.icon" class="icon" />
+                    <img :src="tab.icon" class="icon" :alt="t('misc', tab.name)" :aria-hidden="mobileUI" />
+                    <span v-if="mobileUI" class="mobile-slot-label">{{ t("misc", tab.name) }}</span>
                 </template>
 
                 <div v-if="filteredArtifacts.length > 0 && activeName === tab.name">
                     <div class="artifacts-div mona-scroll-hidden">
                         <artifact-display
                             class="artifact-item"
-                            v-for="item in artifactToBeDisplayed"
+                            v-for="{ item, score } in artifactToBeDisplayed"
                             :key="item.id"
                             :item="item"
                             :buttons="true"
@@ -186,7 +194,14 @@
                             @delete="deleteArtifact(item.id)"
                             @toggle="toggleArtifact(item.id)"
                             @edit="handleClickEditArtifact(item.id)"
-                        ></artifact-display>
+                        >
+                            <template v-if="score !== null" #footer>
+                                <div class="artifact-score">
+                                    <span>喵喵评分</span>
+                                    <strong>{{ score.toFixed(1) }} {{ getMarkClass(score) }}</strong>
+                                </div>
+                            </template>
+                        </artifact-display>
                     </div>
                 </div>
                 <div v-else>
@@ -199,6 +214,7 @@
 
 <script setup lang="ts">
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
+import { scoreCharacterNames, rankingContext, scoreBuild, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 import {importMonaJson} from '@/utils/artifacts'
 import {positions} from '@/constants/artifact'
 import {downloadString} from '@/utils/common'
@@ -241,6 +257,7 @@ import "element-plus/es/components/message/style/css"
 
 // i18n
 const { t } = useI18n()
+const mobileUI = process.env.MONA_MOBILE
 
 
 const tabs = [
@@ -289,6 +306,8 @@ const scoreArtifactId = ref(-1)
 const scoreItem = computed(() => artifactStore.artifacts.value.get(scoreArtifactId.value))
 const filterMainStat: Ref<ArtifactStatName[]> = ref([])
 const filterGe16 = ref(true)
+const scoreCharacter = ref('')
+const scoreCharacterOptions = [...scoreCharacterNames].sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
 const artifactsCurrentSlot = computed(() => {
     return artifactStore.artifactsByPosition.value[activeName.value];
@@ -319,7 +338,12 @@ const filteredArtifacts = computed(() => {
 })
 
 const artifactToBeDisplayed = computed(() => {
-    return filteredArtifacts.value
+    const context = scoreCharacter.value ? rankingContext(scoreCharacter.value) : null
+    const rows = filteredArtifacts.value.map(item => ({
+        item,
+        score: context ? scoreBuild([item], context).artifacts[0].score : null
+    }))
+    return context ? rows.sort((a, b) => b.score! - a.score!) : rows
 })
 
 
@@ -566,11 +590,34 @@ function handleOutputCommand(command: string) {
 </script>
 
 <style scoped lang="scss">
+.score-sort {
+    width: 240px;
+
+    .el-select {
+        width: 100%;
+    }
+}
+
+.artifact-score {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-top: 1px solid var(--el-border-color-lighter);
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+
+    strong {
+        color: var(--el-color-primary);
+    }
+}
+
 @media only screen and (min-width: 992px) {
     .filter {
         margin-bottom: 12px;
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
 
         .filter-item {
             display: inline-block;
@@ -586,6 +633,11 @@ function handleOutputCommand(command: string) {
 @media only screen and (max-width: 992px) {
     .filter {
         margin-bottom: 12px;
+
+        .score-sort {
+            width: 100%;
+            margin-top: 4px;
+        }
 
         .filter-item {
             .el-select {

@@ -54,6 +54,10 @@ function convertKVToDefinePlugin(obj) {
 
 const customEnv = getEnv()
 
+const mobileUI = !!customEnv.MONA_MOBILE
+const mobileComponentNames = new Set(require('./script/mobile-components.cjs'))
+const mobileResolver = name => mobileUI && mobileComponentNames.has(name) ? { name, from: '@/mobile/index.js' } : undefined
+
 const now = new Date()
 const year = now.getFullYear()
 const month = now.getMonth()
@@ -98,10 +102,15 @@ module.exports = {
     },
     configureWebpack: {
         plugins: [
+            ...(mobileUI ? [
+                new webpack.NormalModuleReplacementPlugin(/^element-plus$/, resource => { resource.request = path.resolve(__dirname, 'src/mobile/index.js') }),
+                new webpack.NormalModuleReplacementPlugin(/^element-plus\/es\/components\/.+\/style\/css$/, resource => { resource.request = path.resolve(__dirname, 'src/mobile/empty.js') }),
+            ] : []),
             new webpack.NormalModuleReplacementPlugin(/^node:crypto$/, resource => { resource.request = path.resolve(__dirname, 'src/platform/crypto-browser.mjs') }),
             AutoImport({
                 imports: ["vue"],
                 resolvers: [
+                    mobileResolver,
                     ElementPlusResolver(),
                     IconsResolver({
                         prefix: "Icon"
@@ -111,6 +120,7 @@ module.exports = {
             }),
             Components({
                 resolvers: [
+                    mobileResolver,
                     ElementPlusResolver(),
                     IconsResolver({
                         enabledCollections: ["ep", "fa6-brands", "fa6-solid"]
@@ -126,6 +136,14 @@ module.exports = {
         resolve: {
             extensions: [".vue", ".png", ".jpg", ".webp"],
             alias: {
+                ...(mobileUI ? {
+                    '@page/MainPage$': path.resolve(__dirname,'src/mobile/MobileMainPage.vue'),
+                    'radix-vue$': path.resolve(__dirname,'mobile/node_modules/radix-vue/dist/index.js'),
+                    'class-variance-authority$': path.resolve(__dirname,'mobile/node_modules/class-variance-authority/dist/index.mjs'),
+                    'clsx$': path.resolve(__dirname,'mobile/node_modules/clsx/dist/clsx.mjs'),
+                    'tailwind-merge$': path.resolve(__dirname,'mobile/node_modules/tailwind-merge/dist/bundle-mjs.mjs'),
+                    'vue$': path.resolve(__dirname,'node_modules/vue/dist/vue.runtime.esm-bundler.js'),
+                } : {}),
                 "@c": path.resolve(__dirname, "src/components"),
                 "@asset": path.resolve(__dirname, "src/assets"),
                 "@util": path.resolve(__dirname, "src/utils"),
@@ -167,6 +185,7 @@ module.exports = {
         config.plugin("define").tap(definitions => {
             const definePluginConverted = convertKVToDefinePlugin(customEnv)
             definitions[0]["process.env"] = Object.assign(definitions[0]["process.env"], definePluginConverted, {
+                MONA_MOBILE: mobileUI ? "true" : "false",
                 MONA_VERSION: `"${version}"`,
                 MONA_BUILD_DATE: `"${buildDate}"`,
                 MONA_REVISION: `"${revision}"`

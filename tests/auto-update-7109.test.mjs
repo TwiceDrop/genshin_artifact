@@ -43,7 +43,7 @@ test('1. release metadata uses an available source and selects EXE, ZIP, APK wit
 
 test('2. real local API downloads complete bytes; truncation and cancellation do not install; installer starts before tray exit signal', async () => {
     const root = await mkdtemp(path.join(tmpdir(), 'mona-update-api-'))
-    let mode = 'short', signals = 0, command, argumentsList
+    let mode = 'short', signals = 0, command, argumentsList, takeover = true
     const payload = Buffer.alloc(65536, 42)
     const fixture = http.createServer((req, res) => {
         if (req.headers.range) {res.writeHead(206); res.end(payload.subarray(0, 16384)); return}
@@ -59,7 +59,11 @@ test('2. real local API downloads complete bytes; truncation and cancellation do
         launch: (exe, args) => {
             command = exe; argumentsList = args
             const child = new EventEmitter(); child.unref = () => {}
-            queueMicrotask(() => child.emit('spawn'))
+            queueMicrotask(() => {
+                child.emit('spawn')
+                assert.equal(signals, 0, 'spawn alone must not close the application')
+                child.emit('message', takeover ? {ready: true} : {error: '合成安装脚本未就绪'})
+            })
             return child
         }, notify: () => {signals++}})
     const server = createLocalServer({updater, credentialStore: {}})
@@ -95,8 +99,14 @@ test('2. real local API downloads complete bytes; truncation and cancellation do
         assert.equal(signals, 0)
         await assert.rejects(access(completedFile))
         await api('download', {version: 'v7.1.10', source: 'github'}); await updater.task
+        takeover = false
+        assert.equal((await api('install', {})).status, 502)
+        assert.equal(updater.status().phase, 'ready')
+        assert.equal(signals, 0)
+        takeover = true
         assert.equal((await api('install', {})).data.phase, 'installing')
-        assert.equal(command, 'powershell.exe')
+        assert.equal(command, path.join(updater.state.directory, 'node.exe'))
+        assert.ok(argumentsList.includes(path.join(updater.state.directory, 'install-update.mjs')))
         assert.ok(argumentsList.includes(String(server.address().port)))
         assert.equal(signals, 1)
         assert.match(await readFile(path.join(updater.state.directory, 'install-update.ps1'), 'utf8'), /Install-PortablePackage/)
@@ -164,6 +174,7 @@ test('4. real update component compiles and runs source selection, download prog
     for (const node of ast.program.body.filter(node => node.type === 'ImportDeclaration').reverse())
         body = body.slice(0, node.start) + body.slice(node.end)
     const calls = []
+    let phases = ['pending', 'paused', 'downloading', 'ready']
     const bindings = {
         ref: value => ({value}), computed: get => ({get value() {return get()}}), onMounted() {}, onBeforeUnmount() {},
         ElMessage: {error: message => {throw Error(message)}, success() {}}, process: {env: {MONA_VERSION: '7.1.09'}},
@@ -173,8 +184,8 @@ test('4. real update component compiles and runs source selection, download prog
         isAcceleratedUpdateEnabled: () => true, setAcceleratedUpdateEnabled() {}, releaseAsset,
         getUpdatePlatform: async () => ({kind: 'portable', canInstall: true}),
         probeUpdateSource: async (release, kind, source) => ({speed: source === 'mirror' ? 2000 : 1000, elapsed: 10}),
-        getUpdateStatus: async () => ({phase: calls.includes('download') ? 'ready' : 'idle', downloaded: 128, total: 128}),
-        startUpdateDownload: async (release, kind, source) => {assert.equal(source, 'mirror'); calls.push('download'); return {phase: 'downloading', downloaded: 0, total: 128}},
+        getUpdateStatus: async () => ({phase: calls.includes('download') ? phases.shift() : 'idle', downloaded: 128, total: 128}),
+        startUpdateDownload: async (release, kind, source) => {assert.equal(source, 'mirror'); calls.push('download'); return {phase: 'pending', downloaded: 0, total: 128}},
         cancelUpdateDownload: async () => ({phase: 'cancelled'}), installDownloadedUpdate: async () => {calls.push('install')},
         setTimeout: callback => {callback()},
     }
@@ -184,6 +195,7 @@ test('4. real update component compiles and runs source selection, download prog
     await setup.acceptUpdate()
     assert.deepEqual(calls, ['download', 'install'])
     assert.equal(setup.progress.value.phase, 'installing')
+    assert.equal(phases.length, 0, 'waiting and paused states must keep polling until ready')
     calls.length = 0
     let completeStatus
     bindings.getUpdateStatus = async () => calls.includes('download') ?
@@ -193,7 +205,8 @@ test('4. real update component compiles and runs source selection, download prog
     const pending = cancelled.acceptUpdate()
     while (!completeStatus) await new Promise(resolve => setImmediate(resolve))
     await cancelled.cancelDownload()
-    completeStatus({phase: 'ready', downloaded: 128, total: 128})
+    completeStatus({phase: 'paused', downloaded: 0, total: 128, message: '等待网络连接（代码 2）'})
     await pending
+    assert.equal(cancelled.progress.value.phase, 'cancelled', 'late status must not replace cancellation')
     assert.deepEqual(calls, ['download'])
 })

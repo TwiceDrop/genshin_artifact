@@ -1,6 +1,6 @@
 {
   "name": "genshin_artifacts",
-  "version": "7.1.10",
+  "version": "7.1.11",
   "private": true,
   "scripts": {
     "start": "node server/local.mjs",
@@ -21,7 +21,7 @@
     "pack": "tar -czvf dist.tar.gz ./dist",
     "serve:tauri": "cross-env ENV_FILE=.env.tauri.yaml vue-cli-service serve",
     "tauri": "tauri",
-    "build:mobile": "cross-env ENV_FILE=.env.mobile.yaml vue-cli-service build",
+    "build:mobile": "node script/build-mobile.cjs",
     "android:sync": "cap sync android",
     "android:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File script/build-android.ps1",
     "test:beta": "node beta-tools/smoke.mjs",
@@ -34,7 +34,9 @@
     "test:7106": "node --test tests/release-7106.test.mjs",
     "test:7107": "node --test tests/release-7107.test.mjs",
     "test:7108": "node --test tests/refactor-7108-*.test.mjs",
-    "build:effect-bridge": "python script/build-effect-bridge.py"
+    "build:effect-bridge": "python script/build-effect-bridge.py",
+    "preview:mobile": "node script/preview-mobile.mjs",
+    "test:mobile-ui": "node --test tests/mobile-ui-7110.test.cjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.1",
@@ -96,5 +98,5 @@
     "unplugin-icons": "^0.14.5",
     "unplugin-vue-components": "^0.19.6"
   },
-  "displayVersion": "7.1.10"
+  "displayVersion": "7.1.11"
 }
