@@ -2,7 +2,7 @@
 
 日期：2026-10-20。用户明确要求构建并上传GitHub，随后授权README同步，追加旧Element Plus与新UI测试两种APK、不同包名，以及新UI BUFF分类拖动修复。
 
-当前状态：四项正式候选已构建并完成本轮前四项核对，尚待GitHub上传与最终回读。旧版源码、成品和本轮被替代候选保留。
+当前状态：四项成品已于2026-10-20正式发布，五项目的核对完成；非草稿、非预发布，已设为latest。旧版源码、成品和本轮被替代候选保留。
 
 ## 成品
 
@@ -21,7 +21,7 @@
 2. Android构建与身份：build-android.ps1 -Ui elementplus使用dist，-Ui mobiletest使用dist-mobile。两者原生release构建成功，apksigner verify通过；与7.1.10的签名证书DER字节直接比较相同，不生成摘要。aapt读取两个独立包名和相同版本。软件更新选择对两种附件排列顺序均通过；最终编译bundle分别保留android和android-test通道。
 3. 公开源码与成品：接续已清理main，在独立source-publish准备；公开目录允许清单、暂存文本敏感内容和git diff --check核对。ZIP的416个网页文件、旧UI APK的416个网页文件、新UI APK的413个网页文件逐文件直接字节比较一致。ZIP具备Node许可、安装更新脚本和独立Node安装承载。归档未发现账号目录、Debug、密钥、依赖或本地构建证据。Windows安装器从同一web staging生成。复制阶段遗漏的129个原有静态图片已从保留7.1.10源码补齐，最终两套编译目录和各包均包含；此前候选保留在本地.build-target/release-7111下，不发布。
 4. 实际编译UI：仅用两件合成花。桌面迪卢克评分53.3／14.0、芭芭拉54.2／5.0，排序随角色改变；详情默认跟随角色且肖像实际加载。手机迪卢克53.3／14.0一致，清空恢复原库存顺序且分数撤去；375px内容区无横向溢出。新UI BUFF分类鼠标拖动scrollLeft从0到218再回0，拖动保持原选项，点击元素共鸣正确显示实际列表。保留原生触屏滚动，未将浏览器鼠标验证写成真实手机手指验证。
-5. GitHub最终回读：待上传四项资产，核对公开main、正式标签指向、README、七项更新说明和资产名称／字节数／uploaded状态，完成后补记。追加读取7.1.10正式APK内实际编译的选择器，确认其按第一个APK选择；本次旧UI先上传，新UI测试后上传，发布前后均按实际API返回列表核对。
+5. GitHub最终回读通过：[正式Release](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.11)，标签v7.1.11指向源码提交264029a2603f55f946e0cadfbecbace46d075229；draft=false、prerelease=false。四项资产名称／字节数／uploaded状态与本地一致，README及七项更新说明与已准备文本一致。读取7.1.10正式APK实际编译选择器，在发布前后分别消费真实GitHub附件列表，均选择genshin_artifact_V7.1.11_android.apk，即旧Element Plus包；测试包未被旧版默认选中。公开main随后追加本核对及AGENTS的发布完成记录，正式标签不移动。
 
 本轮不默认运行历史44项或全量角色回归。自动更新修复此前的五项目的验证及Android系统安装未验证边界见[专项记录](auto-update-fix-7111.md)。
 
