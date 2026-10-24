@@ -1,3 +1,4 @@
+import {progressImports} from '../beta-data/optimizer-progress.mjs';
 import {withDirectReactionScope} from '../beta-data/direct-reaction-scope.mjs';
 import {withLegacyEnemyBridge} from '../beta-data/enemy-interface.mjs';
 import {withInterfaceContracts} from '../beta-data/interface-contracts.mjs';
@@ -19,9 +20,9 @@ import {createExpandedWeaponsFacade} from '../beta-data/expanded-weapons.mjs';
 import {withLumineTraveler} from '../beta-data/lumine-traveler-facade.mjs';
 import {withHybridTeamOptimization,deriveTeamBuffs} from '../beta-data/hybrid-team-optimizer.mjs';
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url),'utf8').replace(/^(?:\s*\/\/[^\n]*\n)*\s*export default\s*/,''));
-const core=new WebAssembly.Instance(new WebAssembly.Module(fs.readFileSync(new URL('../mona_wasm/pkg/mona_effect_bridge.wasm',import.meta.url))),{'./mona_wasm_bg.js':bridge}).exports;
+const core=new WebAssembly.Instance(new WebAssembly.Module(fs.readFileSync(new URL(process.env.MONA_PROGRESS==='1'?'../mona_wasm/pkg/mona_effect_bridge_progress.wasm':'../mona_wasm/pkg/mona_effect_bridge.wasm',import.meta.url))),{'./mona_wasm_bg.js':bridge,mona_progress:progressImports(()=>core.memory)}).exports;
 bindings.lI(core);
-extension.initSync(fs.readFileSync(new URL('../mona_wasm/extension/mona_extension_bg.wasm',import.meta.url)));
+extension.initSync(fs.readFileSync(new URL(process.env.MONA_PROGRESS==='1'?'../mona_wasm/extension/mona_extension_bg_progress.wasm':'../mona_wasm/extension/mona_extension_bg.wasm',import.meta.url)));
 const rawOriginal={BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,CommonInterface:bindings.Ps,DSLInterface:bindings.ZB,OptimizeSingleWasm:bindings.E2,PotentialInterface:bindings.gF,TeamOptimizationWasm:bindings.B8,TransformativeDamage:bindings.PX};
 const original=withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginal,core),core);
 const support=read('beta-data/extension-support.json'),chars=read('src/assets/_gen_character.js'),buffs=read('src/assets/_gen_buff.js');

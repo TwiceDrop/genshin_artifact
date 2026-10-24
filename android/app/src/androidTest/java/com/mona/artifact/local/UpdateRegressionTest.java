@@ -51,6 +51,44 @@ public class UpdateRegressionTest {
             return output.toString("UTF-8").trim();
         }
     }
+    @Test public void cnbReleasePackageDownloadsCompletely() throws Exception {
+        assumeTrue(Build.HARDWARE.contains("ranchu") || Build.HARDWARE.contains("goldfish"));
+        android.os.Bundle args = InstrumentationRegistry.getArguments();
+        String url = args.getString("releaseUrl");
+        assumeTrue(url != null);
+        assertTrue(url.startsWith("https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v7.1.12/"));
+        long size = Long.parseLong(args.getString("releaseSize"));
+        try (ActivityScenario<MainActivity> activity = ActivityScenario.launch(MainActivity.class)) {
+            MonaLocalPlugin plugin = plugin(activity);
+            RecordingCall start = new RecordingCall(new JSObject().put("url", url).put("size", size).put("version", "v7.1.12"));
+            plugin.downloadUpdate(start); start.await();
+            JSObject current = status(plugin);
+            long end = System.currentTimeMillis() + 120000;
+            while (!"ready".equals(current.getString("phase")) && !"error".equals(current.getString("phase")) && System.currentTimeMillis() < end) {
+                Thread.sleep(250); current = status(plugin);
+            }
+            assertEquals(current.toString(), "ready", current.getString("phase"));
+            assertEquals(size, current.getLong("downloaded"));
+            File apk = new File(plugin.getContext().getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS), "mona-update.apk");
+            android.content.pm.PackageInfo info = plugin.getContext().getPackageManager().getPackageArchiveInfo(apk.getPath(), 0);
+            assertNotNull(info);
+            assertEquals(plugin.getContext().getPackageName(), info.packageName);
+            assertEquals("7.1.12", info.versionName);
+            System.out.println("CNB_PACKAGE_READY " + info.packageName + " " + apk.length());
+        }
+    }
+    @Test public void nativeCnbLatestReturns712() throws Exception {
+        try (ActivityScenario<MainActivity> activity = ActivityScenario.launch(MainActivity.class)) {
+            com.getcapacitor.plugin.CapacitorHttp http = (com.getcapacitor.plugin.CapacitorHttp) plugin(activity).getBridge().getPlugin("CapacitorHttp").getInstance();
+            RecordingCall call = new RecordingCall(new JSObject().put("url", "https://cnb.cool/twicedrop/genshin_artifact/-/releases/latest")
+                .put("method", "GET").put("headers", new JSObject().put("Accept", "application/json"))
+                .put("responseType", "json").put("connectTimeout", 12000).put("readTimeout", 12000));
+            http.request(call); call.await();
+            System.out.println("NATIVE_CNB_LATEST " + call.result.getInteger("status") + " " + call.result.getJSONObject("data").optString("tag_name"));
+            assertEquals(200, call.result.getInteger("status").intValue());
+            assertEquals("v7.1.12", call.result.getJSONObject("data").getString("tag_name"));
+        }
+    }
     @Test public void actualWaitingDownloadReportsSystemStateAndCanBeCancelled() throws Exception {
         assumeTrue(Build.HARDWARE.contains("ranchu") || Build.HARDWARE.contains("goldfish"));
         boolean wifi = "1".equals(shell("settings get global wifi_on"));

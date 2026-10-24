@@ -1,3 +1,4 @@
+import {progressImports} from '../../beta-data/optimizer-progress.mjs';
 import {withDirectReactionScope} from '../../beta-data/direct-reaction-scope.mjs';
 import {withLegacyEnemyBridge} from '../../beta-data/enemy-interface.mjs';
 import {withInterfaceContracts} from '../../beta-data/interface-contracts.mjs';
@@ -19,11 +20,11 @@ import signatureData from '../../beta-data/weapons-signature-release-71.json';
 import data from '../../beta-data/vodyanitsa.json';
 import support from '../../beta-data/extension-support.json';
 import characters from '../../src/assets/_gen_character.js';
-const response = await fetch(new URL('./mona_effect_bridge.wasm?raw-wasm', import.meta.url));
+const response = await fetch(new URL('./mona_effect_bridge_progress.wasm?raw-wasm', import.meta.url));
 if (!response.ok) throw new Error('Mona calculation core could not be loaded');
-const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), { './mona_wasm_bg.js': bridge });
+const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), { './mona_wasm_bg.js': bridge, mona_progress:progressImports(()=>instance.exports.memory) });
 bindings.lI(instance.exports);
-const extensionResponse = await fetch(new URL('../extension/mona_extension_bg.wasm?raw-wasm', import.meta.url));
+const extensionResponse = await fetch(new URL('../extension/mona_extension_bg_progress.wasm?raw-wasm', import.meta.url));
 if (!extensionResponse.ok) throw new Error('7.1.04 璁＄畻鍐呮牳鍔犺浇澶辫触');
 await initExtension(await extensionResponse.arrayBuffer());
 const rawOriginalApi = {BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,

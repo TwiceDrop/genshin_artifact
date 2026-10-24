@@ -20,8 +20,8 @@ export class LocalUpdater {
     info() {
         return {kind: this.kind, canInstall: process.platform === 'win32' && !!process.env.MONA_LAUNCHER_PID}
     }
-    async latest(accelerated) {
-        const release = await fetchReleaseMetadata(this.fetch, accelerated)
+    async latest(accelerated, currentVersion) {
+        const release = await fetchReleaseMetadata(this.fetch, accelerated, currentVersion)
         release.assets = release.assets || []
         this.release = release
         return release

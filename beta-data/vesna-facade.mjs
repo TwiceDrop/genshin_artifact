@@ -61,7 +61,7 @@ export function createBeta2(base,extension,support){
     throw Error('薇斯纳候选中存在未适配的可成套圣遗物：'+a.set_name);
    });
   }
-  return {x,candidates:normalizedCandidates,state:displayedState};
+  return {x,candidates:normalizedCandidates,state:displayedState,vodyState:state};
  }
  const wrap=(className)=>new Proxy(base[className]||{}, {get(target,method){if(typeof target[method]!=='function'&&typeof extension[className]?.[method]!=='function')return target[method];return (...args)=>{
  const input=args[0];
@@ -76,7 +76,7 @@ export function createBeta2(base,extension,support){
   if(className==='TeamOptimizationWasm'&&input?.single_interfaces?.some(x=>x.character?.name==='Vesna'))throw Error('薇斯纳暂不支持多人联合配装，请使用单人计算。');
   if(input?.character?.name!=='Vesna')return target[method](...args);
   if(className==='TeamOptimizationWasm')throw Error('薇斯纳暂不支持多人联合配装，请使用单人计算。');
-  const {x,candidates,state}=prepare(input,className==='OptimizeSingleWasm'?args[1]:undefined);
+  const {x,candidates,state,vodyState}=prepare(input,className==='OptimizeSingleWasm'?args[1]:undefined);
   if(className==='OptimizeSingleWasm'&&(!candidates?.length||new Set(candidates.map(a=>a.slot)).size<5))throw Error('薇斯纳已支持套装的候选不足五个部位，请导入装备或调整筛选。');
   if(!extension[className]?.[method])throw Error('薇斯纳暂不支持此入口：'+className+'.'+String(method));
   const r=extension[className][method](x,...(className==='OptimizeSingleWasm'?[candidates]:args.slice(1)));
@@ -85,6 +85,13 @@ export function createBeta2(base,extension,support){
    const p=x.character.params.Vesna,idx=x.skill.index;
    const direct=p.radiance&&[13,14,15,17,19].includes(idx);
    if(direct){
+    if(r.stellar_detail)for(const [field,key,value,label]of [
+     ['flat','队友星伤定额加值',vodyState.flat,'沃雅妮莎·十二弦的泪歌'],
+     ['reaction_critical_damage','队友星伤暴伤',vodyState.crit_damage,'沃雅妮莎二命·黑与白的双音'],
+     ['elevation','队友星伤擢升',vodyState.elevation,'沃雅妮莎六命'],
+     ['res_minus','流荡风旋减风抗',vodyState.anemo_res,'沃雅妮莎·最后的塑诗者'],
+    ])if(value){const values=r.stellar_detail[field];values[key]-=value;if(Math.abs(values[key])<1e-12)delete values[key];values[label]=(values[label]||0)+value;}
+
     r.direct_stellarswirl=r.normal;r.normal={critical:0,non_critical:0,expectation:0,is_heal:false,is_shield:false};
     const atk=sum(r.atk),em=sum(r.em),co=x.character.constellation;
     const stacks=co>=2&&p.stance?6:p.disciplinary_stacks;

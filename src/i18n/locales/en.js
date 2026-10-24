@@ -198,7 +198,7 @@ export default {
         selectBuff: "Select BUFF",
         setupCalc: "Computation Setup",
         algoDesc: "A*：Recommend<br>Heuristic Cutoff: Not ensure optimal result, but faster<br>Naive: Do not use",
-        plzSetConst: "Please constraint artifact set or main stats, or it might be very time consuming, and leads to timeout",
+        plzSetConst: "Please constraint artifact set or main stats, or it might be very time consuming",
         aStar: "A*",
         heuristic: "Heuristic Cutoff",
         naive: "Naive",

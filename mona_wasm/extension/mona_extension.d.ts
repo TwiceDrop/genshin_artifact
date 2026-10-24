@@ -148,8 +148,6 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly potentialinterface_get_potential: (a: number, b: number) => number;
-  readonly __wbg_potentialinterface_free: (a: number) => void;
   readonly teamoptimizationwasm_optimize_team2: (a: number, b: number) => number;
   readonly bonusperstat_bonus_per_stat: (a: number) => number;
   readonly dslinterface_run: (a: number, b: number, c: number, d: number) => number;
@@ -166,6 +164,8 @@ export interface InitOutput {
   readonly __wbg_calculatorinterface_free: (a: number) => void;
   readonly __wbg_commoninterface_free: (a: number) => void;
   readonly __wbg_calcartifactbestset_free: (a: number) => void;
+  readonly potentialinterface_get_potential: (a: number, b: number) => number;
+  readonly __wbg_potentialinterface_free: (a: number) => void;
   readonly __wbg_transformativedamage_free: (a: number) => void;
   readonly __wbg_get_transformativedamage_swirl_cryo: (a: number) => number;
   readonly __wbg_set_transformativedamage_swirl_cryo: (a: number, b: number) => void;

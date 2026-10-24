@@ -270,8 +270,10 @@ public class MonaLocalPlugin extends Plugin {
         try {
             String url = call.getString("url", "");
             Uri uri = Uri.parse(url);
-            if (!"https".equals(uri.getScheme()) || !"github.com".equals(uri.getHost()) ||
-                !uri.getPath().startsWith("/TwiceDrop/genshin_artifact/releases/")) {
+            boolean github = "github.com".equals(uri.getHost()) && uri.getPath().startsWith("/TwiceDrop/genshin_artifact/releases/");
+            boolean cnb = "cnb.cool".equals(uri.getHost()) && (uri.getPath().equals("/twicedrop/genshin_artifact/-/releases") ||
+                uri.getPath().startsWith("/twicedrop/genshin_artifact/-/releases/"));
+            if (!"https".equals(uri.getScheme()) || !(github || cnb)) {
                 call.reject("更新地址无效"); return;
             }
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);

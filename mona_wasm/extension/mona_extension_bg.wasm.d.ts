@@ -1,8 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function potentialinterface_get_potential(a: number, b: number): number;
-export function __wbg_potentialinterface_free(a: number): void;
 export function teamoptimizationwasm_optimize_team2(a: number, b: number): number;
 export function bonusperstat_bonus_per_stat(a: number): number;
 export function dslinterface_run(a: number, b: number, c: number, d: number): number;
@@ -19,6 +17,8 @@ export function __wbg_optimizesinglewasm_free(a: number): void;
 export function __wbg_calculatorinterface_free(a: number): void;
 export function __wbg_commoninterface_free(a: number): void;
 export function __wbg_calcartifactbestset_free(a: number): void;
+export function potentialinterface_get_potential(a: number, b: number): number;
+export function __wbg_potentialinterface_free(a: number): void;
 export function __wbg_transformativedamage_free(a: number): void;
 export function __wbg_get_transformativedamage_swirl_cryo(a: number): number;
 export function __wbg_set_transformativedamage_swirl_cryo(a: number, b: number): void;

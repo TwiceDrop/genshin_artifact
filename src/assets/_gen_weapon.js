@@ -4711,7 +4711,7 @@ export default {
     "star": 5,
     "type": "Catalyst",
     "url": "/weapons/hymn-of-the-maelstrom.png",
-    "effect": 3601,
+    "effect": 3736,
     "configs": [
       {
         "name": "hp",
@@ -4751,7 +4751,7 @@ export default {
     "star": 5,
     "type": "Sword",
     "url": "/beta/chrysalis.webp",
-    "effect": 3596,
+    "effect": 3746,
     "configs": [
       {
         "name": "loyal_rate",

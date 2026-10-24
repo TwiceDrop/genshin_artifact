@@ -8,8 +8,8 @@
                 class="item"
             >
                 <div class="item-top">
-                    <el-checkbox v-model="item.checked">{{ item.name }}</el-checkbox>
-<!--                    <span class="name">{{ item.name }}</span>-->
+                    <el-checkbox v-model="item.checked">{{ sourceName(item.name) }}</el-checkbox>
+<!--                    <span class="name">{{ sourceName(item.name) }}</span>-->
                 </div>
                 <div class="item-bottom">
                     <input type="text" v-model.number="item.value" class="input" />
@@ -20,6 +20,12 @@
 </template>
 
 <script>
+import artifacts from '@/assets/_gen_artifact'
+import {useI18n} from '@/i18n/i18n'
+const artifactSources = Object.fromEntries(Object.values(artifacts).flatMap(set =>
+    [2, 4].map(count => [set.name2 + count, {index: set.nameLocale, count}])
+))
+
 export default {
     name: "DamageAnalysisUtil",
     props: {
@@ -27,6 +33,13 @@ export default {
         title: {
             default: "title"
         },
+    },
+    setup() {
+        const {ta} = useI18n()
+        return {sourceName(name) {
+            const source = artifactSources[name]
+            return source ? `${ta(source.index)}${source.count}件套` : name
+        }}
     },
     computed: {
         result() {

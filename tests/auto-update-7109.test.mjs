@@ -37,7 +37,7 @@ test('1. release metadata uses an available source and selects EXE, ZIP, APK wit
     assert.match(releaseAsset(described, 'installer').name, /setup\.exe$/)
     assert.match(releaseAsset(described, 'portable').name, /web\.zip$/)
     assert.match(releaseAsset(described, 'android').name, /android\.apk$/)
-    assert.ok(urls.some(url => url.startsWith('https://ghfast.top/https://api.github.com/')))
+    assert.deepEqual(urls, ['https://cnb.cool/twicedrop/genshin_artifact/-/releases/latest'])
     assert.equal(sourceUrl('https://github.com/a', 'github'), 'https://github.com/a')
 })
 
@@ -180,22 +180,30 @@ test('4. real update component compiles and runs source selection, download prog
         ElMessage: {error: message => {throw Error(message)}, success() {}}, process: {env: {MONA_VERSION: '7.1.09'}},
         createReleaseCheckCoordinator: () => async () => ({...describeRelease(metadata(128), '7.1.09')}),
         isAutomaticUpdateEnabled: () => true, setAutomaticUpdateEnabled: () => true, MANUAL_UPDATE_EVENT: 'test',
-        openReleaseDownload: () => calls.push('external'), UPDATE_SOURCES: [{id: 'github', name: 'GitHub'}, {id: 'mirror', name: 'Mirror'}],
-        isAcceleratedUpdateEnabled: () => true, setAcceleratedUpdateEnabled() {}, releaseAsset,
+        openReleaseDownload: () => calls.push('external'), UPDATE_SOURCES: [{id: 'cnb', name: 'CNB.cool'}, {id: 'github', name: 'GitHub'}, {id: 'mirror', name: 'Mirror'}],
+        sourceUrl, releaseAsset,
         getUpdatePlatform: async () => ({kind: 'portable', canInstall: true}),
-        probeUpdateSource: async (release, kind, source) => ({speed: source === 'mirror' ? 2000 : 1000, elapsed: 10}),
+        probeUpdateSource: async (release, kind, source) => {calls.push('probe:'+source);return {speed: source === 'mirror' ? 2000 : 1000, elapsed: 10}},
         getUpdateStatus: async () => ({phase: calls.includes('download') ? phases.shift() : 'idle', downloaded: 128, total: 128}),
-        startUpdateDownload: async (release, kind, source) => {assert.equal(source, 'mirror'); calls.push('download'); return {phase: 'pending', downloaded: 0, total: 128}},
+        startUpdateDownload: async (release, kind, source) => {calls.push('source:'+source,'download'); return {phase: 'pending', downloaded: 0, total: 128}},
         cancelUpdateDownload: async () => ({phase: 'cancelled'}), installDownloadedUpdate: async () => {calls.push('install')},
         setTimeout: callback => {callback()},
     }
-    const setup = new Function(...Object.keys(bindings), body + '\nreturn {checkForUpdates, acceptUpdate, cancelDownload, progress, selectedSource};')(...Object.values(bindings))
+    const setup = new Function(...Object.keys(bindings), body + '\nreturn {checkForUpdates, acceptUpdate, openOtherSources, acceptOtherSource, cancelDownload, progress, otherSource};')(...Object.values(bindings))
     await setup.checkForUpdates(true)
-    assert.equal(setup.selectedSource.value, 'mirror')
+    assert.deepEqual(calls, [], 'opening the update prompt does not probe any download source')
     await setup.acceptUpdate()
-    assert.deepEqual(calls, ['download', 'install'])
+    assert.deepEqual(calls, ['source:cnb', 'download', 'install'])
     assert.equal(setup.progress.value.phase, 'installing')
     assert.equal(phases.length, 0, 'waiting and paused states must keep polling until ready')
+    calls.length = 0
+    phases = ['ready']
+    setup.progress.value = {phase:'idle'}
+    await setup.openOtherSources()
+    assert.deepEqual(calls, ['probe:github','probe:mirror'], 'CNB is never speed tested')
+    assert.equal(setup.otherSource.value, 'mirror')
+    await setup.acceptOtherSource()
+    assert.deepEqual(calls, ['probe:github','probe:mirror','source:mirror','download','install'])
     calls.length = 0
     let completeStatus
     bindings.getUpdateStatus = async () => calls.includes('download') ?
@@ -208,5 +216,5 @@ test('4. real update component compiles and runs source selection, download prog
     completeStatus({phase: 'paused', downloaded: 0, total: 128, message: '等待网络连接（代码 2）'})
     await pending
     assert.equal(cancelled.progress.value.phase, 'cancelled', 'late status must not replace cancellation')
-    assert.deepEqual(calls, ['download'])
+    assert.deepEqual(calls, ['source:cnb','download'])
 })

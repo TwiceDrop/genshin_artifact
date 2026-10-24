@@ -200,7 +200,7 @@ export default {
         selectBuff: "选择BUFF",
         setupCalc: "计算设置",
         algoDesc: "A*：推荐<br>启发式剪枝：不保证得到最优解，但是速度快<br>纯枚举：不推荐",
-        plzSetConst: "请限定套装或者主词条，否则计算将十分耗时，可能导致计算超时",
+        plzSetConst: "请限定套装或者主词条，否则计算将十分耗时",
         aStar: "A*",
         heuristic: "启发式剪枝",
         naive: "纯枚举",

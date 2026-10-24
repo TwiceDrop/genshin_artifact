@@ -13,6 +13,7 @@ export function createOptimizationDebug({version,environment}) {
         },
         event(event){if(record.events.length<150)record.events.push({elapsedMs:Date.now()-started,...copy(event)})},
         fail(error){record.status='failed';record.error={name:error?.name||'Error',message:error?.message||String(error),stack:error?.stack||null};record.finishedAt=new Date().toISOString()},
+        cancel(){record.status='cancelled';record.finishedAt=new Date().toISOString()},
         complete(results){record.status='completed';record.resultSummary={count:results.length,top:copy(results.slice(0,5))};record.finishedAt=new Date().toISOString()}
     }
 }

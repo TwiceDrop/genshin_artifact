@@ -1,5 +1,5 @@
 """Bridge the published core at its verified native write and dependency sites."""
-import argparse, pathlib, re, subprocess
+import argparse, pathlib, re, subprocess, sys
 parser=argparse.ArgumentParser(); parser.add_argument('--wabt',required=True); args=parser.parse_args()
 root=pathlib.Path(__file__).resolve().parent.parent
 src=root/'mona_wasm/pkg/mona_wasm_bg.wasm'
@@ -176,8 +176,12 @@ s=s.rstrip()[:-1]+f'''
   (elem (i32.const {forward_index}) $hymn_hp_atk_forward $hymn_hp_atk_backward)
 )
 '''
+# Keep future effect-bridge rebuilds on the same exact graph implementation.
+from optimizer_graph_7112 import patch_wat
+s=patch_wat(s)
 output.write_text(s)
 target=root/'mona_wasm/pkg/mona_effect_bridge.wasm'
 subprocess.run([str(tools/'wat2wasm.exe'),str(output),'-o',str(target)],check=True)
 subprocess.run([str(tools/'wasm-validate.exe'),str(target)],check=True)
 print('Effect bridge:',target)
+subprocess.run([sys.executable,str(root/'script/build-optimizer-progress.py'),'--wabt',str(tools)],check=True)

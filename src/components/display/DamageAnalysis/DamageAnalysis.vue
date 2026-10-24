@@ -7,7 +7,8 @@
         <span class="damage-display" v-if="selectedActualResult">{{ formatStellarDamage(selectedActualResult.expectation) }}</span>
     </div>
 
-    <section v-if="selectedStellarResult" class="stellar-detail">
+    <stellar-damage-detail v-if="selectedStellarDetail" :state="selectedStellarDetail" :kind="damageType" />
+    <section v-else-if="selectedStellarResult" class="stellar-detail">
         <el-descriptions :column="3" border>
             <el-descriptions-item label="期望伤害">{{ formatStellarDamage(selectedStellarResult.expectation) }}</el-descriptions-item>
             <el-descriptions-item label="暴击伤害">{{ formatStellarDamage(selectedStellarResult.critical) }}</el-descriptions-item>
@@ -170,6 +171,8 @@
 
 <script>
 import DamageAnalysisUtil from "./DamageAnalysisUtil"
+import StellarDamageDetail from './StellarDamageDetail.vue'
+import {STELLAR_DETAIL_KEYS,stellarDetail,stellarDetailState,stellarDetailResult} from '@/algorithms/stellar-detail.mjs'
 import { LEVEL_MULTIPLIER } from "@/constants/levelMultiplier"
 import { damageReactionOptions, defaultDamageReaction } from "@/algorithms/reaction-labels.mjs"
 
@@ -186,15 +189,16 @@ function sum(arr) {
 export default {
     name: "DamageAnalysis",
     components: {
-        DamageAnalysisUtil
+        DamageAnalysisUtil, StellarDamageDetail
     },
-    props: ["enemyConfig", "characterLevel"],
+    props: ["enemyConfig", "characterLevel", "characterName"],
     data() {
         return {
             damageType: "normal",
             stellarResults: [],
             reactionOptions: [],
             nativeResults: {},
+            stellarDetailStates: {},
             independentState: [],
             finalIndependentState: [],
             element: "Pyro",
@@ -230,6 +234,7 @@ export default {
         },
         setValue(analysis) {
             this.nativeResults = analysis
+            this.stellarDetailStates = Object.fromEntries(STELLAR_DETAIL_KEYS.filter(key => analysis[key]).map(key => [key, stellarDetailState(stellarDetail(analysis,key,this.characterName))]))
             let map = {
                 "independentState": "independent_damage_multiplier",
                 "finalIndependentState": "independent_multiplier",
@@ -278,7 +283,8 @@ export default {
         }
     },
     computed: {
-        selectedActualResult() { return this.nativeResults[this.damageType] },
+        selectedStellarDetail() { return this.stellarDetailStates[this.damageType] },
+        selectedActualResult() { return this.selectedStellarDetail ? stellarDetailResult(this.selectedStellarDetail,this.enemyConfig) : this.nativeResults[this.damageType] },
         ordinaryPreview() {
             return { normal: this.damageNormal, melt: this.damageMelt, vaporize: this.damageVaporize,
                 spread: this.damageSpread, aggravate: this.damageAggravate }[this.damageType]

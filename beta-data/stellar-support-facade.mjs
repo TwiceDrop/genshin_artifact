@@ -206,6 +206,16 @@ export function createStellarSupportFacade(base, original) {
         }
         return result;
     }
+
+    function relabelNativeDetail(result,state) {
+        const detail=result.stellar_detail;if(!detail)return result;
+        for(const [field,key,total,sources]of [
+            ['flat','队友星伤定额加值',state.flat,state.flatSources],
+            ['base_bonus','队友星耀祝礼基础增益',state.base,state.baseSources],
+            ['bonus','BUFF: 星烁反应伤害加成',state.bonus,state.labels],
+        ])if(total){detail[field][key]-=total;if(Math.abs(detail[field][key])<1e-12)delete detail[field][key];for(const [name,value]of Object.entries(sources))detail[field][name]=(detail[field][name]||0)+value;}
+        return result;
+    }
     function applyFlat(input, result, state, fumo) {
         const flat=state.flat;
         if (!flat || !result.direct_stellarswirl) return result;
@@ -449,6 +459,7 @@ export function createStellarSupportFacade(base, original) {
             if(className==='CalculatorInterface' && method==='get_damage_analysis' && input.character.name==='Sandrone' && SANDRONE_SKILLS.some(s=>s.index===input.skill?.index))return sandroneDamage(input,args[1]);
             const prepared = prepare(input);
             const result = fn(prepared, ...args.slice(1));
+            if(className === 'CalculatorInterface' && method === 'get_damage_analysis' && native(input))return relabelNativeDetail(result,state);
             if (className === 'CalculatorInterface' && method === 'get_damage_analysis' && !native(input))
                 return applyFlat(input, relabel(result, state), state, args[1]);
             return result;

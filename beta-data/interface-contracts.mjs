@@ -16,6 +16,9 @@ export function normalizeBonusInput(input){
 function normalizeInput(input){
  if(!input||typeof input!=='object'||Array.isArray(input))return input;
  if(input.single_interfaces)return {...input,single_interfaces:input.single_interfaces.map(normalizeInput)};
+ // Character-specific HP target shares the native MaxHP calculation.
+ for(const key of ['target_function','tf'])if(input[key]?.name==='VodyanitsaMaxHP')
+  input={...input,[key]:{...input[key],name:'MaxHP'}};
  if(input.character&&Array.isArray(input.buffs))input={...input,buffs:input.buffs.filter(buff=>buff.lock!==true&&buff.config?.[buff.name]?.active!==false)};
  if(input.character&&input.enemy!=null)input={...input,enemy:normalizeEnemy(input.enemy)};
  if(!input.character||input.artifact_config==null)return input;

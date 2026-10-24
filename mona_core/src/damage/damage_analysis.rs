@@ -5,6 +5,8 @@ use crate::common::{DamageResult, Element};
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
 pub struct DamageAnalysis {
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub stellar_detail: Option<StellarDamageAnalysis>,
     pub atk: HashMap<String, f64>,
     pub atk_ratio: HashMap<String, f64>,
     pub hp: HashMap<String, f64>,
@@ -73,3 +75,26 @@ pub struct HealAnalysis {
 //
 //     pub result: DamageResult,
 // }
+// Source compositions for the same direct Stellar formula used by the damage builder.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StellarDamageAnalysis {
+    pub element: Element,
+    pub scaling_name: String,
+    pub scaling: HashMap<String,f64>,
+    pub ratio: HashMap<String,f64>,
+    pub extra_base: HashMap<String,f64>,
+    pub independent: HashMap<String,f64>,
+    pub base_multiplier: HashMap<String,f64>,
+    pub base_bonus: HashMap<String,f64>,
+    pub bonus: HashMap<String,f64>,
+    pub flat: HashMap<String,f64>,
+    pub critical: HashMap<String,f64>,
+    pub critical_damage: HashMap<String,f64>,
+    pub reaction_critical: HashMap<String,f64>,
+    pub reaction_critical_damage: HashMap<String,f64>,
+    pub res_minus: HashMap<String,f64>,
+    pub elevation: HashMap<String,f64>,
+    pub universal_elevation: HashMap<String,f64>,
+    pub final_multiplier: HashMap<String,f64>,
+    pub active: bool,
+}

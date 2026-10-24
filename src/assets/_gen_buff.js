@@ -643,7 +643,7 @@ export default {
   "QiqiTalent2StellarConduct": {
     "name": "QiqiTalent2StellarConduct",
     "nameLocale": 3648,
-    "description": 3649,
+    "description": 3738,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qiqi.png",
     "genre": "Character",
     "config": []
@@ -651,7 +651,7 @@ export default {
   "QiqiC6StellarConduct": {
     "name": "QiqiC6StellarConduct",
     "nameLocale": 3650,
-    "description": 3651,
+    "description": 3739,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qiqi.png",
     "genre": "Character",
     "config": [
@@ -3403,7 +3403,7 @@ export default {
   "SandroneTalent1": {
     "name": "SandroneTalent1",
     "nameLocale": 3652,
-    "description": 3653,
+    "description": 3740,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
     "genre": "Character",
     "config": [
@@ -3420,7 +3420,7 @@ export default {
   "SandroneC1": {
     "name": "SandroneC1",
     "nameLocale": 3654,
-    "description": 3655,
+    "description": 3741,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
     "genre": "Character",
     "config": []
@@ -4513,7 +4513,7 @@ export default {
   "VodyanitsaE": {
     "name": "VodyanitsaE",
     "nameLocale": 3545,
-    "description": 3546,
+    "description": 3733,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4556,7 +4556,7 @@ export default {
   "VodyanitsaA4": {
     "name": "VodyanitsaA4",
     "nameLocale": 3547,
-    "description": 3548,
+    "description": 3734,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4599,7 +4599,7 @@ export default {
   "VodyanitsaC1": {
     "name": "VodyanitsaC1",
     "nameLocale": 3549,
-    "description": 3550,
+    "description": 3742,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4642,7 +4642,7 @@ export default {
   "VodyanitsaC2": {
     "name": "VodyanitsaC2",
     "nameLocale": 3551,
-    "description": 3552,
+    "description": 3743,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4685,7 +4685,7 @@ export default {
   "VodyanitsaC6": {
     "name": "VodyanitsaC6",
     "nameLocale": 3553,
-    "description": 3554,
+    "description": 3744,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4728,7 +4728,7 @@ export default {
   "VodyanitsaSignature": {
     "name": "VodyanitsaSignature",
     "nameLocale": 3555,
-    "description": 3556,
+    "description": 3736,
     "genre": "Weapon",
     "badge": "/weapons/hymn-of-the-maelstrom.png",
     "config": [
@@ -4793,7 +4793,7 @@ export default {
   "VodyanitsaA1": {
     "name": "VodyanitsaA1",
     "nameLocale": 3591,
-    "description": 3592,
+    "description": 3735,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4836,7 +4836,7 @@ export default {
   "VesnaTalent1": {
     "name": "VesnaTalent1",
     "nameLocale": 3669,
-    "description": 3670,
+    "description": 3737,
     "badge": "/characters/vesna.webp",
     "genre": "Character",
     "config": [
@@ -4861,7 +4861,7 @@ export default {
   "BreezeborneRefrainSupport": {
     "name": "BreezeborneRefrainSupport",
     "nameLocale": 3628,
-    "description": 3633,
+    "description": 3745,
     "badge": "https://i.gachabase.net/ztuDbp624ovROhZ6_MRYUNYGxTuqFgDks6LLUY4tnV8/q:50/f:webp/plain/gi/assets/6c662094dcaba2c59b6024646af690a8.png",
     "genre": "Weapon",
     "config": [

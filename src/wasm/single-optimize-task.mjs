@@ -1,5 +1,5 @@
-// One worker per calculation. Always release its timer and worker on every exit.
-export function runSingleOptimizeWorker(worker, optimizeConfig, artifacts, timeout = 600000, onDebug) {
+// One worker per calculation. Cancellation and every terminal event release it.
+export function runSingleOptimizeWorker(worker, optimizeConfig, artifacts, {onDebug, onProgress, signal} = {}) {
     const trace = event => { try { onDebug?.(event) } catch { /* Diagnostics must not interrupt calculation. */ } }
     trace({phase:'worker-created'})
     return new Promise((resolve, reject) => {
@@ -7,21 +7,25 @@ export function runSingleOptimizeWorker(worker, optimizeConfig, artifacts, timeo
         const finish = (error, result) => {
             if (settled) return
             settled = true
-            clearTimeout(timer)
+            signal?.removeEventListener('abort', abort)
             worker.onmessage = worker.onerror = worker.onmessageerror = null
             worker.terminate()
-            trace({phase:error?'failed':'completed',message:error?.message,resultCount:result?.length})
+            trace({phase:error?.name==='AbortError'?'cancelled':error?'failed':'completed',message:error?.message,resultCount:result?.length})
             if (error) reject(error)
             else resolve(result)
         }
-        const timer = setTimeout(() => finish(new Error('计算超时，请减少候选圣遗物或调整筛选后重试。')), timeout)
+        const abort = () => finish(new DOMException('计算已取消', 'AbortError'))
+        signal?.addEventListener('abort', abort, {once:true})
+        if (signal?.aborted) { abort(); return }
         worker.onmessage = ({data}) => {
+            if (settled) return
+            if (data?.type === 'progress') { onProgress?.(data.data); return }
             if (data?.type === 'debug') { trace(data.event); return }
             if (data?.type === 'ready') {
                 if (sent) return
                 sent = true
                 trace({phase:'worker-ready',initializationMs:data.initializationMs})
-                try { worker.postMessage({optimizeConfig, artifacts, debug:typeof onDebug==='function'}); trace({phase:'parameters-sent',candidateCount:artifacts.length}) }
+                try { worker.postMessage({optimizeConfig, artifacts, debug:typeof onDebug==='function',progress:typeof onProgress==='function'}); trace({phase:'parameters-sent',candidateCount:artifacts.length}) }
                 catch (error) { finish(new Error('无法发送配装参数：' + (error.message || String(error)))) }
             } else if (data?.type === 'error') {
                 trace({phase:'worker-error',error:data.error})

@@ -310,6 +310,7 @@ impl DamageBuilder for ComplicatedDamageBuilder {
         }
 
         DamageAnalysis {
+            stellar_detail: None,
             atk: atk_comp.0,
             atk_ratio: atk_ratio_comp.0,
             hp: hp_comp.0,
@@ -366,6 +367,13 @@ impl DamageBuilder for ComplicatedDamageBuilder {
       }
       result.melt=None;result.vaporize=None;result.spread=None;result.aggravate=None;
       result.direct_moonelectro=None;result.bonus.clear();result.def_minus.clear();result.def_penetration.clear();
+
+      { use AttributeName::*;use crate::damage::damage_analysis::StellarDamageAnalysis;
+        let get=|attrs:&[AttributeName]|attribute.get_composition_merge(attrs).0;
+        let mut base=get(&[StellarSwirlBaseBonus]);base.insert("薇斯纳·星耀祝礼".into(),(attribute.get_atk()*0.00007).clamp(0.0,0.14));
+        let mut bonus=get(&[StellarSwirlBonus]);let em=attribute.get_em_all().max(0.0);bonus.insert("精通".into(),6.0*em/(2000.0+em));
+        result.stellar_detail=Some(StellarDamageAnalysis {element:Element::Anemo,scaling_name:"攻击力".into(),scaling:result.atk.clone(),ratio:self.ratio_atk.0.clone(),extra_base:HashMap::new(),independent:get(&[StellarSwirlIndependentBaseMultiplier]),base_multiplier:HashMap::from([("基础倍率".into(),1.0)]),base_bonus:base,bonus,flat:get(&[StellarSwirlFlat]),critical:get(&[CriticalBase,CriticalAttacking,CriticalAnemo]),critical_damage:get(&[CriticalDamageBase,CriticalDamageAnemo]),reaction_critical:get(&[StellarSwirlCritRate]),reaction_critical_damage:get(&[StellarSwirlCritDamage]),res_minus:get(&[ResMinusBase,ResMinusAnemo]),elevation:get(&[StellarSwirlElevation]),universal_elevation:HashMap::new(),final_multiplier:HashMap::new(),active:ratio>=0.0});
+      }
       result
     }
     fn heal(&self, attribute: &Self::AttributeType) -> Self::Result {
@@ -393,6 +401,7 @@ impl DamageBuilder for ComplicatedDamageBuilder {
         };
 
         return DamageAnalysis {
+            stellar_detail: None,
             atk: atk_comp.0,
             atk_ratio: self.ratio_atk.0.clone(),
             hp: hp_comp.0,
@@ -460,6 +469,7 @@ impl DamageBuilder for ComplicatedDamageBuilder {
         };
 
         return DamageAnalysis {
+            stellar_detail: None,
             atk: atk_comp.0,
             atk_ratio: self.ratio_atk.0.clone(),
             hp: hp_comp.0,

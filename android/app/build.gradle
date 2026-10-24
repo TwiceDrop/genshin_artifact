@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     namespace = "com.mona.artifact.local"
+    testBuildType project.findProperty('monaTestBuildType') ?: 'debug'
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.mona.artifact.local"
@@ -11,8 +12,8 @@ android {
         manifestPlaceholders = [monaAppName: project.findProperty('monaUi') == 'mobiletest' ? '莫娜占卜铺 · 新UI测试' : '莫娜占卜铺']
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 70111
-        versionName "7.1.11"
+        versionCode 70112
+        versionName "7.1.12"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

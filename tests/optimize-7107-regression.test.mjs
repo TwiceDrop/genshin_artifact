@@ -27,11 +27,11 @@ test('2 三套实际效果：精通、月曜作用域、充能、元素增伤与
  const faruzan={...base,buffs:[named('FaruzanQ',{base_atk:650,q_level:6,rate_q1:0,rate_q2:1,rate_talent2:0,enable_c6:true})]};const ordinary=api.CalculatorInterface.get_damage_analysis(base).direct_stellarswirl,boosted=api.CalculatorInterface.get_damage_analysis(faruzan).direct_stellarswirl;near(boosted.non_critical,ordinary.non_critical);near(boosted.critical-ordinary.critical,ordinary.non_critical*.4);
 });
 test('3 前端消息协议：详细错误、成功、线程故障、超时及结束清理',async()=>{
- let w=fake(),p=runSingleOptimizeWorker(w,input,gear,1000);w.onmessage({data:{type:'ready'}});w.onmessage({data:{type:'ready'}});assert.equal(w.sent.length,1);w.onmessage({data:{type:'error',error:{phase:'optimization',message:'候选中存在未适配套装：Example'}}});await assert.rejects(p,/Example/);assert.equal(w.terminated,1);assert.equal(w.onmessage,null);
- w=fake();p=runSingleOptimizeWorker(w,input,gear,1000);w.onmessage({data:{type:'results',data:{results:[{value:123}]}}});assert.deepEqual(await p,[{value:123}]);assert.equal(w.terminated,1);
- w=fake();p=runSingleOptimizeWorker(w,input,gear,1000);w.onerror({message:'Loading chunk 123 failed',preventDefault(){}});await assert.rejects(p,/chunk 123/);assert.equal(w.terminated,1);
- w=fake();p=runSingleOptimizeWorker(w,input,gear,1);await assert.rejects(p,/计算超时/);assert.equal(w.terminated,1);
- w=fake();w.postMessage=()=>{throw Error('DataCloneError')};p=runSingleOptimizeWorker(w,input,gear,1000);w.onmessage({data:{type:'ready'}});await assert.rejects(p,/DataCloneError/);assert.equal(w.terminated,1);
+ let w=fake(),p=runSingleOptimizeWorker(w,input,gear);w.onmessage({data:{type:'ready'}});w.onmessage({data:{type:'ready'}});assert.equal(w.sent.length,1);w.onmessage({data:{type:'error',error:{phase:'optimization',message:'候选中存在未适配套装：Example'}}});await assert.rejects(p,/Example/);assert.equal(w.terminated,1);assert.equal(w.onmessage,null);
+ w=fake();p=runSingleOptimizeWorker(w,input,gear);w.onmessage({data:{type:'results',data:{results:[{value:123}]}}});assert.deepEqual(await p,[{value:123}]);assert.equal(w.terminated,1);
+ w=fake();p=runSingleOptimizeWorker(w,input,gear);w.onerror({message:'Loading chunk 123 failed',preventDefault(){}});await assert.rejects(p,/chunk 123/);assert.equal(w.terminated,1);
+ w=fake();const cancellation=new AbortController();p=runSingleOptimizeWorker(w,input,gear,{signal:cancellation.signal});cancellation.abort();await assert.rejects(p,{name:'AbortError'});assert.equal(w.terminated,1);
+ w=fake();w.postMessage=()=>{throw Error('DataCloneError')};p=runSingleOptimizeWorker(w,input,gear);w.onmessage({data:{type:'ready'}});await assert.rejects(p,/DataCloneError/);assert.equal(w.terminated,1);
 });
 test('4 后台消息协议：加载失败及真实内核候选不足错误返回',async()=>{
  const messages=[],scope={postMessage:m=>messages.push(m)};await initializeSingleOptimizeWorker(scope,async()=>{throw Error('WASM fetch 404')});assert.equal(messages[0].type,'error');assert.equal(messages[0].error.phase,'initialization');assert.match(messages[0].error.message,/404/);

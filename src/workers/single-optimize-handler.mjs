@@ -1,3 +1,4 @@
+import {beginOptimizationProgress} from '../../beta-data/optimizer-progress.mjs'
 // Explicit messages preserve validation errors across the Worker boundary.
 export async function initializeSingleOptimizeWorker(scope, loadMona) {
     const started=Date.now()
@@ -13,14 +14,16 @@ export async function initializeSingleOptimizeWorker(scope, loadMona) {
                 if(logCount++<30){const message=args.map(x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch{return String(x)}}).join(' ').slice(0,8000);debug({phase:'kernel-console',level,message})}
             }
             if(data.debug){console.error=logged('error',originalError);console.warn=logged('warn',originalWarn)}
+            const progress=data.progress?beginOptimizationProgress(data.optimizeConfig,data.artifacts,value=>scope.postMessage({type:'progress',data:value})):null
             try {
                 debug({phase:'optimization-started',candidateCount:data.artifacts?.length,algorithm:data.optimizeConfig?.algorithm})
                 const begin=Date.now()
                 const results = mona.OptimizeSingleWasm.optimize(data.optimizeConfig, data.artifacts)
+                progress?.complete()
                 debug({phase:'optimization-finished',elapsedMs:Date.now()-begin,resultCount:results?.length})
                 scope.postMessage({type:'results',data:{results}})
             } catch (error) { fail(error,'optimization') }
-            finally {console.error=originalError;console.warn=originalWarn}
+            finally {progress?.dispose();console.error=originalError;console.warn=originalWarn}
         }
         scope.postMessage({type:'ready',initializationMs:Date.now()-started})
     } catch (error) { fail(error,'initialization') }

@@ -48,6 +48,8 @@ export interface IPreset {
     constraint?: IConstraint,
     dslSource?: string,
     useDSL?: boolean,
+    targetMode?: 'normal' | 'dsl' | 'generator',
+    dslGenerator?: {character: string, entries: any[]},
     filter?: IPresetArtifactFilter,
     character: ICharacter,
     weapon: IWeapon,

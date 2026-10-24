@@ -57,7 +57,7 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                     if (url.pathname === '/api/update/status' && req.method === 'GET') return json(updater.status())
                     const body = await input()
                     if (req.method !== 'POST') return json({error: '方法无效'}, 405)
-                    if (url.pathname === '/api/update/latest') return json(await updater.latest(body.accelerated))
+                    if (url.pathname === '/api/update/latest') return json(await updater.latest(body.accelerated, body.currentVersion))
                     if (url.pathname === '/api/update/probe') return json(await updater.probe(body.version, body.source))
                     if (url.pathname === '/api/update/download') return json(await updater.start(body.version, body.source))
                     if (url.pathname === '/api/update/cancel') return json(await updater.cancel())

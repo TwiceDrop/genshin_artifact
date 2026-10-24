@@ -2977,6 +2977,17 @@ export default {
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Yae.png",
     "config": []
   },
+  "VodyanitsaMaxHP": {
+    "name": "VodyanitsaMaxHP",
+    "nameLocale": 3732,
+    "description": 1869,
+    "tags": [
+      "生命"
+    ],
+    "for": "Vodyanitsa",
+    "badge": "/characters/vodyanitsa.webp",
+    "config": []
+  },
   "VodyanitsaDefault": {
     "name": "VodyanitsaDefault",
     "nameLocale": 3539,

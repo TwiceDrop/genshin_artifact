@@ -1,5 +1,18 @@
 <template>
     <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
+        <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog">
+            <el-progress :percentage="Math.round((optimizationProgress.percent ?? 0) * 10) / 10" :indeterminate="optimizationProgress.percent === null" :status="optimizationRunning ? undefined : optimizationCancelled ? 'warning' : 'success'" />
+            <div class="optimization-progress-stats">
+                <p>候选搭配空间上限 <b>{{ numberOfGroups(optimizationProgress.candidateSpace) }} 组</b></p>
+                <p>已计算 <b>{{ numberOfGroups(optimizationProgress.evaluated) }} 次</b></p>
+                <p>剩余搜索分组上限 <b>{{ numberOfGroups(optimizationProgress.remainingGroups) }} 组</b></p>
+                <p v-if="optimizationStage">搜索阶段 <b>{{ optimizationStage }}</b></p>
+                <p v-if="optimizationRunning">{{ optimizationProgress.etaScope === 'total' ? '预计剩余时间' : '本阶段预计剩余时间' }} <b>{{ formatComputeTime(optimizationRemaining) }}</b></p>
+                <p>{{ optimizationRunning || optimizationCancelled ? '已用时间' : '计算时间' }} <b>{{ formatComputeTime(optimizationElapsed) }}</b></p>
+            </div>
+            <template #footer><el-button v-if="optimizationRunning" type="danger" plain @click="cancelOptimization">取消计算</el-button><el-button v-else type="primary" @click="showOptimizationProgress=false">确定</el-button></template>
+        </el-dialog>
+        <optimization-results-dialog v-if="showOptimizationResults" v-model="showOptimizationResults" :results="optimizationResults" :input="damageAnalysisWasmInterface" :infusion="fumo" :mona="mona" :get-artifact="getResultArtifact" :selected-index="optimizationResultIndex" @select="handleUseNthOptimizationResult" />
         <nav class="calc-mobile-tabs" aria-label="计算器分区">
             <button :class="{ active: mobileCalcTab === 'character' }" @click="mobileCalcTab = 'character'">角色与配置</button>
             <button :class="{ active: mobileCalcTab === 'equipment' }" @click="mobileCalcTab = 'equipment'">圣遗物与伤害</button>
@@ -23,12 +36,13 @@
         <el-dialog
             v-model="showDamageAnalysisDialog"
             :title="t('calcPage.dmgComp')"
-            :width="deviceIsPC ? '60%' : '90%'"
+            :width="deviceIsPC ? '90%' : '96%'"
         >
             <damage-analysis
                 ref="damageAnalysisComponent"
                 :enemy-config="enemyConfig"
                 :character-level="characterLevelNumber"
+                :character-name="characterName"
             ></damage-analysis>
         </el-dialog>
 
@@ -435,7 +449,7 @@
                     <div class="optimization-debug-control">
                         <el-switch v-model="optimizationDebugEnabled" active-text="Debug 模式" aria-label="Debug 模式" />
                         <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
-                        <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
+                        <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : optimizationDebugRecord.status === 'cancelled' ? '计算已取消' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
                         <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
                         <details v-if="optimizationDebugRecord?.events.length"><summary>查看调试阶段与错误详情</summary><pre>{{ optimizationDebugDetail }}</pre></details>
                     </div>
@@ -518,6 +532,7 @@
                             <el-alert type="warning" :title="t('calcPage.beta')" :closable="false" style="margin-bottom: 8px"></el-alert>
                             <el-input type="textarea" :rows="10" :placeholder="t('misc.code')" v-model="targetFunctionDSLSource" class="code-input"></el-input>
                         </el-tab-pane>
+                        <el-tab-pane label="DSL 生成器" name="generator"><dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona" /></el-tab-pane>
                     </el-tabs>
 
 
@@ -525,10 +540,11 @@
                         style="margin-top: 12px"
                     >
                         <el-alert
-                            :title="`共计算${optimizationResults.length}组圣遗物搭配`"
+                            :title="`保留${optimizationResults.length}组圣遗物搭配`"
                             type="success"
                             style="margin-bottom: 12px"
                         ></el-alert>
+                        <el-button @click="showOptimizationResults=true" style="margin-bottom:12px" class="view-optimization-results">点开查看所有搭配</el-button>
                         <el-input-number
                             :model-value="optimizationResultIndex"
                             @update:modelValue="handleUseNthOptimizationResult"
@@ -866,6 +882,11 @@ import DamageAnalysis from "@/components/display/DamageAnalysis"
 import {useCharacter, useCharacterSkill} from "@/composables/character"
 import {useEnemy} from "@/composables/enemy"
 import {useWeapon} from "@/composables/weapon"
+import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
+import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
+import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
+import DslGenerator from './DslGenerator.vue'
+import {generateDsl} from '@/algorithms/dsl-generator.mjs'
 import {useTargetFunction} from "@/composables/targetFunction"
 import type {ArtifactPosition, IArtifact, IArtifactWasm} from "@/types/artifact"
 import IconEpCaretRight from "~icons/ep/caret-right"
@@ -1015,12 +1036,16 @@ const {
     targetFunctionConfigConfig,
     targetFunctionInterface
 } = useTargetFunction(characterName)
-const miscTargetFunctionTab = ref<"normal" | "dsl">("normal")
+const miscTargetFunctionTab = ref<"normal" | "dsl" | "generator">("normal")
 
 
-watch(() => miscTargetFunctionTab.value, v => {
-    targetFunctionUseDSL.value = v === "dsl"
-})
+const dslGeneratorState = ref({character: characterName.value, entries: [] as any[]})
+const generatedDsl = computed(() => generateDsl(dslGeneratorState.value))
+watch(characterName, name => { dslGeneratorState.value = {character:name,entries:[]} }, {flush:'sync'})
+watch([miscTargetFunctionTab, generatedDsl], ([mode, source]) => {
+    targetFunctionUseDSL.value = mode !== 'normal'
+    if (mode === 'generator') targetFunctionDSLSource.value = source
+}, {flush:'sync'})
 
 
 //////////////////////////////////////////////////////////
@@ -1239,7 +1264,9 @@ function getPresetItem() {
         artifactConfig: deepCopy(artifactConfig.value),
         algorithm: algorithm.value,
         artifactEffectMode: artifactEffectMode.value,
-        useDSL: miscTargetFunctionTab.value === "dsl",
+        useDSL: miscTargetFunctionTab.value !== "normal",
+        targetMode: miscTargetFunctionTab.value,
+        dslGenerator: deepCopy(dslGeneratorState.value),
         dslSource: targetFunctionDSLSource.value,
         name: ""
     } as IPreset
@@ -1312,8 +1339,9 @@ function usePreset(name: string) {
     // is DSL?
     const use_dsl = !!item.useDSL
     if (use_dsl) {
-        miscTargetFunctionTab.value = "dsl"
         targetFunctionDSLSource.value = item.dslSource ?? ""
+        if (item.dslGenerator) dslGeneratorState.value = deepCopy(item.dslGenerator)
+        miscTargetFunctionTab.value = item.targetMode === 'generator' ? 'generator' : 'dsl'
     } else {
         miscTargetFunctionTab.value = "normal"
     }
@@ -1903,6 +1931,21 @@ function getArtifactsToBeCalculated(): IArtifactWasm[] {
     return artifacts16
 }
 
+const showOptimizationResults = ref(false)
+const getResultArtifact = (id: number) => artifactStore.artifacts.value.get(id)
+const showOptimizationProgress = ref(false)
+const optimizationRunning = ref(false)
+const optimizationCancelled = ref(false)
+let optimizationAbortController: AbortController | undefined
+const cancelOptimization = () => optimizationAbortController?.abort()
+const optimizationElapsed = ref(0)
+const optimizationProgress = ref<any>({percent:null,candidateSpace:null,evaluated:0,remainingGroups:null,etaMs:null})
+const optimizationProgressReceivedElapsed = ref(0)
+const optimizationRemaining = computed(() => remainingOptimizationTime(optimizationProgress.value, Math.max(0,optimizationElapsed.value-optimizationProgressReceivedElapsed.value)))
+const optimizationStage = computed(() => ({set4:'四件套',set22:'二加二',set2:'两件套',any:'不限套装',enumeration:'逐组搜索'} as Record<string,string>)[optimizationProgress.value.searchStage] || '')
+const numberOfGroups = (value: number | null) => value == null ? '统计中' : value.toLocaleString('zh-CN')
+let optimizationClock: ReturnType<typeof setInterval> | undefined
+onBeforeUnmount(() => { cancelOptimization(); clearInterval(optimizationClock) })
 const optimizationDebugEnabled = ref(false)
 const optimizationDebugRecord = shallowRef<any>(null)
 const optimizationError = ref('')
@@ -1913,6 +1956,7 @@ async function exportOptimizationDebug() {
     catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
 }
 function handleOptimizeArtifact() {
+    if (optimizationRunning.value) return
     optimizationError.value = ''
     const debug = optimizationDebugEnabled.value ? createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}}) : null
     optimizationDebugRecord.value = debug?.record || null
@@ -1935,20 +1979,26 @@ function handleOptimizeArtifact() {
     } catch (error: any) { reportError(error); return }
 
 
-    const loading = ElLoading.service({
-        lock: true,
-        fullscreen: true,
-        text: "莫娜占卜中"
-    })
+    optimizationProgress.value={percent:null,candidateSpace:null,evaluated:0,remainingGroups:null,etaMs:null}
+    optimizationElapsed.value=0
+    optimizationCancelled.value=false
+    optimizationProgressReceivedElapsed.value=0
+    const controller=new AbortController()
+    optimizationAbortController=controller
+    showOptimizationProgress.value=true
+    optimizationRunning.value=true
+    optimizationClock=setInterval(()=>{optimizationElapsed.value=Date.now()-start.getTime()},250)
 
-    wasmSingleOptimize(optimizeInterface, artifacts, 600000, debug ? debugEvent : undefined).then(results => {
+    wasmSingleOptimize(optimizeInterface, artifacts, {signal:controller.signal,onDebug:debug ? debugEvent : undefined,onProgress:(progress: any) => { optimizationProgress.value=progress; optimizationProgressReceivedElapsed.value=Date.now()-start.getTime() }}).then(results => {
+        if (controller.signal.aborted) return
         debug?.complete(results); triggerRef(optimizationDebugRecord)
-        if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) return
+        if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) { showOptimizationProgress.value=false; return }
         const end = new Date()
         // @ts-ignore
         console.log(`time: ${(end - start) / 1000}s`)
 
         if (results.length === 0) {
+            showOptimizationProgress.value=false
             ElMessage.error({
                 message: "没有符合条件的圣遗物"
             })
@@ -1984,13 +2034,19 @@ function handleOptimizeArtifact() {
             )
         }
     }).catch(e => {
+        if (e.name==='AbortError') { optimizationCancelled.value=true; debug?.cancel(); triggerRef(optimizationDebugRecord); return }
+        showOptimizationProgress.value=false
         reportError(e)
     }).finally(() => {
-        loading.close()
+        clearInterval(optimizationClock)
+        optimizationAbortController=undefined
+        optimizationElapsed.value=Date.now()-start.getTime()
+        optimizationRunning.value=false
     })
 }
 
 watch(() => accountStore.currentAccountId.value, () => {
+    cancelOptimization()
     resetComparisonBaseline()
     optimizationResults.value = []
     optimizationResultIndex.value = 0
@@ -2000,6 +2056,7 @@ watch(() => accountStore.currentAccountId.value, () => {
 </script>
 
 <style lang="scss" scoped>
+.optimization-progress-stats p{display:flex;justify-content:space-between;gap:16px;margin:16px 0}.optimization-progress-stats b{color:var(--el-color-primary)}
 .filter-kumi-search { margin-bottom: 12px; }
 .filter-kumi-node { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .filter-kumi-node img { width: 24px; height: 24px; border-radius: 50%; }
