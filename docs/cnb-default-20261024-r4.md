@@ -1,5 +1,8 @@
 # CNB 实际更新验收与默认下载入口（2026-10-24）
 
+**正式发布后续（覆盖下文历史阶段状态）**：用户随后授权构建和发布，并确认同步两端源码。7.1.12正式四包、README、18项更新说明及对应源码现已发布到GitHub和CNB，均为latest；原R2另行保留。完整本轮结果见[正式发布核对](release-validation-7.1.12.md)。下文的“停止构建／尚未上传”仅描述当时阶段。
+
+
 ## 当前状态
 
 - CNB 浏览器权限阻塞已解除；已通过用户登录的 ChatGPT 浏览器创建 [v7.1.12 测试 Release](https://cnb.cool/twicedrop/genshin_artifact/-/releases/tag/v7.1.12)，上传 R2 的 Windows 安装器、ZIP、旧 UI APK、新 UI APK。latest 回读为 v7.1.12，四个附件均完整可下载。
