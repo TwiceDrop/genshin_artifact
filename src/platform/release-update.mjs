@@ -1,0 +1,105 @@
+import {CapacitorHttp} from '@capacitor/core'
+import {isNative, MonaLocal} from './native.mjs'
+import {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, sourceUrl, officialReleaseUrl,
+    fetchReleaseMetadata, releaseAsset, compareVersions} from '../../server/update-sources.mjs'
+export {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, releaseAsset, compareVersions, sourceUrl}
+export const MANUAL_UPDATE_EVENT = 'mona:check-release-update'
+export const AUTOMATIC_UPDATE_CHANGED_EVENT = 'mona:automatic-release-update-changed'
+const AUTOMATIC_UPDATE_KEY = 'mona.automaticReleaseUpdates'
+const ANDROID_UPDATE_KIND = (process.env.MONA_MOBILE === true || process.env.MONA_MOBILE === 'true') ? 'android-test' : 'android'
+export function isAutomaticUpdateEnabled(storage) {
+    try { return (storage || globalThis.localStorage)?.getItem(AUTOMATIC_UPDATE_KEY) !== 'false' }
+    catch { return true }
+}
+
+export function setAutomaticUpdateEnabled(enabled, storage) {
+    try {
+        const target = storage || globalThis.localStorage
+        if (!target?.setItem) return false
+        target.setItem(AUTOMATIC_UPDATE_KEY, enabled ? 'true' : 'false')
+        globalThis.window?.dispatchEvent(new Event(AUTOMATIC_UPDATE_CHANGED_EVENT))
+        return true
+    } catch { return false }
+}
+
+
+export function describeRelease(release, currentVersion, native = isNative) {
+    const version = String(release.tag_name || '').trim()
+    const difference = compareVersions(version, currentVersion)
+    if (difference === null) throw new Error('发布版本号无法识别')
+    const url = officialReleaseUrl(release.html_url)
+    if (!url) throw new Error('发布版本地址无效')
+    const assets = Array.isArray(release.assets) ? release.assets : []
+    const apk = assets.find(asset => (ANDROID_UPDATE_KIND === 'android-test' ? /_mobiletest_android\.apk$/i : /(?<!_mobiletest)_android\.apk$/i).test(asset.name || '') && officialReleaseUrl(asset.browser_download_url))
+    return {currentVersion, version, newer: difference > 0, url, assets,
+        downloadUrl: native && apk ? officialReleaseUrl(apk.browser_download_url) : url,
+        notes: String(release.body || '').trim() || '此版本未附更新日志。'}
+}
+export async function checkLatestRelease(currentVersion, fetchImpl = globalThis.fetch, native = isNative) {
+    return describeRelease(await fetchReleaseMetadata(fetchImpl, false, currentVersion), currentVersion, native)
+}
+const local = () => !isNative && ['127.0.0.1', 'localhost'].includes(globalThis.location?.hostname)
+async function updateApi(action, body) {
+    const response = await fetch('/api/update/' + action, {method: body === undefined ? 'GET' : 'POST',
+        headers: {'x-mona-local': '1', 'Content-Type': 'application/json'},
+        ...(body === undefined ? {} : {body: JSON.stringify(body)})})
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error)
+    return data
+}
+async function nativeReleaseFetch(url, options) {
+    const response = await CapacitorHttp.request({url, method: 'GET',
+        headers: options.headers, responseType: 'json',
+        connectTimeout: 12000, readTimeout: 12000})
+    return {ok: response.status >= 200 && response.status < 300, status: response.status,
+        json: async () => typeof response.data === 'string' ? JSON.parse(response.data) : response.data}
+}
+export function createReleaseCheckCoordinator(currentVersion, fetchImpl) {
+    let pending = null
+    return () => {
+        if (!pending) {
+            const request = (async () => {
+                if (fetchImpl) return checkLatestRelease(currentVersion, fetchImpl)
+                const release = local() ? await updateApi('latest', {currentVersion}) :
+                    await fetchReleaseMetadata(isNative ? nativeReleaseFetch : globalThis.fetch, false, currentVersion)
+                return describeRelease(release, currentVersion)
+            })()
+            pending = request
+            const clear = () => {if (pending === request) pending = null}
+            request.then(clear, clear)
+        }
+        return pending
+    }
+}
+export async function getUpdatePlatform() {
+    if (isNative) return {kind: ANDROID_UPDATE_KIND, canInstall: true}
+    if (local()) return updateApi('info')
+    return {kind: 'portable', canInstall: false}
+}
+export async function probeUpdateSource(release, kind, source) {
+    if (isNative) return MonaLocal.probeUpdate({url: sourceUrl(releaseAsset(release, kind).browser_download_url, source)})
+    return updateApi('probe', {version: release.version, source})
+}
+export async function startUpdateDownload(release, kind, source) {
+    if (isNative) {
+        const asset = releaseAsset(release, kind)
+        return MonaLocal.downloadUpdate({url: sourceUrl(asset.browser_download_url, source), size: asset.size, version: release.version})
+    }
+    return updateApi('download', {version: release.version, source})
+}
+export async function getUpdateStatus() {
+    return isNative ? MonaLocal.updateStatus() : updateApi('status')
+}
+export async function cancelUpdateDownload() {
+    return isNative ? MonaLocal.cancelUpdate() : updateApi('cancel', {})
+}
+export async function installDownloadedUpdate() {
+    return isNative ? MonaLocal.installUpdate() : updateApi('install', {})
+}
+export function requestManualUpdateCheck() {window.dispatchEvent(new Event(MANUAL_UPDATE_EVENT))}
+export async function openReleaseDownload(url) {
+    const trusted = officialReleaseUrl(url)
+    if (!trusted) throw new Error('更新地址无效')
+    if (isNative) await MonaLocal.openExternal({url: trusted})
+    else window.open(trusted, '_blank', 'noopener,noreferrer')
+}

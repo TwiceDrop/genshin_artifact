@@ -1,0 +1,309 @@
+{
+  "kind": "official-web-android-release",
+  "version": "7.1.07",
+  "basedOn": "7.1.07alpha2",
+  "status": "built-user-confirmed",
+  "userValidation": "User confirmed alpha2 works normally and requested official release with Debug retained.",
+  "tests": {
+    "performed": false,
+    "reason": "No additional tests per user instruction."
+  },
+  "scope": "Version and release metadata only compared with alpha2; Debug and calculation logic retained.",
+  "webBuild": {
+    "success": true,
+    "hash": "978c0f85d8eb75d3",
+    "completedAt": "2026-09-27T02:20:54.821Z"
+  },
+  "androidBuild": {
+    "versionName": "7.1.07",
+    "applicationId": "com.mona.artifact.local",
+    "versionCode": 70107,
+    "success": true,
+    "existingSigningKeyReused": true,
+    "gradleSummary": "BUILD SUCCESSFUL in 37s; 124 actionable tasks"
+  },
+  "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+  "extensionWasmSha256": "8f5816abdc9b7dbc5e5a451cd5c3926614b70badbe0b33eec1447ee341417251",
+  "wasmRebuilt": false,
+  "previousSnapshot": {
+    "kind": "debug-alpha-web-build",
+    "version": "7.1.07alpha2",
+    "status": "built-untested",
+    "tests": {
+      "performed": false,
+      "reason": "User requested no tests; no debug-input replay performed."
+    },
+    "scope": "Fix Webpack recognition of the single optimization Worker; retain Debug mode.",
+    "reportedIssue": "alpha1 debug shows SyntaxError at worker startup before kernel initialization; earlier v7.1.07 failure is not proven resolved.",
+    "rootCause": "new Worker(url) with extracted URL emitted raw module imports as a classic worker asset.",
+    "fix": "Restore inline new Worker(new URL(..., import.meta.url)).",
+    "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+    "extensionWasmSha256": "8f5816abdc9b7dbc5e5a451cd5c3926614b70badbe0b33eec1447ee341417251",
+    "wasmRebuilt": false,
+    "previousSnapshot": {
+      "kind": "debug-alpha-web-build",
+      "version": "7.1.07alpha1",
+      "status": "built-untested",
+      "tests": {
+        "performed": false,
+        "reason": "User explicitly requested no testing after Debug mode / alpha1 request."
+      },
+      "scope": "Opt-in single-optimizer debug export, worker error transport, three native artifact registrations, direct Stellar Swirl conditional/Anemo CRIT consumers.",
+      "reportedIssue": "Still fails after removing all three formerly-blocked sets. Actual user failure not yet diagnosed; debug export requested.",
+      "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+      "extensionWasmSha256": "8f5816abdc9b7dbc5e5a451cd5c3926614b70badbe0b33eec1447ee341417251",
+      "debugCollection": "Memory only until explicit local JSON download; no credentials/storage capture; result reporting disabled for debug runs.",
+      "previousSnapshot": {
+        "kind": "unified-kernel-release",
+        "version": "7.1.07",
+        "basedOn": "v7.1.06",
+        "baseCommit": "ce2fda9",
+        "date": "2026-09-27",
+        "status": "built-and-tested",
+        "delivery": "local web bundle and complete source snapshot; no GitHub publish",
+        "catalogNames": 257,
+        "catalogNamesWithEntry": 257,
+        "catalogNamesRemaining": 0,
+        "adapterNames": 125,
+        "remainingFormulaKnown": 0,
+        "remainingSourceDetailsToRecover": 0,
+        "tests": {
+          "uniqueCases": 5,
+          "passed": 5,
+          "failed": 0,
+          "command": "node --test tests/release-7107.test.mjs",
+          "durationMs": 736.7096,
+          "scope": "JS formulas; real extension and original WASM facade; Vue SFC compiler; final build files and localhost HTTP serving with WASM hashes; no browser E2E or full suite",
+          "preliminaryRun": "Cases 1-4 passed before final integration; same five unique cases only",
+          "cases": [
+            "registration, recipient identity, white stats, real WASM panel",
+            "Alyosha level/C6, stellar branches and Cryo Traveler exclusion",
+            "Nahida/Lauma fixed reaction critical composition and burning separation",
+            "Durin reaction scope, Ifa attributes, manual API and optimization blocking",
+            "Vue, version, dual WASM, final HTTP-served web artifacts"
+          ]
+        },
+        "verificationBuild": {
+          "performed": true,
+          "nativeSourceCompiled": true,
+          "rustToolchain": "nightly-2024-10-10-x86_64-pc-windows-gnu",
+          "target": "wasm32-unknown-unknown",
+          "wasmBindgen": "0.2.92",
+          "webCommand": "npm run build:local -- --dest D:/Documents/ChatGPT/v7.1.07/web/dist",
+          "webpackHash": "8bf5cfbcebb23d01",
+          "warnings": "26 web warnings: CSS ordering and asset/entry size; Node fs.Stats deprecation; no build errors"
+        },
+        "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+        "checkedInExtensionSha256": "7fd88cadd33bb6d2f85600be95c725a2c990d16e24955525fc203e6cc93578f5",
+        "approximation": "3-4 participant reaction Stellar Swirl ranks individual expectations; user accepted approximate marking pending independent-critical/ranking confirmation",
+        "scope": "12 named role BUFFs and explicit manual-main-panel single-hit calculation. Manual state, source stats, layers and field status. No arbitrary old-role optimization or all-name manual recipe guarantee.",
+        "previousSnapshot": {
+          "kind": "unified-kernel-source-snapshot",
+          "basedOn": "v7.1.06",
+          "baseCommit": "ce2fda9",
+          "status": "source-updated",
+          "delivery": "source-only; no Rust/WASM/web build or release",
+          "catalogNames": 257,
+          "catalogNamesWithEntry": 245,
+          "catalogNamesRemaining": 12,
+          "remainingFormulaKnown": 11,
+          "remainingSourceDetailsToRecover": 1,
+          "tests": {
+            "uniqueCases": 5,
+            "passed": 5,
+            "failed": 0,
+            "command": "node --test tests/lunar-equipment.test.mjs",
+            "scope": "JS registry, scoped damage formulas, deduplication and facade with stub underlying API; no native build/browser test",
+            "affectedCaseRetries": [
+              {
+                "cases": [
+                  4
+                ],
+                "reason": "Inactive moonlight effect must not trigger native duplicate guard",
+                "passed": 1
+              }
+            ]
+          },
+          "verificationBuild": {
+            "performed": false,
+            "nativeSourceCompiled": false
+          },
+          "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+          "checkedInExtensionSha256": "f2671ff81d77ef45c2c9cad87f2cb087f2e0565cfe92d225c2fcaa9532f8f561",
+          "approximation": "3-4 participant reaction Stellar Swirl ranks individual expectations; user accepted approximate marking pending independent-critical/ranking confirmation",
+          "scope": "Five named equipment team BUFFs integrated; explicit state/overlap inputs. Equipped native moonlight duplicate configuration rejected. No new team-source or timeline simulation.",
+          "previousSnapshot": {
+            "kind": "unified-kernel-source-snapshot",
+            "basedOn": "v7.1.06",
+            "baseCommit": "ce2fda9",
+            "status": "source-updated",
+            "delivery": "source-only; no Rust/WASM/web build or release",
+            "catalogNames": 257,
+            "catalogNamesWithEntry": 240,
+            "catalogNamesRemaining": 17,
+            "remainingFormulaKnown": 16,
+            "remainingSourceDetailsToRecover": 1,
+            "tests": {
+              "uniqueCases": 5,
+              "passed": 5,
+              "failed": 0,
+              "command": "node --test tests/lunar-characters.test.mjs",
+              "affectedCaseRetries": [
+                {
+                  "cases": [
+                    3,
+                    5
+                  ],
+                  "passed": 2,
+                  "reason": "recipient on-field defaults and facade beneficiary binding"
+                }
+              ],
+              "scope": "JS formulas and registry; facade with stub native API; Vue SFC syntax. No Rust/WASM build or browser interaction."
+            },
+            "verificationBuild": {
+              "performed": false,
+              "nativeSourceCompiled": false
+            },
+            "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+            "checkedInExtensionSha256": "f2671ff81d77ef45c2c9cad87f2cb087f2e0565cfe92d225c2fcaa9532f8f561",
+            "approximation": "3-4 participant reaction Stellar Swirl ranks individual expectations; user accepted approximate marking pending independent-critical/ranking confirmation",
+            "scope": "22 named character adapters and scoped single-hit consumers. No new automatic team sources, full character skills, state timeline or optimizer mappings. Two cores remain separate.",
+            "previousSnapshot": {
+              "kind": "unified-kernel-source-snapshot",
+              "basedOn": "v7.1.06",
+              "baseCommit": "ce2fda9",
+              "status": "source-updated",
+              "delivery": "source-only; no Rust/WASM/web build or release",
+              "catalogNames": 257,
+              "catalogNamesWithEntry": 218,
+              "catalogNamesRemaining": 39,
+              "remainingFormulaKnown": 33,
+              "remainingSourceDetailsToRecover": 6,
+              "tests": {
+                "uniqueCases": 5,
+                "passed": 5,
+                "failed": 0,
+                "command": "node --test tests/reaction-parameters.test.mjs",
+                "scope": "JS formulas and registry, facade with a stub underlying API, Vue SFC syntax; not native WASM or browser interaction"
+              },
+              "verificationBuild": {
+                "performed": false,
+                "nativeSourceCompiled": false
+              },
+              "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+              "checkedInExtensionSha256": "f2671ff81d77ef45c2c9cad87f2cb087f2e0565cfe92d225c2fcaa9532f8f561",
+              "approximation": "3-4 participant reaction Stellar Swirl ranks individual expectations; user accepted approximate marking pending independent-critical/ranking confirmation",
+              "scope": "Ten reaction parameters/resonances registered and consumed within documented paths; not all character mappings or optimization; two cores remain separate.",
+              "previousSnapshot": {
+                "kind": "unified-kernel-source-snapshot",
+                "basedOn": "v7.1.06",
+                "baseCommit": "d2703227cd3141dbcccc036469f304ed1bc22ff6",
+                "status": "paused-at-user-request",
+                "delivery": "source-only; final web build cancelled at user request",
+                "catalogNames": 257,
+                "catalogNamesWithEntry": 208,
+                "catalogNamesRemaining": 49,
+                "remainingFormulaKnown": 41,
+                "remainingSourceDetailsToRecover": 8,
+                "newCharacterBuffsThisBatch": [
+                  "IansanTalent2",
+                  "NicoleE",
+                  "MonaMagusGlow",
+                  "PruneTalent2",
+                  "IllugaP2"
+                ],
+                "tests": {
+                  "uniqueCases": 5,
+                  "passed": 5,
+                  "command": "node --test tests/lunar-integration.test.mjs",
+                  "initialLog": ".cache/lunar-tests.tap",
+                  "affectedCaseRetries": [
+                    {
+                      "cases": [
+                        2
+                      ],
+                      "log": ".cache/lunar-tests-retry.tap"
+                    },
+                    {
+                      "cases": [
+                        3,
+                        4,
+                        5
+                      ],
+                      "log": ".cache/lunar-tests-characters.tap"
+                    },
+                    {
+                      "cases": [
+                        3,
+                        5
+                      ],
+                      "log": ".cache/lunar-tests-formula-final.tap"
+                    }
+                  ],
+                  "scope": "Targeted cases against a temporary rebuilt extension; not exhaustive per-character coverage. Source-only checkout requires rebuilding before rerunning these native cases."
+                },
+                "verificationBuild": {
+                  "rust": "nightly-2024-10-10-x86_64-pc-windows-gnu",
+                  "target": "wasm32-unknown-unknown",
+                  "bindgen": "0.2.92",
+                  "temporaryExtensionSha256": "eee0dae6d9abb6d98f7e513995e7b030225083680911e16a10f3c7eff443b1d1",
+                  "webFinal": "cancelled; no new deployable build delivered"
+                },
+                "publishedWasmSha256": "fa42077784f9556dd312743bc1327bd475970c53146e4867191f3cad63005b90",
+                "checkedInExtensionSha256": "f2671ff81d77ef45c2c9cad87f2cb087f2e0565cfe92d225c2fcaa9532f8f561",
+                "approximation": "3-4 participant reaction Stellar Swirl ranks individual expectations; user accepted approximate marking pending independent-critical/ranking confirmation",
+                "scope": "Two-core interoperability adapters, not a merged core. Manual lunar calculations are single-hit inputs, not automatic character or artifact optimization support."
+              }
+            },
+            "adapterNames": 108,
+            "newCharacterBuffsThisBatch": [
+              "AinoC6",
+              "IneffaMoonelectroRelay",
+              "FlinsTalent1",
+              "FlinsC6",
+              "LaumaTalent1",
+              "LaumaTalent2",
+              "LaumaSkillResMinus",
+              "LaumaBurst",
+              "LaumaC6",
+              "NeferTalent1",
+              "ZibaiTalent1",
+              "ZibaiC2",
+              "LinneaTalent1",
+              "LinneaC1",
+              "LinneaC4",
+              "LinneaC6",
+              "IllugaQ",
+              "ColumbinaP1",
+              "ColumbinaQ",
+              "ColumbinaC2",
+              "ColumbinaConstellation",
+              "ColumbinaC6"
+            ]
+          },
+          "adapterNames": 113,
+          "newEquipmentBuffsThisBatch": [
+            "NightweaversLookingGlass",
+            "GoldenFrostboundOath",
+            "FracturedHalo",
+            "SpinMoonSerenade",
+            "RealmMirrorNight"
+          ]
+        }
+      },
+      "webBuild": {
+        "completed": true,
+        "webpackHash": "f4d88a2bade6d34b",
+        "command": "npm run build:local -- --dest D:/Documents/ChatGPT/v7.1.07alpha1/web/dist",
+        "warnings": "CSS order and asset size warnings retained; build completed successfully"
+      }
+    },
+    "webBuild": {
+      "hash": "53f176cfb715ebe8",
+      "exitCode": 0,
+      "durationMs": 35741,
+      "testsRun": false,
+      "completedAt": "2026-09-27T02:12:43.226Z"
+    }
+  }
+}

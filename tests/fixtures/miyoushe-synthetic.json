@@ -1,0 +1,730 @@
+{
+  "version": 1,
+  "source": "miyoushe",
+  "role": {
+    "uid": "999999999",
+    "region": "cn_gf01",
+    "nickname": "本地合成测试（非游戏账号数据）"
+  },
+  "importedAt": "2026-09-10T16:22:17.777Z",
+  "total": 4,
+  "failures": [],
+  "characters": [
+    {
+      "base": {
+        "id": 99901001,
+        "name": "桑多涅",
+        "element": "Cryo",
+        "level": 90,
+        "actived_constellation_num": 0
+      },
+      "weapon": {
+        "name": "训练大剑",
+        "level": 20,
+        "promote_level": 1,
+        "affix_level": 1
+      },
+      "skills": [
+        {
+          "name": "事象数式·自明演绎",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "事象数式·游衍解析",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "事象数式·万理证毕",
+          "skill_type": 1,
+          "level": 10
+        }
+      ],
+      "relics": [
+        {
+          "id": 11100,
+          "pos": 1,
+          "name": "感谢你的奉献",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 2,
+            "value": "4780"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11101,
+          "pos": 2,
+          "name": "铭记你的功勋",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 5,
+            "value": "311"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11102,
+          "pos": 3,
+          "name": "授予你的年华",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 6,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11103,
+          "pos": 4,
+          "name": "饮尽你的血泪",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 46,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11104,
+          "pos": 5,
+          "name": "缅怀你的信仰",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 20,
+            "value": "31.1%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "base": {
+        "id": 99901002,
+        "name": "奥黛塔",
+        "element": "Cryo",
+        "level": 90,
+        "actived_constellation_num": 0
+      },
+      "weapon": {
+        "name": "无锋剑",
+        "level": 20,
+        "promote_level": 1,
+        "affix_level": 1
+      },
+      "skills": [
+        {
+          "name": "雪鹄变奏",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "柔板·幻灵夜舞",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "疾板·苍羽一梦",
+          "skill_type": 1,
+          "level": 10
+        }
+      ],
+      "relics": [
+        {
+          "id": 11100,
+          "pos": 1,
+          "name": "感谢你的奉献",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 2,
+            "value": "4780"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11101,
+          "pos": 2,
+          "name": "铭记你的功勋",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 5,
+            "value": "311"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11102,
+          "pos": 3,
+          "name": "授予你的年华",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 6,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11103,
+          "pos": 4,
+          "name": "饮尽你的血泪",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 46,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11104,
+          "pos": 5,
+          "name": "缅怀你的信仰",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 20,
+            "value": "31.1%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "base": {
+        "id": 99901003,
+        "name": "阿罗夏",
+        "element": "Electro",
+        "level": 90,
+        "actived_constellation_num": 0
+      },
+      "weapon": {
+        "name": "新手长枪",
+        "level": 20,
+        "promote_level": 1,
+        "affix_level": 1
+      },
+      "skills": [
+        {
+          "name": "普通攻击·角枪驰弋",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "伏袭霆击",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "守猎进踞",
+          "skill_type": 1,
+          "level": 10
+        }
+      ],
+      "relics": [
+        {
+          "id": 11100,
+          "pos": 1,
+          "name": "感谢你的奉献",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 2,
+            "value": "4780"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11101,
+          "pos": 2,
+          "name": "铭记你的功勋",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 5,
+            "value": "311"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11102,
+          "pos": 3,
+          "name": "授予你的年华",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 6,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11103,
+          "pos": 4,
+          "name": "饮尽你的血泪",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 46,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11104,
+          "pos": 5,
+          "name": "缅怀你的信仰",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 20,
+            "value": "31.1%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "base": {
+        "id": 99901004,
+        "name": "砂糖",
+        "element": "Anemo",
+        "level": 90,
+        "actived_constellation_num": 0
+      },
+      "weapon": {
+        "name": "学徒笔记",
+        "level": 20,
+        "promote_level": 1,
+        "affix_level": 1
+      },
+      "skills": [
+        {
+          "name": "普通攻击·简式风灵作成",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "风灵作成·陆叁零捌",
+          "skill_type": 1,
+          "level": 10
+        },
+        {
+          "name": "禁·风灵作成·柒伍同构贰型",
+          "skill_type": 1,
+          "level": 10
+        }
+      ],
+      "relics": [
+        {
+          "id": 11100,
+          "pos": 1,
+          "name": "感谢你的奉献",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 2,
+            "value": "4780"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11101,
+          "pos": 2,
+          "name": "铭记你的功勋",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 5,
+            "value": "311"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11102,
+          "pos": 3,
+          "name": "授予你的年华",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 6,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11103,
+          "pos": 4,
+          "name": "饮尽你的血泪",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 46,
+            "value": "46.6%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        },
+        {
+          "id": 11104,
+          "pos": 5,
+          "name": "缅怀你的信仰",
+          "level": 20,
+          "rarity": 5,
+          "main_property": {
+            "property_type": 20,
+            "value": "31.1%"
+          },
+          "sub_property_list": [
+            {
+              "property_type": 22,
+              "value": "21.0%"
+            },
+            {
+              "property_type": 28,
+              "value": "40"
+            },
+            {
+              "property_type": 23,
+              "value": "11.0%"
+            },
+            {
+              "property_type": 8,
+              "value": "39"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

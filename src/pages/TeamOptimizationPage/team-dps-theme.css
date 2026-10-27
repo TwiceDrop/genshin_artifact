@@ -1,0 +1,38 @@
+.team-configurations,.team-dps-dialog,.team-dps-popper{--el-font-size-base:16px;--el-font-size-small:14px;--el-component-size:36px;font-size:16px}
+.team-configurations{color:#303849;background:#f6f8fb;border-radius:16px;min-height:calc(100vh - 70px)}
+.team-configurations .el-button,.team-dps-dialog .el-button{border-radius:8px;font-size:16px;font-weight:600}
+.team-configurations .el-input__wrapper,.team-configurations .el-textarea__inner,.team-dps-dialog .el-input__wrapper,.team-dps-dialog .el-textarea__inner{border-radius:8px}
+.team-configurations .el-input-number,.team-dps-dialog .el-input-number{border-radius:8px;overflow:hidden}
+.team-configurations .el-input-number__decrease,.team-configurations .el-input-number__increase,.team-dps-dialog .el-input-number__decrease,.team-dps-dialog .el-input-number__increase{background:#f5f7fa;color:#5c6a7d}
+.team-configurations .el-form-item__label,.team-dps-dialog .el-form-item__label{color:#5d6b81;font-size:16px;font-weight:600;line-height:22px;margin-bottom:6px}
+.team-configurations .el-input__inner,.team-dps-dialog .el-input__inner{font-size:16px}
+.team-configurations .el-checkbox__label,.team-dps-dialog .el-checkbox__label{font-size:15px}
+.team-configurations .el-tabs__item,.team-dps-dialog .el-tabs__item{font-size:16px}
+.team-dps-popper .el-select-dropdown__item{font-size:16px;height:36px;line-height:36px}
+.team-configurations .el-slider__runway{background:#edf1f6;height:5px}.team-configurations .el-slider__bar{background:#79adf4;height:5px}
+.team-configurations .el-slider__button{width:16px;height:16px;background:linear-gradient(#d9eaff,#83b2f3);border:1px solid #78a9e8;box-shadow:0 2px 7px #719dd533}
+.team-configurations .el-table,.team-dps-dialog .el-table{--el-table-header-bg-color:#f6f8fc;--el-table-row-hover-bg-color:#f0f6ff;--el-table-border-color:#e9edf3;font-size:15px}
+.team-configurations .el-collapse{--el-collapse-header-bg-color:transparent;--el-collapse-content-bg-color:transparent;--el-collapse-border-color:#e5eaf1}
+.team-configurations .el-collapse-item__header{font-size:19px;font-weight:650;color:#354155}.team-configurations .el-collapse-item__content{color:#536177}
+.team-dps-dialog{border:1px solid #e3e8ef;border-radius:14px;box-shadow:0 18px 70px #24395726}
+.team-dps-dialog .el-dialog__title{font-size:21px;font-weight:650}.team-dps-dialog .el-dialog__body{padding-top:12px;font-size:16px}
+.team-dps-dialog .member-settings #pane-constraints{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}
+.team-dps-dialog .member-settings #pane-constraints .el-form-item{margin-bottom:0;min-width:0}
+.team-dps-popper{border-radius:9px}
+.team-dps .config-root,.team-dps-dialog .config-root{background:#f4f8fe!important;border:1px solid #e1eaf5;border-radius:10px}
+.team-dps .config-root .config-title,.team-dps-dialog .config-root .config-title{color:#64758d;font-size:15px;margin-bottom:6px}
+.team-dps-dialog .config-items .artifact-title{font-size:17px!important}
+.team-dps-dialog .config-items .top p{font-size:14px!important;line-height:1.55}
+.team-dps .gear .artifact{background:#fff;border-color:#e2e8f1;border-radius:10px;overflow:hidden;min-width:0}
+.team-dps .gear .artifact .up{border-color:#e5ebf3;background:#f6f9fd}
+.team-dps .builds-card .result-member .gear .artifact .up{height:38px;padding:0 8px 0 40px;align-items:center}
+.team-dps .builds-card .result-member .gear .artifact .up .name{color:#4b6588;font-size:15px;height:38px;line-height:38px}
+.team-dps .builds-card .result-member .gear .artifact .down{display:block;padding:8px 10px}
+.team-dps .builds-card .result-member .gear .artifact .down>div:first-child{position:absolute;top:5px;left:7px}
+.team-dps .builds-card .result-member .gear .artifact .down .sec-tag{color:#687991;font-size:14px;line-height:1.5}
+.team-dps .builds-card .result-member .gear .artifact .down .main-tag{font-size:14px;line-height:1.5}
+.team-dps .builds-card .result-member .gear .artifact .down .myimage{width:28px;height:28px;margin:0;border-radius:7px}
+.team-dps-dialog .header-row .big-title{background:#e1edfc!important;color:#405e84}
+.team-dps-dialog .header-row .header{background:#f0f5fc;color:#5b7190}
+.team-dps-dialog .header-row .input{background:#fff;color:#354155;border-radius:4px;font-size:15px}
+@media(max-width:550px){.team-configurations .el-button,.team-dps-dialog .el-button,.team-configurations .el-form-item__label,.team-dps-dialog .el-form-item__label{font-size:14px}.team-configurations .el-collapse-item__header{font-size:18px}.team-dps-dialog .member-settings #pane-constraints{grid-template-columns:1fr}}

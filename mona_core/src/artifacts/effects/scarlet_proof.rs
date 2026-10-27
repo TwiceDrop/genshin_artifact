@@ -1,0 +1,7 @@
+
+ use crate::attribute::{Attribute,AttributeName,AttributeCommon};use crate::artifacts::artifact_trait::{ArtifactMetaData,ArtifactTrait};use crate::artifacts::effect::ArtifactEffect;use crate::artifacts::effect_config::ArtifactEffectConfig;use crate::character::character_common_data::CharacterCommonData;
+ pub struct ScarletProof;pub struct Effect{rate:f64}
+ impl<A:Attribute> ArtifactEffect<A> for Effect{fn effect2(&self,a:&mut A){a.add_atk_percentage("ScarletProof2",0.18);a.set_value_by(AttributeName::ElementalMastery,"ScarletProof2",0.0);}fn effect4(&self,a:&mut A){a.add_atk_percentage("ScarletProof4",0.0*self.rate);a.set_value_by(AttributeName::CriticalBase,"ScarletProof4",0.16*self.rate);a.set_value_by(AttributeName::StellarSwirlBonus,"ScarletProof4",0.4*self.rate);}}
+ impl ArtifactTrait for ScarletProof{fn create_effect<A:Attribute>(c:&ArtifactEffectConfig,_:&CharacterCommonData)->Box<dyn ArtifactEffect<A>>{Box::new(Effect{rate:c.config_scarlet_proof.rate.clamp(0.0,1.0)})}
+ #[cfg(not(target_family="wasm"))]const META_DATA:ArtifactMetaData=ArtifactMetaData{name:crate::artifacts::ArtifactSetName::ScarletProof,name_mona:"scarlet_proof",name_locale:crate::common::i18n::locale!(zh_cn:"ScarletProof",en:"ScarletProof"),flower:None,feather:None,sand:None,goblet:None,head:None,star:(4,5),effect1:None,effect2:None,effect3:None,effect4:None,effect5:None,internal_id:0};}
+ 

@@ -1,0 +1,16 @@
+{
+  "name": "mona-mobile-ui",
+  "private": true,
+  "version": "7.1.13-DPSBeta",
+  "dependencies": {
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "radix-vue": "1.8.4",
+    "tailwind-merge": "2.6.0"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0",
+    "playwright": "1.56.1",
+    "tailwindcss": "3.4.17"
+  }
+}

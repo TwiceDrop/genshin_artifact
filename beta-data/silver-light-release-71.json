@@ -1,0 +1,1281 @@
+{
+  "id": 11438,
+  "name": "SilverLight",
+  "displayName": "银釭",
+  "englishName": "Silver Light",
+  "weaponType": "Sword",
+  "rarity": 4,
+  "secondaryStat": "ATKPercentage",
+  "revision": {
+    "branch": "release",
+    "version": "7.1.0",
+    "designRevision": 48145775,
+    "resourceRevision": 48145775
+  },
+  "sources": {
+    "chs": "https://gi.gachabase.net/weapons/11438/silver-light/release?lang=chs",
+    "en": "https://gi.gachabase.net/weapons/11438/silver-light/release?lang=en"
+  },
+  "imageUrl": "https://i.gachabase.net/86YBIC0e4zfj8FhRqSqaBNpaTYm0vTzfFASxriJipF8/q:50/f:webp/plain/gi/assets/ecf2f2ad2596be1d3844595a796f93dd.png",
+  "attributes": [
+    {
+      "attribute_id": 4,
+      "curve_id": 1201,
+      "value": 42.401
+    },
+    {
+      "attribute_id": 6,
+      "curve_id": 2201,
+      "value": 0.09
+    }
+  ],
+  "promotions": [
+    {
+      "level": 0,
+      "maximum_level": 20,
+      "stat_additions": [],
+      "upgrade_costs": []
+    },
+    {
+      "level": 1,
+      "maximum_level": 40,
+      "stat_additions": [
+        {
+          "stat_id": 4,
+          "value": 25.9
+        }
+      ],
+      "upgrade_costs": [
+        {
+          "item_id": 114021,
+          "amount": 3
+        },
+        {
+          "item_id": 112041,
+          "amount": 3
+        },
+        {
+          "item_id": 112032,
+          "amount": 2
+        },
+        {
+          "item_id": 202,
+          "amount": 5000
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "maximum_level": 50,
+      "stat_additions": [
+        {
+          "stat_id": 4,
+          "value": 51.9
+        }
+      ],
+      "upgrade_costs": [
+        {
+          "item_id": 114022,
+          "amount": 3
+        },
+        {
+          "item_id": 112041,
+          "amount": 12
+        },
+        {
+          "item_id": 112032,
+          "amount": 8
+        },
+        {
+          "item_id": 202,
+          "amount": 15000
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "maximum_level": 60,
+      "stat_additions": [
+        {
+          "stat_id": 4,
+          "value": 77.8
+        }
+      ],
+      "upgrade_costs": [
+        {
+          "item_id": 114022,
+          "amount": 6
+        },
+        {
+          "item_id": 112042,
+          "amount": 6
+        },
+        {
+          "item_id": 112033,
+          "amount": 6
+        },
+        {
+          "item_id": 202,
+          "amount": 20000
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "maximum_level": 70,
+      "stat_additions": [
+        {
+          "stat_id": 4,
+          "value": 103.7
+        }
+      ],
+      "upgrade_costs": [
+        {
+          "item_id": 114023,
+          "amount": 3
+        },
+        {
+          "item_id": 112042,
+          "amount": 12
+        },
+        {
+          "item_id": 112033,
+          "amount": 9
+        },
+        {
+          "item_id": 202,
+          "amount": 30000
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "maximum_level": 80,
+      "stat_additions": [
+        {
+          "stat_id": 4,
+          "value": 129.7
+        }
+      ],
+      "upgrade_costs": [
+        {
+          "item_id": 114023,
+          "amount": 6
+        },
+        {
+          "item_id": 112043,
+          "amount": 9
+        },
+        {
+          "item_id": 112034,
+          "amount": 6
+        },
+        {
+          "item_id": 202,
+          "amount": 35000
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "maximum_level": 90,
+      "stat_additions": [
+        {
+          "stat_id": 4,
+          "value": 155.6
+        }
+      ],
+      "upgrade_costs": [
+        {
+          "item_id": 114024,
+          "amount": 4
+        },
+        {
+          "item_id": 112043,
+          "amount": 18
+        },
+        {
+          "item_id": 112034,
+          "amount": 12
+        },
+        {
+          "item_id": 202,
+          "amount": 45000
+        }
+      ]
+    }
+  ],
+  "curves": {
+    "1201": {
+      "id": 1201,
+      "operation": 2,
+      "values": [
+        1,
+        1.083,
+        1.165,
+        1.248,
+        1.33,
+        1.413,
+        1.495,
+        1.578,
+        1.661,
+        1.743,
+        1.826,
+        1.908,
+        1.991,
+        2.073,
+        2.156,
+        2.239,
+        2.321,
+        2.404,
+        2.486,
+        2.569,
+        2.651,
+        2.734,
+        2.817,
+        2.899,
+        2.982,
+        3.064,
+        3.147,
+        3.229,
+        3.312,
+        3.394,
+        3.477,
+        3.56,
+        3.642,
+        3.725,
+        3.807,
+        3.89,
+        3.972,
+        4.055,
+        4.138,
+        4.22,
+        4.303,
+        4.385,
+        4.468,
+        4.55,
+        4.633,
+        4.716,
+        4.798,
+        4.881,
+        4.963,
+        5.046,
+        5.128,
+        5.211,
+        5.294,
+        5.376,
+        5.459,
+        5.541,
+        5.624,
+        5.706,
+        5.789,
+        5.872,
+        5.954,
+        6.037,
+        6.119,
+        6.202,
+        6.284,
+        6.367,
+        6.45,
+        6.532,
+        6.615,
+        6.697,
+        6.78,
+        6.862,
+        6.945,
+        7.028,
+        7.11,
+        7.193,
+        7.275,
+        7.358,
+        7.44,
+        7.523,
+        7.606,
+        7.688,
+        7.771,
+        7.853,
+        7.936,
+        8.018,
+        8.101,
+        8.183,
+        8.266,
+        8.349,
+        8.431,
+        8.514,
+        8.596,
+        8.679,
+        8.761,
+        8.844,
+        8.927,
+        9.009,
+        9.092,
+        9.174
+      ]
+    },
+    "2201": {
+      "id": 2201,
+      "operation": 2,
+      "values": [
+        1,
+        1,
+        1,
+        1,
+        1.162,
+        1.162,
+        1.162,
+        1.162,
+        1.162,
+        1.363,
+        1.363,
+        1.363,
+        1.363,
+        1.363,
+        1.565,
+        1.565,
+        1.565,
+        1.565,
+        1.565,
+        1.767,
+        1.767,
+        1.767,
+        1.767,
+        1.767,
+        1.969,
+        1.969,
+        1.969,
+        1.969,
+        1.969,
+        2.171,
+        2.171,
+        2.171,
+        2.171,
+        2.171,
+        2.373,
+        2.373,
+        2.373,
+        2.373,
+        2.373,
+        2.575,
+        2.575,
+        2.575,
+        2.575,
+        2.575,
+        2.777,
+        2.777,
+        2.777,
+        2.777,
+        2.777,
+        2.979,
+        2.979,
+        2.979,
+        2.979,
+        2.979,
+        3.181,
+        3.181,
+        3.181,
+        3.181,
+        3.181,
+        3.383,
+        3.383,
+        3.383,
+        3.383,
+        3.383,
+        3.585,
+        3.585,
+        3.585,
+        3.585,
+        3.585,
+        3.786,
+        3.786,
+        3.786,
+        3.786,
+        3.786,
+        3.988,
+        3.988,
+        3.988,
+        3.988,
+        3.988,
+        4.19,
+        4.19,
+        4.19,
+        4.19,
+        4.19,
+        4.392,
+        4.392,
+        4.392,
+        4.392,
+        4.392,
+        4.594,
+        4.594,
+        4.594,
+        4.594,
+        4.594,
+        4.796,
+        4.796,
+        4.796,
+        4.796,
+        4.796,
+        4.998
+      ]
+    }
+  },
+  "refinements": [
+    [
+      52,
+      12,
+      2
+    ],
+    [
+      65,
+      12,
+      2
+    ],
+    [
+      78,
+      12,
+      2
+    ],
+    [
+      91,
+      12,
+      2
+    ],
+    [
+      104,
+      12,
+      2
+    ]
+  ],
+  "refinementDetails": [
+    {
+      "refine": 1,
+      "name": "翦霞照水",
+      "description": "施放元素战技后的12秒内，元素精通提升<color=#99FFFFFF>52</color>点。该效果至多叠加2层，每层持续时间独立计算。",
+      "nameEnglish": "Radiance on the Water",
+      "descriptionEnglish": "Increases Elemental Mastery by <color=#99FFFFFF>52</color> for 12s after Elemental Skill use. Max 2 stacks, and each stack's duration is independent of the others.",
+      "parameters": [
+        52,
+        12,
+        2
+      ]
+    },
+    {
+      "refine": 2,
+      "name": "翦霞照水",
+      "description": "施放元素战技后的12秒内，元素精通提升<color=#99FFFFFF>65</color>点。该效果至多叠加2层，每层持续时间独立计算。",
+      "nameEnglish": "Radiance on the Water",
+      "descriptionEnglish": "Increases Elemental Mastery by <color=#99FFFFFF>65</color> for 12s after Elemental Skill use. Max 2 stacks, and each stack's duration is independent of the others.",
+      "parameters": [
+        65,
+        12,
+        2
+      ]
+    },
+    {
+      "refine": 3,
+      "name": "翦霞照水",
+      "description": "施放元素战技后的12秒内，元素精通提升<color=#99FFFFFF>78</color>点。该效果至多叠加2层，每层持续时间独立计算。",
+      "nameEnglish": "Radiance on the Water",
+      "descriptionEnglish": "Increases Elemental Mastery by <color=#99FFFFFF>78</color> for 12s after Elemental Skill use. Max 2 stacks, and each stack's duration is independent of the others.",
+      "parameters": [
+        78,
+        12,
+        2
+      ]
+    },
+    {
+      "refine": 4,
+      "name": "翦霞照水",
+      "description": "施放元素战技后的12秒内，元素精通提升<color=#99FFFFFF>91</color>点。该效果至多叠加2层，每层持续时间独立计算。",
+      "nameEnglish": "Radiance on the Water",
+      "descriptionEnglish": "Increases Elemental Mastery by <color=#99FFFFFF>91</color> for 12s after Elemental Skill use. Max 2 stacks, and each stack's duration is independent of the others.",
+      "parameters": [
+        91,
+        12,
+        2
+      ]
+    },
+    {
+      "refine": 5,
+      "name": "翦霞照水",
+      "description": "施放元素战技后的12秒内，元素精通提升<color=#99FFFFFF>104</color>点。该效果至多叠加2层，每层持续时间独立计算。",
+      "nameEnglish": "Radiance on the Water",
+      "descriptionEnglish": "Increases Elemental Mastery by <color=#99FFFFFF>104</color> for 12s after Elemental Skill use. Max 2 stacks, and each stack's duration is independent of the others.",
+      "parameters": [
+        104,
+        12,
+        2
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "ascend": false,
+      "attack": 42,
+      "subStat": 0.09,
+      "attackRaw": 42.401,
+      "subStatRaw": 0.09
+    },
+    {
+      "level": 2,
+      "ascend": false,
+      "attack": 46,
+      "subStat": 0.09,
+      "attackRaw": 45.920283000000005,
+      "subStatRaw": 0.09
+    },
+    {
+      "level": 3,
+      "ascend": false,
+      "attack": 49,
+      "subStat": 0.09,
+      "attackRaw": 49.39716500000001,
+      "subStatRaw": 0.09
+    },
+    {
+      "level": 4,
+      "ascend": false,
+      "attack": 53,
+      "subStat": 0.09,
+      "attackRaw": 52.916448,
+      "subStatRaw": 0.09
+    },
+    {
+      "level": 5,
+      "ascend": false,
+      "attack": 56,
+      "subStat": 0.1046,
+      "attackRaw": 56.393330000000006,
+      "subStatRaw": 0.10457999999999999
+    },
+    {
+      "level": 6,
+      "ascend": false,
+      "attack": 60,
+      "subStat": 0.1046,
+      "attackRaw": 59.91261300000001,
+      "subStatRaw": 0.10457999999999999
+    },
+    {
+      "level": 7,
+      "ascend": false,
+      "attack": 63,
+      "subStat": 0.1046,
+      "attackRaw": 63.38949500000001,
+      "subStatRaw": 0.10457999999999999
+    },
+    {
+      "level": 8,
+      "ascend": false,
+      "attack": 67,
+      "subStat": 0.1046,
+      "attackRaw": 66.90877800000001,
+      "subStatRaw": 0.10457999999999999
+    },
+    {
+      "level": 9,
+      "ascend": false,
+      "attack": 70,
+      "subStat": 0.1046,
+      "attackRaw": 70.42806100000001,
+      "subStatRaw": 0.10457999999999999
+    },
+    {
+      "level": 10,
+      "ascend": false,
+      "attack": 74,
+      "subStat": 0.1227,
+      "attackRaw": 73.90494300000002,
+      "subStatRaw": 0.12267
+    },
+    {
+      "level": 11,
+      "ascend": false,
+      "attack": 77,
+      "subStat": 0.1227,
+      "attackRaw": 77.424226,
+      "subStatRaw": 0.12267
+    },
+    {
+      "level": 12,
+      "ascend": false,
+      "attack": 81,
+      "subStat": 0.1227,
+      "attackRaw": 80.90110800000001,
+      "subStatRaw": 0.12267
+    },
+    {
+      "level": 13,
+      "ascend": false,
+      "attack": 84,
+      "subStat": 0.1227,
+      "attackRaw": 84.42039100000001,
+      "subStatRaw": 0.12267
+    },
+    {
+      "level": 14,
+      "ascend": false,
+      "attack": 88,
+      "subStat": 0.1227,
+      "attackRaw": 87.897273,
+      "subStatRaw": 0.12267
+    },
+    {
+      "level": 15,
+      "ascend": false,
+      "attack": 91,
+      "subStat": 0.1409,
+      "attackRaw": 91.41655600000001,
+      "subStatRaw": 0.14085
+    },
+    {
+      "level": 16,
+      "ascend": false,
+      "attack": 95,
+      "subStat": 0.1409,
+      "attackRaw": 94.935839,
+      "subStatRaw": 0.14085
+    },
+    {
+      "level": 17,
+      "ascend": false,
+      "attack": 98,
+      "subStat": 0.1409,
+      "attackRaw": 98.41272100000002,
+      "subStatRaw": 0.14085
+    },
+    {
+      "level": 18,
+      "ascend": false,
+      "attack": 102,
+      "subStat": 0.1409,
+      "attackRaw": 101.932004,
+      "subStatRaw": 0.14085
+    },
+    {
+      "level": 19,
+      "ascend": false,
+      "attack": 105,
+      "subStat": 0.1409,
+      "attackRaw": 105.40888600000002,
+      "subStatRaw": 0.14085
+    },
+    {
+      "level": 20,
+      "ascend": false,
+      "attack": 109,
+      "subStat": 0.159,
+      "attackRaw": 108.92816900000001,
+      "subStatRaw": 0.15902999999999998
+    },
+    {
+      "level": 20,
+      "ascend": true,
+      "attack": 135,
+      "subStat": 0.159,
+      "attackRaw": 134.828169,
+      "subStatRaw": 0.15902999999999998
+    },
+    {
+      "level": 21,
+      "ascend": false,
+      "attack": 138,
+      "subStat": 0.159,
+      "attackRaw": 138.305051,
+      "subStatRaw": 0.15902999999999998
+    },
+    {
+      "level": 22,
+      "ascend": false,
+      "attack": 142,
+      "subStat": 0.159,
+      "attackRaw": 141.824334,
+      "subStatRaw": 0.15902999999999998
+    },
+    {
+      "level": 23,
+      "ascend": false,
+      "attack": 145,
+      "subStat": 0.159,
+      "attackRaw": 145.34361700000002,
+      "subStatRaw": 0.15902999999999998
+    },
+    {
+      "level": 24,
+      "ascend": false,
+      "attack": 149,
+      "subStat": 0.159,
+      "attackRaw": 148.820499,
+      "subStatRaw": 0.15902999999999998
+    },
+    {
+      "level": 25,
+      "ascend": false,
+      "attack": 152,
+      "subStat": 0.1772,
+      "attackRaw": 152.339782,
+      "subStatRaw": 0.17721
+    },
+    {
+      "level": 26,
+      "ascend": false,
+      "attack": 156,
+      "subStat": 0.1772,
+      "attackRaw": 155.81666400000003,
+      "subStatRaw": 0.17721
+    },
+    {
+      "level": 27,
+      "ascend": false,
+      "attack": 159,
+      "subStat": 0.1772,
+      "attackRaw": 159.335947,
+      "subStatRaw": 0.17721
+    },
+    {
+      "level": 28,
+      "ascend": false,
+      "attack": 163,
+      "subStat": 0.1772,
+      "attackRaw": 162.81282900000002,
+      "subStatRaw": 0.17721
+    },
+    {
+      "level": 29,
+      "ascend": false,
+      "attack": 166,
+      "subStat": 0.1772,
+      "attackRaw": 166.33211200000002,
+      "subStatRaw": 0.17721
+    },
+    {
+      "level": 30,
+      "ascend": false,
+      "attack": 170,
+      "subStat": 0.1954,
+      "attackRaw": 169.808994,
+      "subStatRaw": 0.19538999999999998
+    },
+    {
+      "level": 31,
+      "ascend": false,
+      "attack": 173,
+      "subStat": 0.1954,
+      "attackRaw": 173.328277,
+      "subStatRaw": 0.19538999999999998
+    },
+    {
+      "level": 32,
+      "ascend": false,
+      "attack": 177,
+      "subStat": 0.1954,
+      "attackRaw": 176.84756000000002,
+      "subStatRaw": 0.19538999999999998
+    },
+    {
+      "level": 33,
+      "ascend": false,
+      "attack": 180,
+      "subStat": 0.1954,
+      "attackRaw": 180.324442,
+      "subStatRaw": 0.19538999999999998
+    },
+    {
+      "level": 34,
+      "ascend": false,
+      "attack": 184,
+      "subStat": 0.1954,
+      "attackRaw": 183.84372500000003,
+      "subStatRaw": 0.19538999999999998
+    },
+    {
+      "level": 35,
+      "ascend": false,
+      "attack": 187,
+      "subStat": 0.2136,
+      "attackRaw": 187.32060700000002,
+      "subStatRaw": 0.21357
+    },
+    {
+      "level": 36,
+      "ascend": false,
+      "attack": 191,
+      "subStat": 0.2136,
+      "attackRaw": 190.83989000000003,
+      "subStatRaw": 0.21357
+    },
+    {
+      "level": 37,
+      "ascend": false,
+      "attack": 194,
+      "subStat": 0.2136,
+      "attackRaw": 194.31677200000001,
+      "subStatRaw": 0.21357
+    },
+    {
+      "level": 38,
+      "ascend": false,
+      "attack": 198,
+      "subStat": 0.2136,
+      "attackRaw": 197.83605500000002,
+      "subStatRaw": 0.21357
+    },
+    {
+      "level": 39,
+      "ascend": false,
+      "attack": 201,
+      "subStat": 0.2136,
+      "attackRaw": 201.35533800000002,
+      "subStatRaw": 0.21357
+    },
+    {
+      "level": 40,
+      "ascend": false,
+      "attack": 205,
+      "subStat": 0.2318,
+      "attackRaw": 204.83222,
+      "subStatRaw": 0.23175
+    },
+    {
+      "level": 40,
+      "ascend": true,
+      "attack": 231,
+      "subStat": 0.2318,
+      "attackRaw": 230.83222,
+      "subStatRaw": 0.23175
+    },
+    {
+      "level": 41,
+      "ascend": false,
+      "attack": 234,
+      "subStat": 0.2318,
+      "attackRaw": 234.351503,
+      "subStatRaw": 0.23175
+    },
+    {
+      "level": 42,
+      "ascend": false,
+      "attack": 238,
+      "subStat": 0.2318,
+      "attackRaw": 237.828385,
+      "subStatRaw": 0.23175
+    },
+    {
+      "level": 43,
+      "ascend": false,
+      "attack": 241,
+      "subStat": 0.2318,
+      "attackRaw": 241.34766800000003,
+      "subStatRaw": 0.23175
+    },
+    {
+      "level": 44,
+      "ascend": false,
+      "attack": 245,
+      "subStat": 0.2318,
+      "attackRaw": 244.82455000000002,
+      "subStatRaw": 0.23175
+    },
+    {
+      "level": 45,
+      "ascend": false,
+      "attack": 248,
+      "subStat": 0.2499,
+      "attackRaw": 248.34383300000002,
+      "subStatRaw": 0.24993
+    },
+    {
+      "level": 46,
+      "ascend": false,
+      "attack": 252,
+      "subStat": 0.2499,
+      "attackRaw": 251.86311600000002,
+      "subStatRaw": 0.24993
+    },
+    {
+      "level": 47,
+      "ascend": false,
+      "attack": 255,
+      "subStat": 0.2499,
+      "attackRaw": 255.33999800000004,
+      "subStatRaw": 0.24993
+    },
+    {
+      "level": 48,
+      "ascend": false,
+      "attack": 259,
+      "subStat": 0.2499,
+      "attackRaw": 258.859281,
+      "subStatRaw": 0.24993
+    },
+    {
+      "level": 49,
+      "ascend": false,
+      "attack": 262,
+      "subStat": 0.2499,
+      "attackRaw": 262.336163,
+      "subStatRaw": 0.24993
+    },
+    {
+      "level": 50,
+      "ascend": false,
+      "attack": 266,
+      "subStat": 0.2681,
+      "attackRaw": 265.85544600000003,
+      "subStatRaw": 0.26811
+    },
+    {
+      "level": 50,
+      "ascend": true,
+      "attack": 292,
+      "subStat": 0.2681,
+      "attackRaw": 291.755446,
+      "subStatRaw": 0.26811
+    },
+    {
+      "level": 51,
+      "ascend": false,
+      "attack": 295,
+      "subStat": 0.2681,
+      "attackRaw": 295.232328,
+      "subStatRaw": 0.26811
+    },
+    {
+      "level": 52,
+      "ascend": false,
+      "attack": 299,
+      "subStat": 0.2681,
+      "attackRaw": 298.751611,
+      "subStatRaw": 0.26811
+    },
+    {
+      "level": 53,
+      "ascend": false,
+      "attack": 302,
+      "subStat": 0.2681,
+      "attackRaw": 302.270894,
+      "subStatRaw": 0.26811
+    },
+    {
+      "level": 54,
+      "ascend": false,
+      "attack": 306,
+      "subStat": 0.2681,
+      "attackRaw": 305.74777600000004,
+      "subStatRaw": 0.26811
+    },
+    {
+      "level": 55,
+      "ascend": false,
+      "attack": 309,
+      "subStat": 0.2863,
+      "attackRaw": 309.267059,
+      "subStatRaw": 0.28629
+    },
+    {
+      "level": 56,
+      "ascend": false,
+      "attack": 313,
+      "subStat": 0.2863,
+      "attackRaw": 312.743941,
+      "subStatRaw": 0.28629
+    },
+    {
+      "level": 57,
+      "ascend": false,
+      "attack": 316,
+      "subStat": 0.2863,
+      "attackRaw": 316.263224,
+      "subStatRaw": 0.28629
+    },
+    {
+      "level": 58,
+      "ascend": false,
+      "attack": 320,
+      "subStat": 0.2863,
+      "attackRaw": 319.740106,
+      "subStatRaw": 0.28629
+    },
+    {
+      "level": 59,
+      "ascend": false,
+      "attack": 323,
+      "subStat": 0.2863,
+      "attackRaw": 323.259389,
+      "subStatRaw": 0.28629
+    },
+    {
+      "level": 60,
+      "ascend": false,
+      "attack": 327,
+      "subStat": 0.3045,
+      "attackRaw": 326.77867200000003,
+      "subStatRaw": 0.30446999999999996
+    },
+    {
+      "level": 60,
+      "ascend": true,
+      "attack": 353,
+      "subStat": 0.3045,
+      "attackRaw": 352.678672,
+      "subStatRaw": 0.30446999999999996
+    },
+    {
+      "level": 61,
+      "ascend": false,
+      "attack": 356,
+      "subStat": 0.3045,
+      "attackRaw": 356.155554,
+      "subStatRaw": 0.30446999999999996
+    },
+    {
+      "level": 62,
+      "ascend": false,
+      "attack": 360,
+      "subStat": 0.3045,
+      "attackRaw": 359.674837,
+      "subStatRaw": 0.30446999999999996
+    },
+    {
+      "level": 63,
+      "ascend": false,
+      "attack": 363,
+      "subStat": 0.3045,
+      "attackRaw": 363.151719,
+      "subStatRaw": 0.30446999999999996
+    },
+    {
+      "level": 64,
+      "ascend": false,
+      "attack": 367,
+      "subStat": 0.3045,
+      "attackRaw": 366.671002,
+      "subStatRaw": 0.30446999999999996
+    },
+    {
+      "level": 65,
+      "ascend": false,
+      "attack": 370,
+      "subStat": 0.3226,
+      "attackRaw": 370.147884,
+      "subStatRaw": 0.32265
+    },
+    {
+      "level": 66,
+      "ascend": false,
+      "attack": 374,
+      "subStat": 0.3226,
+      "attackRaw": 373.667167,
+      "subStatRaw": 0.32265
+    },
+    {
+      "level": 67,
+      "ascend": false,
+      "attack": 377,
+      "subStat": 0.3226,
+      "attackRaw": 377.18645000000004,
+      "subStatRaw": 0.32265
+    },
+    {
+      "level": 68,
+      "ascend": false,
+      "attack": 381,
+      "subStat": 0.3226,
+      "attackRaw": 380.663332,
+      "subStatRaw": 0.32265
+    },
+    {
+      "level": 69,
+      "ascend": false,
+      "attack": 384,
+      "subStat": 0.3226,
+      "attackRaw": 384.182615,
+      "subStatRaw": 0.32265
+    },
+    {
+      "level": 70,
+      "ascend": false,
+      "attack": 388,
+      "subStat": 0.3407,
+      "attackRaw": 387.659497,
+      "subStatRaw": 0.34074
+    },
+    {
+      "level": 70,
+      "ascend": true,
+      "attack": 414,
+      "subStat": 0.3407,
+      "attackRaw": 413.659497,
+      "subStatRaw": 0.34074
+    },
+    {
+      "level": 71,
+      "ascend": false,
+      "attack": 417,
+      "subStat": 0.3407,
+      "attackRaw": 417.17878,
+      "subStatRaw": 0.34074
+    },
+    {
+      "level": 72,
+      "ascend": false,
+      "attack": 421,
+      "subStat": 0.3407,
+      "attackRaw": 420.655662,
+      "subStatRaw": 0.34074
+    },
+    {
+      "level": 73,
+      "ascend": false,
+      "attack": 424,
+      "subStat": 0.3407,
+      "attackRaw": 424.17494500000004,
+      "subStatRaw": 0.34074
+    },
+    {
+      "level": 74,
+      "ascend": false,
+      "attack": 428,
+      "subStat": 0.3407,
+      "attackRaw": 427.694228,
+      "subStatRaw": 0.34074
+    },
+    {
+      "level": 75,
+      "ascend": false,
+      "attack": 431,
+      "subStat": 0.3589,
+      "attackRaw": 431.17111,
+      "subStatRaw": 0.35891999999999996
+    },
+    {
+      "level": 76,
+      "ascend": false,
+      "attack": 435,
+      "subStat": 0.3589,
+      "attackRaw": 434.690393,
+      "subStatRaw": 0.35891999999999996
+    },
+    {
+      "level": 77,
+      "ascend": false,
+      "attack": 438,
+      "subStat": 0.3589,
+      "attackRaw": 438.167275,
+      "subStatRaw": 0.35891999999999996
+    },
+    {
+      "level": 78,
+      "ascend": false,
+      "attack": 442,
+      "subStat": 0.3589,
+      "attackRaw": 441.686558,
+      "subStatRaw": 0.35891999999999996
+    },
+    {
+      "level": 79,
+      "ascend": false,
+      "attack": 445,
+      "subStat": 0.3589,
+      "attackRaw": 445.16344000000004,
+      "subStatRaw": 0.35891999999999996
+    },
+    {
+      "level": 80,
+      "ascend": false,
+      "attack": 449,
+      "subStat": 0.3771,
+      "attackRaw": 448.682723,
+      "subStatRaw": 0.37710000000000005
+    },
+    {
+      "level": 80,
+      "ascend": true,
+      "attack": 475,
+      "subStat": 0.3771,
+      "attackRaw": 474.582723,
+      "subStatRaw": 0.37710000000000005
+    },
+    {
+      "level": 81,
+      "ascend": false,
+      "attack": 478,
+      "subStat": 0.3771,
+      "attackRaw": 478.10200599999996,
+      "subStatRaw": 0.37710000000000005
+    },
+    {
+      "level": 82,
+      "ascend": false,
+      "attack": 482,
+      "subStat": 0.3771,
+      "attackRaw": 481.578888,
+      "subStatRaw": 0.37710000000000005
+    },
+    {
+      "level": 83,
+      "ascend": false,
+      "attack": 485,
+      "subStat": 0.3771,
+      "attackRaw": 485.098171,
+      "subStatRaw": 0.37710000000000005
+    },
+    {
+      "level": 84,
+      "ascend": false,
+      "attack": 489,
+      "subStat": 0.3771,
+      "attackRaw": 488.575053,
+      "subStatRaw": 0.37710000000000005
+    },
+    {
+      "level": 85,
+      "ascend": false,
+      "attack": 492,
+      "subStat": 0.3953,
+      "attackRaw": 492.094336,
+      "subStatRaw": 0.39528
+    },
+    {
+      "level": 86,
+      "ascend": false,
+      "attack": 496,
+      "subStat": 0.3953,
+      "attackRaw": 495.57121800000004,
+      "subStatRaw": 0.39528
+    },
+    {
+      "level": 87,
+      "ascend": false,
+      "attack": 499,
+      "subStat": 0.3953,
+      "attackRaw": 499.090501,
+      "subStatRaw": 0.39528
+    },
+    {
+      "level": 88,
+      "ascend": false,
+      "attack": 503,
+      "subStat": 0.3953,
+      "attackRaw": 502.56738300000006,
+      "subStatRaw": 0.39528
+    },
+    {
+      "level": 89,
+      "ascend": false,
+      "attack": 506,
+      "subStat": 0.3953,
+      "attackRaw": 506.08666600000004,
+      "subStatRaw": 0.39528
+    },
+    {
+      "level": 90,
+      "ascend": false,
+      "attack": 510,
+      "subStat": 0.4135,
+      "attackRaw": 509.605949,
+      "subStatRaw": 0.41346
+    }
+  ]
+}

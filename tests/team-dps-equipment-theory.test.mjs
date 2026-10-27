@@ -1,0 +1,98 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {api} from '../beta-tools/runtime-7106.mjs';
+import {fixture,weapon} from '../beta-tools/interface-audit-7108.mjs';
+import {TEAM_DPS_ROLES} from '../beta-data/team-dps-config.mjs';
+import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
+import {createEquipmentAxisRules} from '../beta-data/equipment-axis-rules.mjs';
+import {compileTeamDpsAxis} from '../beta-data/team-dps-rotation.mjs';
+import {optimizeTeamDps,evaluateTeamDps} from '../beta-data/team-dps-optimizer.mjs';
+import {defaultWeaponOptions,widsithTriggers} from '../beta-data/team-dps-weapon-options.mjs';
+import {importedAxis} from './helpers/team-dps-configuration.mjs';
+const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-9*Math.max(1,Math.abs(b)),`${a} != ${b}`);
+function sample(){const p=TEAM_DPS_ROLES.map((name,r)=>{const x=fixture(name);x.artifacts.forEach(a=>a.id+=r*100);return x;});return {single_interfaces:p,team_dps:{axis:importedAxis(),enemy:{level:100,hydro_res:.1,cryo_res:.1,physical_res:.3},fanfare:300,max_evaluations:1,result_count:1,initial_ids:p.map(x=>x.artifacts.map(a=>a.id)),weapon_conditions:p.map(()=>defaultWeaponOptions())}};}
+const builds=x=>x.single_interfaces.map(p=>p.artifacts),run=x=>createTeamDpsEvaluator(api,x).evaluate(builds(x),true);
+function setup(x){const p=x.single_interfaces,rotation=compileTeamDpsAxis(x.team_dps.axis,p),rules=createEquipmentAxisRules(p,rotation,x.team_dps);return {rotation,rules,at:(r,t)=>rules.prepare(structuredClone(p[r]),r,{time:t,rootOrder:Infinity,order:Infinity}).weapon.params[p[r].weapon.name]};}
+
+test('theory V1: reaction ownership, Cinder tier, Hymn windows and real Worker',async()=>{
+ const x=sample(),baseline=run(x);
+ x.single_interfaces[2].artifacts.forEach(a=>a.set_name='ScrollOfTheHeroOfCinderCity');
+ x.single_interfaces[2].artifact_config={config_scroll_of_the_hero_of_cinder_city:{elements:['Pyro'],rate1:1,rate2:1}};
+ x.team_dps.axis.timeline.push({id:'nightsoul',kind:'state',actor:'healer',timeMs:0,state:'nightsoul',durationMs:20500});
+ const saved=JSON.stringify(x),cinder=run(x),i=cinder.hits.findIndex(h=>h.role===0&&h.time===7.75);
+ near(cinder.hits[i].bonus-baseline.hits[i].bonus,.12);
+ const j=cinder.hits.findIndex(h=>h.role===3&&h.time>3);near(cinder.hits[j].bonus-baseline.hits[j].bonus,.12);
+ assert.equal(JSON.stringify(x),saved);
+ x.single_interfaces[3].weapon=weapon('HymnOfTheMaelstrom');
+ const {rotation,rules}=setup(x);assert.ok(rules.reactions.some(h=>h.role===2&&h.reaction==='Frozen'));
+ assert.ok(rules.reactions.every(h=>h.role===rotation.events.find(e=>e.serial===h.serial).role));
+ const sparse={...rotation,events:rotation.events.filter(h=>h.role===2&&h.time===3)};
+ const timer=createEquipmentAxisRules(x.single_interfaces,sparse,x.team_dps);
+ const boosted=t=>timer.prepare(structuredClone(x.single_interfaces[3]),3,{time:t,rootOrder:Infinity,order:Infinity}).weapon.params.HymnOfTheMaelstrom.boosted;
+ assert.equal(boosted(3.1),true);assert.equal(boosted(8),false);
+ const ev=createTeamDpsEvaluator(api,x),a=builds(x),original=ev.evaluate(a),b=structuredClone(a);
+ b[3][0].id+=999;b[3][0].sub_stats.push(['HPFixed',40000]);
+ const changed=ev.evaluate(b);assert.ok(changed.character_damage[0].expectation>original.character_damage[0].expectation);
+ near(ev.evaluate(a).expectation,original.expectation);near(changed.expectation,createTeamDpsEvaluator(api,x).evaluate(b).expectation);
+ const messages=[],self={postMessage:m=>messages.push(m)},source=fs.readFileSync(new URL('../src/workers/team_dps.js',import.meta.url),'utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
+ vm.runInNewContext(source,{self,api,optimizeTeamDps,evaluateTeamDps,Promise});await Promise.resolve();
+ self.onmessage({data:{input:x,artifacts:a.flat(),mode:'optimize'}});
+ assert.equal(messages.at(-1).type,'result');near(messages.at(-1).data.results[0].expectation,original.expectation);
+});
+
+test('theory V2: manual coverage, shared Disaster timer, zero energy and excluded incoming damage',()=>{
+ const x=sample();x.single_interfaces[0].weapon=weapon('HarbingerOfDawn');const low=run(x);
+ x.team_dps.weapon_conditions[0].HarbingerOfDawn.rate=.5;const half=run(x);
+ near(half.hits.find(h=>h.role===0).crit-low.hits.find(h=>h.role===0).crit,.07);
+ x.single_interfaces[2].weapon=weapon('WavebreakersFin');const zero=run(x);x.team_dps.weapon_conditions[2].WavebreakersFin.rate=.5;
+ const wave=run(x),q=wave.hits.findIndex(h=>h.role===2&&h.category==='burst');near(wave.hits[q].bonus-zero.hits[q].bonus,.2);
+ x.single_interfaces[2].weapon=weapon('BlackTassel');const normal=run(x);x.team_dps.enemy_is_slime=true;const slime=run(x);
+ const e=slime.hits.findIndex(h=>h.role===2);near(slime.hits[e].bonus-normal.hits[e].bonus,.4);
+ x.single_interfaces[0].weapon=weapon('MoonweaverDawn');assert.equal(setup(x).at(0,9).energy_cost,0);
+ const moon=setup(x),point={time:0,rootOrder:-1,order:-1},request=moon.rules.prepare(structuredClone(x.single_interfaces[0]),0,point);request.skill.index=15;
+ const plain=api.CalculatorInterface.get_damage_analysis(request,null);request.buffs=moon.rules.baseBuffs(builds(x),0,point);
+ const boosted=api.CalculatorInterface.get_damage_analysis(request,null);near(sum(boosted.bonus),sum(plain.bonus));near(sum(plain.bonus),.48);
+ request.buffs=[];request.weapon.params.MoonweaverDawn.energy_cost=40;near(sum(api.CalculatorInterface.get_damage_analysis(request,null).bonus),sum(boosted.bonus));
+ x.single_interfaces[2].weapon=weapon('DisasterAndRemorse');
+ const rotation=setup(x).rotation,cast={kind:'cast',role:2,action:'skill',time:0,rootOrder:0,order:0};
+ const hits=[[3.2,'normal'],[3.25,'skill'],[3.3,'skill']].map(([time,category],i)=>({role:2,time,category,rootOrder:i+1,order:i,onField:true}));
+ const custom={...rotation,roots:[cast],switches:[],events:hits,heals:[],hpChanges:[],activeRole:()=>2};
+ const rules=createEquipmentAxisRules(x.single_interfaces,custom,x.team_dps),at=t=>rules.prepare(structuredClone(x.single_interfaces[2]),2,{time:t,rootOrder:99,order:99}).weapon.params.DisasterAndRemorse;
+ assert.equal(at(3.26).rate_wuyu,1);assert.equal(at(3.26).rate_wushe,0);assert.equal(at(3.31).rate_wushe,1);assert.equal(at(4).rate_wuyu,0);
+ const disaster=rules.prepare(structuredClone(x.single_interfaces[2]),2,{time:3.31,rootOrder:99,order:99});disaster.skill.index=8;
+ const withBuff=api.CalculatorInterface.get_damage_analysis(disaster,null);disaster.weapon.params.DisasterAndRemorse.rate_wuyu=0;
+ near(sum(withBuff.bonus)-sum(api.CalculatorInterface.get_damage_analysis(disaster,null).bonus),.4);
+ x.single_interfaces[2].weapon=weapon('Deathmatch');x.team_dps.weapon_conditions[2].Deathmatch.ge2_rate=.5;
+ const match=setup(x),spot={time:0,rootOrder:-1,order:-1},request2=match.rules.prepare(structuredClone(x.single_interfaces[2]),2,spot);
+ const one=api.CommonInterface.get_attribute(request2);request2.weapon.params.Deathmatch.ge2=true;const many=api.CommonInterface.get_attribute(request2);
+ request2.weapon.params.Deathmatch.ge2=false;request2.buffs=match.rules.baseBuffs(builds(x),2,spot);const mix=api.CommonInterface.get_attribute(request2);
+ near(sum(mix.atk),(sum(one.atk)+sum(many.atk))/2);near(sum(mix.def),(sum(one.def)+sum(many.def))/2);
+ x.single_interfaces[0].weapon=weapon('AquilaFavonia');x.team_dps.axis.timeline.push({id:'enemy-hit',kind:'hp_change',timeMs:9000,actor:'carry',change:'damage'});
+ assert.equal(run(x).hits.some(h=>h.label.includes('风鹰剑·')),false);
+ x.single_interfaces[0].weapon=weapon('TheAlleyFlash');assert.equal(setup(x).at(0,9.1).rate,1);
+ x.single_interfaces[0].weapon=weapon('SwordOfDescension');const proc=run(x).hits.find(h=>h.category==='equipment');
+ assert.equal(proc.probability,.5);near(sum(proc.analysis.atk_ratio),2);near(proc.non_critical,proc.atk*2*(1+proc.bonus)*190/390*.7*.5);
+});
+
+test('theory V3: Widsith whole-team branch average, expiry and continuous conversion',()=>{
+ const x=sample();x.single_interfaces[3].weapon=weapon('TheWidsith');
+ const avg=run(x),branches=['t1_rate','t2_rate','t3_rate'].map(mode=>{const y=structuredClone(x);y.team_dps.widsith_mode=['average','average','average',mode];return run(y);});
+ for(const metric of ['expectation','critical','non_critical'])near(avg[metric],branches.reduce((s,b)=>s+b[metric],0)/3);
+ assert.equal(avg.hits[0].branches.length,3);
+ for(let i=0;i<avg.hits.length;i++)near(avg.hits[i].expectation,avg.hits[i].branches.reduce((s,b)=>s+b.probability*b.analysis.normal.expectation,0));
+ const p=x.single_interfaces,rotation=compileTeamDpsAxis(x.team_dps.axis,p),r=createEquipmentAxisRules(p,rotation,{widsith_themes:{3:['t1_rate']}});
+ const at=t=>r.prepare(structuredClone(p[3]),3,{time:t,rootOrder:Infinity,order:Infinity}).weapon.params.TheWidsith;
+ assert.equal(at(6.5).t1_rate,1);assert.equal(at(16.5).t1_rate,0);
+ assert.deepEqual(widsithTriggers({switches:[0,10,29.9,30].map(time=>({time,role:3,from:0}))},3).map(h=>h.time),[0,30]);
+ const ev=createTeamDpsEvaluator(api,x),b=structuredClone(builds(x));b[3][0].id+=1000;b[3][0].sub_stats.push(['HPPercentage',.5]);
+ near(ev.evaluate(b).expectation,createTeamDpsEvaluator(api,x).evaluate(b).expectation);near(ev.evaluate(builds(x)).expectation,avg.expectation);
+ const y=sample();y.single_interfaces[0].weapon=weapon('XiphosMoonlight');y.single_interfaces[0].artifacts.forEach(a=>a.set_name='GildedDreams');
+ const state=setup(y),build=builds(y),e={time:8,rootOrder:Infinity,order:Infinity};
+ const panel=em=>[{elemental_mastery:{base:em}},{elemental_mastery:{}},{elemental_mastery:{}},{elemental_mastery:{}}];
+ const converted=state.rules.derivedBuffs(build,1,e,panel(200),()=>{throw Error('periodic snapshot used')});
+ near(converted[0].config.ExtensionEffect.values.Recharge,.00036*200*.3);
+ const a=run(y),newBuild=structuredClone(build);newBuild[0][0].id+=1000;newBuild[0][0].sub_stats.push(['ElementalMastery',200]);
+ const z=createTeamDpsEvaluator(api,y).evaluate(newBuild,true);near(sum(z.panels[1].recharge)-sum(a.panels[1].recharge),.00036*200*.3);
+});

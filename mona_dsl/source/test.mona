@@ -1,0 +1,4 @@
+dmg x=Yelan.E1 //E伤害
+
+result=x.normal.e //E最大期望伤害
+print(result)

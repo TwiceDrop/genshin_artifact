@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {original,rawOriginal,vody,sum} from '../beta-tools/runtime-7106.mjs';
+const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} != ${b}`);
+const named=(name,p)=>({name,config:{[name]:p}});
+const gear=['Flower','Feather','Sand','Goblet','Head'].map((slot,i)=>({id:i+1,set_name:'GladiatorsFinale',slot,level:20,star:5,main_stat:[i===0?'HPFixed':i===1?'ATKFixed':'ATKPercentage',i===0?4780:i===1?311:.466],sub_stats:[]}));
+const x={...structuredClone(vody),character:{name:'Kaeya',level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:'NoConfig'},weapon:{name:'DullBlade',level:90,ascend:false,refine:1,params:'NoConfig'},skill:{index:0,config:'NoConfig'},artifacts:gear,buffs:[]};
+test('Legacy bridge: exact stellar scope, recipient state, optimizer and transaction cleanup',()=>{
+ const buff=named('AlyoshaHunterPrecision',{skill_level:10,c6:true,stacks:2});
+ const prepared={...x,buffs:[buff]};
+ const out=original.CalculatorInterface.get_damage_analysis(prepared);
+ const reference=rawOriginal.CalculatorInterface.get_damage_analysis({...x,buffs:[named('ATKPercentage',{p:42.4}),named('ElementalMastery',{value:100}),named('CynoC2StellarConduct',{stack:4})]});
+ near(out.normal.expectation,reference.normal.expectation);
+ near(sum(out.direct_stellarconduct_compose),sum(reference.direct_stellarconduct_compose));
+ near(sum(out.direct_stellarswirl_compose),sum(reference.direct_stellarswirl_compose));
+ near(sum(out.direct_stellarconduct_compose)-sum(out.direct_stellarswirl_compose),.4);
+ const off={...x,buffs:[named('AlyoshaHunterPrecision',{skill_level:10,c6:true,stacks:2,recipient_on_field:false})]};
+ near(original.CalculatorInterface.get_damage_analysis(off).normal.expectation,rawOriginal.CalculatorInterface.get_damage_analysis(x).normal.expectation);
+ const alternative={...gear[2],id:6,main_stat:['ElementalMastery',187]};
+ const input={...prepared,target_function:{name:'GanyuDefault',params:'NoConfig',use_dsl:true,dsl_source:'dmg hit = Kaeya.Normal1\nresult = hit.normal.e'},algorithm:'Naive',constraint:{set_mode:'Any'},filter:null};
+ const rows=original.OptimizeSingleWasm.optimize(input,[...gear,alternative]);assert.ok(rows.length);
+ const expected=Math.max(...[gear,[...gear.slice(0,2),alternative,...gear.slice(3)]].map(artifacts=>original.CalculatorInterface.get_damage_analysis({...prepared,artifacts}).normal.expectation));
+ near(rows[0].value,expected);
+ near(original.CalculatorInterface.get_damage_analysis(x).normal.expectation,rawOriginal.CalculatorInterface.get_damage_analysis(x).normal.expectation);
+});

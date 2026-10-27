@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import {CHARACTER_EFFECT_RULES,PENDING_CHARACTER_RULES} from '../beta-data/character-effect-rules.mjs';
+import {STELLAR_SUPPORT_RULES,VODYANITSA_SUPPORT_RULES} from '../beta-data/scoped-character-effect-rules.mjs';
+import {BUFF_RULE_SCHEMA} from '../beta-data/buff-rule-schema.mjs';
+import {LEGACY_EFFECT_SLOTS} from '../beta-data/legacy-effect-slots.mjs';
+const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const text=read('src/assets/_gen_buff.js'),catalog=JSON.parse(text.slice(text.indexOf('export default')+14));
+const scoped={...STELLAR_SUPPORT_RULES,...VODYANITSA_SUPPORT_RULES};
+const nativeScope=['OdetteTalent1','OdetteMarvelousSplendor','OdetteC4SnowSwanDream','OdetteC6MarvelousSplendor','DionaC6StellarConduct','YumemizukiMizukiE','YumemizukiMizukiC6'];
+const rows=Object.values(catalog).filter(b=>b.genre==='Character').map(b=>({name:b.name,label:BUFF_RULE_SCHEMA[b.name].label,route:CHARACTER_EFFECT_RULES[b.name]?'data-rule':scoped[b.name]?'scoped-data-rule':PENDING_CHARACTER_RULES[b.name]?'native-compatibility':'UNACCOUNTED',legacyPolicy:nativeScope.includes(b.name)?'native scope retained':b.name==='AlbedoWitchEve'?'def=0 uses native dependency':'compile supported attributes; otherwise retain entire native buff'}));
+if(rows.some(r=>r.route==='UNACCOUNTED'))throw Error('Missing character BUFF route');
+const counts=rows.reduce((out,r)=>(out[r.route]=(out[r.route]||0)+1,out),{});
+const report={version:'7.1.08beta',scope:['single-hit','single-character-optimization'],counts,nativeAttributeSlots:LEGACY_EFFECT_SLOTS,legacyScopeCompatibility:nativeScope,rows};
+fs.writeFileSync(new URL('../docs/character-buff-migration-7108.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
+const md='# 7.1.08beta 角色 BUFF 迁移清单\n\n'+Object.entries(counts).map(([k,v])=>`${k}: ${v}`).join('；')+'。共 '+rows.length+' 项 BUFF，非角色人数。\n\n统一规则并不表示所有旧内核属性已经互通。旧内核遇到尚无精确属性映射的规则，会整条保留原生实现；不把星超导属性冒充星扩散，也不关闭原有适配拦截。\n\n| BUFF | 标识 | 公式来源 | 旧内核处理 |\n|---|---|---|---|\n'+rows.map(r=>`| ${r.label} | ${r.name} | ${r.route} | ${r.legacyPolicy} |`).join('\n')+'\n';
+fs.writeFileSync(new URL('../docs/character-buff-migration-7108.md',import.meta.url),md);console.log(JSON.stringify(counts));

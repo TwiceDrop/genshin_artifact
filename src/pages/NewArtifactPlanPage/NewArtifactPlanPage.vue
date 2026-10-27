@@ -1,0 +1,2309 @@
+<template>
+    <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
+        <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog">
+            <el-progress :percentage="Math.round((optimizationProgress.percent ?? 0) * 10) / 10" :indeterminate="optimizationProgress.percent === null" :status="optimizationRunning ? undefined : optimizationCancelled ? 'warning' : 'success'" />
+            <div class="optimization-progress-stats">
+                <p>候选搭配空间上限 <b>{{ numberOfGroups(optimizationProgress.candidateSpace) }} 组</b></p>
+                <p>已计算 <b>{{ numberOfGroups(optimizationProgress.evaluated) }} 次</b></p>
+                <p>剩余搜索分组上限 <b>{{ numberOfGroups(optimizationProgress.remainingGroups) }} 组</b></p>
+                <p v-if="optimizationStage">搜索阶段 <b>{{ optimizationStage }}</b></p>
+                <p v-if="optimizationRunning">{{ optimizationProgress.etaScope === 'total' ? '预计剩余时间' : '本阶段预计剩余时间' }} <b>{{ formatComputeTime(optimizationRemaining) }}</b></p>
+                <p>{{ optimizationRunning || optimizationCancelled ? '已用时间' : '计算时间' }} <b>{{ formatComputeTime(optimizationElapsed) }}</b></p>
+            </div>
+            <template #footer><el-button v-if="optimizationRunning" type="danger" plain @click="cancelOptimization">取消计算</el-button><el-button v-else type="primary" @click="showOptimizationProgress=false">确定</el-button></template>
+        </el-dialog>
+        <optimization-results-dialog v-if="showOptimizationResults" v-model="showOptimizationResults" :results="optimizationResults" :input="damageAnalysisWasmInterface" :infusion="fumo" :mona="mona" :get-artifact="getResultArtifact" :selected-index="optimizationResultIndex" @select="handleUseNthOptimizationResult" />
+        <nav class="calc-mobile-tabs" aria-label="计算器分区">
+            <button :class="{ active: mobileCalcTab === 'character' }" @click="mobileCalcTab = 'character'">角色与配置</button>
+            <button :class="{ active: mobileCalcTab === 'equipment' }" @click="mobileCalcTab = 'equipment'">圣遗物与伤害</button>
+            <button :class="{ active: mobileCalcTab === 'panel' }" @click="mobileCalcTab = 'panel'">面板与曲线</button>
+        </nav>
+        <artifact-score-dialog v-if="showArtifactScore" v-model="showArtifactScore"
+            :item="artifactItems[scoreArtifactIndex]" :context="artifactScoreContext" :equipped="artifactItems"
+            @replace="replaceScoredArtifact" />
+        <el-dialog
+            :title="t('calcPage.selectArt')"
+            :width="deviceIsPC ? '80%' : '90%'"
+            v-model="showSelectArtifactDialog"
+        >
+            <select-artifact
+                :position="selectArtifactSlot"
+                @select="handleSelectArtifact"
+            ></select-artifact>
+        </el-dialog>
+
+<!--        damage analysis-->
+        <el-dialog
+            v-model="showDamageAnalysisDialog"
+            :title="t('calcPage.dmgComp')"
+            :width="deviceIsPC ? '90%' : '96%'"
+        >
+            <damage-analysis
+                ref="damageAnalysisComponent"
+                :enemy-config="enemyConfig"
+                :character-level="characterLevelNumber"
+                :character-name="characterName"
+            ></damage-analysis>
+        </el-dialog>
+
+<!--    select buff    -->
+        <el-dialog
+            v-model="showSelectBuffDialog"
+            :title="t('calcPage.selectBuff')"
+            :width="deviceIsPC ? '60%' : '90%'"
+        >
+            <select-buff
+                v-if="showSelectBuffDialog"
+                :preferred-uid="comparisonEntry?.uid || miyousheStore.selectedUid.value"
+                :selected-names="buffs.map(b => b.name)"
+                @select="handleSelectBuff"
+            ></select-buff>
+        </el-dialog>
+
+<!--    computation setup    -->
+        <el-dialog
+            v-model="showConstraintDialog"
+            :title="t('calcPage.setupCalc')"
+            :width="deviceIsPC ? '400px' : '90%'"
+        >
+            <p class="common-title2">
+                {{ t("misc.algo") }}
+                <el-tooltip>
+                    <i-fa6-solid-circle-question></i-fa6-solid-circle-question>
+                    <template #content>
+                        <span v-html="t('calcPage.algoDesc')">
+
+                        </span>
+<!--                        {{ t("calcPage.algoDesc") }}-->
+                    </template>
+                </el-tooltip>
+            </p>
+            <el-alert
+                v-if="algorithm === 'Naive'"
+                :title="t('calcPage.plzSetConst')"
+                type="warning"
+                style="margin-bottom: 12px"
+            ></el-alert>
+            <el-radio-group v-model="algorithm">
+                <el-radio label="AStar">{{ t("calcPage.aStar") }}</el-radio>
+<!--                <el-radio label="Heuristic">{{t("calcPage.heuristic")}}</el-radio>-->
+                <el-radio label="Naive">{{ t("calcPage.naive") }}</el-radio>
+            </el-radio-group>
+
+            <p class="common-title2">{{ t("calcPage.constSet") }}</p>
+            <div style="margin-top: 12px; margin-bottom: 12px">
+                <select-artifact-set
+                    multiple
+                    v-model="constraintArtifactSet"
+                    :style="{ width: '100%' }"
+                    :placeholder="t('calcPage.constSet')"
+                ></select-artifact-set>
+            </div>
+
+            <p class="common-title2">{{ t("calcPage.constMain") }}</p>
+            <div style="margin-top: 12px; margin-bottom: 12px">
+                <div class="constraint-main-stat-item">
+                    <span>{{ t("misc.sand") }}</span>
+                    <select-artifact-main-stat
+                        v-model="constraintSandMainStats"
+                        :include-any="false"
+                        :multiple="true"
+                        position="sand"
+                        :style="{ width: 'calc(100% - 48px)' }"
+                        :placeholder="t('calcPage.constMain')"
+                    ></select-artifact-main-stat>
+                </div>
+                <div class="constraint-main-stat-item">
+                    <span>{{ t("misc.cup") }}</span>
+                    <select-artifact-main-stat
+                        v-model="constraintGobletMainStats"
+                        :include-any="false"
+                        :multiple="true"
+                        position="cup"
+                        :style="{ width: 'calc(100% - 48px)' }"
+                        :placeholder="t('calcPage.constMain')"
+                    ></select-artifact-main-stat>
+                </div>
+                <div class="constraint-main-stat-item">
+                    <span>{{ t("misc.head") }}</span>
+                    <select-artifact-main-stat
+                        v-model="constraintHeadMainStats"
+                        :include-any="false"
+                        :multiple="true"
+                        position="head"
+                        :style="{ width: 'calc(100% - 48px)' }"
+                        :placeholder="t('calcPage.constMain')"
+                    ></select-artifact-main-stat>
+                </div>
+            </div>
+
+            <p class="constraint-title">{{ t("calcPage.constMin") }}</p>
+            <div>
+                <div class="constraint-min-item">
+                    <span class="constraint-min-title">{{ t("stat.recharge") }}</span>
+                    <div class="slider-div">
+                        <el-slider
+                            :min="1"
+                            :max="4"
+                            :step="0.05"
+                            v-model="constraintMinRecharge"
+                            :show-input="deviceIsPC"
+                        ></el-slider>
+                    </div>
+                </div>
+                <div class="constraint-min-item">
+                    <span class="constraint-min-title">{{ t("stat.elementalMastery") }}</span>
+                    <div class="slider-div">
+                        <el-slider
+                            :min="0"
+                            :max="2000"
+                            :step="10"
+                            v-model="constraintMinElementalMastery"
+                            :show-input="deviceIsPC"
+                        ></el-slider>
+                    </div>
+                </div>
+                <div class="constraint-min-item">
+                    <span class="constraint-min-title">{{ t("stat.critical") }}</span>
+                    <div class="slider-div">
+                        <el-slider
+                            :min="0"
+                            :max="1"
+                            :step="0.01"
+                            v-model="constraintMinCritical"
+                            :show-input="deviceIsPC"
+                        ></el-slider>
+                    </div>
+                </div>
+                <div class="constraint-min-item">
+                    <span class="constraint-min-title">{{ t("stat.criticalDamage") }}</span>
+                    <div class="slider-div">
+                        <el-slider
+                            :min="0"
+                            :max="4"
+                            :step="0.1"
+                            v-model="constraintMinCriticalDamage"
+                            :show-input="deviceIsPC"
+                        ></el-slider>
+                    </div>
+                </div>
+            </div>
+
+            <p class="common-title2">{{ t("calcPage.filKumi") }}</p>
+            <el-input v-model="filterKumiSearch" :placeholder="t('misc.search')" clearable class="filter-kumi-search" />
+            <div style="max-height: 50vh; overflow: auto" class="mona-scroll">
+                <el-tree
+                    :data="filterKumiTreeData"
+                    node-key="id"
+                    :default-checked-keys="filteredKumiIds"
+                    :filter-node-method="filterKumiNode"
+                    show-checkbox
+                    ref="filterKumiRef"
+                    @check="handleFilterKumiCheck"
+                >
+                    <template #default="{ data }">
+                        <span class="filter-kumi-node">
+                            <img v-for="character in data.characters" :key="character.name"
+                                :src="character.avatar" :alt="character.label" />
+                            <span>{{ data.label }}</span>
+                        </span>
+                    </template>
+                </el-tree>
+            </div>
+        </el-dialog>
+
+<!--    artifacts analysis    -->
+        <el-dialog
+            v-model="showArtifactAnalysisDialog"
+            :title="t('calcPage.artAnalysis')"
+            :width="deviceIsPC ? '60%' : '90%'"
+        >
+            <artifacts-set-statistics
+                :artifact-ids="artifactIds"
+            ></artifacts-set-statistics>
+        </el-dialog>
+
+<!--    stats marginal bonus    -->
+        <el-dialog v-model="showOptimalGainCurve" title="最优词条收益曲线" :width="deviceIsPC ? '85%' : '96%'" destroy-on-close>
+            <optimal-stat-gain-curve v-if="showOptimalGainCurve"
+                :input="damageAnalysisWasmInterface" :analysis="characterDamageAnalysis" :fumo="fumo" />
+        </el-dialog>
+        <el-dialog
+            v-model="showArtifactPerBonusDialog"
+            :title="t('calcPage.statCurve')"
+            :width="deviceIsPC ? '80%' : '90%'"
+        >
+            <artifact-per-stat-bonus
+                :data="miscPerStatBonus"
+            ></artifact-per-stat-bonus>
+        </el-dialog>
+
+<!--        new artifact kumi-->
+        <save-as-kumi
+            v-model="showSaveKumiDialog"
+            :default-name="kumiDefaultName"
+            @confirm="handleSaveAsKumi"
+        ></save-as-kumi>
+
+<!--    select artifact kumi    -->
+        <el-dialog
+            v-model="showUseKumiDialog"
+            :title="t('calcPage.selectKumi')"
+            :width="deviceIsPC ? '60%' : '90%'"
+        >
+            <div style="height: 60vh" class="mona-scroll">
+                <el-tree
+                    :data="kumiTreeDataForElementUI"
+                    @node-click="handleUseKumi"
+                ></el-tree>
+            </div>
+
+        </el-dialog>
+
+<!--        enemy config-->
+        <el-dialog
+            v-model="showEnemyConfigDialog"
+            :title="t('calcPage.setupEnemy')"
+            :width="deviceIsPC ? '60%' : '90%'"
+        >
+            <enemy-config-component
+                v-model="enemyConfig"
+            ></enemy-config-component>
+        </el-dialog>
+
+<!--        artifact config-->
+        <el-dialog
+            v-model="showConfigArtifactDialog"
+            :title="t('calcPage.setupArt')"
+            :width="deviceIsPC ? '60%' : '90%'"
+        >
+            <h3 class="common-title2">{{ t("calcPage.artMode") }}</h3>
+            <el-radio-group
+                v-model="artifactEffectMode"
+            >
+                <el-radio label="auto">{{ t("calcPage.modeAuto") }}</el-radio>
+                <el-radio label="custom">{{ t("calcPage.modeCustom") }}</el-radio>
+            </el-radio-group>
+
+            <h3 class="common-title2">{{ t("calcPage.artEffect") }}</h3>
+            <artifact-config
+                v-model="artifactConfig"
+            ></artifact-config>
+        </el-dialog>
+
+        <el-dialog v-model="showMiyousheImport" title="米游社 · 导入我的角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+            <miyoushe-import v-if="showMiyousheImport" @apply="name => { usePreset(name); showMiyousheImport = false }" />
+        </el-dialog>
+        <el-dialog v-model="showMyCharacters" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+            <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
+        </el-dialog>
+        <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />
+        <el-row class="big-container">
+            <el-col class="left-container mona-scroll-hidden" :sm="24" :md="6">
+                <div class="config-character">
+                    <img v-if="characterSplash"
+                        :src="characterSplash" alt="" aria-hidden="true" class="character-splash" />
+                    <div class="select-character">
+                        <p class="common-title">{{ t("misc.character") }}</p>
+                        <div class="my-characters-import">
+                            <el-button size="small" type="primary" plain @click="showMiyousheImport = true">米游社导入</el-button>
+                            <el-button size="small" @click="showMyCharacters = true">我的角色</el-button>
+                        </div>
+                        <div style="display: flex; gap: 12px">
+<!--                            <select-character-->
+<!--                                :model-value="characterName"-->
+<!--                                @update:modelValue="changeCharacter"-->
+<!--                                style="flex: 1"-->
+<!--                            ></select-character>-->
+                            <select-character
+                                v-model="characterName"
+                                style="flex: 1"
+                            ></select-character>
+                            <select-character-level
+                                v-model="characterLevel"
+                                style="flex: 1"
+                            ></select-character-level>
+                        </div>
+
+                        <div class="config-character-skill">
+                            <h3 class="common-title2">{{ t("misc.skill") }}</h3>
+                            <div class="skill-div">
+                                <el-input-number
+                                    controls-position="right"
+                                    v-model="characterSkill1"
+                                    :aria-label="t('skillType.a')"
+                                    :min="1"
+                                    :max="15"
+                                    style="flex: 1; display: block; width: unset"
+                                ></el-input-number>
+                                <el-input-number
+                                    controls-position="right"
+                                    v-model="characterSkill2"
+                                    :aria-label="t('skillType.e')"
+                                    :min="1"
+                                    :max="15"
+                                    style="flex: 1; display: block; width: unset"
+                                ></el-input-number>
+                                <el-input-number
+                                    controls-position="right"
+                                    v-model="characterSkill3"
+                                    :aria-label="t('skillType.q')"
+                                    :min="1"
+                                    :max="15"
+                                    style="flex: 1; display: block; width: unset"
+                                ></el-input-number>
+                            </div>
+                        </div>
+
+                        <div class="config-character-constellation">
+                            <h3 class="common-title2">{{ t("misc.conste") }}</h3>
+                            <el-input-number
+                                controls-position="right"
+                                v-model="characterConstellation"
+                                :min="0"
+                                :max="6"
+                            ></el-input-number>
+                        </div>
+
+                        <div class="character-extra-config" v-if="characterNeedConfig">
+                            <item-config
+                                v-model="characterConfig"
+                                :item-name="characterName"
+                                :configs="characterConfigConfig"
+                            ></item-config>
+                        </div>
+                    </div>
+                </div>
+
+                <el-divider></el-divider>
+
+                <div class="config-weapon">
+                    <!-- <img :src="weaponSplash" class="weapon-splash" /> -->
+                    <div class="select-weapon">
+                        <p class="common-title">{{ t("misc.weapon") }}</p>
+
+                        <div style="display: flex; gap: 12px; margin-bottom: 8px">
+<!--                            <select-weapon-->
+<!--                                :type="characterWeaponType"-->
+<!--                                :model-value="weaponName"-->
+<!--                                @update:modelValue="changeWeapon"-->
+<!--                                style="flex: 1"-->
+<!--                            ></select-weapon>-->
+                            <select-weapon
+                                :type="characterWeaponType"
+                                v-model="weaponName"
+                                style="flex: 1"
+                            ></select-weapon>
+                            <select-weapon-level
+                                v-model="weaponLevel"
+                                style="flex: 1"
+                            ></select-weapon-level>
+                        </div>
+
+                        <weapon-display :weapon-name="weaponName"></weapon-display>
+
+                        <div class="config-weapon-refine">
+                            <h3 class="common-title2">{{ t("misc.refine") }}</h3>
+                            <el-input-number
+                                controls-position="right"
+                                v-model="weaponRefine"
+                                :min="1"
+                                :max="weaponMaxRefine"
+                            ></el-input-number>
+                        </div>
+
+                        <div class="weapon-extra-config" v-if="weaponNeedConfig">
+                            <item-config
+                                v-model="weaponConfig"
+                                :item-name="weaponName"
+                                :configs="weaponConfigConfig"
+                            ></item-config>
+                        </div>
+                    </div>
+                </div>
+
+                <el-divider></el-divider>
+
+                <div class="config-target-function">
+                    <p class="common-title">{{ t("misc.tf") }}</p>
+                    <div class="my-button-list" style="margin-bottom: 12px">
+                        <el-button-group>
+                            <el-button
+                                type="primary"
+                                :icon="IconEpCaretRight"
+                                @click="handleOptimizeArtifact"
+                            >{{ t("calcPage.start") }}</el-button>
+
+                            <el-button
+                                :icon="IconEpTools"
+                                @click="handleClickSetupOptimization"
+                            >{{ t("calcPage.setupCalc") }}</el-button>
+
+                            <el-button
+                                :icon="IconEpTools"
+                                @click="handleClickArtifactConfig"
+                            >{{ t("calcPage.setupArt") }}</el-button>
+                        </el-button-group>
+                    </div>
+
+                    <div class="optimization-debug-control">
+                        <el-switch v-model="optimizationDebugEnabled" active-text="Debug 模式" aria-label="Debug 模式" />
+                        <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
+                        <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : optimizationDebugRecord.status === 'cancelled' ? '计算已取消' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
+                        <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
+                        <details v-if="optimizationDebugRecord?.events.length"><summary>查看调试阶段与错误详情</summary><pre>{{ optimizationDebugDetail }}</pre></details>
+                    </div>
+
+                    <div class="artifact-borrowing-control">
+                        <label><span>是否允许替换其他角色已穿戴的圣遗物</span><el-switch v-model="allowBorrowEquipped" aria-label="是否允许替换其他角色已穿戴的圣遗物" /></label>
+                    </div>
+
+                    <div class="my-button-list" style="margin-bottom: 12px">
+                        <el-dropdown
+                            trigger="click"
+                            @command="handleCommandPreset"
+                            @click="handleSavePreset(miscCurrentPresetName)"
+                            split-button
+                        >
+                            <template v-if="!miscCurrentPresetName">{{ t("calcPage.newPreset") }}</template>
+                            <template v-else>{{ t("calcPage.savePreset") }}「{{ miscCurrentPresetName }}」</template>
+
+                            <template #dropdown>
+                                <div class="preset-menu">
+                                    <div class="preset-menu-filters">
+                                        <el-select v-model="presetElement" :teleported="false" aria-label="筛选预设元素">
+                                            <el-option label="全部元素" value="" />
+                                            <el-option v-for="element in presetElements" :key="element" :value="element" :label="t('ele', element)" />
+                                        </el-select>
+                                        <el-select v-model="presetSort" :teleported="false" aria-label="预设排序">
+                                            <el-option label="最近更新" value="recent" />
+                                            <el-option label="元素属性" value="element" />
+                                        </el-select>
+                                    </div>
+                                <el-dropdown-menu class="preset-menu-list">
+                                    <el-dropdown-item
+                                        v-if="miscCurrentPresetName"
+                                        icon="el-icon-s-tools"
+                                        command="save-preset"
+                                    >{{ t("calcPage.saveAsPreset") }}</el-dropdown-item>
+
+                                    <el-dropdown-item
+                                        v-for="(item, index) in presetMenuEntries"
+                                        :divided="index === 0 && !!miscCurrentPresetName"
+                                        :key="item.name"
+                                        :icon="IconEpMenu"
+                                        :command="'apply-' + item.name"
+                                    >{{ item.name }}</el-dropdown-item>
+                                </el-dropdown-menu>
+                                </div>
+                            </template>
+                        </el-dropdown>
+                    </div>
+
+                    <el-tabs v-model="miscTargetFunctionTab">
+                        <el-tab-pane :label="t('calcPage.tfNormal')" name="normal">
+                            <select-target-function
+                                v-model="targetFunctionName"
+                                :character-name="characterName"
+                            ></select-target-function>
+                            <div class="target-function-config" v-if="targetFunctionNeedConfig"
+                                 style="margin-top: 12px"
+                            >
+                                <item-config
+                                    v-model="targetFunctionConfig"
+                                    :item-name="targetFunctionName"
+                                    :configs="targetFunctionConfigConfig"
+                                ></item-config>
+                            </div>
+
+                            <div v-if="targetFunctionDescription" class="target-function-detail">
+                                <div class="detail-left">
+                                    <img :src="targetFunctionBadge" />
+                                </div>
+                                <div class="detail-right">
+                                    <p
+                                        class="target-function-description"
+                                        v-html="targetFunctionDescription"
+                                    ></p>
+                                </div>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="MONA-DSL" name="dsl">
+                            <el-alert type="warning" :title="t('calcPage.beta')" :closable="false" style="margin-bottom: 8px"></el-alert>
+                            <el-input type="textarea" :rows="10" :placeholder="t('misc.code')" v-model="targetFunctionDSLSource" class="code-input"></el-input>
+                        </el-tab-pane>
+                        <el-tab-pane label="DSL 生成器" name="generator"><dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona" /></el-tab-pane>
+                    </el-tabs>
+
+
+                    <div v-if="optimizationResults.length > 0"
+                        style="margin-top: 12px"
+                    >
+                        <el-alert
+                            :title="`保留${optimizationResults.length}组圣遗物搭配`"
+                            type="success"
+                            style="margin-bottom: 12px"
+                        ></el-alert>
+                        <el-button @click="showOptimizationResults=true" style="margin-bottom:12px" class="view-optimization-results">点开查看所有搭配</el-button>
+                        <el-input-number
+                            :model-value="optimizationResultIndex"
+                            @update:modelValue="handleUseNthOptimizationResult"
+                            :min="1"
+                            :max="optimizationResults.length"
+                            style="width: 100%"
+                        ></el-input-number>
+                        <value-display
+                            :value="optimizationResults[optimizationResultIndex - 1].ratio"
+                            :extra="optimizationResults[optimizationResultIndex - 1].value.toFixed(1)"
+                            style="margin-top: 12px"
+                        ></value-display>
+                    </div>
+                </div>
+
+                <el-divider></el-divider>
+
+                <div class="config-buff">
+                    <p class="common-title">BUFF</p>
+                    <div class="team-context-control">
+                        <h3 class="common-title2">队友来源（可选）</h3>
+                        <el-select v-model="selectedTeamPresetNames" multiple filterable clearable
+                            placeholder="选择已保存的队友预设" style="width:100%">
+                            <el-option v-for="entry in availableTeamPresets" :key="entry.name"
+                                :label="`${entry.name} · ${teamCharacterLabel(entry.item.character.name)}`"
+                                :value="entry.name" />
+                        </el-select>
+                        <template v-if="teamContextSources.length">
+                            <div class="team-context-row">
+                                <span>受益伤害模式</span>
+                                <el-radio-group v-model="teamContextStellarMode" size="small">
+                                    <el-radio-button :label="false">普通伤害</el-radio-button>
+                                    <el-radio-button :label="true">星扩散</el-radio-button>
+                                </el-radio-group>
+                            </div>
+                            <div v-for="source in teamContextSources" :key="source.presetName" class="team-source-card">
+                                <strong>{{ source.presetName }} · {{ teamCharacterLabel(presetStore.presets.value[source.presetName]?.item.character.name) }}</strong>
+                                <span class="team-source-gear">{{ teamSourceGearLabel(source.presetName) }}</span>
+                                <label class="team-source-id">来源 ID
+                                    <el-input v-model="source.sourceId" size="small" aria-label="BUFF 来源 ID" />
+                                </label>
+                                <el-switch v-model="source.triggers.recipientOnField" active-text="受益角色在前台" />
+                                <template v-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Vodyanitsa'">
+                                    <div class="team-trigger-grid">
+                                        <el-switch v-model="source.triggers.eActive" active-text="战技命中" />
+                                        <el-switch v-model="source.triggers.songActive" active-text="歌声状态" />
+                                        <el-switch v-model="source.triggers.a1Active" active-text="流荡风旋已触发" />
+                                        <el-switch v-model="source.triggers.a4Active" active-text="领唱／重唱已触发" />
+                                        <el-switch v-if="presetStore.presets.value[source.presetName]?.item.character.constellation >= 1"
+                                            v-model="source.triggers.c1Active" active-text="一命条件" />
+                                        <el-switch v-if="presetStore.presets.value[source.presetName]?.item.character.constellation >= 2"
+                                            v-model="source.triggers.c2Active" active-text="二命角笛命中" />
+                                    </div>
+                                    <div v-if="presetStore.presets.value[source.presetName]?.item.weapon.name === 'HymnOfTheMaelstrom'" class="team-context-row">
+                                        <span>专武层数</span>
+                                        <el-input-number v-model="source.triggers.signatureStacks" :min="0" :max="3" size="small" />
+                                        <el-switch v-model="source.triggers.signatureBoosted" active-text="强化状态" />
+                                        <el-switch v-model="source.triggers.signatureOnField" active-text="专武对当前角色生效" />
+                                    </div>
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Vesna'">
+                                    <div class="team-trigger-grid">
+                                        <el-switch v-model="source.triggers.vesnaRadiance" active-text="辉映已触发" />
+                                        <el-switch v-model="source.triggers.vesnaTalentActive" active-text="队友星耀祝礼已触发" />
+                                    </div>
+                                    <div class="team-context-row">
+                                        <span>星耀祝礼平均覆盖率</span>
+                                        <el-input-number v-model="source.triggers.vesnaTalentCoverage" :min="0" :max="1" :step="0.1" :precision="2" size="small" />
+                                    </div>
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Odette'">
+                                    <div class="team-context-row">
+                                        <span>奥黛塔辉映</span>
+                                        <el-select v-model="source.triggers.odetteRadianceMode" size="small">
+                                            <el-option :value="0" label="未触发" /><el-option :value="1" label="星超导" /><el-option :value="2" label="星扩散" />
+                                        </el-select>
+                                        <el-switch v-model="source.triggers.odetteBlessing" active-text="星耀祝礼生效" />
+                                    </div>
+                                    <div class="team-context-row">
+                                        <el-switch v-model="source.triggers.odetteSplendor" active-text="受益角色已获得华彩" />
+                                        <span>受益华彩层数</span><el-input-number v-model="source.triggers.odetteStacks" :min="0" :max="presetStore.presets.value[source.presetName]?.item.character.constellation >= 1 ? 6 : 4" size="small" />
+                                    </div>
+                                    <el-switch v-model="source.triggers.odetteDouble" active-text="独舞倒影在场（二命）" />
+                                    <el-switch v-model="source.triggers.odetteDream" active-text="雪鹄之梦已触发（四命）" />
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Qiqi'">
+                                    <el-switch v-model="source.triggers.qiqiTalisman" active-text="辉映·星烁：度厄真符条件已触发" />
+                                    <el-switch v-model="source.triggers.qiqiC6" active-text="六命增益已触发" />
+                                </template>
+                                <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Sandrone'">
+                                    <el-switch v-model="source.triggers.sandroneBlessing" active-text="星耀祝礼·星扩散已触发" />
+                                    <el-switch v-model="source.triggers.sandroneC1" active-text="一命队友星扩散增益已触发" />
+                                </template>
+                            </div>
+                            <el-alert v-for="issue in teamContextResult.issues" :key="issue" type="error" :closable="false" :title="issue" />
+                        </template>
+                    </div>
+                    <div class="buff-tool" style="margin-bottom: 12px">
+                        <el-button
+                            :icon="IconEpPlus"
+                            @click="handleClickAddBuff"
+                            title="添加BUFF"
+                            circle
+                            text
+                        ></el-button>
+                    </div>
+                    <div class="polestar-field-control">
+                        <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
+                        <div class="polestar-field-stacks"><span>极星辉域层数</span>
+                            <!-- This Element Plus version sets aria-disabled only on mount. -->
+                            <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
+                        </div>
+                    </div>
+                    <selected-buff-groups class="buffs" v-if="otherBuffs.length > 0" :buffs="otherBuffs" v-slot="{ buff }">
+                        <buff-item
+                            :key="buff.id"
+                            :buff="buff"
+                            v-model:buffConfig="buff.config"
+                            @delete="handleClickDeleteBuff(buff.id)"
+                            @toggle="handleClickToggleBuff(buff.id)"
+                        ></buff-item>
+                        <label v-if="teamContextSources.length" class="manual-buff-source">手动 BUFF 来源
+                            <el-select v-model="buff.source_id" clearable placeholder="未关联队友" size="small">
+                                <el-option v-for="source in teamContextSources" :key="source.sourceId"
+                                    :label="source.presetName" :value="source.sourceId" />
+                            </el-select>
+                        </label>
+                    </selected-buff-groups>
+                    <div v-else-if="!polestarEnabled">
+                        <el-empty description="无BUFF"></el-empty>
+                    </div>
+                </div>
+            </el-col>
+
+            <el-col :sm="24" :md="12" class="middle-container mona-scroll-hidden">
+                <p class="common-title">{{ t("misc.artifact") }}</p>
+
+                <div class="artifact-tool" style="margin-bottom: 12px">
+                    <el-button-group>
+                        <el-button
+                            :icon="IconEpHistogram"
+                            @click="handleClickArtifactAnalysis"
+                        >{{ t("calcPage.statAnalysis") }}</el-button>
+                        <el-button
+                            :icon="IconEpStarFilled"
+                            @click="handleClickSaveAsKumi"
+                        >{{ t("calcPage.saveKumi") }}</el-button>
+                        <el-button
+                            :icon="IconEpFolder"
+                            @click="handleClickUseKumi"
+                        >{{ t("calcPage.useKumi") }}</el-button>
+                        <el-button
+                            v-show="artifactCount > 0"
+                            :icon="isAllLocked ? IconEpUnlock : IconEpLock"
+                            @click="() => { isAllLocked ? handleUnlockAll() : handleLockAll() }"
+                        >{{ isAllLocked ? t("calcPage.unlockAll") : t("calcPage.lockAll") }}</el-button>
+                    </el-button-group>
+                </div>
+
+                <div class="artifact-grade-summary" aria-label="角色圣遗物评分">
+                    <div><span>{{ artifactScoreContext.label }} · 圣遗物总分</span><strong>{{ artifactBuildScore.total === null ? '—' : artifactBuildScore.total.toFixed(1) }}</strong><b>{{ artifactBuildScore.grade }}</b></div>
+                </div>
+                <artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
+                    v-model:history-id="comparisonHistoryId" :history="comparisonHistory"
+                    @save="saveComparisonHistory" />
+                <div class="artifacts">
+                    <div
+                        v-for="(id, index) in artifactIds"
+                        :key="index"
+                        class="artifact-item-or-button"
+                    >
+                        <artifact-display
+                            v-if="artifactItems[index]"
+                            :item="artifactItems[index]"
+                            selectable
+                            :buttons="true"
+                            :delete-button="true"
+                            @delete="removeArtifact(index)"
+                            @toggle="artifactStore.toggleArtifact(artifactItems[index].id)"
+                            @click="scoreArtifactIndex = index; showArtifactScore = true"
+                            class="artifact-display"
+                        >
+                            <template #footer><div class="artifact-piece-score"><span>喵喵评分：{{ artifactPieceScore(index) }}</span><span v-if="artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span></div></template>
+                        </artifact-display>
+                        <add-button
+                            v-else
+                            @click="handleGotoSelectArtifact(index)"
+                            class="add-button"
+                        ></add-button>
+                        <span v-if="!artifactItems[index] && artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span>
+                    </div>
+                </div>
+
+                <div v-if="artifactNeedConfig2" style="margin-top: 16px">
+                    <p class="common-description">
+                        <span class="effect2">{{ t("calcPage.effect2") }}</span>
+                        <span v-html="artifactEffect2Text"></span>
+                    </p>
+                    <item-config
+                        v-if="artifactSingleConfig"
+                        v-model="artifactSingleConfig"
+                        :item-name="artifactConfigItemName"
+                        :configs="artifactConfig2Configs"
+                    ></item-config>
+                </div>
+
+                <div v-if="artifactNeedConfig4" style="margin-top: 16px">
+                    <p class="common-description">
+                        <span class="effect4">{{ t("calcPage.effect4") }}</span>
+                        <span v-html="artifactEffect4Text"></span>
+                    </p>
+                    <item-config
+                        v-if="artifactSingleConfig"
+                        v-model="artifactSingleConfig"
+                        :item-name="artifactConfigItemName"
+                        :configs="artifactConfig4Configs"
+                    ></item-config>
+                </div>
+
+                <el-divider></el-divider>
+
+                <p class="common-title">{{ t("calcPage.dmg") }}</p>
+                <div class="my-button-list" style="margin-bottom: 12px">
+                    <el-button-group>
+                        <el-button
+                            :icon="IconEpHistogram"
+                            @click="handleDisplayAnalysis"
+                        >{{ t("calcPage.detail") }}</el-button>
+                        <el-button
+                            :icon="IconEpTools"
+                            @click="handleClickEnemyConfig"
+                        >{{ t("calcPage.setupEnemy") }}</el-button>
+                    </el-button-group>
+                </div>
+
+                <div>
+                    <h3 class="common-title2">{{ t("calcPage.fumo") }}</h3>
+                    <select-element-type
+                        v-model="fumo"
+                        :elements="['Pyro', 'Electro', 'Hydro', 'Anemo', 'Geo', 'Cryo', 'Dendro', 'None']"
+                    ></select-element-type>
+                </div>
+
+                <div v-if="characterNeedSkillConfig" style="margin-bottom: 16px;">
+                    <h3 class="common-title2">{{ t("calcPage.skillConfig") }}</h3>
+                    <item-config
+                        v-model="characterSkillConfig"
+                        :item-name="characterName"
+                        :configs="characterSkillConfigConfig"
+                    ></item-config>
+                </div>
+                <div class="damage-analysis-div">
+                    <h3 class="common-title2">{{ t("calcPage.skill") }}</h3>
+                    <select-character-skill
+                        v-model="characterSkillIndex"
+                        :character-name="characterName"
+                        style="margin-bottom: 16px"
+                    ></select-character-skill>
+                    <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
+                    <damage-panel v-if="!betaCalculationError && characterDamageAnalysis"
+                        :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
+                    ></damage-panel>
+                </div>
+
+                <h3 class="common-title2" style="margin-top: 24px">{{ t("calcPage.dmg2") }}</h3>
+                <transformative-damage v-if="!betaCalculationError && characterTransformativeDamage"
+                    :data="characterTransformativeDamage"
+                ></transformative-damage>
+            </el-col>
+
+            <el-col :sm="24" :md="6" class="right-container mona-scroll-hidden">
+                <div class="common-title">{{ t("calcPage.panel") }}</div>
+
+                <div class="my-button-list" style="margin-bottom: 12px">
+                    <el-button type="primary" :icon="IconEpHistogram" @click="showOptimalGainCurve = true" :disabled="!!betaCalculationError">最优收益曲线 · 0～20 条</el-button>
+                    <el-button
+                        :icon="IconEpHistogram"
+                        @click="handleClickAttributeAnalysis"
+                    >{{ t("calcPage.statCurve") }}</el-button>
+                </div>
+
+                <attribute-panel v-if="!betaCalculationError"
+                    :attribute="attributeFromWasm"
+                    :baseline="comparisonAttribute"
+                ></attribute-panel>
+            </el-col>
+        </el-row>
+    </div>
+</template>
+
+<script setup lang="ts">
+import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
+import ArtifactComparisonControls from '@/components/display/ArtifactComparisonControls.vue'
+import { useArtifactComparison, snapshotEquipment } from '@/composables/artifactComparison.mjs'
+import { useMiyousheStore } from '@/store/pinia/miyoushe'
+import { createMysConverter } from '@/import/miyoushe.mjs'
+import scoreCharacters from '@/assets/_gen_character'
+import {characterByElement} from '@/assets/character'
+import scoreWeapons from '@/assets/_gen_weapon'
+import scoreLocale from '@/i18n/generated/zh-cn.json'
+import { scoreBuild, scoreSetNames, panelScoreAttributes } from '@/algorithms/artifact-score/score.mjs'
+import {convertArtifact} from "@util/converter"
+import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
+import {deepCopy, downloadString} from "@/utils/common"
+import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
+import {wasmSingleOptimize} from "@/wasm/single_optimize"
+import {createComputeResult} from "@/api/misc"
+import {deviceIsPC} from "@util/device"
+import SelectArtifact from "@/components/select/SelectArtifact.vue"
+import SelectArtifactSet from "@c/select/SelectArtifactSet"
+import SelectCharacter from "@/components/select/SelectCharacter.vue"
+import SelectCharacterLevel from "@/components/select/SelectCharacterLevel.vue"
+import SelectWeapon from "@/components/select/SelectWeapon.vue"
+import SelectWeaponLevel from "@/components/select/SelectWeaponLevel.vue"
+import SelectTargetFunction from "@/components/select/SelectTargetFunction.vue"
+import SelectCharacterSkill from "@/components/select/SelectCharacterSkill.vue"
+import SelectBuff from "@/components/select/SelectBuff.vue"
+import ArtifactDisplay from "@c/display/ArtifactDisplay"
+import AddButton from "@c/misc/AddButton"
+import DamagePanel from "./DamagePanel"
+import AttributePanel from "@c/display/AttributePanel"
+import ItemConfig from "@c/config/ItemConfig"
+import BuffItem from "./BuffItem"
+import SelectedBuffGroups from '@/components/display/SelectedBuffGroups.vue'
+import { otherCharacterArtifactIds } from '@/algorithms/artifact-ownership.mjs'
+import { createTeamContextSource, deriveSingleTeamContext } from '@/algorithms/single-team-context.mjs'
+import WeaponDisplay from "@/components/display/WeaponDisplay.vue"
+import SaveAsKumi from "./SaveAsKumi.vue"
+import TransformativeDamage from "./TransformativeDamage"
+import ValueDisplay from "./ValueDisplay"
+import EnemyConfigComponent from "./EnemyConfig"
+import SelectArtifactMainStat from "@c/select/SelectArtifactMainStat"
+import ArtifactConfig from "./ArtifactConfig.vue"
+import DamageAnalysis from "@/components/display/DamageAnalysis"
+import {useCharacter, useCharacterSkill} from "@/composables/character"
+import {useEnemy} from "@/composables/enemy"
+import {useWeapon} from "@/composables/weapon"
+import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
+import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
+import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
+import DslGenerator from './DslGenerator.vue'
+import {generateDsl} from '@/algorithms/dsl-generator.mjs'
+import {useTargetFunction} from "@/composables/targetFunction"
+import type {ArtifactPosition, IArtifact, IArtifactWasm} from "@/types/artifact"
+import IconEpCaretRight from "~icons/ep/caret-right"
+import IconEpTools from "~icons/ep/tools"
+import IconEpPlus from "~icons/ep/plus"
+import IconEpMenu from "~icons/ep/menu"
+import IconEpHistogram from "~icons/ep/histogram"
+import IconEpStarFilled from "~icons/ep/star-filled"
+import IconEpFolder from "~icons/ep/folder"
+import IconEpLock from "~icons/ep/lock"
+import IconEpUnlock from "~icons/ep/unlock"
+import {useComputeConstraint} from "@/composables/constraint"
+import {BuffEntry, useBuff} from "@/composables/buff"
+import {type PresetEntry, usePresetStore} from "@/store/pinia/preset"
+import {useArtifactStore} from "@/store/pinia/artifact"
+import type {IPreset, ITeamContextSource} from "@/types/preset"
+import {RandomIDProvider} from "@/utils/idProvider"
+import {use5Artifacts} from "@/composables/artifact"
+import {positions} from "@/constants/artifact"
+import {positionToIndex} from "@/utils/artifacts"
+import {useMona} from "@/wasm/mona"
+import {useKumiStore} from "@/store/pinia/kumi"
+import SimpleLoading from "@/components/loading/SimpleLoading.vue"
+import SimpleError from "@/components/loading/SimpleError.vue"
+import {useRoute} from "vue-router"
+import {useI18n} from "@/i18n/i18n"
+import {useAccountStore} from "@/store/pinia/account"
+import {artifactsData} from "@/assets/artifacts"
+
+import {ElMessage} from "element-plus"
+import "element-plus/es/components/message/style/css"
+import SelectElementType from "@/components/select/SelectElementType.vue";
+
+// stores
+const presetStore = usePresetStore()
+const artifactStore = useArtifactStore()
+const miyousheStore = useMiyousheStore()
+const MiyousheImport = defineAsyncComponent(() => import('@/components/import/MiyousheImport.vue'))
+const showMiyousheImport = ref(false)
+const MiyousheCharacterPicker = defineAsyncComponent(() => import('@/components/import/MiyousheCharacterPicker.vue'))
+const showMyCharacters = ref(false)
+const mobileCalcTab = ref('character')
+const kumiStore = useKumiStore()
+const accountStore = useAccountStore()
+
+// mona
+const mona = await useMona()
+
+// router
+const route = useRoute()
+
+// i18n
+const { t, ta } = useI18n()
+
+
+//////////////////////////////////////////////////////////
+// set preset from other place
+function setPresetFromRoute() {
+    const presetName = route.query.preset || route.params.presetName
+    if (presetName && typeof presetName === "string") {
+        usePreset(presetName)
+    }
+}
+
+onActivated(setPresetFromRoute)
+
+onMounted(setPresetFromRoute)
+
+
+////////////////////////////////////////////////////////
+// enemy
+const {
+    enemyConfig,
+    enemyInterface
+} = useEnemy()
+const showEnemyConfigDialog = ref(false)
+
+function handleClickEnemyConfig() {
+    showEnemyConfigDialog.value = true
+}
+
+
+////////////////////////////////////////////////////////
+// character
+const {
+    characterName,
+    characterLevel,
+    characterConfig,
+    characterSkill1,
+    characterSkill2,
+    characterSkill3,
+    characterConstellation,
+    characterWeaponType,
+    characterLevelNumber,
+    characterAscend,
+    characterSplash,
+    characterNeedConfig,
+    characterConfigConfig,
+    characterInterface,
+    characterLocale,
+} = useCharacter()
+
+const {
+    characterSkillConfig,
+    characterSkillIndex,
+    characterNeedSkillConfig,
+    characterSkillConfigConfig,
+    characterSkillInterface,
+} = useCharacterSkill(characterName)
+
+const fumo = ref("None")
+
+
+//////////////////////////////////////////////////////////////
+// weapon
+const {
+    weaponName,
+    weaponLevel,
+    weaponRefine,
+    weaponMaxRefine,
+    weaponConfig,
+    weaponLevelNumber,
+    weaponAscend,
+    weaponSplash,
+    weaponNeedConfig,
+    weaponConfigConfig,
+    weaponInterface,
+    weaponLocale
+} = useWeapon(characterWeaponType)
+
+watch(characterName, name => {
+    if (name === 'Vodyanitsa') weaponName.value = 'HymnOfTheMaelstrom' as any
+    else if (name === 'Vesna') weaponName.value = 'BeyondTheChrysalis' as any
+}, { flush: 'sync' })
+
+
+//////////////////////////////////////////////////////////////
+// target function
+const {
+    targetFunctionName,
+    targetFunctionConfig,
+    targetFunctionUseDSL,
+    targetFunctionDSLSource,
+    targetFunctionBadge,
+    targetFunctionDescription,
+    targetFunctionNeedConfig,
+    targetFunctionConfigConfig,
+    targetFunctionInterface
+} = useTargetFunction(characterName)
+const miscTargetFunctionTab = ref<"normal" | "dsl" | "generator">("normal")
+
+
+const dslGeneratorState = ref({character: characterName.value, entries: [] as any[]})
+const generatedDsl = computed(() => generateDsl(dslGeneratorState.value))
+watch(characterName, name => { dslGeneratorState.value = {character:name,entries:[]} }, {flush:'sync'})
+watch([miscTargetFunctionTab, generatedDsl], ([mode, source]) => {
+    targetFunctionUseDSL.value = mode !== 'normal'
+    if (mode === 'generator') targetFunctionDSLSource.value = source
+}, {flush:'sync'})
+
+
+//////////////////////////////////////////////////////////
+// artifacts
+const {
+    artifactIds,
+    artifactCount,
+    artifactSingleConfig,
+    artifactWasmFormat,
+
+    artifactItems,
+    artifactSetCount,
+    artifactNeedConfig4,
+    artifactNeedConfig2,
+    artifactConfigItemName,
+    artifactEffect4Text,
+    artifactEffect2Text,
+    artifactConfig4Configs,
+    artifactConfig2Configs,
+    artifactConfigForCalculator,
+
+    setArtifact,
+    removeArtifact,
+} = use5Artifacts()
+
+const showSelectArtifactDialog = ref(false)
+const showArtifactScore = ref(false)
+const scoreArtifactIndex = ref(0)
+function replaceScoredArtifact() {
+    showArtifactScore.value = false
+    handleGotoSelectArtifact(scoreArtifactIndex.value)
+}
+const selectArtifactSlot = ref<ArtifactPosition>("flower")
+
+function handleGotoSelectArtifact(index: number) {
+    const slotName = positions[index]
+    showSelectArtifactDialog.value = true
+    selectArtifactSlot.value = slotName
+}
+
+function handleSelectArtifact(id: number) {
+    const index = positionToIndex(selectArtifactSlot.value)
+    setArtifact(index, id)
+
+    showSelectArtifactDialog.value = false
+}
+
+function handleLockAll() {
+    for (const id of artifactIds.value) {
+        artifactStore.lockArtifact(id)
+    }
+}
+
+function handleUnlockAll() {
+    for (const id of artifactIds.value) {
+        artifactStore.unlockArtifact(id)
+    }
+}
+
+const isAllLocked = computed(() => {
+    for (const id of artifactIds.value) {
+        let artifact = artifactStore.getArtifact(id)
+        if (artifact) {
+            if (!artifact.omit) {
+                return false
+            }
+        }
+    }
+    return true
+})
+
+
+//////////////////////////////////////////////////////////////
+// optimization setup
+const showConstraintDialog = ref(false)
+const {
+    algorithm,
+    constraintArtifactSet,
+    constraintSandMainStats,
+    constraintGobletMainStats,
+    constraintHeadMainStats,
+    constraintMinRecharge,
+    constraintMinElementalMastery,
+    constraintMinCritical,
+    constraintMinCriticalDamage,
+
+    constraintSetMode,
+    constraintInterface,
+} = useComputeConstraint()
+const filterKumiRef = ref<InstanceType<typeof ElTree> | null>(null)
+const filterKumiSearch = ref("")
+const filteredKumiIds = ref<number[]>([])
+
+function handleClickSetupOptimization() {
+    showConstraintDialog.value = true
+}
+
+
+//////////////////////////////////////////////////////////////
+// artifact config
+const showConfigArtifactDialog = ref(false)
+const artifactEffectMode = ref<"auto" | "custom">("auto")
+const artifactConfig = ref(newDefaultArtifactConfigForWasm())
+
+function handleClickArtifactConfig() {
+    showConfigArtifactDialog.value = true
+}
+
+
+///////////////////////////////////////////////////////////////
+// save and use presets
+const miscCurrentPresetName = ref<null | string>(null)
+const presetElement = ref("")
+const presetSort = ref("recent")
+const presetElements = Object.keys(characterByElement)
+const presetMenuEntries = computed(() => {
+    const entries = presetStore.allFlat.value.filter(entry =>
+        !presetElement.value || scoreCharacters[entry.item.character.name].element === presetElement.value)
+    return entries.sort((a, b) => {
+        const recent = (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
+        if (presetSort.value === "recent") return recent
+        return presetElements.indexOf(scoreCharacters[a.item.character.name].element)
+            - presetElements.indexOf(scoreCharacters[b.item.character.name].element) || recent
+    })
+})
+const presetDefaultName = computed((): string => {
+    const cName = characterLocale.value
+    const wName = weaponLocale.value
+    return `${cName}-${wName}`
+})
+
+function handleCommandPreset(cmd: string) {
+    if (cmd === "save-preset") {
+        handleClickSaveOptimizeConfig()
+    } else {
+        if (cmd.startsWith("apply-")) {
+            const name = cmd.slice(6)
+
+            usePreset(name)
+        }
+    }
+}
+
+function handleSavePreset(name: string) {
+    if (!name) {
+        handleClickSaveOptimizeConfig()
+    } else {
+        const item = getPresetItem()
+        // console.log(item)
+        item.name = name
+        const sourceKey = presetStore.getPreset(name)?.item.miyousheKey
+        if (sourceKey) {
+            item.miyousheKey = sourceKey
+            item.artifactIds = [...artifactIds.value]
+        }
+        presetStore.addOrOverwrite(name, item)
+
+        ElMessage.success({
+            message: "已保存"
+        })
+    }
+}
+
+function handleClickSaveOptimizeConfig() {
+    const item = getPresetItem()
+
+    ElMessageBox.prompt("输入名称（重复名称将覆盖）", "存为预设", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputPattern: /[^\s]+$/,
+        inputValue: presetDefaultName.value
+    }).then(({ value }) => {
+        item.name = value
+        presetStore.addOrOverwrite(value, item)
+        miscCurrentPresetName.value = value
+        ElMessage.success({
+            message: "保存成功"
+        })
+    })
+}
+
+function getPresetItem() {
+    type BuffType = Omit<BuffEntry, "id">
+    let buffsToBeSaved: BuffType[] = []
+    for (let buff of buffs.value) {
+        buffsToBeSaved.push({
+            name: buff.name,
+            config: deepCopy(buff.config),
+            lock: buff.lock,
+            source_id: (buff as any).source_id,
+            source_effect: (buff as any).source_effect,
+        })
+    }
+
+    const item = {
+        // buffs: deepCopy(config.buffs),
+        buffs: buffsToBeSaved,
+        artifactIds: [...artifactIds.value],
+        teamContext: deepCopy(teamContextSources.value),
+        teamContextStellarMode: teamContextStellarMode.value,
+        character: deepCopy(characterInterface.value),
+        weapon: deepCopy(weaponInterface.value),
+        targetFunction: deepCopy(targetFunctionInterface.value),
+        constraint: {
+            setNames: deepCopy(constraintArtifactSet.value),
+            minRecharge: constraintMinRecharge.value,
+            minCritical: constraintMinCritical.value,
+            minCriticalDamage: constraintMinCriticalDamage.value,
+            minElementalMastery: constraintMinElementalMastery.value
+        },
+        filter: {
+            sandMainStats: deepCopy(constraintSandMainStats.value),
+            gobletMainStats: deepCopy(constraintGobletMainStats.value),
+            headMainStats: deepCopy(constraintHeadMainStats.value),
+        },
+        artifactConfig: deepCopy(artifactConfig.value),
+        algorithm: algorithm.value,
+        artifactEffectMode: artifactEffectMode.value,
+        useDSL: miscTargetFunctionTab.value !== "normal",
+        targetMode: miscTargetFunctionTab.value,
+        dslGenerator: deepCopy(dslGeneratorState.value),
+        dslSource: targetFunctionDSLSource.value,
+        name: ""
+    } as IPreset
+    return item
+}
+
+function usePreset(name: string) {
+    const entry: PresetEntry = presetStore.presets.value[name]
+    if (!entry || !entry.item) {
+        return
+    }
+
+    resetArtifactComparison()
+
+    const item: IPreset = deepCopy(entry.item)
+    if (item.artifactIds) {
+        artifactIds.value = [0, 1, 2, 3, 4].map(i => artifactStore.getArtifact(item.artifactIds![i]) ? item.artifactIds![i] : -1)
+    }
+
+    const idGenerator = new RandomIDProvider()
+
+    // use buffs
+    if (item.buffs) {
+        const newBuffs: BuffItem[] = []
+        for (let buff of item.buffs) {
+            const newBuff: BuffEntry = {
+                id: idGenerator.generateId(),
+                name: buff.name,
+                config: buff.config,
+                lock: buff.lock,
+                source_id: buff.source_id,
+                source_effect: buff.source_effect,
+            }
+            newBuffs.push(newBuff)
+        }
+        buffs.value = newBuffs
+    }
+    teamContextSources.value = Array.isArray(item.teamContext) ? deepCopy(item.teamContext) : []
+    teamContextStellarMode.value = item.teamContextStellarMode === true
+
+    // use character
+    const c = item.character
+    if (c) {
+        // this.characterName = c.name
+        characterName.value = c.name
+        characterLevel.value = c.level.toString() + (c.ascend ? "+" : "-")
+        characterConstellation.value = c.constellation ?? 0
+        characterSkill1.value = c.skill1 + 1
+        characterSkill2.value = c.skill2 + 1
+        characterSkill3.value = c.skill3 + 1
+        characterConfig.value = c.params
+    }
+
+    // use weapon
+    const w = item.weapon
+    if (w) {
+        weaponName.value = w.name
+        weaponLevel.value = w.level.toString() + (w.ascend ? "+" : "-")
+        weaponRefine.value = w.refine
+        weaponConfig.value = w.params
+    }
+
+    // use target function
+    const tf = item.targetFunction
+    if (tf) {
+        targetFunctionName.value = tf.name
+        targetFunctionConfig.value = tf.params
+    }
+
+    // is DSL?
+    const use_dsl = !!item.useDSL
+    if (use_dsl) {
+        targetFunctionDSLSource.value = item.dslSource ?? ""
+        if (item.dslGenerator) dslGeneratorState.value = deepCopy(item.dslGenerator)
+        miscTargetFunctionTab.value = item.targetMode === 'generator' ? 'generator' : 'dsl'
+    } else {
+        miscTargetFunctionTab.value = "normal"
+    }
+
+
+    // use constraint
+    const constraint = item.constraint
+    if (constraint) {
+        constraintArtifactSet.value = constraint.setNames ?? []
+        constraintMinCriticalDamage.value = constraint.minCriticalDamage ?? 0
+        constraintMinCritical.value = constraint.minCritical ?? 0
+        constraintMinElementalMastery.value = constraint.minElementalMastery ?? 0
+        constraintMinRecharge.value = constraint.minRecharge ?? 1.0
+    }
+
+    // use filter
+    const filter = item.filter
+    if (filter) {
+        constraintSandMainStats.value = filter.sandMainStats ?? []
+        constraintGobletMainStats.value = filter.gobletMainStats ?? []
+        constraintHeadMainStats.value = filter.headMainStats ?? []
+    }
+
+    // use compute mode
+    algorithm.value = item.algorithm ?? "AStar"
+    // disable heuristic algorithm in 5.11
+    if (algorithm.value === "Heuristic") {
+        algorithm.value = "AStar"
+    }
+
+    // use artifact effect mode
+    artifactEffectMode.value = item.artifactEffectMode ?? "auto"
+
+    // use artifact config
+    if (item.artifactConfig) {
+        artifactConfig.value = mergeArtifactConfig(item.artifactConfig)
+    } else {
+        artifactConfig.value = newDefaultArtifactConfigForWasm()
+    }
+
+    miscCurrentPresetName.value = name
+    if (item.miyousheKey) miyousheStore.selectedUid.value = item.miyousheKey.split(':')[0]
+}
+
+
+///////////////////////////////////////////////////////////
+// buffs
+const {
+    buffs,
+    buffsInterface,
+    polestarEnabled,
+    polestarStacks,
+    addBuff,
+    deleteBuff,
+    toggleBuff
+} = useBuff()
+const otherBuffs = computed(() => buffs.value.filter(buff => buff.name !== 'ResonancePolestarField'))
+const teamContextSources = ref<ITeamContextSource[]>([])
+const teamContextStellarMode = ref(false)
+const availableTeamPresets = computed(() => presetStore.allFlat.value.filter(entry =>
+    ['Vodyanitsa', 'Vesna', 'Odette', 'Qiqi', 'Sandrone'].includes(entry.item?.character?.name)
+    && entry.item.character.name !== characterName.value
+    && entry.name !== miscCurrentPresetName.value))
+const selectedTeamPresetNames = computed<string[]>({
+    get: () => teamContextSources.value.map(source => source.presetName),
+    set: names => {
+        teamContextSources.value = names.map(name => teamContextSources.value.find(source => source.presetName === name)
+            || createTeamContextSource(name, presetStore.presets.value[name]))
+    },
+})
+function teamCharacterLabel(name?: string) {
+    return ({Vodyanitsa:'沃雅妮莎',Vesna:'薇斯纳',Odette:'奥黛塔',Qiqi:'七七',Sandrone:'桑多涅'} as Record<string,string>)[name || ''] || '未知角色'
+}
+function teamSourceGearLabel(name: string) {
+    const ids = presetStore.presets.value[name]?.item.artifactIds
+    if (!Array.isArray(ids)) return '未保存当前装备'
+    return `当前装备 ${ids.filter(id => id >= 0 && !!artifactStore.getArtifact(id)).length}/5 件`
+}
+const selectedTeamArtifactIds = computed(() => new Set(teamContextSources.value.flatMap(source =>
+    (presetStore.presets.value[source.presetName]?.item.artifactIds || []).filter(id => Number.isInteger(id) && id >= 0))))
+const teamContextResult = computed(() => deriveSingleTeamContext(mona, {
+    character: characterInterface.value,
+    weapon: weaponInterface.value,
+    target_function: targetFunctionInterface.value,
+    equipped_artifact_ids: artifactIds.value,
+    artifacts: artifactWasmFormat.value,
+    buffs: buffsInterface.value,
+    team_effects: {stellar_mode:teamContextStellarMode.value ? 'stellar' : 'ordinary'},
+}, teamContextSources.value, presetStore.presets.value,
+id => artifactStore.getArtifact(id), convertArtifact))
+const effectiveBuffs = computed(() => teamContextResult.value.buffs)
+const teamContextError = computed(() => teamContextResult.value.issues.join(' '))
+const teamContextKey = computed(() => JSON.stringify([
+    teamContextSources.value, teamContextStellarMode.value,
+    teamContextResult.value.automatic, teamContextResult.value.issues,
+    [...selectedTeamArtifactIds.value],
+]))
+
+const showSelectBuffDialog = ref(false)
+
+function handleClickAddBuff() {
+    showSelectBuffDialog.value = true
+}
+
+function handleClickDeleteBuff(id: number) {
+    deleteBuff(id)
+}
+
+function handleClickToggleBuff(id: number) {
+    toggleBuff(id)
+}
+
+function handleSelectBuff(name: string, options?: { config?: any, keepOpen: boolean }) {
+    if (options?.keepOpen && buffs.value.some(b => b.name === name)) return
+    if (!options?.keepOpen) showSelectBuffDialog.value = false
+    addBuff(name, options?.config)
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// damage
+const showDamageAnalysisDialog = ref(false)
+const damageAnalysisComponent = ref<null | InstanceType<typeof DamageAnalysis>>(null)
+
+const damageAnalysisWasmInterface = computed(() => {
+    // console.log("123")
+    return {
+        character: characterInterface.value,
+        weapon: weaponInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
+        artifacts: artifactWasmFormat.value,
+        artifact_config: artifactConfigForCalculator.value,
+        skill: characterSkillInterface.value,
+        enemy: enemyInterface.value,
+    }
+})
+
+const damageCalculation = computed(() => {
+    try {
+    let fumo2 = null
+    if (fumo.value !== "None") {
+        fumo2 = fumo.value
+    }
+    const temp = mona.CalculatorInterface.get_damage_analysis(damageAnalysisWasmInterface.value, fumo2)
+    // console.log(temp)
+    return { value: temp, error: '' }
+    } catch (error: any) { return { value: null, error: error.message || String(error) } }
+})
+const characterDamageAnalysis = computed(() => damageCalculation.value.value)
+
+const transformativeCalculation = computed(() => {
+    try { return { value: mona.CalculatorInterface.get_transformative_damage(damageAnalysisWasmInterface.value), error: '' } }
+    catch (error: any) { return { value: null, error: error.message || String(error) } }
+})
+const characterTransformativeDamage = computed(() => transformativeCalculation.value.value)
+
+function handleDisplayAnalysis() {
+    if (betaCalculationError.value) return ElMessage.error(betaCalculationError.value)
+    showDamageAnalysisDialog.value = true
+
+    nextTick(() => {
+        if (damageAnalysisComponent.value) {
+            const component = damageAnalysisComponent.value
+
+            component.setValue(characterDamageAnalysis.value)
+        }
+    })
+}
+
+
+//////////////////////////////////////////////////////////////////
+// attribute
+const getAttributeWasmInterface = computed(() => {
+    return {
+        character: characterInterface.value,
+        weapon: weaponInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
+        artifacts: artifactWasmFormat.value,
+        artifact_config: artifactConfigForCalculator.value,
+    }
+})
+
+const attributeCalculation = computed(() => {
+    try { return { value: mona.CommonInterface.get_attribute(getAttributeWasmInterface.value), error: '' } }
+    catch (error: any) { return { value: null, error: error.message || String(error) } }
+})
+const attributeFromWasm = computed(() => attributeCalculation.value.value || {})
+
+const betaCalculationError = computed(() => teamContextError.value || attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
+
+const artifactScoreContext = computed(() => {
+    const c = scoreCharacters[characterName.value]
+    const label = scoreLocale[c.nameLocale]
+    const name = /^(Aether|Lumine)/.test(characterName.value) ? '旅行者' : label
+    return { name, label, options: {
+        elem: c.element.toLowerCase(), cons: characterConstellation.value,
+        scoreMode: characterName.value === 'Vesna' && characterConfig.value?.Vesna?.radiance ? 'stellar' : 'normal',
+        weaponName: scoreLocale[scoreWeapons[weaponName.value].nameLocale], weaponAffix: weaponRefine.value,
+        charAttrs: panelScoreAttributes(attributeFromWasm.value),
+        artisSets: scoreSetNames(artifactItems.value, artifactsData, scoreLocale)
+    } }
+})
+const artifactBuildScore = computed(() => scoreBuild(artifactItems.value, artifactScoreContext.value))
+function artifactPieceScore(index: number) {
+    const score = artifactBuildScore.value.artifacts.find(a => a.pos === index)
+    return score ? `${score.score.toFixed(1)} ${score.grade}` : '待适配'
+}
+
+
+//////////////////////////////////////////////////////////////////
+// bonus analysis
+const showOptimalGainCurve = ref(false)
+const OptimalStatGainCurve = defineAsyncComponent(() => import('@/components/display/OptimalStatGainCurve.vue'))
+const miscPerStatBonus = ref<any>({})
+const showArtifactPerBonusDialog = ref(false)
+
+const bonusPerStatWasmInterface = computed(() => {
+    return {
+        character: characterInterface.value,
+        weapon: weaponInterface.value,
+        artifacts: artifactWasmFormat.value,
+        tf: targetFunctionInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
+        enemy: enemyInterface.value,
+        artifacts_config: artifactConfigForCalculator.value
+    }
+})
+
+function handleClickAttributeAnalysis() {
+    if (betaCalculationError.value) return ElMessage.error(betaCalculationError.value)
+    try {
+        miscPerStatBonus.value = mona.BonusPerStat.bonus_per_stat(bonusPerStatWasmInterface.value)
+        showArtifactPerBonusDialog.value = true
+    } catch (error: any) {
+        ElMessage.error(error.message || String(error))
+    }
+}
+
+const ArtifactPerStatBonus = defineAsyncComponent({
+    loader: () => import("@/components/display/ArtifactPerStatBonus.vue")
+})
+
+
+/////////////////////////////////////////////////////////////////////////
+// kumi
+const showSaveKumiDialog = ref(false)
+const showUseKumiDialog = ref(false)
+
+interface Node {
+    label: string,
+    children?: Node[],
+    id: number,
+}
+
+interface FilterKumiNode extends Node {
+    characters: { name: string, label: string, avatar: string }[],
+    children?: FilterKumiNode[],
+}
+
+const kumiDefaultName = computed((): string => {
+    let name = characterLocale.value
+    for (const setName in artifactSetCount.value) {
+        if (artifactSetCount.value[setName] >= 2) {
+            name += '-' + ta(artifactsData[setName].nameLocale)
+        }
+    }
+    return name
+})
+
+const kumiTreeDataForElementUI = computed(() => {
+    const data: Node[] = []
+    for (const item of kumiStore.dirs.value) {
+        const children = item.children ?? []
+
+        if (children.length > 0) {
+            const temp: Node[] = []
+            for (let childId of children) {
+                const item = kumiStore.kumiById.value.get(childId)
+                if (item) {
+                    temp.push({
+                        label: item.title,
+                        id: item.id
+                    })
+                }
+            }
+
+            const node = {
+                label: item.title,
+                children: temp,
+                id: item.id
+            }
+            data.push(node)
+        }
+    }
+
+    return data
+})
+
+const filterKumiTreeData = computed((): FilterKumiNode[] => {
+    const compare = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' }).compare
+    const sortNodes = (a: Node, b: Node) => compare(a.label, b.label) || a.id - b.id
+    return kumiTreeDataForElementUI.value.map(dir => ({
+        ...dir,
+        characters: [],
+        children: dir.children!.map(node => {
+            const ids = kumiStore.kumiById.value.get(node.id)!.artifactIds!
+            const names = ids.length === 5
+                && ids.every(id => id !== null && id >= 0 && artifactStore.artifacts.value.has(id))
+                ? [...new Set(presetStore.allFlat.value.filter(entry =>
+                    entry.item.artifactIds?.length === 5
+                    && ids.every((id, i) => id === entry.item.artifactIds![i]))
+                    .map(entry => entry.item.character.name))] : []
+            return { id: node.id, label: node.label, characters: names.map(name => ({
+                name, label: ta(scoreCharacters[name].nameLocale), avatar: scoreCharacters[name].avatar,
+            })) }
+        }).sort(sortNodes),
+    })).sort(sortNodes)
+})
+
+function filterKumiNode(value: string, data: FilterKumiNode, node: any): boolean {
+    const query = value.trim().toLowerCase()
+    const matches = (item: FilterKumiNode) => `${item.label} ${item.characters.map(character =>
+        `${character.name} ${character.label}`).join(' ')}`.toLowerCase().includes(query)
+    return matches(data) || (node.parent.level > 0 && matches(node.parent.data))
+}
+
+function handleFilterKumiCheck(_node: FilterKumiNode, checked: { checkedNodes: FilterKumiNode[] }) {
+    filteredKumiIds.value = checked.checkedNodes.filter(node => !node.children).map(node => node.id)
+}
+
+watch([filterKumiSearch, filterKumiTreeData], () => {
+    nextTick(() => filterKumiRef.value?.filter(filterKumiSearch.value))
+}, { flush: 'post' })
+
+function handleClickSaveAsKumi() {
+    showSaveKumiDialog.value = true
+}
+
+function handleSaveAsKumi({ dirIds, name }: { dirIds: number[], name: string }) {
+    showSaveKumiDialog.value = false
+
+    for (const dirId of dirIds) {
+        let kumiId = kumiStore.createKumi(dirId, name)
+        if (kumiId) {
+            for (const artifactId of artifactIds.value) {
+                if (artifactId >= 0) {
+                    kumiStore.addArtifact(kumiId, artifactId)
+                }
+            }
+        }
+    }
+}
+
+function handleClickUseKumi() {
+    showUseKumiDialog.value = true
+}
+
+function handleUseKumi(node: Node) {
+    const item = kumiStore.kumiById.value.get(node.id)
+    if (!item || item.dir || !item.artifactIds) {
+        return
+    }
+
+    showUseKumiDialog.value = false
+    for (let i = 0; i < 5; i++) {
+        const artifactId = item.artifactIds[i]
+        if (artifactId !== null) {
+            artifactIds.value[i] = artifactId
+        } else {
+            artifactIds.value[i] = -1
+        }
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// artifact analysis
+const showArtifactAnalysisDialog = ref(false)
+
+const ArtifactsSetStatistics = defineAsyncComponent({
+    loader: () => import("@/components/display/ArtifactsSetStatistics"),
+    loadingComponent: SimpleLoading,
+    errorComponent: SimpleError,
+})
+
+function handleClickArtifactAnalysis() {
+    showArtifactAnalysisDialog.value = true
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// optimization
+interface ResultEntry {
+    flower: null | number,
+    feather: null | number,
+    sand: null | number,
+    goblet: null | number,
+    head: null | number,
+}
+
+const optimizationResults = ref<ResultEntry[]>([])
+const optimizationResultIndex = ref(0)
+const comparisonEntry = computed(() => {
+    const currentPreset = presetStore.getPreset(miscCurrentPresetName.value || '')?.item
+    const currentKey = currentPreset?.character.name === characterName.value ? currentPreset.miyousheKey : undefined
+    return miyousheStore.data.value.entries.find((entry: any) => currentKey ? entry.key === currentKey
+        : entry.uid === miyousheStore.selectedUid.value && presetStore.getPreset(entry.presetName)?.item.character.name === characterName.value)
+})
+const comparisonKey = computed(() => comparisonEntry.value?.key || `manual:${characterName.value}`)
+const ownershipUid = computed(() => comparisonEntry.value?.uid || miyousheStore.selectedUid.value)
+const allowBorrowEquipped = computed({
+    get: () => miyousheStore.data.value.allowBorrowEquipped === true,
+    set: value => { miyousheStore.data.value.allowBorrowEquipped = value },
+})
+const reservedArtifactIds = computed(() => otherCharacterArtifactIds(
+    miyousheStore.data.value.entries, ownershipUid.value, comparisonEntry.value?.key, artifactStore.artifacts.value))
+const ownershipFilterKey = computed(() => JSON.stringify([ownershipUid.value, comparisonKey.value,
+    allowBorrowEquipped.value, allowBorrowEquipped.value ? [] : [...reservedArtifactIds.value].sort((a,b) => a-b),
+    [...selectedTeamArtifactIds.value].sort((a,b) => a-b),teamContextKey.value]))
+watch(ownershipFilterKey, () => { optimizationResults.value = []; optimizationResultIndex.value = 0 }, { flush: 'sync' })
+const comparisonStorage = computed({
+    get: () => miyousheStore.data.value.artifactComparison || {},
+    set: value => { miyousheStore.data.value.artifactComparison = value },
+})
+const gameArtifactConverter = createMysConverter({ artifacts: artifactsData, locale: scoreLocale })
+const gameEquipment = computed(() => {
+    const entry = comparisonEntry.value
+    if (!entry) return null
+    let gear = entry.equippedArtifacts
+    if (!gear) {
+        const raw = miyousheStore.data.value.snapshots[entry.uid]?.characters.find((raw: any) => `${entry.uid}:${raw.base?.id}:${raw.base?.element || ''}` === entry.key)
+        if (!Array.isArray(raw?.relics)) return null
+        try { gear = raw.relics.map(gameArtifactConverter.artifact) }
+        catch { return { items: null, description: '游戏内圣遗物记录无法解析，请重新同步该 UID' } }
+    }
+    const items = positions.map((position, i) => {
+        const artifact = gear.find((a: any) => a.position === position)
+        return artifact ? { ...artifact, id: entry.artifactIds?.[i] } : null
+    })
+    return { items, description: `游戏内穿戴 · UID ${entry.uid} · 最近同步：${entry.updatedAt ? new Date(entry.updatedAt).toLocaleString() : '时间未知'}` }
+})
+const {
+    enabled: comparisonEnabled, mode: comparisonMode, history: comparisonHistory, historyId: comparisonHistoryId,
+    baseline: comparisonBaseline, changes: artifactChanges, record: recordComparisonHistory,
+    begin: beginArtifactComparison, reset: resetComparisonBaseline,
+} = useArtifactComparison({ storage: comparisonStorage, key: comparisonKey, items: artifactItems, gameBaseline: gameEquipment })
+const comparisonAttribute = computed(() => {
+    if (!comparisonBaseline.value) return null
+    const config = newDefaultArtifactConfigForWasm()
+    for (const name of Object.keys(config)) config[name] = { ...config[name], ...artifactSingleConfig.value?.[name] }
+    return mona.CommonInterface.get_attribute({ ...getAttributeWasmInterface.value,
+        artifacts: comparisonBaseline.value.filter(Boolean).map(convertArtifact), artifact_config: config })
+})
+const comparisonDamage = computed(() => {
+    if (!comparisonBaseline.value) return { value: null, error: '' }
+    try {
+        const input = { ...damageAnalysisWasmInterface.value, artifacts: comparisonBaseline.value.filter(Boolean).map(convertArtifact) }
+        return { value: mona.CalculatorInterface.get_damage_analysis(input, fumo.value === 'None' ? null : fumo.value), error: '' }
+    } catch (error: any) { return { value: null, error: `对比基准伤害无法计算：${error.message || error}` } }
+})
+function saveComparisonHistory() {
+    const id = recordComparisonHistory('手动保存')
+    ElMessage[id ? 'success' : 'warning'](id ? '已保存当前角色配装到对比历史' : '当前没有穿戴圣遗物')
+}
+function resetArtifactComparison() {
+    resetComparisonBaseline()
+    optimizationResults.value = []
+    optimizationResultIndex.value = 0
+}
+watch(characterName, resetArtifactComparison)
+
+function handleUseNthOptimizationResult(n: number) {
+    const result = optimizationResults.value[n - 1]
+    if (!result) return
+    const m = (x: null | number) => {
+        if (x !== null) {
+            return x
+        } else {
+            return -1
+        }
+    }
+
+    let temp: number[] = []
+    temp.push(m(result.flower))
+    temp.push(m(result.feather))
+    temp.push(m(result.sand))
+    temp.push(m(result.goblet))
+    temp.push(m(result.head))
+
+    artifactIds.value = temp
+    recordComparisonHistory(`计算结果 ${n}`)
+
+    optimizationResultIndex.value = n
+}
+
+function getOptimizeArtifactWasmInterface() {
+    let artifact_config: any = null
+    if (artifactEffectMode.value === "custom") {
+        artifact_config = artifactConfig.value
+    }
+
+    const i = {
+        character: characterInterface.value,
+        weapon: weaponInterface.value,
+        target_function: targetFunctionInterface.value,
+        constraint: constraintInterface.value,
+        enemy: enemyInterface.value,
+        buffs: effectiveBuffs.value,
+        ...(teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
+        artifact_config,
+        algorithm: algorithm.value,
+    }
+
+    // some values may be under a proxy, which cannot be passed to web worker
+    // use deep copy to remove proxy
+    return deepCopy(i)
+}
+
+function getAllArtifactsFiltered(): IArtifact[] {
+    // s is artifact ids to be filtered
+    let s = new Set([...(allowBorrowEquipped.value ? [] : reservedArtifactIds.value), ...selectedTeamArtifactIds.value])
+
+    // filter kumi
+    const currentArtifactIds = new Set(artifactIds.value)
+    for (const kumiId of filteredKumiIds.value) {
+        const kumiItem = kumiStore.kumiById.value.get(kumiId)
+        if (kumiItem && kumiItem.artifactIds) {
+            for (const artifactId of kumiItem.artifactIds) {
+                if (!currentArtifactIds.has(artifactId as number)) {
+                    s.add(artifactId)
+                }
+            }
+        }
+    }
+
+    // filter main stat
+    for (let artifact of artifactStore.artifacts.value.values()) {
+        const position = artifact.position
+        const mainStatName = artifact.mainTag.name
+        const id = artifact.id
+        if (position === "sand") {
+            if (constraintSandMainStats.value.length > 0) {
+                const index = constraintSandMainStats.value.indexOf(mainStatName)
+                if (index === -1) {
+                    s.add(id)
+                }
+            }
+        } else if (position === "cup") {
+            if (constraintGobletMainStats.value.length > 0) {
+                const index = constraintGobletMainStats.value.indexOf(mainStatName)
+                if (index === -1) {
+                    s.add(id)
+                }
+            }
+        } else if (position === "head") {
+            if (constraintHeadMainStats.value.length > 0) {
+                const index = constraintHeadMainStats.value.indexOf(mainStatName)
+                if (index === -1) {
+                    s.add(id)
+                }
+            }
+        }
+    }
+
+    let filtered = []
+
+    for (let artifact of artifactStore.artifacts.value.values()) {
+        if (!artifact.omit && !s.has(artifact.id)) {
+            filtered.push(artifact)
+        }
+    }
+
+    return filtered.filter(a => !a.omit)
+}
+
+function getAllArtifactsFilteredWasm(): IArtifactWasm[] {
+    return getAllArtifactsFiltered().map(x => convertArtifact(x))
+}
+
+function getArtifactsToBeCalculated(): IArtifactWasm[] {
+    const artifacts = getAllArtifactsFilteredWasm()
+    const artifacts16 = artifacts.filter(x => x.level >= 16)
+
+    return artifacts16
+}
+
+const showOptimizationResults = ref(false)
+const getResultArtifact = (id: number) => artifactStore.artifacts.value.get(id)
+const showOptimizationProgress = ref(false)
+const optimizationRunning = ref(false)
+const optimizationCancelled = ref(false)
+let optimizationAbortController: AbortController | undefined
+const cancelOptimization = () => optimizationAbortController?.abort()
+const optimizationElapsed = ref(0)
+const optimizationProgress = ref<any>({percent:null,candidateSpace:null,evaluated:0,remainingGroups:null,etaMs:null})
+const optimizationProgressReceivedElapsed = ref(0)
+const optimizationRemaining = computed(() => remainingOptimizationTime(optimizationProgress.value, Math.max(0,optimizationElapsed.value-optimizationProgressReceivedElapsed.value)))
+const optimizationStage = computed(() => ({set4:'四件套',set22:'二加二',set2:'两件套',any:'不限套装',enumeration:'逐组搜索'} as Record<string,string>)[optimizationProgress.value.searchStage] || '')
+const numberOfGroups = (value: number | null) => value == null ? '统计中' : value.toLocaleString('zh-CN')
+let optimizationClock: ReturnType<typeof setInterval> | undefined
+onBeforeUnmount(() => { cancelOptimization(); clearInterval(optimizationClock) })
+const optimizationDebugEnabled = ref(false)
+const optimizationDebugRecord = shallowRef<any>(null)
+const optimizationError = ref('')
+const optimizationDebugDetail = computed(() => JSON.stringify({events:optimizationDebugRecord.value?.events,error:optimizationDebugRecord.value?.error},null,2))
+async function exportOptimizationDebug() {
+    if (!optimizationDebugRecord.value) return
+    try { await downloadString(JSON.stringify(optimizationDebugRecord.value,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`) }
+    catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
+}
+function handleOptimizeArtifact() {
+    if (optimizationRunning.value) return
+    optimizationError.value = ''
+    const debug = optimizationDebugEnabled.value ? createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}}) : null
+    optimizationDebugRecord.value = debug?.record || null
+    const debugEvent = (event: any) => { debug?.event(event); triggerRef(optimizationDebugRecord) }
+    const reportError = (error: any) => { optimizationError.value=error?.message||String(error); debug?.fail(error); triggerRef(optimizationDebugRecord); ElMessage.error(optimizationError.value) }
+
+    const start = new Date()
+    const originalEquipment = snapshotEquipment(artifactItems.value)
+    const originalKey = comparisonKey.value, originalAccount = accountStore.currentAccountId.value
+    const originalOwnershipFilter = ownershipFilterKey.value
+
+    let optimizeInterface: any, artifacts: IArtifactWasm[]
+    try {
+        if (teamContextError.value) throw new Error(teamContextError.value)
+        optimizeInterface = getOptimizeArtifactWasmInterface()
+        artifacts = getArtifactsToBeCalculated()
+        debug?.capture(optimizeInterface,artifacts,{allowBorrowEquipped:allowBorrowEquipped.value,minimumArtifactLevel:16,sandMainStats:constraintSandMainStats.value,gobletMainStats:constraintGobletMainStats.value,headMainStats:constraintHeadMainStats.value,reservedOtherCharacterCount:reservedArtifactIds.value.size})
+        debugEvent({phase:'parameters-prepared'})
+        if (!artifacts.length) throw new Error('没有符合条件的圣遗物，请检查仓库、主词条筛选及其他角色穿戴保护开关')
+    } catch (error: any) { reportError(error); return }
+
+
+    optimizationProgress.value={percent:null,candidateSpace:null,evaluated:0,remainingGroups:null,etaMs:null}
+    optimizationElapsed.value=0
+    optimizationCancelled.value=false
+    optimizationProgressReceivedElapsed.value=0
+    const controller=new AbortController()
+    optimizationAbortController=controller
+    showOptimizationProgress.value=true
+    optimizationRunning.value=true
+    optimizationClock=setInterval(()=>{optimizationElapsed.value=Date.now()-start.getTime()},250)
+
+    wasmSingleOptimize(optimizeInterface, artifacts, {signal:controller.signal,onDebug:debug ? debugEvent : undefined,onProgress:(progress: any) => { optimizationProgress.value=progress; optimizationProgressReceivedElapsed.value=Date.now()-start.getTime() }}).then(results => {
+        if (controller.signal.aborted) return
+        debug?.complete(results); triggerRef(optimizationDebugRecord)
+        if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) { showOptimizationProgress.value=false; return }
+        const end = new Date()
+        // @ts-ignore
+        console.log(`time: ${(end - start) / 1000}s`)
+
+        if (results.length === 0) {
+            showOptimizationProgress.value=false
+            ElMessage.error({
+                message: "没有符合条件的圣遗物"
+            })
+            return
+        }
+        optimizationResults.value = results
+        beginArtifactComparison(originalEquipment)
+        handleUseNthOptimizationResult(1)
+        mobileCalcTab.value = 'equipment'
+
+        // report best result to server, only report player whose 20 artifacts count is above 100
+        if (!debug && !process.env.MONA_MOBILE && artifactStore.artifacts20Count.value >= 100 && process.env.NODE_ENV === 'production') {
+            let result_artifacts_wasm_format: any[] = []
+            let first_result = results[0]
+            result_artifacts_wasm_format.push(first_result.flower)
+            result_artifacts_wasm_format.push(first_result.feather)
+            result_artifacts_wasm_format.push(first_result.sand)
+            result_artifacts_wasm_format.push(first_result.goblet)
+            result_artifacts_wasm_format.push(first_result.head)
+            result_artifacts_wasm_format = result_artifacts_wasm_format
+                .filter(v => v !== null && v !== undefined)
+                .map(id => artifactStore.artifacts.value.get(id))
+                .filter(a => !!a)
+                .map(a => convertArtifact(a))
+
+            // the return value can be omitted, because there's nothing valuable
+            createComputeResult(
+                characterInterface.value,
+                weaponInterface.value,
+                effectiveBuffs.value,
+                targetFunctionInterface.value,
+                result_artifacts_wasm_format
+            )
+        }
+    }).catch(e => {
+        if (e.name==='AbortError') { optimizationCancelled.value=true; debug?.cancel(); triggerRef(optimizationDebugRecord); return }
+        showOptimizationProgress.value=false
+        reportError(e)
+    }).finally(() => {
+        clearInterval(optimizationClock)
+        optimizationAbortController=undefined
+        optimizationElapsed.value=Date.now()-start.getTime()
+        optimizationRunning.value=false
+    })
+}
+
+watch(() => accountStore.currentAccountId.value, () => {
+    cancelOptimization()
+    resetComparisonBaseline()
+    optimizationResults.value = []
+    optimizationResultIndex.value = 0
+    miscCurrentPresetName.value = null
+    artifactIds.value = [-1, -1, -1, -1, -1]
+})
+</script>
+
+<style lang="scss" scoped>
+.optimization-progress-stats p{display:flex;justify-content:space-between;gap:16px;margin:16px 0}.optimization-progress-stats b{color:var(--el-color-primary)}
+.filter-kumi-search { margin-bottom: 12px; }
+.filter-kumi-node { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.filter-kumi-node img { width: 24px; height: 24px; border-radius: 50%; }
+.filter-kumi-node > span { overflow: hidden; text-overflow: ellipsis; }
+.preset-menu { width: 360px; max-width: calc(100vw - 32px); }
+.preset-menu-filters { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--el-border-color-light); }
+.preset-menu-filters .el-select { flex: 1; min-width: 0; }
+.preset-menu-list { max-height: min(55vh, 480px); overflow-y: auto; }
+.preset-menu-list :deep(.el-dropdown-menu__item) { white-space: normal; overflow-wrap: anywhere; }
+
+.optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+
+.team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+.manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:#667085;font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
+.artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}
+.calc-mobile-tabs{display:none}
+@media(max-width:991px){
+    .calc-mobile-tabs{position:sticky;top:48px;z-index:100;display:flex;background:#f5f7fb;padding:6px 0 10px;gap:6px}
+    .calc-mobile-tabs button{flex:1;border:1px solid #e3e8f0;border-radius:8px;background:#fff;color:#667085;font-size:13px;min-height:42px;padding:6px}
+    .calc-mobile-tabs button.active{background:#409eff;border-color:#409eff;color:#fff;font-weight:600}
+    .big-container>.left-container,.big-container>.middle-container,.big-container>.right-container{display:none;width:100%;max-width:100%;flex:0 0 100%;height:auto!important;overflow:visible!important;padding:0!important}
+    .mobile-section-character .big-container>.left-container,.mobile-section-equipment .big-container>.middle-container,.mobile-section-panel .big-container>.right-container{display:block}
+    .artifact-tool :deep(.el-button-group){display:flex;flex-wrap:wrap;gap:6px}
+    .artifact-tool :deep(.el-button){border-radius:6px!important;margin:0!important}
+    .config-character .character-splash{max-width:100%}
+}
+.artifact-grade-summary{padding:12px 16px;margin-bottom:12px;background:var(--el-color-primary-light-9);border-radius:6px;color:var(--el-text-color-primary)}
+.artifact-grade-summary>div{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:14px}.artifact-grade-summary strong{font-size:25px;color:var(--el-color-primary)}.artifact-grade-summary b{font-size:19px;color:var(--el-color-primary)}
+.artifact-piece-score{padding:7px 8px;border-top:1px solid var(--el-border-color-lighter);font-size:12px;color:var(--el-color-primary);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
+.artifact-change-marker{display:inline-block;border-radius:3px;padding:2px 6px;background:var(--el-color-warning-light-9);color:var(--el-color-warning-dark-2);font-size:12px;line-height:1.4}
+.polestar-field-control {
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--el-border-color-light);
+    border-radius: 6px;
+    .polestar-field-stacks { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 14px; }
+    .el-input-number { width: 100%; }
+}
+.my-characters-import { display: flex; gap: 8px; margin: 0 0 12px; }
+.my-characters-import .el-select { min-width: 0; flex: 1; }
+.big-container {
+    @media only screen and (min-width: 992px) {
+        .left-container, .middle-container, .right-container {
+            height: calc(100vh - 24px * 2);
+        }
+
+        .left-container {
+            padding-right: 12px;
+        }
+
+        .middle-container {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .right-container {
+            // flex: 1;
+            padding-left: 12px;
+            padding-right: 12px;
+            // overflow-y: auto;
+            // overflow-x: hidden;
+        }
+    }
+
+    @media only screen and (max-width: 992px) {
+        .left-container, .middle-container {
+            margin-bottom: 12px;
+        }
+    }
+}
+
+.middle-container {
+    .artifacts {
+        //display: flex;
+        gap: 4px;
+        //flex-wrap: wrap;
+        //align-items: center;
+
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-auto-rows: minmax(64px, max-content);
+
+        .artifact-item-or-button {
+            .add-button {
+                width: 100%;
+                height: 100%;
+            }
+            .artifact-display {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    }
+}
+
+.config-character {
+    position: relative;
+    isolation: isolate;
+
+    .character-splash {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-height: 360px;
+        object-fit: contain;
+        object-position: top center;
+        z-index: -1;
+        opacity: 0.12;
+        pointer-events: none;
+    }
+
+    .character-extra-config {
+        margin-top: 16px;
+    }
+
+    .config-character-skill {
+        .skill-div {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    }
+}
+
+.config-weapon {
+    // padding: 16px;
+    // position: relative;
+    margin-top: 16px;
+
+    .weapon-splash {
+        position: absolute;
+        right: -25px;
+        // top: 30px;
+        width: 150px;
+        opacity: 0.3;
+    }
+
+    .select-weapon {
+        // padding-left: 250px;
+    }
+
+    .weapon-extra-config {
+        margin-top: 16px;
+        // border-left: #222222 solid 3px;
+        // padding: 8px;
+        // background: #12345611;
+        // border-top-right-radius: 3px;
+        // border-bottom-right-radius: 3px;
+    }
+}
+
+.config-target-function {
+    .target-function-detail {
+        display: flex;
+        //align-items: top;
+        margin-top: 16px;
+
+        .detail-left {
+            width: 64px;
+            margin-right: 16px;
+
+            img {
+                height: 64px;
+                width: 64px;
+                border-radius: 50%;
+            }
+        }
+
+        .detail-right {
+            .target-function-description {
+                margin: 0;
+                font-size: 14px;
+                color: #555555;
+            }
+        }
+    }
+}
+
+.common-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 0 0 1.5vh 0;
+    color: #555555;
+}
+
+.common-title2, .constraint-title {
+    font-size: 0.7rem;
+    color: #666666;
+    border-left: 2px solid #409EFF;
+    padding-left: 0.5vw;
+}
+
+.common-description {
+    font-size: 0.7rem;
+    color: #606266;
+}
+
+ //artifact effect description title
+.effect4, .effect2 {
+    color: #6eb7ff;
+}
+
+.constraint-main-stat-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
+
+    span {
+        width: 48px;
+        font-size: 0.7rem;
+    }
+}
+
+//@media only screen and (min-width: 992px) {
+//    .constraint-min-item {
+//        display: flex;
+//        align-items: center;
+//
+//        .constraint-min-title {
+//            font-size: 0.7rem;
+//            width: 7vw;
+//        }
+//    }
+//}
+//
+//@media only screen and (max-width: 992px) {
+//    .constraint-min-item {
+//        .constraint-min-title {
+//            font-size: 0.7rem;
+//            display: block;
+//        }
+//    }
+//}
+
+.constraint-min-item {
+    .constraint-min-title {
+        font-size: 0.7rem;
+        display: block;
+    }
+
+    .slider-div {
+        width: 100%;
+    }
+}
+</style>

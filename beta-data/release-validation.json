@@ -1,0 +1,22 @@
+{
+  "release": "7.1.01 beta1",
+  "packageVersion": "7.1.1-beta.1",
+  "source": "TwiceDrop/genshin_artifact",
+  "basedOn": "21a46d6e0dc727c310d555a8226033dc5580ae16",
+  "verifiedAt": "2026-09-19T13:27:38.127Z",
+  "checks": {
+    "cleanInstall": "npm ci --no-audit --no-fund",
+    "webBuild": "npm run build:local",
+    "localTests": 69,
+    "vodyanitsaTests": 14,
+    "vesnaTests": 15,
+    "weaponTests": 20,
+    "total": 118
+  },
+  "runtime": "Node.js 24.19.0",
+  "notes": [
+    "Retained existing repository miao scorer and credential directory override",
+    "Excluded local account data, node_modules, compiler caches and logs",
+    "Published runtime requires separately installed Node.js"
+  ]
+}
