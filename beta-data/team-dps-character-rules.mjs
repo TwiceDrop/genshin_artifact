@@ -6,6 +6,7 @@ export function teamTalentUnlocked(character,stage){
 export const TEAM_CONSTELLATION_TALENTS={
  Skirk:{3:'skill3',5:'skill2'},Furina:{3:'skill3',5:'skill2'},
  Escoffier:{3:'skill2',5:'skill3'},Vodyanitsa:{3:'skill2',5:'skill3'},
+ Mona:{3:'skill3',5:'skill2'},
 };
 
 // Stored talents already include constellation levels. Apply only the change.

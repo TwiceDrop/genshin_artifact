@@ -4,7 +4,7 @@ import {teamDpsArtifactAvailable} from './team-dps-equipment-support.mjs';
 import {createTeamConstraintBounds} from './team-dps-constraint-bounds.mjs';
 const teamKey=team=>team.flatMap(b=>b.map(a=>a.id)).join(',');
 const entries=team=>team.map(b=>Object.fromEntries(b.map(a=>[a.slot.toLowerCase(),a.id])));
-function createSearch(api,evaluator,input,artifacts,onProgress){
+function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory){
  const settings=input.team_dps,profiles=evaluator.profiles;
  const limit=settings.result_count,budget=settings.max_evaluations,metric=settings.metric||'expectation';
  const catalog=new Map(artifacts.map(a=>[a.id,a])),bySlot=slots.map(slot=>artifacts.filter(a=>teamDpsArtifactAvailable(a.set_name)&&a.slot===slot&&!a.omit&&a.level>=(settings.minimum_artifact_level??0)));
@@ -44,7 +44,7 @@ function createSearch(api,evaluator,input,artifacts,onProgress){
  const planned=exact?possible:budget;
  let bounds,pruneCandidates=false;
  function prepareBounds(){
-  if(!bounds){progress(false,'bounds');bounds=createTeamConstraintBounds(api,input,pools,()=>progress(false,'bounds'));}
+  if(!bounds){progress(false,'bounds');bounds=createTeamConstraintBounds(api,input,pools,()=>progress(false,'bounds'),evaluatorFactory);}
   return bounds;
  }
  // Independent WASM instances can differ in the last floating-point bits.
@@ -146,13 +146,13 @@ function createSearch(api,evaluator,input,artifacts,onProgress){
  }
  return {candidates,accept,baseline,finish};
 }
-export function optimizeTeamDps(api,input,artifacts,onProgress=()=>{}){
- const evaluator=createTeamDpsEvaluator(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress),baseline=search.baseline();
+export function optimizeTeamDps(api,input,artifacts,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator){
+ const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),baseline=search.baseline();
  for(const job of search.candidates())if(job)search.accept(job,evaluator.evaluate(job.team));
  return search.finish(baseline);
 }
-export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,batchSize,onProgress=()=>{}){
- const evaluator=createTeamDpsEvaluator(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress),baseline=search.baseline();
+export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,batchSize,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator){
+ const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),baseline=search.baseline();
  let pending=[];
  async function flush(){
   if(!pending.length)return;

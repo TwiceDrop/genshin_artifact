@@ -36,3 +36,4 @@
 .team-dps-dialog .header-row .header{background:#f0f5fc;color:#5b7190}
 .team-dps-dialog .header-row .input{background:#fff;color:#354155;border-radius:4px;font-size:15px}
 @media(max-width:550px){.team-configurations .el-button,.team-dps-dialog .el-button,.team-configurations .el-form-item__label,.team-dps-dialog .el-form-item__label{font-size:14px}.team-configurations .el-collapse-item__header{font-size:18px}.team-dps-dialog .member-settings #pane-constraints{grid-template-columns:1fr}}
+.el-message.team-dps-save-success{background:#e7f5e3;border-color:#b8dcae;color:#45832d}.el-message.team-dps-save-success .el-message__content,.el-message.team-dps-save-success .el-message__icon{color:#45832d}

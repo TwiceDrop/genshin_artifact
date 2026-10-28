@@ -1,3 +1,4 @@
+import {validateActionAxis} from './team-engine/action-config.mjs';
 // Mechanics metadata only: no default rotation is installed or loaded here.
 export const TEAM_DPS_ROLES=['Skirk','Furina','Escoffier','Vodyanitsa'];
 export const TEAM_DPS_SLOTS=['Flower','Feather','Sand','Goblet','Head'];
@@ -5,6 +6,7 @@ export const TEAM_DPS_MECHANICS='skirk-hydro-cryo/1';
 export const TEAM_DPS_CHARACTER_CAPABILITIES={
  Skirk:{energy:0,shield:false,nightsoul:false,arkhe:false},Furina:{energy:60,shield:false,nightsoul:false,arkhe:true},
  Escoffier:{energy:70,shield:false,nightsoul:false,arkhe:true},Vodyanitsa:{energy:60,shield:false,nightsoul:false,arkhe:false},
+ Mona:{energy:60,shield:false,nightsoul:false,arkhe:false},
  Mavuika:{energy:0,shield:false,nightsoul:true,arkhe:false},
  Amber:{energy:40,shield:false,nightsoul:false,arkhe:false},Noelle:{energy:60,shield:true,nightsoul:false,arkhe:false},
  Kirara:{energy:60,shield:true,nightsoul:false,arkhe:false},
@@ -43,6 +45,7 @@ export const TEAM_DPS_ACTIONS={
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 export function parseTeamDpsConfiguration(text){return validateTeamDpsConfiguration(JSON.parse(text));}
 export function validateTeamDpsConfiguration(c){
+ if(c?.format==='mona-action-axis')return validateActionAxis(c);
  if(c?.format!=='mona-team-axis'||c.formatVersion!==1)throw Error('不支持的计算配置格式或版本');
  if(c.mechanics!==TEAM_DPS_MECHANICS)throw Error('未实现的机制适配：'+c.mechanics);
  if(typeof c.id!=='string'||!c.id||typeof c.title!=='string'||!c.title||!Number.isInteger(c.revision)||c.revision<1)throw Error('计算配置缺少ID、名称或修订号');

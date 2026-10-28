@@ -7,6 +7,8 @@ import {ref,shallowRef,computed,watch,nextTick,effectScope} from 'vue';
 import {chars,weapons,sets,fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {TEAM_DPS_ROLES} from '../beta-data/team-dps-config.mjs';
 import {importedAxis} from './helpers/team-dps-configuration.mjs';
+import {actionInput} from './helpers/team-action-configuration.mjs';
+import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../beta-data/team-engine/action-config.mjs';
 import {AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS} from '../beta-data/equipment-axis-rules.mjs';
 import * as equipment from '../beta-data/team-dps-equipment-support.mjs';
 import * as options from '../beta-data/team-dps-weapon-options.mjs';
@@ -21,7 +23,7 @@ test('personal task survives remount and UID changes, preserves snapshots and re
  let script=fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/TeamDpsPage.vue',import.meta.url),'utf8').match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'');
  script+='\nglobalThis.ui={members,names,initialHp,budget,count,selectedIndex,output,resultContext,weaponConditions,sortMetric,saveTask,changeTeamConstellation};';
  function mount(axis=importedAxis()){
-  const close=[],scope=effectScope(),env={...equipment,...options,changeTeamConstellation,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,ref,shallowRef,computed,watch,nextTick,
+  const close=[],scope=effectScope(),env={...equipment,...options,changeTeamConstellation,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,ref,shallowRef,computed,watch,nextTick,
    defineProps:()=>({configuration:axis,taskKey:7,tasks}),defineEmits:()=>((_,e)=>{assert.equal(e.key,7);assert.equal(e.accountId,1);tasks[e.uid]=structuredClone(e.state);}),
    onBeforeUnmount:f=>close.push(f),onDeactivated:()=>{},usePresetStore:()=>presets,useArtifactStore:()=>inventory,useMiyousheStore:()=>mys,useAccountStore:()=>account,useEnemy:()=>({enemyConfig:ref({level:90})}),
    characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],weaponByType:{Sword:[],Polearm:[],Catalyst:[]},upgradeArtifactConfig:x=>x,convertArtifactName:x=>x,
@@ -40,6 +42,9 @@ test('personal task survives remount and UID changes, preserves snapshots and re
  mys.selectedUid.value='b';await nextTick();assert.equal(page.u.output.value,null);assert.equal(page.u.budget.value,2000);page.u.budget.value=999;await nextTick();
  mys.selectedUid.value='a';await nextTick();assert.equal(page.u.budget.value,4321);assert.equal(page.u.output.value.results[0].expectation,111);page.close();
  const axis=importedAxis();axis.durationMs+=500;page=mount(axis);await nextTick();assert.equal(page.u.budget.value,4321);assert.equal(page.u.output.value,null);assert.equal(page.u.resultContext.value,null);page.close();
+ const action=actionInput().team_dps.axis;page=mount(action);await nextTick();page.u.output.value={results:[{expectation:222}]};page.u.resultContext.value={input:{single_interfaces:structuredClone(profiles)},artifacts:[],items:new Map()};await nextTick();page.close();assert.equal(tasks.a.engineRulesVersion,TEAM_ACTION_RULES_VERSION);
+ page=mount(action);await nextTick();assert.equal(page.u.output.value.results[0].expectation,222);page.close();
+ tasks.a.engineRulesVersion='mona-team-engine/1';page=mount(action);await nextTick();assert.equal(page.u.budget.value,4321);assert.equal(page.u.output.value,null);assert.equal(page.u.resultContext.value,null);page.close();
  assert.equal(JSON.stringify(records),saved);
- fs.writeFileSync('.build-target/team-dps-team-polish-20261027/V2-personal-task.json',JSON.stringify({remount:true,uidIsolation:true,latePresetLoad:true,axisChangePreservesSettings:true,axisChangeClearsResults:true,presetsUnchanged:true}));
+ fs.mkdirSync('.build-target/team-action-eight-fixes-20261028',{recursive:true});fs.writeFileSync('.build-target/team-action-eight-fixes-20261028/V2-personal-task.json',JSON.stringify({remount:true,uidIsolation:true,latePresetLoad:true,axisChangePreservesSettings:true,axisChangeClearsResults:true,rulesChangeClearsResults:true,presetsUnchanged:true}));
 });

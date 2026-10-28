@@ -12,7 +12,7 @@
   <div class="team-workspace">
    <div class="team-editor">
     <section class="dps-card team-card">
-     <header class="card-heading"><h3><i-ep-user-filled/>队伍配置</h3><span class="axis-duration">{{ number(props.configuration.durationMs/1000) }}s</span></header>
+     <header class="card-heading"><h3><i-ep-user-filled/>队伍配置</h3><span class="axis-duration">{{ number(axisDurationMs/1000) }}s</span></header>
      <div class="team-roster">
       <button v-for="(role,r) in roles" :key="role" class="roster-member" :class="{active:editingRole===r}" :style="{'--role-accent':elementColors[characterData[role].element]}" :aria-pressed="editingRole===r" @click="editingRole=r"><img :src="characterData[role].avatar" alt=""/><strong>{{ labels[r] }}</strong><span>C{{ members[r].character.constellation }} · R{{ members[r].weapon.refine }}</span></button>
      </div>
@@ -162,7 +162,10 @@ import {characterData} from '@/assets/character'
 import {weaponData,weaponByType} from '@/assets/weapon'
 import {artifactsData} from '@/assets/artifacts'
 import locale from '@/i18n/generated/zh-cn.json'
+import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../../../beta-data/team-engine/action-config.mjs'
 const props=defineProps<{configuration:any,taskKey:number,tasks:Record<string,any>}>()
+const axisDurationMs=computed(()=>props.configuration.format==='mona-action-axis'?actionAxisDurationMs(props.configuration,members.value):props.configuration.durationMs)
+const engineRulesVersion=props.configuration.format==='mona-action-axis'?TEAM_ACTION_RULES_VERSION:null
 const emit=defineEmits(['save-task'])
 const roles=props.configuration.members.map((m:any)=>m.character),labels=roles.map((role:string)=>locale[characterData[role].nameLocale])
 const damageModes=[['expectation','期望伤害'],['critical','暴击伤害'],['non_critical','非暴击伤害']]
@@ -180,7 +183,7 @@ const excludedArtifactConfigs=[...AUTO_ARTIFACT_SETS,...Object.keys(INCOMPLETE_A
 const weaponConditions=ref(roles.map(()=>defaultWeaponOptions())),widsithMode=ref(roles.map(()=>'average'))
 const manualWeaponConfigs=(r:number)=>MANUAL_WEAPON_OPTIONS[members.value[r].weapon.name]||[]
 const params=(name:string,configs:any[])=>configs?.length?{[name]:Object.fromEntries(configs.map(c=>[c.name,c.default]))}:'NoConfig'
-function fresh(role:string,r:number){const name=['Azurelight','SplendorOfTranquilWaters','SymphonistOfScents','HymnOfTheMaelstrom'][r];return {character:{name:role,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
+function fresh(role:string){const name=({Skirk:'Azurelight',Furina:'SplendorOfTranquilWaters',Escoffier:'SymphonistOfScents',Vodyanitsa:'HymnOfTheMaelstrom',Mona:'ThrillingTalesOfDragonSlayers'} as Record<string,string>)[role];return {character:{name:role,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
 const names=ref(['','','','']),members=ref<any[]>(roles.map(fresh))
 const editingRole=ref(0),editingMember=computed(()=>members.value[editingRole.value])
 const weaponConfigs=(r:number)=>{const name=members.value[r].weapon.name;return (weaponData[name].configs||[]).filter((c:any)=>!AUTO_WEAPON_FIELDS[name]?.includes(c.name))}
@@ -205,7 +208,7 @@ const taskDefaults=clone(Object.fromEntries(Object.entries(taskFields).map(([key
 function saveTask(){
  if(restoringTask||loadedUid===null||accountStore.currentAccountId.value!==taskAccount)return;
  const context=resultContext.value;
- emit('save-task',{key:props.taskKey,accountId:taskAccount,uid:loadedUid,state:clone({axis:props.configuration,fields:Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])),output:output.value,context:context?{...context,items:[...context.items]}:null,lastInput})});
+ emit('save-task',{key:props.taskKey,accountId:taskAccount,uid:loadedUid,state:clone({axis:props.configuration,engineRulesVersion,fields:Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])),output:output.value,context:context?{...context,items:[...context.items]}:null,lastInput})});
 }
 function restoreTask(uid:string){
  const saved=props.tasks?.[uid];restoringTask=true;taskRestored=!!saved;
@@ -213,7 +216,7 @@ function restoreTask(uid:string){
  for(const [key,value]of Object.entries(taskFields))value.value=fields[key];
  if(saved){
   lastInput=saved.lastInput;
-  if(JSON.stringify(saved.axis)===JSON.stringify(props.configuration)){
+  if(JSON.stringify(saved.axis)===JSON.stringify(props.configuration)&&(!engineRulesVersion||saved.engineRulesVersion===engineRulesVersion)){
    output.value=clone(saved.output);resultContext.value=saved.context?{...clone(saved.context),items:new Map(clone(saved.context.items))}:null;
   }
  }

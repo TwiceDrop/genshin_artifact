@@ -8,11 +8,11 @@ const slotKey=n=>'config_'+n.replace(/([A-Z])/g,'_$1').slice(1).toLowerCase();
 export function createPortableNativeQuery({api,capture,libraries,projections,extensionSlots,builder,stats,setCount,sets,onProgress}){
  const compilers=libraries.map(lib=>createNativeGraphCompiler(builder,lib)),m=compilers[0].math;
  const templates=new Map(),setTemplates=new Map();
- function native(input,damage=false){
+ function native(input,damage=false,nativeElement=null){
   const config=input.artifact_config;
   input={...input,artifact_config:config?Object.fromEntries([...new Set(input.artifacts.map(a=>a.set_name))].map(name=>[slotKey(name),config[slotKey(name)]])):null};
-  const key=JSON.stringify([input,damage]);if(templates.has(key))return templates.get(key);
-  const result=damage?api.CalculatorInterface.get_damage_analysis(input,null):api.CommonInterface.get_attribute(input);
+  const key=JSON.stringify([input,damage,nativeElement]);if(templates.has(key))return templates.get(key);
+  const result=damage?api.CalculatorInterface.get_damage_analysis(input,nativeElement):api.CommonInterface.get_attribute(input);
   const snapshot=structuredClone(capture(input.character.name==='Vodyanitsa'));
   const value={result,snapshot};templates.set(key,value);return value;
  }
@@ -26,7 +26,7 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
    return value;
   };
   const fixed=clone({...input,artifacts:[]}),buffDynamic=dynamic.filter(d=>d.path[0]==='buffs'),parameters=dynamic.filter(d=>d.path[0]!=='buffs'&&d.path[0]!=='artifact_config');
-  const base=native(fixed,damage),snapshot=structuredClone(base.snapshot);
+  const base=native(fixed,damage,event.nativeElement??null),snapshot=structuredClone(base.snapshot);
   function difference(other,baseSnapshot){
    const result={nodes:[],edges:[]};
    for(let i=0;i<snapshot.nodes.length;i++){
@@ -53,7 +53,7 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
   const setPath=(target,path,value)=>{let x=target;for(const k of path.slice(0,-1))x=x[k];x[path.at(-1)]=value;};
   for(const p of parameters){
    const variant=structuredClone(fixed);setPath(variant,p.path,1);
-   delta(native(variant,damage).snapshot,base.snapshot,p.value);
+   delta(native(variant,damage,event.nativeElement??null).snapshot,base.snapshot,p.value);
   }
   for(const name of sets){
    let previous=fixed;
@@ -80,7 +80,7 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
   const panelMap={atk:[27,29,28,6],hp:[23,25,24],def:[31,33,32],elemental_mastery:[4,5],recharge:[8],critical:[37],critical_damage:[52],healing_bonus:[2],shield_strength:[9]};
   for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])panelMap['bonus_'+element.toLowerCase()]=[LEGACY_EFFECT_SLOTS['Bonus'+element]];
   if(!damage)return Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,{compiled:slots.reduce((n,i)=>m.add(n,graph.get(slot(i))),0)}]));
-  const projection=projections.find(p=>p.role===role&&p.index===event.index&&!!p.furinaC6===!!input.skill.config?.Furina?.c6_after_e).fields;
+  const projection=projections.find(p=>p.character===input.character.name&&p.index===event.index&&(p.nativeElement??null)===(event.nativeElement??null)&&!!p.furinaC6===!!input.skill.config?.Furina?.c6_after_e).fields;
   const originalGraph=compiler.graph(base.snapshot),result={};
   for(const field of ['atk','hp','def','em','atk_ratio','hp_ratio','def_ratio','em_ratio','extra_damage','bonus','critical','critical_damage','independent_damage_multiplier','def_minus','def_penetration','res_minus','healing_bonus']){
    const slots=projection[field]||[],constant=Object.values(base.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+originalGraph.get(i),0);
@@ -92,8 +92,10 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
    const original=base.result.bonus['天赋「无人听的自白」'];
    if(original!==undefined)result.bonus.compiled=m.add(m.sub(result.bonus.compiled,original),m.min(.28,m.mul(.007,m.floor(m.div(result.hp.compiled,1000)))));
   }
-  result.atk_ratio['技能倍率']=base.result.atk_ratio['技能倍率']||0;
-  result.atk_ratio.compiled=m.sub(result.atk_ratio.compiled,result.atk_ratio['技能倍率']);
+  for(const [field,names]of [['atk_ratio',['技能倍率',...(event.talentRatioFields||[])]],['hp_ratio',['技能倍率']]])for(const name of names){
+   result[field][name]=base.result[field][name]||0;
+   result[field].compiled=m.sub(result[field].compiled,result[field][name]);
+  }
   if(['RoyalLongsword','RoyalSpear','RoyalGrimoire'].includes(input.weapon.name)){
    const royal=(projection.critical||[]).reduce((n,i)=>m.add(n,graph.named(i,'宗室被动等效')),0);
    result.critical.compiled=m.sub(result.critical.compiled,royal);result.critical['宗室被动等效']=royal;

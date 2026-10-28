@@ -1,0 +1,46 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import {ref,computed,watch,nextTick,effectScope} from 'vue';
+import {chars,weapons} from '../beta-tools/interface-audit-7108.mjs';
+import {importedAxis} from './helpers/team-dps-configuration.mjs';
+import {actionInput} from './helpers/team-action-configuration.mjs';
+import * as libraryApi from '../beta-data/team-dps-library.mjs';
+import * as actionApi from '../beta-data/team-engine/action-config.mjs';
+import {validateTeamDpsConfiguration} from '../beta-data/team-dps-config.mjs';
+
+test('V2: select four roles, compute duration, autosave every 15s and confirm manual saves',async()=>{
+ const vue=fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/TeamOptimizationWrapper.vue',import.meta.url),'utf8');
+ assert.doesNotMatch(vue,/label="(?:命座条件|修订)"/);
+ let script=vue.match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'');
+ script+='\nglobalThis.ui={library,selected,draft,error,managing,createDraft,confirmMembers,toggleMember,newMembers,selectingMembers,draftDurationMs,autoSaveDraft,addAction,changeActor,changeKind,changeAction,setRifts,moveAction,openTimelineJson,applyTimelineJson,importFile,saveDraft,exportDraft,removeDraft,timelineText,openManager};';
+ const account={currentAccountId:ref(1)},data=new Map([['mona_account_presets_1',{existing:'untouched'}]]),downloads=[],scope=effectScope(),unmount=[],timers=[],cleared=[],notifications=[];let writes=0;
+ const backend={getItem:async key=>structuredClone(data.get(key)??null),setItem:async(key,value)=>{writes++;data.set(key,structuredClone(value));}};
+ const ElMessage=Object.assign(options=>notifications.push(options),{success:message=>notifications.push({message})});
+ const env={...libraryApi,...actionApi,validateTeamDpsConfiguration,ref,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),useAccountStore:()=>account,useMiyousheStore:()=>({selectedUid:ref('')}),backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:JSON.parse(fs.readFileSync('src/i18n/generated/zh-cn.json','utf8')),ElMessage,console,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearInterval:id=>cleared.push(id)};
+ vm.createContext(env);scope.run(()=>vm.runInContext(ts.transpileModule(script,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,env));
+ const ui=env.ui;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,2);
+ const importAxis=axis=>ui.importFile({target:{files:[{text:async()=>JSON.stringify(axis)}],value:''}});
+ const old=JSON.stringify(importedAxis());await importAxis(importedAxis());await importAxis(actionInput().team_dps.axis);
+ assert.equal(ui.library.value.entries.length,4);ui.openManager();const row=ui.draft.value.timeline.find(a=>a.action==='burst'&&a.actor==='carry');ui.setRifts(row,2);
+ ui.draft.value.title='合成动作轴编辑';await ui.saveDraft(true);assert.equal(ui.selected.value.axis.title,'合成动作轴编辑');assert.equal(JSON.stringify(ui.library.value.entries[2].axis),old);
+ await ui.exportDraft();const exported=JSON.parse(downloads[0].text);assert.equal(exported.timeline.find(a=>a.id===row.id).params.absorbedRifts,2);assert.equal(exported.coverage,undefined);
+ ui.createDraft();assert.equal(ui.selectingMembers.value,true);assert.equal(ui.newMembers.value.length,0);assert.equal(ui.library.value.entries.length,4);
+ for(const role of ['Vodyanitsa','Skirk','Escoffier','Furina'])ui.toggleMember(role);ui.confirmMembers();assert.equal(ui.draft.value.timeline.length,0);assert.equal(ui.draft.value.revision,undefined);assert.equal(ui.draft.value.durationMs,undefined);assert.deepEqual(Array.from(ui.draft.value.members,m=>m.character),['Vodyanitsa','Skirk','Escoffier','Furina']);
+ ui.addAction();ui.addAction();assert.notEqual(ui.draft.value.timeline[0].id,ui.draft.value.timeline[1].id);
+ const added=ui.draft.value.timeline[0];added.actor=ui.draft.value.members[3].slot;ui.changeActor(added);assert.equal(added.action,'skill');added.kind='switch';ui.changeKind(added);assert.equal(added.action,undefined);ui.moveAction(0,1);assert.equal(ui.draft.value.timeline[1].id,added.id);
+ ui.openTimelineJson();ui.timelineText.value=JSON.stringify([{id:'q',timeMs:5000,actor:ui.draft.value.members[3].slot,kind:'action',action:'burst'}]);ui.applyTimelineJson();assert.equal(ui.error.value,'');assert.equal(ui.draft.value.timeline[0].id,'q');assert.equal(ui.draftDurationMs.value,7000);
+ assert.equal(timers[0].ms,15000);const notified=notifications.length;await timers[0].fn();assert.equal(ui.library.value.entries.length,5);assert.equal(data.get(libraryApi.teamDpsLibraryKey(1)).entries.length,5);assert.equal(notifications.length,notified);
+ const previousWrites=writes;await timers[0].fn();assert.equal(writes,previousWrites);
+ ui.draft.value.title='15秒自动保存验证';await timers[0].fn();assert.equal(data.get(libraryApi.teamDpsLibraryKey(1)).entries[4].axis.title,'15秒自动保存验证');
+ await ui.saveDraft(true);assert.equal(notifications.at(-1).message,'保存成功');assert.equal(notifications.at(-1).type,'success');assert.equal(notifications.at(-1).customClass,'team-dps-save-success');
+ account.currentAccountId.value=2;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,2);
+ account.currentAccountId.value=1;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,5);assert.equal(JSON.stringify(ui.library.value.entries[2].axis),old);
+ assert.deepEqual(data.get('mona_account_presets_1'),{existing:'untouched'});
+ const fresh=fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/TeamDpsPage.vue',import.meta.url),'utf8').match(/function fresh[^\n]+/)[0];
+ const defaults={characterData:chars,weaponData:weapons,params:()=>({}),upgradeArtifactConfig:x=>x};vm.createContext(defaults);vm.runInContext(ts.transpileModule(fresh+'\nglobalThis.make=fresh;',{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,defaults);
+ for(const [index,role]of ['Vodyanitsa','Skirk','Escoffier','Furina'].entries()){const profile=defaults.make(role,index);assert.equal(weapons[profile.weapon.name].type,chars[role].weapon);}
+ for(const fn of unmount)fn();assert.deepEqual(cleared,[1]);scope.stop();
+});

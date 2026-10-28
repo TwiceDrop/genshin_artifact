@@ -1,0 +1,248 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/9",
+  "id": "skirk-mona-22s",
+  "title": "丝柯克·莫娜队 22秒",
+  "endHit": "include",
+  "initialActiveSlot": "member2",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Skirk"
+    },
+    {
+      "slot": "member2",
+      "character": "Furina"
+    },
+    {
+      "slot": "member3",
+      "character": "Escoffier"
+    },
+    {
+      "slot": "member4",
+      "character": "Mona"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "furina-e",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 0
+    },
+    {
+      "id": "furina-q",
+      "kind": "action",
+      "actor": "member2",
+      "action": "burst",
+      "timeMs": 2500
+    },
+    {
+      "id": "escoffier-e",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 3000
+    },
+    {
+      "id": "escoffier-q",
+      "kind": "action",
+      "actor": "member3",
+      "action": "burst",
+      "timeMs": 5500
+    },
+    {
+      "id": "mona-q",
+      "kind": "action",
+      "actor": "member4",
+      "action": "burst",
+      "timeMs": 8000,
+      "params": {
+        "bubbleDelayMs": 2000
+      }
+    },
+    {
+      "id": "skirk-e",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 9000
+    },
+    {
+      "id": "skirk-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 9250
+    },
+    {
+      "id": "skirk-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 9500
+    },
+    {
+      "id": "skirk-q",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 9500,
+      "params": {
+        "absorbedRifts": 3
+      }
+    },
+    {
+      "id": "skirk-round1-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 10000
+    },
+    {
+      "id": "skirk-round1-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 10500
+    },
+    {
+      "id": "skirk-round1-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 11000
+    },
+    {
+      "id": "skirk-round1-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 11500
+    },
+    {
+      "id": "skirk-round1-5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 12000
+    },
+    {
+      "id": "skirk-round2-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 13000
+    },
+    {
+      "id": "skirk-round2-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 13500
+    },
+    {
+      "id": "skirk-round2-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 14000
+    },
+    {
+      "id": "skirk-round2-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 14500
+    },
+    {
+      "id": "skirk-round2-5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 15000
+    },
+    {
+      "id": "skirk-round3-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 16000
+    },
+    {
+      "id": "skirk-round3-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 16500
+    },
+    {
+      "id": "skirk-round3-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 17000
+    },
+    {
+      "id": "skirk-round3-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 17500
+    },
+    {
+      "id": "skirk-round3-5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 18000
+    },
+    {
+      "id": "skirk-c",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 19000,
+      "params": {
+        "absorbedRifts": 2
+      }
+    },
+    {
+      "id": "skirk-round4-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 20000
+    },
+    {
+      "id": "skirk-round4-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 20500
+    },
+    {
+      "id": "skirk-round4-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 21000
+    },
+    {
+      "id": "skirk-round4-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 21500
+    },
+    {
+      "id": "skirk-round4-5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 22000
+    }
+  ]
+}

@@ -42,8 +42,8 @@ function modes(domains){
 // Weapon/character/configured BUFF constants and every reachable set mode are
 // read from the published evaluator. Xiphos' cross-role EM conversion is added
 // separately using the same public effect formula as ordinary scoring.
-export function createTeamConstraintBounds(api,input,pools,onProgress=()=>{}){
- const evaluator=createTeamDpsEvaluator(api,input),profiles=evaluator.profiles;
+export function createTeamConstraintBounds(api,input,pools,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator){
+ const evaluator=evaluatorFactory(api,input),profiles=evaluator.profiles;
  const required=profiles.map(p=>setRequirements(p.constraint?.set_mode));
  const hasStats=profiles.some(p=>fields.some(([,field])=>p.constraint?.[field]>0));
  const stats=new Map(pools.flat(2).map(a=>[a.id,artifactConstraintStats(a)]));

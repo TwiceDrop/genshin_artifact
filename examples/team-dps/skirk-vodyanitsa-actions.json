@@ -1,0 +1,274 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/9",
+  "id": "skirk-furina-escoffier-vodyanitsa",
+  "title": "丝柯克／沃雅妮莎四人20.5秒",
+  "endHit": "include",
+  "initialActiveSlot": "hydro",
+  "members": [
+    {
+      "slot": "carry",
+      "character": "Skirk"
+    },
+    {
+      "slot": "hydro",
+      "character": "Furina"
+    },
+    {
+      "slot": "healer",
+      "character": "Escoffier"
+    },
+    {
+      "slot": "support",
+      "character": "Vodyanitsa"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-4",
+      "kind": "action",
+      "actor": "hydro",
+      "action": "skill",
+      "timeMs": 0
+    },
+    {
+      "id": "event-5",
+      "kind": "action",
+      "actor": "hydro",
+      "action": "burst",
+      "timeMs": 500
+    },
+    {
+      "id": "event-55",
+      "kind": "action",
+      "actor": "hydro",
+      "action": "normal.1",
+      "timeMs": 2500,
+      "when": {
+        "slot": "hydro",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-1",
+      "kind": "switch",
+      "actor": "healer",
+      "timeMs": 3000
+    },
+    {
+      "id": "event-6",
+      "kind": "action",
+      "actor": "healer",
+      "action": "skill",
+      "timeMs": 3000
+    },
+    {
+      "id": "event-7",
+      "kind": "action",
+      "actor": "healer",
+      "action": "burst",
+      "timeMs": 5500
+    },
+    {
+      "id": "event-2",
+      "kind": "switch",
+      "actor": "support",
+      "timeMs": 6500
+    },
+    {
+      "id": "event-8",
+      "kind": "action",
+      "actor": "support",
+      "action": "skill",
+      "timeMs": 6500
+    },
+    {
+      "id": "event-3",
+      "kind": "switch",
+      "actor": "carry",
+      "timeMs": 7500
+    },
+    {
+      "id": "event-9",
+      "kind": "action",
+      "actor": "carry",
+      "action": "skill",
+      "timeMs": 7500
+    },
+    {
+      "id": "event-24",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.1",
+      "timeMs": 7750
+    },
+    {
+      "id": "event-10",
+      "kind": "action",
+      "actor": "carry",
+      "action": "burst",
+      "timeMs": 8000,
+      "params": {
+        "absorbedRifts": 3
+      }
+    },
+    {
+      "id": "event-25",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.2",
+      "timeMs": 8000
+    },
+    {
+      "id": "event-26",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.1",
+      "timeMs": 8500
+    },
+    {
+      "id": "event-27",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.2",
+      "timeMs": 9000
+    },
+    {
+      "id": "event-28",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.3",
+      "timeMs": 9500
+    },
+    {
+      "id": "event-30",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.4",
+      "timeMs": 10000
+    },
+    {
+      "id": "event-31",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.5",
+      "timeMs": 10500
+    },
+    {
+      "id": "event-33",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.1",
+      "timeMs": 11500
+    },
+    {
+      "id": "event-34",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.2",
+      "timeMs": 12000
+    },
+    {
+      "id": "event-35",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.3",
+      "timeMs": 12500
+    },
+    {
+      "id": "event-37",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.4",
+      "timeMs": 13000
+    },
+    {
+      "id": "event-38",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.5",
+      "timeMs": 13500
+    },
+    {
+      "id": "event-40",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.1",
+      "timeMs": 14500
+    },
+    {
+      "id": "event-41",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.2",
+      "timeMs": 15000
+    },
+    {
+      "id": "event-42",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.3",
+      "timeMs": 15500
+    },
+    {
+      "id": "event-44",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.4",
+      "timeMs": 16000
+    },
+    {
+      "id": "event-45",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.5",
+      "timeMs": 16500
+    },
+    {
+      "id": "event-52",
+      "kind": "action",
+      "actor": "carry",
+      "action": "charged",
+      "timeMs": 17500,
+      "params": {
+        "absorbedRifts": 2
+      }
+    },
+    {
+      "id": "event-47",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.1",
+      "timeMs": 18500
+    },
+    {
+      "id": "event-48",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.2",
+      "timeMs": 19000
+    },
+    {
+      "id": "event-49",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.3",
+      "timeMs": 19500
+    },
+    {
+      "id": "event-50",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.4",
+      "timeMs": 20000
+    },
+    {
+      "id": "event-51",
+      "kind": "action",
+      "actor": "carry",
+      "action": "normal.5",
+      "timeMs": 20500
+    }
+  ]
+}
