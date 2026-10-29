@@ -2,11 +2,12 @@ import {createTeamDpsEvaluator,sum} from './team-dps-evaluator.mjs';
 import {TEAM_DPS_SLOTS as slots} from './team-dps-config.mjs';
 import {teamDpsArtifactAvailable} from './team-dps-equipment-support.mjs';
 import {createTeamConstraintBounds} from './team-dps-constraint-bounds.mjs';
+import {teamDpsObjectiveValue} from './team-dps-numeric-rules.mjs';
 const teamKey=team=>team.flatMap(b=>b.map(a=>a.id)).join(',');
 const entries=team=>team.map(b=>Object.fromEntries(b.map(a=>[a.slot.toLowerCase(),a.id])));
 function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory){
  const settings=input.team_dps,profiles=evaluator.profiles;
- const limit=settings.result_count,budget=settings.max_evaluations,metric=settings.metric||'expectation';
+ const limit=settings.result_count,budget=settings.max_evaluations,metric=settings.metric||'expectation',objective=settings.objective||'damage';
  const catalog=new Map(artifacts.map(a=>[a.id,a])),bySlot=slots.map(slot=>artifacts.filter(a=>teamDpsArtifactAvailable(a.set_name)&&a.slot===slot&&!a.omit&&a.level>=(settings.minimum_artifact_level??0)));
  const mainAllowed=(r,a)=>{const k={Sand:'sand_main_stat',Goblet:'goblet_main_stat',Head:'head_main_stat'}[a.slot],list=profiles[r].filter?.[k];return !list?.length||list.includes(a.main_stat[0]);};
  const pools=profiles.map((_,r)=>bySlot.map(pool=>pool.filter(a=>mainAllowed(r,a))));
@@ -52,7 +53,7 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
  const rank=value=>Number(value.toPrecision(12));
  const sort=(a,b)=>rank(b.value)-rank(a.value)||a.key.localeCompare(b.key);
  function progress(done=false,phase='search'){const now=performance.now();if(!done&&now-lastProgress<250)return;lastProgress=now;
-  onProgress({phase:done?'complete':phase,evaluated_teams:evaluated,total_teams:planned,remaining_teams:done?0:Math.max(0,planned-evaluated),feasible_teams:feasibleTeams,retained_results:found.length,visited_nodes:visitedNodes,pruned_nodes:prunedNodes,elapsed_ms:now-started,eta_ms:done?0:!branching&&evaluated?(planned-evaluated)*(now-started)/evaluated:null,best_damage:found[0]?.result[metric]??null});}
+   onProgress({phase:done?'complete':phase,evaluated_teams:evaluated,total_teams:planned,remaining_teams:done?0:Math.max(0,planned-evaluated),feasible_teams:feasibleTeams,retained_results:found.length,visited_nodes:visitedNodes,pruned_nodes:prunedNodes,elapsed_ms:now-started,eta_ms:done?0:!branching&&evaluated?(planned-evaluated)*(now-started)/evaluated:null,best_damage:found[0]?.result[metric]??null});}
  function* submit(team){
   if(scheduled>=budget)return;
   const key=teamKey(team);if(seen.has(key))return;seen.add(key);
@@ -65,7 +66,7 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
  }
  function accept(job,result){
   evaluated++;
-   const row={...job,value:result[metric],distance:constraintDistance(job.team,result.panels),result};
+   const row={...job,value:teamDpsObjectiveValue(result,objective,metric),distance:constraintDistance(job.team,result.panels),result};
    // Feasibility comes first: ER/set repairs may lower damage before a legal build exists.
    beam.push(row);beam.sort((a,b)=>rank(a.distance)-rank(b.distance)||sort(a,b));if(beam.length>8)beam.length=8;
    if(row.distance===0){feasibleTeams++;found.push(row);found.sort(sort);if(found.length>limit)found.length=limit;}
@@ -131,28 +132,31 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
    if(branching&&scheduled<budget)yield* enumerate();
   }
  }
- function baseline(){
+ function baselineTeam(){
   const current=settings.initial_ids.map(ids=>ids.map(id=>catalog.get(id)));
-  return current.every(b=>b.length===5&&b.every(a=>a&&teamDpsArtifactAvailable(a.set_name)))?evaluator.evaluate(current,true):null;
+  return current.every(b=>b.length===5&&b.every(a=>a&&teamDpsArtifactAvailable(a.set_name)))?current:null;
  }
- function finish(baseline){
+ function bestTeam(){
  if(!found.length)throw Error('本次联合搜索未找到满足四人配装限制的组合；已评估 '+evaluated+' 组');
+ return found[0].team;
+ }
+ function finish(baseline,detail){
  progress(true);
  const results=found.map(row=>({...row.result,artifacts:entries(row.team)}));
- results[0]={...evaluator.evaluate(found[0].team,true),artifacts:entries(found[0].team)};
+ results[0]={...detail,artifacts:entries(found[0].team)};
  return {results,baseline,
-  artifacts:found.map(row=>entries(row.team)),evaluated_teams:evaluated,feasible_teams:feasibleTeams,legal_teams:completed?feasibleTeams:null,evaluation_budget:budget,search_complete:completed,elapsed_ms:performance.now()-started,metric,
+  artifacts:found.map(row=>entries(row.team)),evaluated_teams:evaluated,feasible_teams:feasibleTeams,legal_teams:completed?feasibleTeams:null,evaluation_budget:budget,search_complete:completed,elapsed_ms:performance.now()-started,metric,objective,
   ...(branching?{search_stats:{visited_nodes:visitedNodes,pruned_nodes:prunedNodes}}:{})};
  }
- return {candidates,accept,baseline,finish};
+ return {candidates,accept,baselineTeam,bestTeam,finish};
 }
 export function optimizeTeamDps(api,input,artifacts,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator){
- const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),baseline=search.baseline();
+ const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),current=search.baselineTeam(),baseline=current?evaluator.evaluate(current,true):null;
  for(const job of search.candidates())if(job)search.accept(job,evaluator.evaluate(job.team));
- return search.finish(baseline);
+ return search.finish(baseline,evaluator.evaluate(search.bestTeam(),true));
 }
-export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,batchSize,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator){
- const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),baseline=search.baseline();
+export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,batchSize,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator,{evaluateDetail}={}){
+ const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),detail=evaluateDetail??(team=>evaluator.evaluate(team,true)),current=search.baselineTeam(),baseline=current?await detail(current):null;
  let pending=[];
  async function flush(){
   if(!pending.length)return;
@@ -165,11 +169,11 @@ export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,
   if(!job||pending.length===batchSize)await flush();
  }
  await flush();
- return search.finish(baseline);
+ return search.finish(baseline,await detail(search.bestTeam()));
 }
 export function evaluateTeamDps(api,input,artifacts){
  const catalog=new Map(artifacts.map(a=>[a.id,a]));
  const builds=input.team_dps.initial_ids.map(ids=>slots.map((_,k)=>catalog.get(ids[k])));
  const result=createTeamDpsEvaluator(api,input).evaluate(builds,true);
- return {results:[{...result,artifacts:entries(builds)}],baseline:result,artifacts:[entries(builds)],evaluated_teams:1,search_complete:true,elapsed_ms:0,metric:input.team_dps.metric};
+ return {results:[{...result,artifacts:entries(builds)}],baseline:result,artifacts:[entries(builds)],evaluated_teams:1,search_complete:true,elapsed_ms:0,metric:input.team_dps.metric,objective:input.team_dps.objective||'damage'};
 }

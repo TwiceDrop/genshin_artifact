@@ -3,7 +3,7 @@ import {teamF64Wgsl} from './team-dps-f64-wgsl.mjs';
 
 const main=String.raw`
 struct Settings { count:u32, stride:u32, instructions:u32, outputs:u32 }
-struct Instruction { op:u32, a:u32, b:u32, c:u32, destination:u32 }
+struct Instruction { op:u32, a:u32, b:u32, c:u32, destination:u32, firstOutput:u32, outputCount:u32 }
 @group(0) @binding(0) var<uniform> settings:Settings;
 @group(0) @binding(1) var<storage,read> instructions:array<Instruction>;
 @group(0) @binding(2) var<storage,read> inputs:array<vec2<u32>>;
@@ -29,29 +29,33 @@ fn main(@builtin(global_invocation_id) id:vec3<u32>){
     default:{result=fp_nan();}
    }
   }
-  registers[instruction.destination*settings.count+lane]=result;
+  if(instruction.destination!=0xffffffffu){registers[instruction.destination*settings.count+lane]=result;}
+  for(var j=0u;j<instruction.outputCount;j++){
+   outputs[lane*settings.outputs+selected[instruction.firstOutput+j]]=result;
+  }
  }
- for(var i=0u;i<settings.outputs;i++){outputs[lane*settings.outputs+i]=registers[selected[i]*settings.count+lane];}
 }`;
 export async function createWebGpuNumericExecutor(device,program){
- program=scheduleNumericProgram(program);
- const words=new Uint32Array(program.nodes.length*5),bits=new Uint32Array(2),value=new Float64Array(bits.buffer);
+ program=scheduleNumericProgram(program,{streamOutputs:true});
+ const words=new Uint32Array(program.nodes.length*7),emissions=[],bits=new Uint32Array(2),value=new Float64Array(bits.buffer);
  program.nodes.forEach((node,i)=>{
   const row=[NUMERIC_OPS.indexOf(node.op),...(node.args),0,0,0];
   if(node.op==='literal'){value[0]=node.value;row[1]=bits[0];row[2]=bits[1];}
   if(node.op==='input')row[1]=node.value;
-  words.set([...row.slice(0,4),node.target],i*5);
+  words.set([...row.slice(0,4),node.retain?node.target:0xffffffff,emissions.length,node.emits.length],i*7);
+  emissions.push(...node.emits);
  });
  const module=device.createShaderModule({code:teamF64Wgsl+main});
  const pipeline=await device.createComputePipelineAsync({layout:'auto',compute:{module,entryPoint:'main'}});
  const buffer=(data,usage)=>{const b=device.createBuffer({size:data.byteLength,usage:usage|GPUBufferUsage.COPY_DST});device.queue.writeBuffer(b,0,data);return b;};
- const code=buffer(words,GPUBufferUsage.STORAGE),selected=buffer(new Uint32Array(program.outputs),GPUBufferUsage.STORAGE);
+ const code=buffer(words,GPUBufferUsage.STORAGE),selected=buffer(new Uint32Array(emissions),GPUBufferUsage.STORAGE);
  return {
+  stats:{nodes:program.nodes.length,registers:program.registerCount,outputs:program.outputCount,instructionBytes:words.byteLength},
   async evaluate(inputs,count){
-   const settings=buffer(new Uint32Array([count,inputs.length/count,program.nodes.length,program.outputs.length]),GPUBufferUsage.UNIFORM);
+   const settings=buffer(new Uint32Array([count,inputs.length/count,program.nodes.length,program.outputCount]),GPUBufferUsage.UNIFORM);
    const data=buffer(inputs,GPUBufferUsage.STORAGE);
    const registers=device.createBuffer({size:program.registerCount*count*8,usage:GPUBufferUsage.STORAGE});
-   const size=program.outputs.length*count*8,outputs=device.createBuffer({size,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_SRC});
+   const size=program.outputCount*count*8,outputs=device.createBuffer({size,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.COPY_SRC});
    const readback=device.createBuffer({size,usage:GPUBufferUsage.MAP_READ|GPUBufferUsage.COPY_DST});
    const bindings=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[settings,code,data,registers,selected,outputs].map((b,binding)=>({binding,resource:{buffer:b}}))});
    const encoder=device.createCommandEncoder(),pass=encoder.beginComputePass();pass.setPipeline(pipeline);pass.setBindGroup(0,bindings);pass.dispatchWorkgroups(Math.ceil(count/64));pass.end();

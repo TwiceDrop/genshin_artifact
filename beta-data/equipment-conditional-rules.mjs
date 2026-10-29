@@ -17,11 +17,11 @@ export const CONDITIONAL_WEAPON_FIELDS={
  LightbearingMoonshard:['extra_active','rate'],
 };
 export function conditionalWeaponState(n,r,e,ctx){
- const {on,ownHits,roots,hp,hit,count,refreshed,castActive,lastCast,entered,before,within,spaced,state}=ctx;
+ const {on,ownHits,roots,hp,hit,count,refreshed,castActive,lastCast,entered,before,within,spaced,state,active:exists,math:m}=ctx;
  const front=ownHits[r].filter(h=>h.onField),casts=roots.filter(h=>h.role===r&&h.kind==='cast'),skill=front.filter(h=>h.category==='skill');
  const na=hit(r,e,['normal'],Infinity).filter(h=>h.onField),ca=hit(r,e,['charged'],Infinity).filter(h=>h.onField);
  const nq=front.filter(h=>['normal','charged','plunge'].includes(h.category));
- const active=(rows,d)=>rows.some(h=>within(h,e,d))?1:0;
+ const active=(rows,d)=>exists(rows,h=>within(h,e,d)),bool=value=>typeof value==='object'?value:!!value;
  if(['SummitShaper','VortexVanquisher','MemoryOfDust'].includes(n))return {stack:refreshed(front,e,8,5,.3),shield_rate:state(r,'shield',e)?1:0};
  if(n==='TheAlleyFlash')return {rate:1};
  if(['LionsRoar','DarkIronSword'].includes(n))return {rate:0}; // No Pyro/Electro application in this team.
@@ -47,23 +47,23 @@ export function conditionalWeaponState(n,r,e,ctx){
  if(n==='RingOfYaxche')return {rate:castActive(r,'skill',e,10)?1:0};
  if(n==='SunnyMorningSleepIn')return {rate1:0,rate2:active(hit(r,e,['skill'],Infinity),9),rate3:active(hit(r,e,['burst'],Infinity),30)};
  if(n==='ReliquaryOfTruth'){const on=castActive(r,'skill',e,12);return {false_secret_active:on,skill_active:on,true_moon_active:false,lunar_bloom_hit:false,skill_rate:on?1:0,lunar_rate:0,overlap_rate:0};}
- if(n==='DawningFrost'){const charged=active(ca,10),sk=active(skill,10);return {rate_charged:charged,charged_active:!!charged,charged_rate:charged,rate_skill:sk,skill_active:!!sk,skill_rate:sk};}
+ if(n==='DawningFrost'){const charged=active(ca,10),sk=active(skill,10);return {rate_charged:charged,charged_active:bool(charged),charged_rate:charged,rate_skill:sk,skill_active:bool(sk),skill_rate:sk};}
  if(n==='EtherlightSpindlelute'){const on=castActive(r,'skill',e,20);return {skill_active:on,rate:on?1:0};}
  if(n==='NocturnesCurtainCall')return {sacred_wine_uptime:0,lunar_active:false,rate:0};
  if(n==='LightbearingMoonshard')return {skill_active:false,extra_active:false,rate:0}; // No Lunar-Crystallize in this team.
  if(n==='SilverLight')return {stacks:count(casts.filter(h=>h.action==='skill'),e,12,2)};
  if(n==='TulaytullahsRemembrance'){
   const t=lastCast(r,'skill',e.time,e.rootOrder),valid=on&&t>=entered(e.time,e.rootOrder)&&e.time<t+12;
-  return {stack:valid?Math.min(10,Math.floor(e.time-t)+2*spaced(na.filter(h=>h.time>=t),.3).length):0};
+  return {stack:valid?m.min(10,m.add(Math.floor(e.time-t),m.mul(2,count(na.filter(h=>h.time>=t),e,Infinity,Infinity,.3)))):0};
  }
  if(n==='SurfsUp'){
   const c=spaced(casts.filter(h=>h.action==='skill'),15).findLast(h=>within(h,e,14));
-  return {stack:c?Math.max(0,4-spaced(na.filter(h=>before(c,h)&&before(h,e)),1.5).length):0}; // This team cannot Vaporize.
+  return {stack:c?m.max(0,m.sub(4,count(na.filter(h=>before(c,h)),e,Infinity,Infinity,1.5))):0}; // This team cannot Vaporize.
  }
  if(n==='VividNotions')return {rate1:0,rate2:castActive(r,'skill',e,15)||castActive(r,'burst',e,15)?1:0}; // No plunge action in this adapter.
  if(n==='ClashOfKings'){
-  const active=spaced(casts.filter(h=>h.action==='skill'),12).some(c=>before(c,e)&&e.time<c.time+6+(ca.some(h=>within(c,h,6))?6:0));
-  return {active,rate:active?1:0};
+  const value=exists(spaced(casts.filter(h=>h.action==='skill'),12).filter(c=>before(c,e)).map(c=>({...c,enabled:m.choose(m.lt(e.time,m.add(c.time+6,m.mul(6,exists(ca,h=>within(c,h,6))))),c.enabled??1,0)})));
+  return {active:bool(value),rate:value};
  }
  if(n==='BeyondTheChrysalis'){
   const start=entered(e.time,e.rootOrder),sequence=casts.filter(h=>h.time>=start&&before(h,e));

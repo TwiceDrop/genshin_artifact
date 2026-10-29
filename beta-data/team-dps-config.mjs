@@ -1,12 +1,11 @@
 import {validateActionAxis} from './team-engine/action-config.mjs';
+import {characterPackages} from './team-engine/character-packages.mjs';
 // Mechanics metadata only: no default rotation is installed or loaded here.
 export const TEAM_DPS_ROLES=['Skirk','Furina','Escoffier','Vodyanitsa'];
 export const TEAM_DPS_SLOTS=['Flower','Feather','Sand','Goblet','Head'];
 export const TEAM_DPS_MECHANICS='skirk-hydro-cryo/1';
 export const TEAM_DPS_CHARACTER_CAPABILITIES={
- Skirk:{energy:0,shield:false,nightsoul:false,arkhe:false},Furina:{energy:60,shield:false,nightsoul:false,arkhe:true},
- Escoffier:{energy:70,shield:false,nightsoul:false,arkhe:true},Vodyanitsa:{energy:60,shield:false,nightsoul:false,arkhe:false},
- Mona:{energy:60,shield:false,nightsoul:false,arkhe:false},
+ ...Object.fromEntries(Object.values(characterPackages).map(character=>[character.id,character.capabilities])),
  Mavuika:{energy:0,shield:false,nightsoul:true,arkhe:false},
  Amber:{energy:40,shield:false,nightsoul:false,arkhe:false},Noelle:{energy:60,shield:true,nightsoul:false,arkhe:false},
  Kirara:{energy:60,shield:true,nightsoul:false,arkhe:false},

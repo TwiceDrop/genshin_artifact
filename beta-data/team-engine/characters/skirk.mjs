@@ -1,8 +1,32 @@
-import {teamTalentUnlocked} from '../../team-dps-character-rules.mjs';
+import {createSkirkHitRuntime} from './skirk-hit-runtime.mjs';
+import {teamTalentUnlocked} from '../character-levels.mjs';
 import {effect,hydroCryo,chronological,actionTime} from '../rule-utils.mjs';
+import {compareEventPosition} from '../event-order.mjs';
+import {scalarMath} from '../../team-dps-numeric-rules.mjs';
+
+const rifts={key:'absorbedRifts',label:'吸收裂隙',min:0,max:3,integer:true,step:1,help:'本次动作吸收的裂隙数量，0～3个',error:'裂隙吸收数量无效'};
 
 export const skirk={
  id:'Skirk',element:'Cryo',panelIndex:9,separateAtkRatio:true,ratioLabel:'丝柯克·万流归寂',
+ nativeBackend:'legacy',constellationTalents:{3:'skill3',5:'skill2'},
+ nativeDamage:{
+  ...Object.fromEntries([0,1,2,3,4,9,10,11,12,13].map(index=>[index,{category:'normal',element:'Cryo'}])),
+  ...Object.fromEntries([5,14,17].map(index=>[index,{category:'charged',element:'Cryo'}])),
+  ...Object.fromEntries([6,7,8].map(index=>[index,{category:'plunge',element:'Physical',plungeImpact:index!==6}])),
+  15:{category:'burst',element:'Cryo'},16:{category:'burst',element:'Cryo'},
+ },
+ defaultWeapon:'Azurelight',previewWeapon:'DullBlade',
+ capabilities:{energy:0,shield:false,nightsoul:false,arkhe:false},
+ actions:[
+  {id:'skill',label:'元素战技·点按'},
+  {id:'skill.hold',label:'元素战技·长按',parameters:[rifts]},
+  {id:'burst',label:'元素爆发',parameters:[rifts],endOffsetMs:158/60*1000},
+  ...Array.from({length:5},(_,i)=>({id:'normal.'+(i+1),label:'普通攻击·第'+(i+1)+'式'})),
+  {id:'charged',label:'重击',parameters:[rifts]},
+  {id:'plunge',label:'高空下落攻击'},
+  {id:'plunge.low',label:'低空下落攻击'},
+  {id:'plunge.collision',label:'下落期间伤害'},
+ ],
  modeled:[],
  teamSkillLevels:elements=>hydroCryo(elements)===4?1:0,
  normalize:p=>{p.character.params={Skirk:{death_crossing_stacks:0,team_has_hydro_cryo:false,c2_atk_bonus:false}};},
@@ -62,9 +86,12 @@ export const skirk={
      if(c>=6)for(const [i]of s.sever.filter(end=>a.time<end).entries())hit(a,{index:15,category:'burst',parts:1,ratio:7.5,cunning:50,skirkBurst:true,element:'Cryo',label:'虚境裂隙·六命爆发追加'},.2,'burst/c6/'+i,21);
      s.sever=[];s.cunning=0;record(a,'元素爆发消耗');
     }
+   }else if(a.action.startsWith('plunge')){
+    const index={plunge:8,'plunge.low':7,'plunge.collision':6}[a.action],element=sevenPhase?'Cryo':'Physical';
+    hit(a,{index,parts:1,sevenPhase,category:'plunge',element,nativeElement:element,label:(sevenPhase?'七相一闪·':'普通形态·')+skirk.actions.find(entry=>entry.id===a.action).label},0,a.action);
    }else{
     const charged=a.action==='charged',step=Number(a.action.split('.')[1]),index=charged?(sevenPhase?14:5):(sevenPhase?8+step:step-1);
-    const parts=sevenPhase?(charged?3:[1,1,2,2,1][step-1]):1;
+    const parts=sevenPhase?(charged?3:[1,1,2,2,1][step-1]):charged||step===3?2:1;
     hit(a,{index,parts,sevenPhase,category:charged?'charged':'normal',element:sevenPhase?'Cryo':'Physical',nativeElement:sevenPhase?null:'Physical',label:(sevenPhase?'七相一闪·':'普通形态·')+(charged?'重击':a.action)},0,a.action);
     if(c>=6&&a1&&sevenPhase&&['normal.3','normal.5'].includes(a.action)){
      s.sever=s.sever.filter(end=>a.time<end);
@@ -77,27 +104,26 @@ export const skirk={
   // The scheduler clips resource traces to the actual axis end afterwards.
   advance(Math.max(duration,Number.isFinite(s.phaseEnd)?s.phaseEnd:0));
  },
- decorate({role,events,window,windows}){
-  const uses=new Map();
-  for(const e of events)if(e.role===role&&e.category==='normal'&&!e.c6){
-   const cycle=window('skirkC2',e.time,e.rootOrder),used=uses.get(cycle)||0;
-   e.qRifts=windows.skirkC2?.[cycle]?.qRifts??0;
-   // Preserve the accepted same-time sub-hit model; Q starts the counter.
-   e.qBonus=e.sevenPhase&&cycle>=0&&used<10;if(e.qBonus)uses.set(cycle,used+1);
-  }
- },
- create({role,profiles,elements,rotation}){
+ createTimeline:createSkirkHitRuntime,
+ createCombat:createSkirkHitRuntime,
+ create({role,profiles,elements,rotation,math:m=scalarMath}){
   const c=profiles[role].character,a1=teamTalentUnlocked(c,1),a4=teamTalentUnlocked(c,4);
-  const stacks=e=>rotation().model==='actions'?profiles.filter((_,r)=>r!==role&&['Hydro','Cryo'].includes(elements[r])&&rotation().events.some(h=>h.role===r&&(h.element??elements[r])===elements[r]&&h.time<=e.time&&e.time<h.time+20)).length:3;
+   const stacks=e=>rotation().model==='actions'?profiles.reduce((n,_,r)=>r===role||!['Hydro','Cryo'].includes(elements[r])?n:m.add(n,rotation().events.filter(h=>h.role===r&&(h.element??elements[r])===elements[r]&&compareEventPosition(h,e)<=0&&e.time<h.time+20).reduce((v,h)=>m.max(v,h.enabled??1),0)),0):3;
+   const tier=(values,e)=>{const count=stacks(e);return values.reduce((v,value,i)=>m.choose(m.eq(count,i),value,v),values[0]);};
   return {
-   prepare(p,e){p.character.params.Skirk.c2_atk_bonus=c.constellation>=2&&rotation().covered('skirkC2',e.time,e.rootOrder);},
-   attackBuffs(r,e){return r===role&&a4&&c.constellation>=4&&(rotation().model==='actions'||rotation().covered('skirkC2',e.time))?[effect('丝柯克·四命',{ATKPercentage:[0,.1,.2,.4][stacks(e)]})]:[];},
+   prepare(p,e){
+    p.character.params.Skirk.c2_atk_bonus=c.constellation>=2&&rotation().covered('skirkC2',e.time,e.rootOrder);
+    // The shared native plunge formula reads skill1. In Seven-Phase Flash
+    // its talent level comes from skill2, including the team's skill bonus.
+    if(e.category==='plunge'&&e.sevenPhase)p.character.skill1=c.skill2;
+   },
+    attackBuffs(r,e){return r===role&&a4&&c.constellation>=4&&(rotation().model==='actions'||rotation().covered('skirkC2',e.time))?[effect('丝柯克·四命',{ATKPercentage:tier([0,.1,.2,.4],e)})]:[];},
    damageBuffs(r,e){
     const level=c.skill3+1,rifts=rotation().model==='actions'?e.qRifts:(a1?3:0);
     const bonus=[.03+.005*level,.06+.006*level,.08+.008*level,.1+.01*level][rifts];
-    return r===role&&e.qBonus?[effect('丝柯克·凋尽',{BonusBase:bonus})]:[];
+    return r===role&&(typeof e.qBonus==='object'||e.qBonus)?[effect('丝柯克·凋尽',{BonusBase:m.mul(e.qBonus,bonus)})]:[];
    },
-   multiplier:e=>a4?(e.skirkBurst?[1,1.05,1.15,1.6][stacks(e)]:e.category==='normal'&&(rotation().model!=='actions'||e.sevenPhase||e.c6)?[1,1.1,1.2,1.7][stacks(e)]:1):1,
+    multiplier:e=>a4?(e.skirkBurst?tier([1,1.05,1.15,1.6],e):e.category==='normal'&&(rotation().model!=='actions'||e.sevenPhase||e.c6)?tier([1,1.1,1.2,1.7],e):1):1,
   };
  },
 };

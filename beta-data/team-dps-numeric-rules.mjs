@@ -38,3 +38,8 @@ export function createTeamNumericRules(m=scalarMath){
  };
 }
 export const teamNumericRules=createTeamNumericRules();
+
+// Search and display use the completed candidate's duration, never the axis
+// preview or another candidate's time. Damage mode retains its original units.
+export const teamDpsObjectiveValue=(result,objective='damage',metric='expectation')=>
+ objective==='dps'?result[metric]/result.duration:result[metric];

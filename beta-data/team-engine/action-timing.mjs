@@ -12,7 +12,7 @@ export function actionAxisMaxDurationMs(c,profiles,completions){
   const timing=TEAM_ACTION_CATALOG[members.get(a.actor)].find(x=>x.id===a.action);
   // Expand against an upper bound; character modules supply actual endings
   // after resolving resources and mode. An early guess can drop valid hits.
-  const offset=timing.bubbleInput?(a.params?.bubbleDelayMs??8000)+timing.endOffsetMs:timing.endOffsetMs??0;
+  const offset=timing.completionOffsetMs?timing.completionOffsetMs(a.params):timing.endOffsetMs??0;
   end=Math.max(end,completions?.get(a.id)??a.timeMs+offset);
  }
  return actionTime(end/1000)*1000;

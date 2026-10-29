@@ -2,10 +2,12 @@ import {characterRules} from './registry.mjs';
 import {chronological,actionTime} from './rule-utils.mjs';
 import {equipmentTimeline} from './equipment-timeline.mjs';
 import {actionAxisMaxDurationMs,actionAxisTimeline} from './action-timing.mjs';
+import {createEventScheduler} from './scheduler.mjs';
+import {compareEvents,eventKey} from './event-order.mjs';
 
 // An action is expanded by its installed character rule. This scheduler knows
 // only event times, ownership, expiry, hit parts and the active party member.
-export function compileActionAxis(c,profiles,settings={}){
+export function compileActionAxis(c,profiles,settings={},execution={}){
  const slots=c.members.map(m=>m.slot),roots=[],events=[],heals=[],hpDrains=[],windows={},states={},resources=[];
  let duration=actionTime(actionAxisMaxDurationMs(c,profiles)/1000);
  const inside=t=>actionTime(t)<duration||(actionTime(t)===duration&&c.endHit==='include');
@@ -32,14 +34,15 @@ export function compileActionAxis(c,profiles,settings={}){
  const castTimes=action=>profiles.map((_,r)=>casts.filter(e=>e.role===r&&e.castAction===action).map(e=>e.time));
  const lastCast=(r,action,t,o)=>Math.max(-Infinity,...casts.filter(e=>e.role===r&&e.castAction===action&&occurred(e,t,o)).map(e=>e.time));
  const entered=(t,o)=>switches.filter(e=>occurred(e,t,o)).at(-1)?.time??0;
- let serial=0;
+ const pending=[];let scheduler;
+ const enqueue=e=>{if(e.time<=duration){if(scheduler)scheduler.enqueue(e);else pending.push(e);}};
  function hit(a,template,offset=0,suffix='',phase=20){
   const time=actionTime(a.time+offset);if(!inside(time))return;
-  for(let part=0;part<(template.hits??template.parts??1);part++)events.push({...template,time,role:a.role,rootOrder:a.rootOrder+phase,serial:serial++,part:template.part??part,eventId:a.id+'/'+suffix,label:template.label});
+  for(let part=0;part<(template.hits??template.parts??1);part++)enqueue({...template,kind:'hit',time,role:a.role,rootOrder:a.rootOrder+phase,part:template.part??part,eventId:a.id+'/'+suffix,parentEventId:eventKey(a),label:template.label});
  }
- function heal(a,offset,recipients,healing,phase=10){
+ function heal(a,offset,recipients,healing,phase=10,suffix='heal/'+offset){
   const time=actionTime(a.time+offset);if(!inside(time))return;
-  heals.push({kind:'heal',time,role:a.role,rootOrder:a.rootOrder+phase,eventId:a.id+'/heal/'+offset,recipients:recipients==='team'?profiles.map((_,i)=>i):[activeRole(time,a.rootOrder+phase)],...(healing?{healing}:{})});
+  heals.push({kind:'heal',time,role:a.role,rootOrder:a.rootOrder+phase,eventId:a.id+'/'+suffix,recipients:recipients==='team'?profiles.map((_,i)=>i):[activeRole(time,a.rootOrder+phase)],...(healing?{healing}:{})});
  }
  function periodic(a,{duration:life,start,interval,offsetAt},emit){
   const next=casts.find(e=>e.role===a.role&&e.castAction===a.castAction&&chronological(e,a)>0)?.time??Infinity;
@@ -50,20 +53,30 @@ export function compileActionAxis(c,profiles,settings={}){
  }
  const addWindow=(key,a,life,offset=0,values={})=>{const w={start:actionTime(a.time+offset),end:actionTime(a.time+offset+life),rootOrder:a.rootOrder,role:a.role,...values};(windows[key]??=[]).push(w);return w;};
  const state=(key,init)=>states[key]??=(typeof init==='function'?init():init);
- const ruleContexts=profiles.map((profile,role)=>({profile,role,profiles,settings,duration,roots,events,heals,hpDrains,windows,switches,resources,activeRole,lastCast,hit,heal,periodic,addWindow,state,actions:roots.filter(e=>e.role===role&&e.kind!=='switch')}));
+ const ruleContexts=profiles.map((profile,role)=>({profile,role,profiles,settings,duration,roots,heals,hpDrains,windows,switches,resources,activeRole,lastCast,hit,heal,periodic,addWindow,state,enqueue,actions:roots.filter(e=>e.role===role&&e.kind!=='switch')}));
  for(const ctx of ruleContexts)characterRules[ctx.profile.character.name].expand(ctx);
- events.sort((a,b)=>a.time-b.time||a.rootOrder-b.rootOrder||a.serial-b.serial);
  const window=(key,t,o=Infinity)=>{
   const list=windows[key]||[],active=w=>t<w.end||t===w.end&&o<(w.endOrder??-Infinity);
-  const index=list.findLastIndex(w=>(t>w.start||t===w.start&&w.rootOrder<=o)&&active(w));
-  // First activation remains available on the same tick. A refresh consumes
-  // earlier hits from the existing pool, then replaces it at the cast's order.
-  return index>=0?index:list.findIndex(w=>t===w.start&&active(w));
+  return list.findLastIndex(w=>(t>w.start||t===w.start&&w.rootOrder<=o)&&active(w));
  };
- // Ordinary buffs retain the accepted same-time availability; ordered callers
- // use window() for finite pools and endOrder for actual exits.
- const covered=(key,t,o=Infinity)=>(windows[key]||[]).some(w=>t>=w.start&&(t<w.end||t===w.end&&o<(w.endOrder??-Infinity)));
- for(const ctx of ruleContexts)characterRules[ctx.profile.character.name].derive?.({...ctx,window,covered});
+ // A later command cannot make its window visible to an earlier same-tick hit.
+ const covered=(key,t,o=Infinity)=>window(key,t,o)>=0;
+ // Each hit is prepared only by its owner, then becomes a fact visible to all
+ // subscribers. Newly emitted hits re-enter this queue, including chains
+ // produced by a character registered after their consumer.
+ const runtimeRoles=execution.runtime?profiles.flatMap((p,r)=>characterRules[p.character.name].createCombat?[r]:[]):[];
+ const plugins=ruleContexts.map(ctx=>runtimeRoles.includes(ctx.role)?undefined:characterRules[ctx.profile.character.name].createTimeline?.({...ctx,window,covered}));
+ const subscribers=profiles.map((p,role)=>({id:p.character.name,plugin:plugins[role]})).sort((a,b)=>a.id.localeCompare(b.id));
+ scheduler=createEventScheduler([...roots,...pending]);
+ for(const e of scheduler.events()){
+  if(e.kind==='hit'){
+   plugins[e.role]?.prepareHit?.(e);
+   e.onField=e.role===activeRole(e.time,e.rootOrder);
+   e.element??=characterRules[profiles[e.role].character.name].hitElement?.(e)??characterRules[profiles[e.role].character.name].element;
+   events.push(e);
+   for(const {plugin}of subscribers)plugin?.onHit?.(e);
+  }else for(const {plugin}of subscribers)plugin?.onEvent?.(e);
+ }
  const completions=new Map(roots.filter(a=>a.completionTime!==undefined).map(a=>[a.id,a.completionTime*1000]));
  if(completions.size){
   duration=actionTime(actionAxisMaxDurationMs(c,profiles,completions)/1000);
@@ -72,10 +85,15 @@ export function compileActionAxis(c,profiles,settings={}){
  // Resource changes at the terminal command still occur when terminal damage
  // is excluded. Hypothetical later ticks used to close windows stay out of Debug.
  for(let i=resources.length-1;i>=0;i--)if(resources[i].time>duration)resources.splice(i,1);
- events.sort((a,b)=>a.time-b.time||a.rootOrder-b.rootOrder||a.serial-b.serial);
+ events.sort(compareEvents);
  const rotation={model:'actions',events,heals,hpDrains,roots,switches,resources,slots,duration,endHit:c.endHit,activeRole,entered,lastCast,castE:castTimes('skill'),castQ:castTimes('burst'),covered,window,windows,fanfareWindows:windows.fanfare||[]};
- for(const [order,e]of events.entries()){e.order=order;e.onField=e.role===activeRole(e.time,e.rootOrder);e.element??=characterRules[profiles[e.role].character.name].hitElement?.(e)??characterRules[profiles[e.role].character.name].element;}
- for(const ctx of ruleContexts)characterRules[ctx.profile.character.name].decorate?.({...ctx,window,covered});
+ if(runtimeRoles.length){
+  const dynamic=roots.flatMap(a=>{const end=runtimeRoles.includes(a.role)?characterRules[profiles[a.role].character.name].combatCompletion?.(a):undefined;return end===undefined?[]:[{action:a,end}];});
+  rotation.runtimeRoles=runtimeRoles;
+  rotation.combatCompletions=dynamic.map(({action,end})=>[action.id,end]);
+  rotation.combatDurationFloor=actionTime(actionAxisMaxDurationMs(c,profiles,new Map([...completions,...dynamic.map(({action:a})=>[a.id,a.time*1000])]))/1000);
+ }
+ for(const [order,e]of events.entries()){e.order=order;e.serial=order;}
  for(let i=heals.length-1;i>=0;i--)if(!inside(heals[i].time))heals.splice(i,1);
  equipmentTimeline(profiles,rotation);
  heals.sort(chronological);

@@ -46,7 +46,7 @@ export function inspect(out){
   if(!close(out[k],out.hits.reduce((n,h)=>n+h[k],0)))issues.push('sum:'+k);
   if(!close(out[k],out.character_damage.reduce((n,h)=>n+h[k],0)))issues.push('roleSum:'+k);
  }
- if(!close(out.dps,out.expectation/20.5))issues.push('dps');
+ if(!close(out.dps,out.expectation/out.duration))issues.push('dps');
  for(const h of out.hits){
   let calculated;
   if(h.branches){calculated={non_critical:0,critical:0,expectation:0};for(const b of h.branches){const a=reconstruct(b.analysis,out.profiles[h.role].character.level,out.enemy);for(const k of Object.keys(a))calculated[k]+=a[k]*b.probability;}}

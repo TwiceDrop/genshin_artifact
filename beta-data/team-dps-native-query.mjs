@@ -1,26 +1,31 @@
+import {equipmentNativeParameters} from './equipment-native-parameters.mjs';
 import {createNativeGraphCompiler} from './team-dps-native-compiler.mjs';
 import {LEGACY_EFFECT_SLOTS} from './legacy-effect-slots.mjs';
+import {characterPackages} from './team-engine/character-packages.mjs';
+import {nativeBackends} from './team-engine/native-bindings.mjs';
+import {createNativeDamageProjector} from './team-engine/native-projection.mjs';
 const statSlots={HPFixed:24,ATKFixed:28,DEFFixed:32,HPPercentage:25,ATKPercentage:29,DEFPercentage:33,ElementalMastery:4,Recharge:8,CriticalRate:37,CriticalDamage:52,HealingBonus:2};
 for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])statSlots[element+'Bonus']=LEGACY_EFFECT_SLOTS['Bonus'+element];
 const isRef=v=>v&&typeof v==='object'&&Number.isInteger(v.index)&&Object.keys(v).length===1;
 const keyEdge=e=>JSON.stringify([e.from1,e.from2,e.to,e.label,e.fn,e.data]);
 const slotKey=n=>'config_'+n.replace(/([A-Z])/g,'_$1').slice(1).toLowerCase();
-export function createPortableNativeQuery({api,capture,libraries,projections,extensionSlots,builder,stats,setCount,sets,onProgress}){
+export function createPortableNativeQuery({api,capture,libraries,extensionSlots,builder,stats,setCount,sets,onProgress}){
  const compilers=libraries.map(lib=>createNativeGraphCompiler(builder,lib)),m=compilers[0].math;
- const templates=new Map(),setTemplates=new Map();
+ const templates=new Map(),setTemplates=new Map(),projectDamage=createNativeDamageProjector(extensionSlots);
  function native(input,damage=false,nativeElement=null){
   const config=input.artifact_config;
   input={...input,artifact_config:config?Object.fromEntries([...new Set(input.artifacts.map(a=>a.set_name))].map(name=>[slotKey(name),config[slotKey(name)]])):null};
   const key=JSON.stringify([input,damage,nativeElement]);if(templates.has(key))return templates.get(key);
   const result=damage?api.CalculatorInterface.get_damage_analysis(input,nativeElement):api.CommonInterface.get_attribute(input);
-  const snapshot=structuredClone(capture(input.character.name==='Vodyanitsa'));
+   const snapshot=structuredClone(capture(nativeBackends[characterPackages[input.character.name].nativeBackend].extension));
   const value={result,snapshot};templates.set(key,value);return value;
  }
  function query(input,role,event,damage=false){
   onProgress?.({templates:templates.size});
-  const ext=input.character.name==='Vodyanitsa',compiler=compilers[+ext],slot=i=>ext?i+(i>=70?12:11):i;
+   const backend=nativeBackends[characterPackages[input.character.name].nativeBackend],ext=backend.extension,compiler=compilers[backend.library],slot=backend.slot;
+  const parameterBindings={...equipmentNativeParameters,...characterPackages[input.character.name].nativeParameters},outputConstants=[];
   const dynamic=[],clone=(value,path=[])=>{
-   if(isRef(value)){dynamic.push({path,value});return 0;}
+   if(isRef(value)){dynamic.push({path,value});return parameterBindings[path.join('.')]?.zero??0;}
    if(Array.isArray(value))return value.map((v,i)=>clone(v,[...path,i]));
    if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,clone(v,[...path,k])]));
    return value;
@@ -51,9 +56,20 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
    merge(setTemplates.get(key),scale);
   }
   const setPath=(target,path,value)=>{let x=target;for(const k of path.slice(0,-1))x=x[k];x[path.at(-1)]=value;};
-  for(const p of parameters){
-   const variant=structuredClone(fixed);setPath(variant,p.path,1);
-   delta(native(variant,damage,event.nativeElement??null).snapshot,base.snapshot,p.value);
+  // Equal references describe one correlated native choice (for example an
+  // activation boolean and its coverage). Sampling them separately loses products.
+  const groups=new Map();
+  for(const p of parameters){const group=groups.get(p.value.index)??[];group.push(p);groups.set(p.value.index,group);}
+  for(const group of groups.values()){
+   const p=group[0],values=group.map(entry=>parameterBindings[entry.path.join('.')]?.values).find(Boolean);
+   for(const value of values?.filter(value=>value!==0)??[1]){
+    const variant=structuredClone(fixed),scale=values?m.eq(p.value,value):p.value;
+    for(const entry of group)setPath(variant,entry.path,parameterBindings[entry.path.join('.')]?.unit??value);
+    const sampled=native(variant,damage,event.nativeElement??null);
+    delta(sampled.snapshot,base.snapshot,scale);
+    const fields=[...new Set(group.flatMap(entry=>parameterBindings[entry.path.join('.')]?.constantFields??[]))];
+    if(damage&&fields.length)outputConstants.push({sampled,fields,value:scale});
+   }
   }
   for(const name of sets){
    let previous=fixed;
@@ -80,18 +96,19 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
   const panelMap={atk:[27,29,28,6],hp:[23,25,24],def:[31,33,32],elemental_mastery:[4,5],recharge:[8],critical:[37],critical_damage:[52],healing_bonus:[2],shield_strength:[9]};
   for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])panelMap['bonus_'+element.toLowerCase()]=[LEGACY_EFFECT_SLOTS['Bonus'+element]];
   if(!damage)return Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,{compiled:slots.reduce((n,i)=>m.add(n,graph.get(slot(i))),0)}]));
-  const projection=projections.find(p=>p.character===input.character.name&&p.index===event.index&&(p.nativeElement??null)===(event.nativeElement??null)&&!!p.furinaC6===!!input.skill.config?.Furina?.c6_after_e).fields;
+  const character=characterPackages[input.character.name],projection=projectDamage(character,input,event);
   const originalGraph=compiler.graph(base.snapshot),result={};
+  const constants=outputConstants.map(entry=>({...entry,graph:compiler.graph(entry.sampled.snapshot)}));
   for(const field of ['atk','hp','def','em','atk_ratio','hp_ratio','def_ratio','em_ratio','extra_damage','bonus','critical','critical_damage','independent_damage_multiplier','def_minus','def_penetration','res_minus','healing_bonus']){
    const slots=projection[field]||[],constant=Object.values(base.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+originalGraph.get(i),0);
-   result[field]={compiled:slots.reduce((n,i)=>m.add(n,graph.get(i)),constant)};
+   let output=slots.reduce((n,i)=>m.add(n,graph.get(i)),constant);
+   for(const entry of constants)if(entry.fields.includes(field)){
+    const other=Object.values(entry.sampled.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+entry.graph.get(i),0);
+    output=m.add(output,m.mul(other-constant,entry.value));
+   }
+   result[field]={compiled:output};
   }
-  if(input.character.name==='Furina'&&[10,11,12].includes(event.index)){
-   const talent=base.result.hp_ratio['技能倍率'],count=input.skill.config.Furina.hp_above50_count;
-   result.hp_ratio.compiled=m.add(result.hp_ratio.compiled,m.mul(talent*.1,m.sub(count,fixed.skill.config.Furina.hp_above50_count)));
-   const original=base.result.bonus['天赋「无人听的自白」'];
-   if(original!==undefined)result.bonus.compiled=m.add(m.sub(result.bonus.compiled,original),m.min(.28,m.mul(.007,m.floor(m.div(result.hp.compiled,1000)))));
-  }
+  character.adjustNativeDamage?.({input,event,fixed,native:base.result,result,math:m});
   for(const [field,names]of [['atk_ratio',['技能倍率',...(event.talentRatioFields||[])]],['hp_ratio',['技能倍率']]])for(const name of names){
    result[field][name]=base.result[field][name]||0;
    result[field].compiled=m.sub(result[field].compiled,result[field][name]);

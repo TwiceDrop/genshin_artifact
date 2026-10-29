@@ -1,83 +1,104 @@
-import {TEAM_DPS_CHARACTER_CAPABILITIES} from './team-dps-config.mjs';
-import characters from '../src/assets/_gen_character.js';
-import {equipmentWeakpoint} from './equipment-combat-facts.mjs';
 import {equipmentHealingDamage} from './equipment-healing-damage-rules.mjs';
 import {scalarMath} from './team-dps-numeric-rules.mjs';
-// Equipment damage and healing accumulators are shared by all imported axes.
-// healAmount is evaluated from the current candidate team's public kernel.
-// Exact probability mass over the cooldown's next-ready time. Failure leaves
-// the weapon ready; a successful trial starts its cooldown. No random seed,
-// "half a proc every CD", or guaranteed first proc is used.
+import {compareEvents,eventKey} from './team-engine/event-order.mjs';
+import {createProcClock,observeProcHit} from './team-engine/proc-outcomes.mjs';
+import {compileEquipmentProcRules,procChildren} from './equipment-proc-rules.mjs';
+export {compileEquipmentProcRules};
+
+const possible=value=>typeof value==='object'||!!value;
 export function procProbabilities(hits,chance,cooldown){
- let states=new Map([[-Infinity,1]]);const out=[];
- for(const h of hits){
-  let ready=0;const next=new Map();
-  for(const [time,mass]of states)if(time<=h.time)ready+=mass;else next.set(time,mass);
-  const probability=ready*chance;
-  next.set(-Infinity,ready-probability);
-  if(probability){const time=h.time+cooldown;next.set(time,(next.get(time)||0)+probability);out.push({...h,probability});}
-  states=next;
- }
+ const clock=createProcClock({chance,cooldown}),out=[];
+ for(const h of hits){const {probability}=clock.accept(h);if(probability)out.push({...h,probability});}
  return out;
 }
-// Both outcomes start the 0.2s trial cooldown. Successful trials also buff
-// hits within 0.05s; those hits neither reroll nor extend the active window.
-export function echoesProbabilities(hits){
+
+// Both outcomes start the 0.2s trial cooldown; a success covers 0.05s.
+// Candidate gates decide whether a contact exists, not how much cooldown it uses.
+export function createEchoesClock(m=scalarMath){
  let mass=[1,0,0,0,0],ready=-Infinity,expires=-Infinity,success=0;
- const out=new Map();
- for(const h of hits){
-  if(h.time>=ready-1e-9){
-   const next=[0,0,0,0,0];success=0;
+ return {hit(h){
+  const enabled=h.enabled??1,trigger=m.choose(enabled,m.ge(h.time,m.sub(ready,1e-9)),0);
+  if(possible(trigger)){
+   const next=[0,0,0,0,0];let wonTotal=0;
    for(let k=0;k<mass.length;k++){
-    const chance=Math.min(1,.36+.2*k),won=mass[k]*chance;
-    success+=won;next[0]+=won;
-    // Off-field normals can trigger, but failures do not build stacks.
-    next[h.onField?Math.min(4,k+1):k]+=mass[k]-won;
+    const won=m.mul(mass[k],Math.min(1,.36+.2*k));
+    wonTotal=m.add(wonTotal,won);next[0]=m.add(next[0],won);
+    const i=h.onField?Math.min(4,k+1):k;next[i]=m.add(next[i],m.sub(mass[k],won));
    }
-   mass=next;ready=h.time+.2;expires=h.time+.05;
+   mass=next.map((value,i)=>m.choose(trigger,value,mass[i]));
+   success=m.choose(trigger,wonTotal,success);ready=m.choose(trigger,h.time+.2,ready);expires=m.choose(trigger,h.time+.05,expires);
   }
-  out.set(h.order,h.time<expires-1e-9?success:0);
- }
- return out;
+  return m.choose(m.lt(h.time,m.sub(expires,1e-9)),success,0);
+ }};
 }
-const weaponProc=(h,data)=>({...h,...data,time:h.time+1/60,rootOrder:h.rootOrder,order:h.order+.5,snapshot:{...h,order:h.order+.5}});
-export function equipmentDamageEvents(profiles,builds,rotation,healAmount,settings={},execution={}){
- const m=execution.math||scalarMath;
- const sets=builds.map(b=>{const x={};for(const a of b)x[a.set_name]=(x[a.set_name]||0)+1;return x;});
- const has=(r,name)=>m.ge(execution.setCount?execution.setCount(r,name):(sets[r][name]||0),4);
- const {waves,procs,flat}=equipmentHealingDamage(profiles,rotation,healAmount,has,settings,m),echoes=new Map();
- for(let r=0;r<profiles.length;r++){
-  const echo=has(r,'EchoesOfAnOffering');
-  if(typeof echo==='object'||echo)for(const [order,probability]of echoesProbabilities(rotation.events.filter(h=>h.role===r&&h.category==='normal')))echoes.set(order,m.choose(echo,probability,0));
-  const {name,refine}=profiles[r].weapon,hits=rotation.events.filter(h=>h.role===r&&h.onField);
-  const nc=hits.filter(h=>['normal','charged'].includes(h.category)),ncp=hits.filter(h=>['normal','charged','plunge'].includes(h.category));
-  if(name==='Messenger')for(const h of procProbabilities(hits.filter(h=>equipmentWeakpoint(profiles[r],h)),1,10))procs.push(weaponProc(h,{ratio:.75+.25*refine,stat:'atk',label:'信使·飞矢传书',forceCritical:true,targetCount:1}));
-  if(name==='SkywardSpine')for(const h of procProbabilities(nc,.5,2))procs.push(weaponProc(h,{ratio:.25+.15*refine,stat:'atk',label:'天空之脊·真空刃'}));
-  if(['Frostbearer','DragonspineSpear'].includes(name))for(const h of procProbabilities(nc,.5+.1*refine,10))procs.push(weaponProc(h,{ratio:profiles.some(p=>characters[p.character.name].element==='Cryo')?1.6+.4*refine:.65+.15*refine,stat:'atk',label:(name==='Frostbearer'?'忍冬之果':'龙脊长枪')+'·恒冰晶核'}));
-  if(name==='Halberd')for(const h of procProbabilities(hits.filter(h=>h.category==='normal'),1,10))procs.push(weaponProc(h,{ratio:1.2+.4*refine,stat:'atk',label:'钺矛·追加攻击'}));
-  if(name==='PrizedIsshinBlade')for(const h of procProbabilities(ncp,1,8))procs.push(weaponProc(h,{ratio:1.8,stat:'atk',label:'「一心传」名刀·祟灵'}));
-  if(name==='SwordOfNarzissenkreuz'&&!TEAM_DPS_CHARACTER_CAPABILITIES[profiles[r].character.name]?.arkhe&&settings.narzissenkreuz_enabled!==false)for(const h of procProbabilities(ncp,1,12))procs.push({...weaponProc(h,{ratio:1.2+.4*refine,stat:'atk',label:'水仙十字之剑·荒芒冲击'}),time:h.time+.1});
-  if(name==='SkywardAtlas')for(const h of procProbabilities(hits.filter(h=>h.category==='normal'),.5,30))for(let i=1;i<=6;i++)procs.push({...weaponProc(h,{ratio:1.2+.4*refine,stat:'atk',label:'天空之卷·浮游攻击',targetCount:1}),time:h.time+i*147/60+10/60,order:h.order+.5+i/100});
-  if(name==='EyeOfPerception')for(const h of procProbabilities(nc,.5,13-refine)){
-   const ready=Array(settings.enemy_count??1).fill(-Infinity);let time=h.time;
-   for(let i=0;i<5;i++){const target=ready.findIndex(t=>t<=time);if(target<0)break;ready[target]=time+.6;time+=10/60;
-    if(settings.damage_scope==='all'||target===0)procs.push({...weaponProc(h,{ratio:2.1+.3*refine,stat:'atk',label:'昭心·昭心法球',targetCount:1}),time,order:h.order+.5+i/100});
+export function echoesProbabilities(hits){
+ const clock=createEchoesClock(),out=new Map();
+ for(const h of hits)out.set(h.order,clock.hit(h));return out;
+}
+
+export function createRuntimeEquipmentEvents(profiles,rotation,m,settings={},options={}){
+ const rules=options.rules??compileEquipmentProcRules(profiles,settings),observed=options.observed??new Map();
+ const ready=profiles.map(()=>-Infinity),burstEnds=profiles.map(()=>-Infinity),harmonics=profiles.map(()=>[]);
+ const clocks=[],random=rules.map((rule,r)=>{
+  if(!rule||rule.chance===1)return;
+  const data={key:rotation.slots[r]+'/'+rule.name,chance:rule.chance,cooldown:rule.cooldown,trials:[]};clocks.push(data);
+  return {data,state:createProcClock(data,observed,m)};
+ });
+ const echoes=new Map(),echoClocks=profiles.map((_,r)=>!options.echoesEnabled||possible(options.echoesEnabled(r))?createEchoesClock(m):undefined);
+ function afterEvent(h,enqueue){
+  const r=h.role,rule=rules[r];if(!rule)return;
+  if(h.kind==='cast'&&h.action==='burst'&&rule.burstWindow){burstEnds[r]=m.choose(h.enabled??1,h.time+rule.burstWindow,burstEnds[r]);return;}
+  if(h.kind!=='hit'||!rule.accept(h))return;
+  let enabled=h.enabled??1;
+  if(!possible(enabled))return;
+  enabled=m.choose(enabled,observeProcHit(h),0);
+  if(rule.burstWindow)enabled=m.choose(enabled,m.lt(h.time,burstEnds[r]),0);
+  let probability=1,trialKey;
+  if(random[r]){
+   const {data,state}=random[r];trialKey=data.key+'/'+eventKey(h);
+   const trial={time:h.time,trialKey,enabled};data.trials.push(trial);
+   const result=state.accept(trial);
+   probability=observed.has(trialKey)?observed.get(trialKey):(options.posterior?.get(trialKey)??result.probability);
+   if(observed.get(trialKey)===1)enabled=m.choose(enabled,result.possible,0);
+  }else{
+   enabled=m.choose(enabled,m.ge(h.time,m.sub(ready[r],rule.harmonics?1e-9:0)),0);
+   ready[r]=m.choose(enabled,h.time+rule.cooldown,ready[r]);
+   if(rule.harmonics){
+    const pool=harmonics[r].filter(row=>h.time<row.time+rule.harmonics.lifetime);pool.push({time:h.time,enabled});
+    const count=pool.reduce((sum,row)=>m.add(sum,row.enabled),0),trigger=m.choose(enabled,m.ge(count,rule.harmonics.count),0);
+    harmonics[r]=pool.map(row=>({...row,enabled:m.choose(trigger,0,row.enabled)}));enabled=trigger;
    }
   }
-  if(name==='FilletBlade')for(const h of procProbabilities(hits,.5,16-refine))procs.push(weaponProc(h,{ratio:2+.4*refine,stat:'atk',label:'吃虎鱼刀·决'}));
-  if(name==='SwordOfDescension')for(const h of procProbabilities(hits.filter(h=>['normal','charged'].includes(h.category)),.5,10))procs.push(weaponProc(h,{ratio:2,stat:'atk',label:'降临之剑·降世'}));
-  let last=-Infinity,harmonics=[];
-  for(const h of hits){
-   let ratio,stat='atk',label;
-   if(name==='SkywardBlade'&&['normal','charged'].includes(h.category)&&h.time<rotation.lastCast(r,'burst',h.time,h.rootOrder)+12){ratio=.15+.05*refine;label='天空之刃·破空之势';}
-   if(name==='CursedBlade'&&['normal','charged','plunge'].includes(h.category)&&h.time>=last+8){last=h.time;ratio=1.8;label='笼钓瓶一心·切落风';}
-   if(name==='AshGravenDrinkingHorn'&&h.time>=last+15){last=h.time;ratio=.3+.1*refine;stat='hp';label='苍纹角杯·范围伤害';}
-   if(name==='TheFlute'&&['normal','charged'].includes(h.category)&&h.time>=last+.5){
-    last=h.time;harmonics=harmonics.filter(t=>h.time<t+30);harmonics.push(h.time);
-    if(harmonics.length===5){harmonics=[];ratio=.75+.25*refine;label='笛剑·和音';}
-   }
-   if(ratio!==undefined)procs.push(['SkywardBlade','CursedBlade'].includes(name)?weaponProc(h,{ratio,stat,label}):{...h,role:r,rootOrder:h.rootOrder,order:h.order+.5,ratio,stat,label});
+  if(!possible(enabled)||!possible(probability))return;
+  for(const child of procChildren(rule,h,settings)){
+   const event={kind:'hit',category:'equipment',element:'Physical',role:r,rootOrder:h.rootOrder,part:h.part??0,
+    eventId:h.eventId??h.id,enabled,probability,trialKey,stat:rule.stat,ratio:rule.ratio,label:rule.label,
+    ...(rule.forceCritical?{forceCritical:true}:{}),
+    ...(rule.live?{}:{snapshot:{...h,order:h.order+.5}}),
+    ...(rule.targetCount?{targetIds:Array.from({length:rule.targetCount},(_,i)=>i)}:h.targetIds?{targetIds:h.targetIds}:{}),...child};
+   const id=(rule.name==='AshGravenDrinkingHorn'?eventKey(h):eventKey(event))+'/equipment/'+rule.name;
+   enqueue({...event,eventId:id,eventKey:id,parentEventId:eventKey(h),onField:rotation.activeRole(event.time,event.rootOrder)===r,characterPrepared:true});
   }
  }
- return {flat,echoes,procs:procs.filter(p=>p.time<rotation.duration||(p.time===rotation.duration&&rotation.endHit==='include')).sort((a,b)=>a.time-b.time||a.rootOrder-b.rootOrder||a.order-b.order),waves};
+ return {clocks,echoes,afterEvent,beforeHit(h){
+  if(h.category==='normal'&&echoClocks[h.role])echoes.set(eventKey(h),echoClocks[h.role].hit(h));
+ }};
+}
+
+// Compatibility inspection uses the same clocks over an already resolved
+// rotation. Production feeds these reducers from the candidate event queue.
+export function compileEquipmentDamageEvents(profiles,rotation,settings={}){
+ const runtime=createRuntimeEquipmentEvents(profiles,rotation,scalarMath,settings),procs=[],echoes=new Map();
+ for(const h of [...rotation.roots.filter(e=>e.kind==='cast'),...rotation.events.map(e=>({...e,kind:'hit'}))].sort(compareEvents)){
+  if(h.kind==='hit'){runtime.beforeHit(h);if(runtime.echoes.has(eventKey(h)))echoes.set(h.order,runtime.echoes.get(eventKey(h)));}
+  runtime.afterEvent(h,event=>{if(event.time<rotation.duration||event.time===rotation.duration&&rotation.endHit==='include')procs.push(event);});
+ }
+ return {echoes,clocks:runtime.clocks,procs:procs.sort(compareEvents)};
+}
+export function equipmentDamageEvents(profiles,builds,rotation,healAmount,settings={},execution={}){
+ const m=execution.math||scalarMath,sets=builds.map(b=>{const x={};for(const a of b)x[a.set_name]=(x[a.set_name]||0)+1;return x;});
+ const has=(r,name)=>m.ge(execution.setCount?execution.setCount(r,name):(sets[r][name]||0),4);
+ const healing=equipmentHealingDamage(profiles,rotation,healAmount,has,settings,m),compiled=compileEquipmentDamageEvents(profiles,rotation,settings),echoes=new Map();
+ for(const e of rotation.events){const gate=has(e.role,'EchoesOfAnOffering');if(compiled.echoes.has(e.order)&&possible(gate))echoes.set(e.order,m.choose(gate,compiled.echoes.get(e.order),0));}
+ return {...healing,echoes,procs:[...healing.procs,...compiled.procs].filter(p=>p.time<rotation.duration||(p.time===rotation.duration&&rotation.endHit==='include')).sort(compareEvents)};
 }

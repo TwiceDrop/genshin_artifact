@@ -75,6 +75,9 @@
     <div class="gear"><artifact-display v-for="a in selectedItems[r]" :key="a.id" :item="a" :buttons="false"/></div>
    </section>
    </section>
+   <p v-if="detailBusy" role="status">正在计算明细…</p>
+   <team-dps-events v-if="selected.eventTrace" :trace="selected.eventTrace" :labels="labels" @hit-selected="openEventHit"/>
+   <template v-else>
    <el-collapse class="dps-card detail-card"><el-collapse-item title="逐段伤害" name="hits"><el-table :data="selected.hits||[]" max-height="500" class="hit-table" @row-click="openHitAnalysis"><el-table-column label="时间"><template #default="{row}">{{ number(row.time) }}</template></el-table-column><el-table-column label="角色"><template #default="{row}">{{ labels[row.role] }}</template></el-table-column><el-table-column prop="label" label="技能"/><el-table-column v-for="[key,title] in damageModes" :key="key" :label="title"><template #default="{row}"><el-button type="text" @click.stop="openHitAnalysis(row)">{{ number(row[key]) }}</el-button></template></el-table-column></el-table></el-collapse-item></el-collapse>
    <el-collapse class="dps-card detail-card"><el-collapse-item title="血量变动" name="health">
     <el-select popper-class="team-dps-popper" v-if="selected.health_branches" v-model="healthBranch"><el-option v-for="(b,i) in selected.health_branches" :key="i" :value="i" :label="`${b.label}（${number(b.probability*100)}%）`"/></el-select>
@@ -85,10 +88,12 @@
      <el-table-column label="实际回血" min-width="110"><template #default="{row}"><span v-if="row.healing">{{ number(row.healing.amount) }}</span></template></el-table-column><el-table-column label="溢出治疗" min-width="110"><template #default="{row}"><span v-if="row.healing">{{ number(panelSum(row.healing.overheals)) }}</span></template></el-table-column><el-table-column label="清除生命之契" min-width="120"><template #default="{row}"><span v-if="row.healing">{{ number(panelSum(row.healing.absorbedAmounts)) }}</span></template></el-table-column>
     </el-table>
    </el-collapse-item></el-collapse>
+   </template>
   </template>
   <el-dialog custom-class="team-dps-dialog" v-model="showHitAnalysis" title="伤害构成" width="94%" destroy-on-close>
    <template v-if="activeHit">
     <p>{{ labels[activeHit.hit.role] }} · {{ number(activeHit.hit.time) }}秒 · {{ activeHit.hit.label }} · 第{{ activeHit.hit.part+1 }}段</p>
+    <p v-if="activeHit.probability!==undefined">该事件状态概率 {{ teamProbabilityText(activeHit.probability) }}</p>
     <p v-if="resultHasFurina&&activeHitState.fanfare!==undefined">气氛 {{ number(activeHitState.fanfare) }} · 二命溢出 {{ number(activeHitState.furina_overflow) }}</p>
     <el-select popper-class="team-dps-popper" v-if="activeHit.hit.branches" v-model="hitBranch" @change="showHitBranch"><el-option v-for="(b,i) in activeHit.hit.branches" :key="i" :value="i" :label="`${b.label}（${number(b.probability*100)}%）`"/></el-select>
     <damage-analysis ref="hitAnalysisComponent" :enemy-config="activeHit.enemy" :character-level="activeHit.character.level" :character-name="activeHit.character.name"/>
@@ -148,6 +153,11 @@ import {MANUAL_WEAPON_OPTIONS,defaultWeaponOptions,WIDSITH_THEMES} from '../../.
 import {convertArtifact,convertArtifactName} from '@/utils/converter'
 import {teamDps} from '@/wasm/team_dps'
 import {changeTeamConstellation} from '../../../beta-data/team-dps-character-rules.mjs'
+import {teamDpsObjectiveValue} from '../../../beta-data/team-dps-numeric-rules.mjs'
+import {TEAM_DPS_RESULT_VERSION,canRestoreTeamDpsResult,createTeamDpsResultPacker,unpackTeamDpsResult,teamDamageAnalysis,teamProbabilityText} from '../../../beta-data/team-dps-result-view.mjs'
+import {exportTeamDpsResult} from '../../wasm/team-dps-result-export.mjs'
+import {normalizeEnemy} from '../../../beta-data/enemy-interface.mjs'
+import TeamDpsEvents from './TeamDpsEvents.vue'
 import {useEnemy} from '@/composables/enemy'
 import EnemyConfig from '@/pages/NewArtifactPlanPage/EnemyConfig.vue'
 import ArtifactConfig from '@/pages/NewArtifactPlanPage/ArtifactConfig.vue'
@@ -163,9 +173,10 @@ import {weaponData,weaponByType} from '@/assets/weapon'
 import {artifactsData} from '@/assets/artifacts'
 import locale from '@/i18n/generated/zh-cn.json'
 import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../../../beta-data/team-engine/action-config.mjs'
+import {characterPackages} from '../../../beta-data/team-engine/character-packages.mjs'
 const props=defineProps<{configuration:any,taskKey:number,tasks:Record<string,any>}>()
 const axisDurationMs=computed(()=>props.configuration.format==='mona-action-axis'?actionAxisDurationMs(props.configuration,members.value):props.configuration.durationMs)
-const engineRulesVersion=props.configuration.format==='mona-action-axis'?TEAM_ACTION_RULES_VERSION:null
+const engineRulesVersion=TEAM_ACTION_RULES_VERSION
 const emit=defineEmits(['save-task'])
 const roles=props.configuration.members.map((m:any)=>m.character),labels=roles.map((role:string)=>locale[characterData[role].nameLocale])
 const damageModes=[['expectation','期望伤害'],['critical','暴击伤害'],['non_critical','非暴击伤害']]
@@ -183,14 +194,14 @@ const excludedArtifactConfigs=[...AUTO_ARTIFACT_SETS,...Object.keys(INCOMPLETE_A
 const weaponConditions=ref(roles.map(()=>defaultWeaponOptions())),widsithMode=ref(roles.map(()=>'average'))
 const manualWeaponConfigs=(r:number)=>MANUAL_WEAPON_OPTIONS[members.value[r].weapon.name]||[]
 const params=(name:string,configs:any[])=>configs?.length?{[name]:Object.fromEntries(configs.map(c=>[c.name,c.default]))}:'NoConfig'
-function fresh(role:string){const name=({Skirk:'Azurelight',Furina:'SplendorOfTranquilWaters',Escoffier:'SymphonistOfScents',Vodyanitsa:'HymnOfTheMaelstrom',Mona:'ThrillingTalesOfDragonSlayers'} as Record<string,string>)[role];return {character:{name:role,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
+function fresh(role:string){const name=characterPackages[role].defaultWeapon;return {character:{name:role,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
 const names=ref(['','','','']),members=ref<any[]>(roles.map(fresh))
 const editingRole=ref(0),editingMember=computed(()=>members.value[editingRole.value])
 const weaponConfigs=(r:number)=>{const name=members.value[r].weapon.name;return (weaponData[name].configs||[]).filter((c:any)=>!AUTO_WEAPON_FIELDS[name]?.includes(c.name))}
 const objective=ref('damage'),metric=ref('expectation'),sortMetric=ref('expectation'),count=ref(100),budget=ref(2000),minLevel=ref(0),initialHp=ref([100,100,100,100]),healthBranch=ref(0)
 const searchAlgorithm=ref('auto')
 const computeBackend=ref('gpu')
-const busy=ref(false),error=ref(''),debug=ref(false),output=ref<any>(null),selectedIndex=ref(1),showResults=ref(false)
+const busy=ref(false),detailBusy=ref(false),error=ref(''),debug=ref(false),output=shallowRef<any>(null),selectedIndex=ref(1),showResults=ref(false)
 const resultContext=shallowRef<any>(null)
 const resultHasFurina=computed(()=>resultContext.value?.input.single_interfaces.some((p:any)=>p.character.name==='Furina'))
 const panelProfile=computed(()=>resultContext.value?.input.single_interfaces[editingRole.value])
@@ -205,10 +216,13 @@ let restoringTask=false,taskRestored=false
 const taskFields={names,members,editingRole,enemyConfig,frozen,enemyIsSlime,enemyCount,damageScope,narzissenkreuzEnabled,weaponConditions,widsithMode,objective,metric,sortMetric,count,budget,minLevel,initialHp,searchAlgorithm,computeBackend,selectedIndex,healthBranch,debug}
 const clone=(value:any)=>JSON.parse(JSON.stringify(value))
 const taskDefaults=clone(Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])))
+const packResult=createTeamDpsResultPacker()
 function saveTask(){
  if(restoringTask||loadedUid===null||accountStore.currentAccountId.value!==taskAccount)return;
  const context=resultContext.value;
- emit('save-task',{key:props.taskKey,accountId:taskAccount,uid:loadedUid,state:clone({axis:props.configuration,engineRulesVersion,fields:Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])),output:output.value,context:context?{...context,items:[...context.items]}:null,lastInput})});
+ const state=clone({axis:props.configuration,engineRulesVersion,resultVersion:TEAM_DPS_RESULT_VERSION,fields:Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])),context:context?{...context,items:[...context.items]}:null,lastInput});
+ state.output=packResult(output.value);
+ emit('save-task',{key:props.taskKey,accountId:taskAccount,uid:loadedUid,state});
 }
 function restoreTask(uid:string){
  const saved=props.tasks?.[uid];restoringTask=true;taskRestored=!!saved;
@@ -216,14 +230,14 @@ function restoreTask(uid:string){
  for(const [key,value]of Object.entries(taskFields))value.value=fields[key];
  if(saved){
   lastInput=saved.lastInput;
-  if(JSON.stringify(saved.axis)===JSON.stringify(props.configuration)&&(!engineRulesVersion||saved.engineRulesVersion===engineRulesVersion)){
-   output.value=clone(saved.output);resultContext.value=saved.context?{...clone(saved.context),items:new Map(clone(saved.context.items))}:null;
+  if(canRestoreTeamDpsResult(saved,props.configuration,engineRulesVersion)){
+   output.value=unpackTeamDpsResult(saved.output);resultContext.value=saved.context?{...clone(saved.context),items:new Map(clone(saved.context.items))}:null;
   }
  }
  restoringTask=false;
 }
 const rolePresets=(role:string)=>presetStore.allFlat.value.filter(p=>p.item.character.name===role&&teamDpsWeaponAvailable(p.item.weapon.name))
-function clearResults(){controller?.abort();detailController?.abort();output.value=null;resultContext.value=null;showResults.value=false;showHitAnalysis.value=false;activeHit.value=null;error.value=''}
+function clearResults(){controller?.abort();detailController?.abort();detailBusy.value=false;output.value=null;resultContext.value=null;showResults.value=false;showHitAnalysis.value=false;activeHit.value=null;error.value=''}
 function loadPreset(r:number){clearResults();const item=JSON.parse(JSON.stringify(presetStore.presets.value[names.value[r]].item));item.constraint={minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0,...item.constraint,setNames:(item.constraint?.setNames||[]).filter(availableArtifactSet)};item.filter={sandMainStats:[],gobletMainStats:[],headMainStats:[],...item.filter};item.artifactConfig=upgradeArtifactConfig(item.artifactConfig||{});item.artifactEffectMode='custom';members.value[r]=item}
 function changeWeapon(r:number,name:string){members.value[r].weapon.name=name;members.value[r].weapon.params=params(name,weaponData[name].configs)}
 const levelString=(x:any)=>x.level+(x.ascend?'+':'-')
@@ -243,33 +257,35 @@ const selected=computed(()=>output.value?.results[selectedIndex.value-1])
 const selectedHealth=computed(()=>selected.value?.health_branches?selected.value.health_branches[healthBranch.value].health:selected.value?.health||[])
 const selectedItems=computed(()=>selected.value?selected.value.artifacts.map((b:any)=>['flower','feather','sand','goblet','head'].map(k=>resultContext.value.items.get(b[k]))):[])
 function resultSetLabel(r:number){const counts=new Map<string,number>();for(const a of selectedItems.value[r])counts.set(a.setName,(counts.get(a.setName)||0)+1);return [...counts].map(([name,n])=>`${locale[artifactsData[name].nameLocale]} ×${n}`).join(' / ')}
-const sortedResults=computed(()=>{const rows=(output.value?.results||[]).map((result:any,index:number)=>({result,index}));rows.sort((a:any,b:any)=>b.result[sortMetric.value]-a.result[sortMetric.value]);return rows.map((row:any,i:number)=>({...row,rank:i+1}))})
+const sortedResults=computed(()=>{const rows=(output.value?.results||[]).map((result:any,index:number)=>({result,index})),target=output.value?.objective??resultContext.value?.input?.team_dps?.objective??'damage';rows.sort((a:any,b:any)=>teamDpsObjectiveValue(b.result,target,sortMetric.value)-teamDpsObjectiveValue(a.result,target,sortMetric.value));return rows.map((row:any,i:number)=>({...row,rank:i+1}))})
 const panelSum=(values:any)=>Object.values(values||{}).reduce((n:number,v:any)=>n+v,0)
 const number=(n:number)=>n.toLocaleString('zh-CN',{maximumFractionDigits:2})
 const duration=(ms:number)=>{const s=Math.max(0,Math.floor(ms/1000));return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`}
 const elapsed=computed(()=>clock.value-started.value),progressPercent=computed(()=>progress.value.total_teams?Number(Math.min(100,progress.value.evaluated_teams/progress.value.total_teams*100).toFixed(2)):0)
 function artifactTitle(id:number){const a=resultContext.value.items.get(id);return `${locale[artifactsData[a.setName].nameLocale]} +${a.level}`}
-async function openHitAnalysis(hit:any){
- const detail={hit,enemy:selected.value.enemy,character:selected.value.profiles[hit.role].character};
+function openEventHit({hit,probability}:any){return openHitAnalysis(hit,probability)}
+async function openHitAnalysis(hit:any,probability?:number){
+ const detail={hit,probability:typeof probability==='number'?probability:undefined,enemy:selected.value.enemy??normalizeEnemy(resultContext.value.input.team_dps.enemy),character:selected.value.profiles[hit.role].character};
  activeHit.value=detail;hitBranch.value=0;showHitAnalysis.value=true;
  await nextTick();
  if(showHitAnalysis.value&&activeHit.value===detail)showHitBranch();
 }
-function showHitBranch(){const h=activeHit.value.hit;hitAnalysisComponent.value!.setValue(h.branches?h.branches[hitBranch.value].analysis:h.analysis)}
+function showHitBranch(){const h=activeHit.value.hit;hitAnalysisComponent.value!.setValue(teamDamageAnalysis(h.branches?h.branches[hitBranch.value].analysis:h.analysis))}
 async function selectResult(index:number){
  selectedIndex.value=index+1;healthBranch.value=0;showResults.value=false;showHitAnalysis.value=false;activeHit.value=null;
  const batch=output.value,snapshot=resultContext.value,row=batch.results[index];
  const ids=row.artifacts.map((b:any)=>['flower','feather','sand','goblet','head'].map(k=>b[k]));
  for(let r=0;r<4;r++)members.value[r].artifactIds=[...ids[r]];
- detailController?.abort();
- if(row.hits)return;
+ detailController?.abort();detailController=null;detailBusy.value=false;
+ if(row.eventTrace||row.hits)return;
  const task=new AbortController();detailController=task;
+ detailBusy.value=true;
  const input={...snapshot.input,team_dps:{...snapshot.input.team_dps,initial_ids:ids}};
  try{
   const out:any=await teamDps(input,snapshot.artifacts,{mode:'evaluate',signal:task.signal});
-  if(!task.signal.aborted&&output.value===batch&&resultContext.value===snapshot)batch.results[index]=out.results[0];
+  if(!task.signal.aborted&&output.value===batch&&resultContext.value===snapshot)output.value={...batch,results:batch.results.map((row:any,i:number)=>i===index?out.results[0]:row)};
  }catch(e:any){if(e.name!=='AbortError'){console.error(e);if(output.value===batch)error.value=e.message}}
- finally{if(detailController===task)detailController=null}
+ finally{if(detailController===task){detailController=null;detailBusy.value=false}}
 }
 function allArtifacts(items:any[]=[...artifactStore.artifacts.value.values()]){return items.map(a=>({...convertArtifact(a),omit:a.omit}))}
 async function run(mode:string){
@@ -283,13 +299,13 @@ async function run(mode:string){
  catch(e:any){if(e.name==='AbortError'){if(controller===task)ElMessage.info('计算已取消')}else{console.error(e);if(controller===task)error.value=e.message}}
  finally{clearInterval(taskTimer);if(controller===task){busy.value=false;controller=null;timer=null}}
 }
-function exportDebug(){const blob=new Blob([JSON.stringify({input:lastInput,result_input:resultContext.value?.input,result:output.value,error:error.value},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='team-dps-debug.json';a.click();URL.revokeObjectURL(url)}
+async function exportDebug(){try{const blob=await exportTeamDpsResult({resultVersion:TEAM_DPS_RESULT_VERSION,input:lastInput,result_input:resultContext.value?.input,result:packResult(output.value),error:error.value}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='team-dps-debug.json';a.click();URL.revokeObjectURL(url)}catch(e:any){console.error(e);error.value=e.message}}
 for(let r=0;r<4;r++){
  watch(()=>names.value[r],()=>{if(!restoringTask&&presetStore.presets.value[names.value[r]]?.item)loadPreset(r)},{flush:'sync'});
  watch(()=>presetStore.presets.value[names.value[r]]?.item,(item:any)=>{if(item&&!restoringTask&&!taskRestored)loadPreset(r)},{deep:true,flush:'sync'});
 }
 watch(()=>[mys.selectedUid.value,presetStore.allFlat.value.map(p=>p.name),mys.data.value.entries],autoLoad,{immediate:true,deep:true})
-watch([...Object.values(taskFields),output,resultContext],saveTask,{deep:true,flush:'post'})
+watch([()=>clone(Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value]))),output,resultContext],saveTask,{flush:'post'})
 watch(()=>accountStore.currentAccountId.value,()=>{clearResults();names.value=['','','',''];members.value=roles.map(fresh);weaponConditions.value=roles.map(()=>defaultWeaponOptions());widsithMode.value=roles.map(()=>'average');loadedUid=null})
 const stop=()=>{controller?.abort();detailController?.abort();if(timer)clearInterval(timer);saveTask()}
 onBeforeUnmount(stop)

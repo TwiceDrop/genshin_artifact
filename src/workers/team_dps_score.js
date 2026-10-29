@@ -1,17 +1,17 @@
-import {createTeamDpsEvaluator} from '../../beta-data/team-dps-evaluator.mjs';
-import('mona').then(api=>{
- let evaluator,catalog;
- self.onmessage=({data})=>{
+import {createTeamDpsComputation} from '../../beta-data/team-dps-computation.mjs';
+let computation,endpoint=self;
+ async function receive({data}){
   try{
-   if(data.type==='initialize'){
-    evaluator=createTeamDpsEvaluator(api,data.input);
-    catalog=new Map(data.artifacts.map(a=>[a.id,a]));
-    self.postMessage({type:'initialized'});
-   }else if(data.type==='score'){
-    const team=data.ids.map(ids=>ids.map(id=>catalog.get(id)));
-    self.postMessage({type:'scored',result:evaluator.evaluate(team)});
+   if(data.type==='connect'){endpoint=data.port;endpoint.onmessage=receive;endpoint.start();}
+   else if(data.type==='initialize'){
+    computation?.dispose();computation=createTeamDpsComputation(data.model,data.artifacts);
+    endpoint.postMessage({type:'initialized',kind:computation.kind});
+   }else if(data.type==='detail-model'){computation.attachDetails(data.model);}
+   else if(data.type==='score'){
+    const {results}=await computation.score(data.teams,{detail:data.detail});
+    endpoint.postMessage({type:'scored',results});
    }
-  }catch(error){self.postMessage({type:'error',message:error.message,stack:error.stack});}
- };
+  }catch(error){endpoint.postMessage({type:'error',message:error.message,stack:error.stack});}
+ }
+ self.onmessage=receive;
  self.postMessage({type:'ready'});
-}).catch(error=>self.postMessage({type:'error',message:error.message,stack:error.stack}));

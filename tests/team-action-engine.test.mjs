@@ -8,11 +8,13 @@ import {compileActionAxis} from '../beta-data/team-engine/index.mjs';
 import {actionAxisDurationMs} from '../beta-data/team-engine/action-config.mjs';
 import {parseTeamDpsConfiguration} from '../beta-data/team-dps-config.mjs';
 import {actionInput} from './helpers/team-action-configuration.mjs';
+import {eventKey} from '../beta-data/team-engine/event-order.mjs';
 const near=(a,b,label='')=>assert.ok(Math.abs(a-b)<1e-10*Math.max(1,Math.abs(b)),`${label}: ${a} != ${b}`);
 const row=(id,actor,action,timeMs,params)=>({id,actor,kind:'action',action,timeMs,...(params?{params}:{})});
 const fixture=(timeline,cons=0)=>{const x=actionInput();x.team_dps.axis.timeline=timeline;x.single_interfaces.forEach(p=>p.character.constellation=cons);return x;};
 const evaluate=x=>createTeamDpsEvaluator(api,x).evaluate(builds(x),true);
 const compile=x=>compileActionAxis(x.team_dps.axis,x.single_interfaces,x.team_dps);
+const spent=(out,hit)=>out.effects.find(e=>e.kind==='consume'&&e.effectId.startsWith('vodyanitsa.a4.')&&e.eventId===eventKey(hit));
 
 test('V1: independent Salon clocks, recast replacement and automatic terminal hit',()=>{
  const x=fixture([row('e','hydro','skill',0),row('end','carry','normal.1',10000)]),base=compile(x);
@@ -48,23 +50,25 @@ test('V1: Vodyanitsa burst reads live Song coverage and candidate HP; C2 duratio
  const stronger=structuredClone(team);stronger[3].forEach(a=>{a.id+=900000;a.sub_stats.push(['HPPercentage',.5]);});assert.ok(ev.evaluate(stronger).character_damage[3].expectation>out.character_damage[3].expectation);near(ev.evaluate(team).expectation,out.expectation,'candidate reset');
  for(const cons of [0,2]){const x=fixture([row('e','support','skill',0),row('q','support','burst',20000)],cons),r=evaluate(x),h=r.hits.find(h=>h.index===11&&h.role===3);assert.equal(!!h.analysis.hp_ratio['遥久之歌·独立倍率'],cons>=2);}
  const lasting=fixture([row('e','support','skill',0),row('q','carry','burst',20000)]);lasting.team_dps.axis.initialActiveSlot='carry';
- const later=compile(lasting);assert.equal(later.covered('vodySong',20),false);assert.equal(later.covered('vodyFlat',20),true);assert.ok(later.events.filter(h=>h.skirkBurst).every(h=>h.vodyFlat));
- lasting.team_dps.axis.timeline=[row('e','support','skill',0),row('q','carry','burst',30000)];assert.ok(compile(lasting).events.filter(h=>h.skirkBurst).every(h=>!h.vodyFlat));
+ const later=compile(lasting),laterResult=evaluate(lasting);assert.equal(later.covered('vodySong',20),false);assert.ok(laterResult.hits.filter(h=>h.skirkBurst).every(h=>spent(laterResult,h)?.used>0));
+ lasting.team_dps.axis.timeline=[row('e','support','skill',0),row('q','carry','burst',30000)];const expired=evaluate(lasting);assert.ok(expired.hits.filter(h=>h.skirkBurst).every(h=>!spent(expired,h)));
  // Commands implicitly enter their owner; existing axes do not need switch
  // rows between skills. Derived summons never change the active character.
  const switchTo=(id,actor,timeMs)=>({id,actor,timeMs,kind:'switch'}),axis=fixture([
   row('f-e','hydro','skill',0),row('f-q','hydro','burst',500),switchTo('switch-f','hydro',2500),row('e-e','healer','skill',2500),row('e-q','healer','burst',3000),switchTo('switch-e','healer',4500),row('v-e','support','skill',4500),switchTo('switch-v','support',5500),row('s-e','carry','skill.hold',6000,{absorbedRifts:3}),row('s-q','carry','burst',6500)
  ]);axis.team_dps.axis.initialActiveSlot='carry';axis.team_dps.damage_scope='single';axis.team_dps.enemy_count=1;
- const commands=compile(axis),front=commands.events.filter(h=>h.skirkBurst);
- assert.equal(commands.activeRole(8.32),0);assert.ok(front.every(h=>h.onField&&h.vodyPool==='领唱'&&h.vodyTargets===1));assert.deepEqual(front.slice(0,5).map(h=>h.part),[0,1,2,3,4]);
+ const commands=compile(axis),frontResult=evaluate(axis),front=frontResult.hits.filter(h=>h.skirkBurst);
+ assert.equal(commands.activeRole(8.32),0);assert.ok(front.every(h=>h.onField&&spent(frontResult,h)?.effectId==='vodyanitsa.a4.front'&&spent(frontResult,h).used===1));assert.deepEqual(front.slice(0,5).map(h=>h.part),[0,1,2,3,4]);
  const summon=commands.events.find(h=>h.role===1&&h.time===8.35);assert.equal(summon.onField,false);assert.equal(commands.activeRole(summon.time,summon.rootOrder),0);
- const noSwitch=structuredClone(axis);noSwitch.team_dps.axis.timeline=noSwitch.team_dps.axis.timeline.filter(a=>a.kind!=='switch');const automatic=compile(noSwitch);assert.ok(automatic.events.filter(h=>h.skirkBurst).every(h=>h.onField&&h.vodyFlat));assert.ok(automatic.roots.some(h=>h.kind==='switch'&&h.implicit&&h.from===3&&h.role===0&&h.time===6));
- const multiple=structuredClone(noSwitch);multiple.team_dps.damage_scope='all';multiple.team_dps.enemy_count=6;const all=compile(multiple).events.filter(h=>h.skirkBurst);assert.deepEqual(all.map(h=>h.vodyTargets),[6,6,1,0,0,0]);
+ const noSwitch=structuredClone(axis);noSwitch.team_dps.axis.timeline=noSwitch.team_dps.axis.timeline.filter(a=>a.kind!=='switch');const automatic=compile(noSwitch),automaticResult=evaluate(noSwitch);assert.ok(automaticResult.hits.filter(h=>h.skirkBurst).every(h=>h.onField&&spent(automaticResult,h)?.used>0));assert.ok(automatic.roots.some(h=>h.kind==='switch'&&h.implicit&&h.from===3&&h.role===0&&h.time===6));
+ // The earlier Parfait at 4.5s precedes Vodyanitsa's E and cannot spend its
+ // future pool. Only E itself has spent six uses when this burst begins.
+ const multiple=structuredClone(noSwitch);multiple.team_dps.damage_scope='all';multiple.team_dps.enemy_count=6;const all=evaluate(multiple);assert.deepEqual(all.hits.filter(h=>h.skirkBurst).map(h=>spent(all,h)?.used??0),[6,6,6,1,0,0]);
  // An explicit switch during an already-cast burst does put its later hits
  // off field. Rechant remains a shared ten-target pool and refreshes on E.
  const delayed=fixture([row('e','support','skill',0),row('hold','carry','skill.hold',500),row('q','carry','burst',1000),switchTo('leave','support',2830)]);delayed.team_dps.damage_scope='all';delayed.team_dps.enemy_count=3;
- const back=compile(delayed).events.filter(h=>h.skirkBurst);assert.deepEqual(back.map(h=>h.vodyTargets),[3,3,3,3,1,0]);assert.deepEqual(back.map(h=>h.onField),[true,false,false,false,false,false]);
- delayed.team_dps.axis.timeline.push(row('refresh','support','skill',3100));assert.equal(compile(delayed).events.find(h=>h.eventId==='q/burst/4').vodyTargets,3);
+ const backResult=evaluate(delayed),back=backResult.hits.filter(h=>h.skirkBurst);assert.deepEqual(back.map(h=>spent(backResult,h)?.used??0),[3,3,3,3,1,0]);assert.deepEqual(back.map(h=>h.onField),[true,false,false,false,false,false]);
+ delayed.team_dps.axis.timeline.push(row('refresh','support','skill',3100));const refreshed=evaluate(delayed);assert.equal(spent(refreshed,refreshed.hits.find(h=>h.eventId==='q/burst/4')).used,3);
  const perm=[3,0,2,1],changed=structuredClone(yes);changed.single_interfaces=perm.map(r=>yes.single_interfaces[r]);changed.team_dps.axis.members=perm.map(r=>yes.team_dps.axis.members[r]);changed.team_dps.weapon_conditions=perm.map(r=>yes.team_dps.weapon_conditions[r]);near(evaluate(changed).expectation,out.expectation,'role order');
- const dir='.build-target/team-action-eight-fixes-20261028';fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/V1-mechanics.json',JSON.stringify({plainBurst:plain.expectation,songBurst:boosted.expectation,axisSeconds:out.duration,reordered:true,automaticSwitches:automatic.switches,frontBurstUses:front.map(h=>h.vodyTargets),delayedBurstBackground:back.map(({time,onField,vodyUsesBefore,vodyUsesAfter})=>({time,onField,before:vodyUsesBefore,after:vodyUsesAfter}))},null,2));
+ const dir='.build-target/team-event-refactor-20261029';fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(dir+'/character-mechanics.json',JSON.stringify({plainBurst:plain.expectation,songBurst:boosted.expectation,axisSeconds:out.duration,reordered:true,automaticSwitches:automatic.switches,frontBurstUses:front.map(h=>spent(frontResult,h).used),delayedBurstBackground:back.map(h=>({time:h.time,onField:h.onField,...spent(backResult,h)}))},null,2));
 });

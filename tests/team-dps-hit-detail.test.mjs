@@ -32,7 +32,7 @@ test('equipment events recompose in the shared dialog with physical resistance a
  const out=createTeamDpsEvaluator(api,input).evaluate(builds,true),procs=out.hits.filter(h=>h.category==='equipment');
  assert.ok(procs.some(h=>h.analysis.ignore_defense));assert.ok(procs.some(h=>!h.analysis.ignore_defense));
  assert.ok(procs.some(h=>h.analysis.event_probability===.5));
- for(const h of procs){const s=dialog(h.analysis,out.enemy,out.profiles[h.role].character);near(s.damageNormal,h.expectation);near(s.selectedActualResult.expectation,h.expectation);}
+ for(const h of procs){const s=dialog(h.analysis,out.enemy,out.profiles[h.role].character);near(s.damageNormal,h.expectation);for(const metric of ['expectation','critical','non_critical'])near(s.selectedActualResult[metric],h[metric]);}
 });
 
 test('per-hit analysis recomposes actual WASM damage for split hits, additions, C6 and support equipment',()=>{

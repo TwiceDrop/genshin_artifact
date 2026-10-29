@@ -13,6 +13,6 @@ test('built-in axes initialize once and preserve existing axes and selection',()
 });
 test('two built-in action axes match shipped JSON and use current rules',()=>{
  const files=['skirk-vodyanitsa-actions.json','skirk-mona-actions-22s.json'];
- for(let i=0;i<files.length;i++){const axis=BUILTIN_TEAM_DPS_AXES[i];assert.deepEqual(axis,JSON.parse(fs.readFileSync('examples/team-dps/'+files[i],'utf8')));validateTeamDpsConfiguration(axis);assert.equal(axis.rulesVersion,'mona-team-engine/9');assert.equal(axis.members.length,4);assert.ok(actionAxisDurationMs(axis)>0);}
+ for(let i=0;i<files.length;i++){const axis=BUILTIN_TEAM_DPS_AXES[i];assert.deepEqual(axis,JSON.parse(fs.readFileSync('examples/team-dps/'+files[i],'utf8')));validateTeamDpsConfiguration(axis);assert.equal(axis.rulesVersion,'mona-team-engine/28');assert.equal(axis.members.length,4);assert.ok(actionAxisDurationMs(axis)>0);}
  assert.equal(actionAxisDurationMs(BUILTIN_TEAM_DPS_AXES[0]),20500);assert.deepEqual(BUILTIN_TEAM_DPS_AXES.map(a=>a.members[3].character),['Vodyanitsa','Mona']);
 });

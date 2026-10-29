@@ -1,10 +1,12 @@
 import {scalarMath,createTeamNumericRules} from './team-dps-numeric-rules.mjs';
 import {createCharacterHealth} from './team-engine/registry.mjs';
-const order=(a,b)=>a.time-b.time||a.rootOrder-b.rootOrder||(a.order??0)-(b.order??0);
+import {eventKey,compareEventPosition as order} from './team-engine/event-order.mjs';
+import {resolveCombatTimeline} from './team-engine/combat-runtime.mjs';
 
-// Static event times are unrolled once. Numeric conditions remain in the shared
-// expression program, so each candidate owns its HP, healing and proc states.
-export function resolvePortableHealth(profiles,builds,base,{panelAt,healAt,criticalAt,refresh,math=scalarMath,setCount}){
+// Health transitions can emit child events into the common runtime. Numeric
+// conditions remain in the expression program; candidate-owned clocks select
+// among reachable times without freezing a candidate's healing or HP.
+export function createPortableHealth(profiles,builds,base,{panelAt,healAt,criticalHitAt,refresh,math=scalarMath,setCount,random}){
  const m=math,numeric=createTeamNumericRules(m),sum=values=>values.reduce((a,b)=>m.add(a,b),0),total=p=>sum(Object.values(p||{}));
  const and=(a,b)=>m.choose(a,b,0),not=a=>m.choose(a,0,1),le=(a,b)=>m.ge(b,a),eq=m.eq;
  const sets=builds.map(b=>{const c={};for(const a of b)c[a.set_name]=(c[a.set_name]||0)+1;return c;});
@@ -19,8 +21,8 @@ export function resolvePortableHealth(profiles,builds,base,{panelAt,healAt,criti
  rotation.healthAt=e=>rotation.health.findLast(h=>order(h,e)<=0);
  const ratios=[...initial.ratios];
  const bonds=profiles.map(()=>({remaining:0,total:0,ready:-Infinity}));
- const black=profiles.map(()=>new Map([[-Infinity,1]])),isshin=profiles.map(()=>-Infinity),trials=new Map();
- const characters=createCharacterHealth(profiles,base,{math:m,total,panelAt});
+ const black=profiles.map(()=>-Infinity),isshin=profiles.map(()=>-Infinity),trials=new Map();
+ const characters=createCharacterHealth(profiles,base,{math:m,total,panelAt,random});
  const gain=delta=>characters.forEach(c=>c.gain?.(delta));
  const queue=base.heals.filter(h=>characters.every(c=>!c.keepHeal||c.keepHeal(h))).map(h=>({...h,order:h.order??0}));
  const enqueue=h=>{if(h.time<base.duration||(h.time===base.duration&&base.endHit==='include'))queue.push({...h,order:h.order??0});};
@@ -31,16 +33,7 @@ export function resolvePortableHealth(profiles,builds,base,{panelAt,healAt,criti
   if(c.action==='skill'&&['FinaleOfTheDeep','FlowingPurity'].includes(profiles[c.role].weapon.name))enqueue({...c,kind:'bond'});
   if(c.action==='burst')enqueue({...c,kind:'heal',healing:'traveling_doctor',rootOrder:c.rootOrder+.1,recipients:[c.role],set:'TravelingDoctor'});
  }
- for(const h of base.events){
-  const name=profiles[h.role].weapon.name;
-  if(h.onField&&['normal','charged','plunge'].includes(h.category)&&['TheBlackSword','PrizedIsshinBlade'].includes(name)){
-   enqueue({...h,kind:'weapon_heal_trial'});
-   enqueue({...h,kind:'heal',healing:name==='TheBlackSword'?'black_sword':'isshin',order:h.order+.1,recipients:[h.role],trial:h.order});
-  }
-  if(h.onField&&h.category==='charged'&&name==='CrimsonMoonsSemblance')enqueue({...h,kind:'bond',order:h.order+.1});
- }
  for(const c of characters)c.setup?.(queue,enqueue);
- queue.sort(order);
  const changed=(h,j,amount,max,enabled=1)=>{
   const before=ratios[j],next=numeric.healthChange(before,amount,max);ratios[j]=m.choose(enabled,next,before);
   const delta=m.sub(ratios[j],before),size=m.abs(delta);
@@ -54,48 +47,49 @@ export function resolvePortableHealth(profiles,builds,base,{panelAt,healAt,criti
   const at={...h,order:h.order+.01};row.maxHP=profiles.map((_,r)=>total(panelAt(r,at).hp));row.hp=row.maxHP.map((max,r)=>m.mul(max,ratios[r]));
  };
  refresh(rotation);initial.maxHP=profiles.map((_,r)=>total(panelAt(r,{time:0,rootOrder:-1,order:-1}).hp));initial.hp=initial.maxHP.map((max,r)=>m.mul(max,ratios[r]));
- for(const event of queue){
+ function resolve(event,enqueue){
   const {set,trial,...h}=event,r=h.role,{name,refine}=profiles[r].weapon;
-  let enabled=set?has(r,set):1;
-  if(characters.some(c=>c.before?.(h,save)))continue;
+   let enabled=and(h.enabled??1,set?has(r,set):1);
+   if(typeof enabled!=='object'&&!enabled)return {event:{...h,enabled}};
+   if(characters.some(c=>c.before?.(h,save,enabled)))return {event:{...h,enabled}};
   if(h.kind==='current_hp_drain'){
-   const delta=profiles.map((_,j)=>{const max=total(panelAt(j,h).hp);return m.sub(0,changed(h,j,m.mul(m.mul(-h.hpDrain,ratios[j]),max),max));});
-   gain(sum(delta));save(h);continue;
+    const delta=profiles.map((_,j)=>{const max=total(panelAt(j,h).hp);return m.sub(0,changed(h,j,m.mul(m.mul(-h.hpDrain,ratios[j]),max),max,enabled));});
+    gain(sum(delta));return {event:{...h,enabled},commit:()=>save(h,enabled)};
   }
   if(h.kind==='salon_drain'){
-   const eligible=ratios.map(numeric.salonEligible);rotation.salonCounts.set(h.salonKey??h.order,sum(eligible));
+    const eligible=ratios.map(ratio=>and(enabled,numeric.salonEligible(ratio)));rotation.salonCounts.set(h.salonKey??h.order,sum(eligible));
    const max=profiles.map((_,j)=>total(panelAt(j,h).hp)),delta=[];
    for(let j=0;j<profiles.length;j++)delta.push(m.sub(0,changed(h,j,m.mul(-h.hpDrain,max[j]),max[j],eligible[j])));
    gain(sum(delta));
-   save(h,1,{consumedRoles:eligible.every(v=>typeof v!=='object')?eligible.flatMap((v,j)=>v?[j]:[]):eligible});continue;
+    return {event:{...h,enabled},commit:()=>save(h,enabled,{consumedRoles:eligible.every(v=>typeof v!=='object')?eligible.flatMap((v,j)=>v?[j]:[]):eligible})};
   }
   if(h.kind==='team_hp_change'){
    const recipients=h.recipients==='team'?profiles.map((_,j)=>j):[r],delta=[];
-   for(const j of recipients){const max=total(panelAt(j,h).hp);delta.push(m.abs(changed(h,j,m.mul(max,h.ratio*(h.change==='increase'?1:-1)),max)));}
-   gain(sum(delta));save(h);continue;
+    for(const j of recipients){const max=total(panelAt(j,h).hp);delta.push(m.abs(changed(h,j,m.mul(max,h.ratio*(h.change==='increase'?1:-1)),max,enabled)));}
+    gain(sum(delta));return {event:{...h,enabled},commit:()=>save(h,enabled)};
   }
   if(h.kind==='bond'){
-   const b=bonds[r],available=m.ge(h.time,b.ready),max=total(panelAt(r,h).hp),amount=m.mul(max,({FinaleOfTheDeep:.25,FlowingPurity:.24,CrimsonMoonsSemblance:.18}[name]));
+    const b=bonds[r],available=and(enabled,m.ge(h.time,b.ready)),max=total(panelAt(r,h).hp),amount=m.mul(max,({FinaleOfTheDeep:.25,FlowingPurity:.24,CrimsonMoonsSemblance:.18}[name]));
    const added=m.choose(available,m.min(m.sub(m.mul(max,2),b.remaining),amount),0);
    b.ready=m.choose(available,h.time+(name==='CrimsonMoonsSemblance'?14:10),b.ready);b.remaining=m.add(b.remaining,added);b.total=m.add(b.total,added);
-   insert(rotation.bonds,{...h,change:'increase',amount:b.remaining,ratio:m.div(b.remaining,max)},available);refresh(rotation);continue;
+    insert(rotation.bonds,{...h,change:'increase',amount:b.remaining,ratio:m.div(b.remaining,max)},available);refresh(rotation);return {event:{...h,enabled}};
   }
   if(h.kind==='weapon_heal_trial'){
    if(name==='PrizedIsshinBlade'){
-    const chance=h.time>=isshin[r]?1:0;trials.set(h.order,chance);if(chance)isshin[r]=h.time+8;
+     const chance=and(enabled,m.ge(h.time,isshin[r]));trials.set(h.trialId,chance);isshin[r]=m.choose(chance,h.time+8,isshin[r]);
    }else if(h.category!=='plunge'){
-    const chance=criticalAt(h),next=new Map(),ready=[];
-    for(const [time,mass]of black[r])if(time<=h.time)ready.push(mass);else next.set(time,mass);
-    const available=sum(ready),probability=m.mul(available,chance);next.set(-Infinity,m.sub(available,probability));
-    next.set(h.time+5,m.add(next.get(h.time+5)||0,probability));black[r]=next;trials.set(h.order,probability);
-   }else trials.set(h.order,0);
-   continue;
+    const success=and(enabled,and(m.ge(h.time,black[r]),criticalHitAt(h.trialId)));
+    black[r]=m.choose(success,h.time+5,black[r]);trials.set(h.trialId,success);
+   }else trials.set(h.trialId,0);
+    return {event:{...h,enabled}};
   }
-  if(trial!==undefined){const probability=trials.get(trial);if(name==='TheBlackSword')h.probability=probability;enabled=and(enabled,m.gt(probability,0));}
-  for(const c of characters)enabled=and(enabled,c.healEnabled?.(h)??1);
-  if((typeof enabled==='number'||typeof enabled==='boolean')&&!enabled)continue;
+  if(h.kind!=='heal')return;
+  if(trial!==undefined)enabled=and(enabled,trials.get(trial));
+  for(const c of characters)enabled=and(enabled,c.healEnabled?.(h,enabled)??1);
+  if((typeof enabled==='number'||typeof enabled==='boolean')&&!enabled)return {event:{...h,enabled}};
   const multiplier=characters.reduce((v,c)=>m.mul(v,c.healMultiplier?.(h,enabled)??1),1);
-  const amounts=healAt(h).map(v=>m.mul(m.mul(v,multiplier),h.probability??1)),effective=[],hpRecipients=[],healedRecipients=[],overheals=[],absorbedAmounts=[],deltas=[],healingParts=[];
+  if(h.probability!==undefined)enabled=and(enabled,random('health.heal/'+eventKey(h),and(enabled,h.probability),h.label));
+  const amounts=healAt(h).map(v=>m.mul(v,multiplier)),effective=[],hpRecipients=[],healedRecipients=[],overheals=[],absorbedAmounts=[],deltas=[],healingParts=[];
   for(let i=0;i<h.recipients.length;i++){
    const j=h.recipients[i],b=bonds[j],absorbed=m.choose(enabled,m.min(b.remaining,amounts[i]),0);b.remaining=m.sub(b.remaining,absorbed);
    const cleared=and(m.gt(absorbed,0),eq(b.remaining,0));
@@ -107,8 +101,35 @@ export function resolvePortableHealth(profiles,builds,base,{panelAt,healAt,criti
   }
   const done={...h,hpRecipients,healedRecipients,healingAmount:sum(healingParts),amount:sum(effective),amounts:effective,rawAmounts:amounts,overheals,absorbedAmounts};
   insert(rotation.heals,done,enabled);gain(sum(deltas));
-  save(h,enabled,{label:h.label||h.healing||profiles[r].character.name+'·治疗',healing:done});
-  for(const c of characters)c.afterHeal?.(h,overheals,enabled);
+  return {event:{...done,kind:'heal',enabled},commit(){
+   save(h,enabled,{label:h.label||h.healing||profiles[r].character.name+'·治疗',healing:done});
+   for(const c of characters)c.afterHeal?.(h,overheals,enabled,enqueue);
+  }};
  }
- return rotation;
+ function resolveEvent(event,enqueue){
+  const start=rotation.hpEvents.length,transition=resolve(event,enqueue);
+  if(rotation.hpEvents.length===start)return transition;
+  // These are resolved changes, not another HP command. The numeric gate
+  // already includes clipping, healing outcomes and the parent's existence.
+  const facts=rotation.hpEvents.slice(start).map(row=>({kind:'hp_change',time:row.time,rootOrder:row.rootOrder,order:row.order,step:(row.step??0)+1,
+   eventId:eventKey(event)+'/hp/'+profiles[row.role].character.name+'/'+row.change,parentEventId:eventKey(event),role:row.role,change:row.change,amount:row.amount,ratio:row.ratio,
+   onField:base.activeRole(row.time,row.rootOrder)===row.role,enabled:row.enabled??1}));
+  return {...transition,facts};
+ }
+ return {events:queue,resolve:resolveEvent,rotation,afterHit(h,enqueue){
+  const name=profiles[h.role].weapon.name,key=eventKey(h),step=(h.step??0)+1;
+  const child=(kind,suffix,extra={})=>({...h,kind,step,eventKey:undefined,eventId:h.eventId+'/'+suffix,parentEventId:key,...extra});
+  if(h.onField&&['normal','charged','plunge'].includes(h.category)&&['TheBlackSword','PrizedIsshinBlade'].includes(name)){
+   enqueue(child('weapon_heal_trial','weapon-heal-trial',{trialId:key}));
+   enqueue(child('heal','weapon-heal',{healing:name==='TheBlackSword'?'black_sword':'isshin',order:h.order+.1,recipients:[h.role],trial:key}));
+  }
+  if(h.onField&&h.category==='charged'&&name==='CrimsonMoonsSemblance')enqueue(child('bond','weapon-bond',{order:h.order+.1}));
+ }};
+}
+
+export function resolvePortableHealth(profiles,builds,base,context){
+ const health=createPortableHealth(profiles,builds,base,context);
+ return resolveCombatTimeline(base.events.map(e=>({...e,kind:'hit'})),health,{publish:event=>{
+  if(event.kind==='heal'&&event.rawAmounts)context.onHeal?.(event);
+ }});
 }

@@ -4,7 +4,7 @@ const signatures = new Set(['BeyondTheChrysalis', 'HymnOfTheMaelstrom']);
 export const isSignatureWeapon = weapon => signatures.has(weapon?.name);
 export function hymnAttackBonus(hp, refine, stacks, boosted, m=scalarMath) {
     const coef = .03 + .01 * refine;
-    return m.mul(m.mul(m.min(m.div(m.mul(m.div(m.max(m.sub(hp,40000),0),1000),coef),10),2*coef),stacks),boosted?1.75:1);
+    return m.mul(m.mul(m.min(m.div(m.mul(m.div(m.max(m.sub(hp,40000),0),1000),coef),10),2*coef),stacks),m.choose(boosted,1.75,1));
 }
 function range(value, min, max, label, integer = false) {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max || (integer && !Number.isInteger(value))) {

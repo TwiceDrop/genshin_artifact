@@ -1,13 +1,9 @@
-export function teamTalentUnlocked(character,stage){
- const level=stage===1?20:60;
- return character.level>level||(character.level===level&&character.ascend);
-}
+import {characterPackages} from './team-engine/character-packages.mjs';
+export {teamTalentUnlocked} from './team-engine/character-levels.mjs';
 
-export const TEAM_CONSTELLATION_TALENTS={
- Skirk:{3:'skill3',5:'skill2'},Furina:{3:'skill3',5:'skill2'},
- Escoffier:{3:'skill2',5:'skill3'},Vodyanitsa:{3:'skill2',5:'skill3'},
- Mona:{3:'skill3',5:'skill2'},
-};
+export const TEAM_CONSTELLATION_TALENTS=Object.fromEntries(
+ Object.values(characterPackages).map(character=>[character.id,character.constellationTalents]),
+);
 
 // Stored talents already include constellation levels. Apply only the change.
 export function changeTeamConstellation(character,next){

@@ -36,16 +36,17 @@ test('theory V1: reaction ownership, Cinder tier, Hymn windows and real Worker',
  b[3][0].id+=999;b[3][0].sub_stats.push(['HPFixed',40000]);
  const changed=ev.evaluate(b);assert.ok(changed.character_damage[0].expectation>original.character_damage[0].expectation);
  near(ev.evaluate(a).expectation,original.expectation);near(changed.expectation,createTeamDpsEvaluator(api,x).evaluate(b).expectation);
- const messages=[],self={postMessage:m=>messages.push(m)},source=fs.readFileSync(new URL('../src/workers/team_dps.js',import.meta.url),'utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
+ const messages=[],self={postMessage:m=>messages.push(m)},source=fs.readFileSync('src/workers/team_dps.js','utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
  vm.runInNewContext(source,{self,api,optimizeTeamDps,evaluateTeamDps,Promise});await Promise.resolve();
  self.onmessage({data:{input:x,artifacts:a.flat(),mode:'optimize'}});
  assert.equal(messages.at(-1).type,'result');near(messages.at(-1).data.results[0].expectation,original.expectation);
 });
 
 test('theory V2: manual coverage, shared Disaster timer, zero energy and excluded incoming damage',()=>{
- const x=sample();x.single_interfaces[0].weapon=weapon('HarbingerOfDawn');const low=run(x);
- x.team_dps.weapon_conditions[0].HarbingerOfDawn.rate=.5;const half=run(x);
- near(half.hits.find(h=>h.role===0).crit-low.hits.find(h=>h.role===0).crit,.07);
+ const x=sample();x.single_interfaces[0].weapon=weapon('HarbingerOfDawn');
+ const healthRotation=compileTeamDpsAxis(x.team_dps.axis,x.single_interfaces),healthPoint={time:0,rootOrder:-1,order:-1};
+ const rate=ratio=>createEquipmentAxisRules(x.single_interfaces,{...healthRotation,healthAt:()=>({ratios:[ratio,1,1,1]})},x.team_dps).prepare(structuredClone(x.single_interfaces[0]),0,healthPoint).weapon.params.HarbingerOfDawn.rate;
+ assert.equal(rate(.9),0);assert.equal(rate(.9001),1);
  x.single_interfaces[2].weapon=weapon('WavebreakersFin');const zero=run(x);x.team_dps.weapon_conditions[2].WavebreakersFin.rate=.5;
  const wave=run(x),q=wave.hits.findIndex(h=>h.role===2&&h.category==='burst');near(wave.hits[q].bonus-zero.hits[q].bonus,.2);
  x.single_interfaces[2].weapon=weapon('BlackTassel');const normal=run(x);x.team_dps.enemy_is_slime=true;const slime=run(x);
@@ -91,8 +92,8 @@ test('theory V3: Widsith whole-team branch average, expiry and continuous conver
  const y=sample();y.single_interfaces[0].weapon=weapon('XiphosMoonlight');y.single_interfaces[0].artifacts.forEach(a=>a.set_name='GildedDreams');
  const state=setup(y),build=builds(y),e={time:8,rootOrder:Infinity,order:Infinity};
  const panel=em=>[{elemental_mastery:{base:em}},{elemental_mastery:{}},{elemental_mastery:{}},{elemental_mastery:{}}];
- const converted=state.rules.derivedBuffs(build,1,e,panel(200),()=>{throw Error('periodic snapshot used')});
- near(converted[0].config.ExtensionEffect.values.Recharge,.00036*200*.3);
+ const converted=state.rules.convertedRecharge(1,panel(200));
+ near(sum(converted),.00036*200*.3);
  const a=run(y),newBuild=structuredClone(build);newBuild[0][0].id+=1000;newBuild[0][0].sub_stats.push(['ElementalMastery',200]);
  const z=createTeamDpsEvaluator(api,y).evaluate(newBuild,true);near(sum(z.panels[1].recharge)-sum(a.panels[1].recharge),.00036*200*.3);
 });

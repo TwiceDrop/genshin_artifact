@@ -1,12 +1,9 @@
-import {skirk} from './characters/skirk.mjs';
-import {furina} from './characters/furina.mjs';
-import {escoffier} from './characters/escoffier.mjs';
-import {vodyanitsa} from './characters/vodyanitsa.mjs';
-import {mona} from './characters/mona.mjs';
+import {characterPackages} from './character-packages.mjs';
 import {AUTO_EQUIPMENT_BUFFS} from '../equipment-axis-rules.mjs';
 import {effect} from './rule-utils.mjs';
+import {compareEventPosition} from './event-order.mjs';
 
-export const characterRules=Object.fromEntries([skirk,furina,escoffier,vodyanitsa,mona].map(rule=>[rule.id,rule]));
+export const characterRules=characterPackages;
 export function normalizeTeamProfiles(input){
  const rules=input.map(p=>characterRules[p.character.name]),elements=rules.map(r=>r.element);
  const modeled=new Set([...rules.flatMap(r=>r.modeled),'ResonanceHydro2','ResonanceCryo2',...AUTO_EQUIPMENT_BUFFS]);
@@ -16,8 +13,8 @@ export function normalizeTeamProfiles(input){
 export function createCharacterRules(profiles,rotation,math,settings){
  const rules=profiles.map(p=>characterRules[p.character.name]),elements=rules.map(r=>r.element);
  const instances=rules.map((rule,role)=>rule.create({role,profiles,elements,rotation,math,settings}));
- const cryoStart=Math.min(...elements.flatMap((e,r)=>e==='Cryo'?rotation().castE[r]:[]));
- const criticalBuffs=e=>[...(elements.filter(x=>x==='Cryo').length>=2?[effect('双冰共鸣',{CriticalBase:e.time>=cryoStart?.15:0})]:[]),...instances.flatMap(i=>i.criticalBuffs?.(e)||[])];
+  const cryoCasts=rotation().roots.filter(e=>e.kind==='cast'&&e.action==='skill'&&elements[e.role]==='Cryo');
+  const criticalBuffs=e=>[...(elements.filter(x=>x==='Cryo').length>=2?[effect('双冰共鸣',{CriticalBase:cryoCasts.some(c=>compareEventPosition(c,e)<=0)?.15:0})]:[]),...instances.flatMap(i=>i.criticalBuffs?.(e)||[])];
  return {
   rules,instances,
   baseBuffs:elements.filter(e=>e==='Hydro').length>=2?[effect('双水共鸣',{HPPercentage:.25})]:[],

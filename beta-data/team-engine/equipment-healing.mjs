@@ -1,4 +1,5 @@
 import {numericSum} from './rule-utils.mjs';
+export const equipmentObservesCritical=(profile,event)=>profile.weapon.name==='TheBlackSword'&&event.onField&&['normal','charged'].includes(event.category);
 export function equipmentHealingBase(h,panel,profile,m){
  const sum=numericSum(m),outgoing=sum(panel.healing_bonus);
  if(['prototype_amber','traveling_doctor'].includes(h.healing))return {amount:0,outgoing};

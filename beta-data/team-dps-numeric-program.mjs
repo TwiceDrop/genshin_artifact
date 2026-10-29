@@ -19,6 +19,7 @@ export function createNumericProgram(){
   return node(op,refs);
  }]));
  return {math,input:index=>node('input',[],index),literal,resolve:ref=>nodes[ref.index].op==='literal'?nodes[ref.index].value:ref,
+  bernoulli:(id,probability)=>{const p=ref(probability),n=nodes[p.index];return n.op==='literal'&&(n.value===0||n.value===1)?p:node('bernoulli',[p],id);},
   finish:outputs=>({nodes,outputs:outputs.map(ref).map(r=>r.index)}),
  };
 }
@@ -36,18 +37,54 @@ export function compactNumericProgram(program){
  return {nodes,outputs:program.outputs.map(i=>indexes.get(i))};
 }
 
-export function scheduleNumericProgram(program){
- const compact=compactNumericProgram(program),last=compact.nodes.map(()=>0);
- compact.nodes.forEach((node,i)=>node.args.forEach(j=>last[j]=i));
- compact.outputs.forEach(j=>last[j]=compact.nodes.length);
+export function scheduleNumericProgram(program,{streamOutputs=false}={}){
+ const compact=compactNumericProgram(program),original=compact.nodes.map((_,i)=>i);
+ const emissions=compact.nodes.map(()=>[]);
+ if(streamOutputs)compact.outputs.forEach((id,index)=>emissions[id].push(index));
+ const rank=compact.nodes.map(()=>1);
+ compact.nodes.forEach((node,i)=>{const children=node.args.map(j=>rank[j]).sort((a,b)=>b-a);rank[i]=Math.max(1,...children.map((value,j)=>value+j));});
+ // Deferred outcome weights can be created after many damage coefficients.
+ // Reorder dependencies, never arithmetic operands or operations. Keep the
+ // original schedule unless a dependency-first order uses fewer registers.
+ function dependencyOrder(heavy){
+  const seen=new Uint8Array(compact.nodes.length),order=[],pending=[...compact.outputs].reverse();
+  while(pending.length){
+   const id=pending.pop();
+   if(id<0){order.push(-id-1);continue;}
+   if(seen[id])continue;seen[id]=1;pending.push(-id-1);
+   const args=[...compact.nodes[id].args];if(heavy)args.sort((a,b)=>rank[b]-rank[a]);
+   for(let j=args.length-1;j>=0;j--)pending.push(args[j]);
+  }
+  return order;
+ }
+ function lastUses(order){
+  const last=new Int32Array(compact.nodes.length);
+  order.forEach((id,i)=>last[id]=i);
+  order.forEach((id,i)=>compact.nodes[id].args.forEach(j=>last[j]=i));
+  if(!streamOutputs)compact.outputs.forEach(j=>last[j]=order.length);return last;
+ }
+ function pressure(order,last){
+  let live=0,peak=0;
+  order.forEach((id,i)=>{for(const arg of new Set(compact.nodes[id].args))if(last[arg]===i)live--;live++;peak=Math.max(peak,live);if(last[id]===i)live--;});return peak;
+ }
+ let order=original,last=lastUses(order),peak=pressure(order,last);
+ for(const heavy of [false,true]){
+  const candidate=dependencyOrder(heavy),uses=lastUses(candidate),count=pressure(candidate,uses);
+  if(count<peak){order=candidate;last=uses;peak=count;}
+ }
  const registers=[],free=[],nodes=[];let registerCount=0;
- compact.nodes.forEach((node,i)=>{
+ order.forEach((id,i)=>{
+  const node=compact.nodes[id];
   const args=node.args.map(j=>registers[j]);
   for(const j of new Set(node.args))if(last[j]===i)free.push(registers[j]);
-  const target=free.length?free.pop():registerCount++;registers[i]=target;
-  nodes.push({...node,args,target});
+  const target=free.length?free.pop():registerCount++;registers[id]=target;
+  nodes.push({...node,args,target,...(streamOutputs?{emits:emissions[id],retain:last[id]>i}:{})});
+  if(last[id]===i)free.push(target);
  });
- return {nodes,outputs:compact.outputs.map(i=>registers[i]),registerCount};
+ // An emitted value may immediately lose its register. A final register map
+ // would be invalid for this schedule, so consumers must use node emissions.
+ return streamOutputs?{nodes,outputCount:compact.outputs.length,registerCount,streamOutputs:true}
+  :{nodes,outputs:compact.outputs.map(i=>registers[i]),outputCount:compact.outputs.length,registerCount};
 }
 
 // Bounds use outward rounding at each arithmetic operation. Selection unions

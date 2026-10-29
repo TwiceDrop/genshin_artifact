@@ -54,11 +54,12 @@ export function createEquipmentHealthRules(profiles,rotation,{math=scalarMath}={
   return {};
  }
  function artifactState(r,e){
-  const own=hp.filter(h=>h.role===r),front=own.filter(h=>rotation.activeRole(h.time,h.rootOrder)===r),burst=rotation.lastCast(r,'burst',e.time,e.rootOrder);
+  const own=hp.filter(h=>h.role===r),burst=rotation.lastCast(r,'burst',e.time,e.rootOrder);
   const on=rotation.activeRole(e.time,e.rootOrder)===r,vermillion=on&&e.time>=burst&&e.time<burst+16&&burst>=rotation.entered(e.time,e.rootOrder);
   return {
    Berserker:{rate:m.choose(m.lt(rotation.healthAt(e).ratios[r],.7),1,0)},
-   MarechausseeHunter:{stack:refreshed(front,e,5,3)},
+   // Four-piece stacks are owned by the shared effect lifecycle.
+   MarechausseeHunter:{stack:0},
    VermillionHereafter:{rate_q:vermillion?1:0,stack:vermillion?count(own.filter(h=>['decrease','damage'].includes(h.change)&&h.time>=burst),e,16,4,.8):0},
    FragmentOfHarmonicWhimsy:{level:refreshed(bonds.filter(h=>h.role===r&&h.change!=='clear'),e,6,3,.3)},
   };

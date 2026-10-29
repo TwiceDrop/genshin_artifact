@@ -7,6 +7,8 @@ import {compareTeamResults} from './helpers/team-dps-result-comparison.mjs';
 import {weapon} from '../beta-tools/interface-audit-7108.mjs';
 import {api} from '../beta-tools/runtime-7106.mjs';
 import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
+import {createTeamDpsScorePool} from '../src/workers/team-dps-score-pool.mjs';
+import {FakeTeamWorker as Worker,simpleTeamModel} from './helpers/team-dps-fake-worker.mjs';
 
 test('parallel: real scoring workers keep full serial output and candidate order',async()=>{
  const input=sample();input.team_dps.max_evaluations=24;
@@ -58,15 +60,9 @@ test('parallel: C2 health and Widsith branches preserve non-critical ranking',as
  const inventory=builds(x).flat();
  const serial=await nodeTeamDps(x,inventory,{threads:1}),parallel=await nodeTeamDps(x,inventory,{threads:4});
  compareTeamResults(parallel,serial);
- assert.equal(parallel.results.length,7);assert.equal(parallel.results[0].health_branches.length,3);
+ assert.equal(parallel.results.length,7);const health=parallel.results[0].eventTrace.events.filter(e=>e.channel==='health');assert.equal(new Set(health.map(e=>e.branch)).size,3);assert.ok(health.length>0);assert.ok(health.every(e=>Math.abs(e.probability-1/3)<1e-12));
 });
 
-class Worker{
- sent=[];terminated=false;
- postMessage(data){this.sent.push(structuredClone(data));}
- terminate(){this.terminated=true;}
- emit(data){this.onmessage({data});}
-}
 function setup(options={}){
  const coordinator=new Worker(),scorers=Array.from({length:4},()=>new Worker());
  const result=runTeamDpsWorkers(coordinator,scorers,{team_dps:{}},[],{mode:'optimize',...options});
@@ -74,20 +70,20 @@ function setup(options={}){
 }
 test('parallel lifecycle: ordered merge, startup cancellation, scorer error and late responses',async()=>{
  const updates=[],a=setup({onProgress:p=>updates.push(p)});
- a.coordinator.emit({type:'ready'});assert.equal(a.coordinator.sent[0].parallelism,4);
- a.coordinator.emit({type:'score',teams:[[1],[2],[3],[4]]});
- for(const w of a.scorers){assert.equal(w.sent.length,0);w.emit({type:'ready'});assert.equal(w.sent[0].type,'initialize');w.emit({type:'initialized'});}
- for(const i of [3,1,0,2])a.scorers[i].emit({type:'scored',result:{value:i}});
- assert.deepEqual(a.coordinator.sent.at(-1),{type:'scored',results:[{value:0},{value:1},{value:2},{value:3}]});
- a.coordinator.emit({type:'progress',data:{evaluated_teams:4}});
- const late=a.coordinator.onmessage;a.coordinator.emit({type:'result',data:{results:[7]}});
- assert.deepEqual(await a.result,{results:[7]});late({data:{type:'progress',data:{evaluated_teams:99}}});
+ a.coordinator.emit({type:'ready'});assert.equal(a.coordinator.sent.length,0);for(const w of a.scorers)w.emit({type:'ready'});
+ const start=a.coordinator.sent[0];assert.equal(start.parallelism,4);assert.equal(start.ports.length,4);
+ const ports=a.scorers.map(w=>w.sent[0].port),requests=ports.map(port=>new Promise(resolve=>{port.onmessage=({data})=>{if(data.type==='initialize')port.postMessage({type:'initialized'});else if(data.type==='score')resolve(data);};port.start();})),pool=createTeamDpsScorePool(start.ports,simpleTeamModel,[]);
+ const scores=pool.score([[1],[2],[3],[4]]);await Promise.all(requests);
+ for(const i of [3,1,0,2])ports[i].postMessage({type:'scored',results:[{value:i}]});
+ assert.deepEqual(await scores,[{value:0},{value:1},{value:2},{value:3}]);assert.equal(a.coordinator.sent.length,1);pool.dispose();
+ a.coordinator.emit({type:'compiled',compile_ms:12});a.coordinator.emit({type:'progress',data:{evaluated_teams:4,elapsed_ms:8}});
+ const late=a.coordinator.onmessage;a.coordinator.emit({type:'result',data:{results:[7],elapsed_ms:10}});
+ assert.deepEqual(await a.result,{results:[7],elapsed_ms:22,compile_ms:12,compute_backend:'cpu'});late({data:{type:'progress',data:{evaluated_teams:99}}});
  assert.equal(updates.length,1);for(const w of a.all){assert.ok(w.terminated);assert.equal(w.onmessage,null);}
  for(const phase of ['startup','scoring']){
   const controller=new AbortController(),b=setup({signal:controller.signal});
   if(phase==='scoring'){
-   for(const w of b.scorers){w.emit({type:'ready'});w.emit({type:'initialized'});}
-   b.coordinator.emit({type:'score',teams:[[1],[2],[3],[4]]});
+   for(const w of b.scorers)w.emit({type:'ready'});b.coordinator.emit({type:'ready'});b.coordinator.emit({type:'compiled',compile_ms:1});
   }
   controller.abort();await assert.rejects(b.result,{name:'AbortError'});assert.ok(b.all.every(w=>w.terminated));
  }
