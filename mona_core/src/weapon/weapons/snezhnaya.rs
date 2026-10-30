@@ -30,6 +30,7 @@ impl<A: Attribute> WeaponEffect<A> for SnezhnayaEffect {
                 attribute.add_atk_percentage(self.label, value * refinement);
             } else {
                 attribute.set_value_by(name, self.label, value * refinement);
+                if name==AttributeName::StellarSwirlBonus{attribute.set_value_by(AttributeName::EnhanceStellarSuperconduct,self.label,value*refinement);}
             }
         }
         // Frostbreath and Song of the Vigil restore flat energy. Flat energy

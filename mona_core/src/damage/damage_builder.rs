@@ -58,6 +58,7 @@ pub trait DamageBuilder {
         fumo: Option<Element>
     ) -> Self::Result;
 
+    fn direct_stellar_conduct(&self,a:&Self::AttributeType,e:&Enemy,ratio:f64,independent:f64,base_bonus:f64,level:usize,skill:SkillType)->Self::Result;
     fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result;
     fn lunar_damage(&self,attribute:&Self::AttributeType,kind:crate::damage::reaction_parameters::LunarKind,direct:bool,scaled_base:f64,flat:f64,base_bonus:f64,reaction_bonus:f64,em:f64,cr:f64,cd:f64,resistance:f64)->DamageResult {
         crate::damage::reaction_parameters::lunar(attribute,kind,direct,scaled_base,flat,base_bonus,reaction_bonus,em,cr,cd,resistance)

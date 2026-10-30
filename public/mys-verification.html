@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>米游社验证</title>
+<style>body{margin:0;padding:16px 4px;font:14px sans-serif;text-align:center}#captcha{display:flex;justify-content:center}#status{color:#606266;margin:18px 0}</style></head>
+<body><div id="status">加载验证码…</div><div id="captcha"></div>
+<script>
+let started = false
+window.addEventListener('message', event => {
+    if (event.source !== parent || event.data?.type !== 'mona-mys-verification-config' || started) return
+    const { gt, challenge, flowId } = event.data
+    started = true
+    const send = (type, result) => parent.postMessage({ type: `mona-mys-verification-${type}`, flowId, ...(result ? { result } : {}) }, event.origin)
+    const fail = () => { document.getElementById('status').textContent = '验证码加载失败'; send('error') }
+    const sdk = document.createElement('script')
+    sdk.src = 'https://static.geetest.com/static/js/gt.0.5.2.js'
+    sdk.onerror = fail
+    sdk.onload = () => {
+        try {
+            initGeetest({ gt, challenge, new_captcha: true, product: 'embed', width: '300px', protocol: 'https://', https: true, api_server: 'api.geetest.com' }, captcha => {
+                captcha.appendTo('#captcha')
+                captcha.onReady(() => { document.getElementById('status').textContent = '' })
+                captcha.onError(fail)
+                captcha.onSuccess(() => {
+                    const result = captcha.getValidate()
+                    if (result) send('complete', {
+                        geetest_challenge: result.geetest_challenge,
+                        geetest_validate: result.geetest_validate,
+                        geetest_seccode: result.geetest_seccode,
+                    })
+                })
+                // Closing the SDK challenge is not cancellation of the host flow.
+                // The success callback may arrive after this event.
+                captcha.onClose(() => { document.getElementById('status').textContent = '等待验证' })
+            })
+        } catch { fail() }
+    }
+    document.head.appendChild(sdk)
+})
+</script></body></html>

@@ -1,0 +1,120 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/10",
+  "id": "sandrone-odette-actions",
+  "title": "桑多涅／奥黛塔四人动作轴",
+  "endHit": "include",
+  "initialActiveSlot": "member1",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Sandrone"
+    },
+    {
+      "slot": "member2",
+      "character": "Alyosha"
+    },
+    {
+      "slot": "member3",
+      "character": "Qiqi"
+    },
+    {
+      "slot": "member4",
+      "character": "Odette"
+    }
+  ],
+  "timeline": [
+    {
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 0,
+      "id": "action-1"
+    },
+    {
+      "kind": "action",
+      "actor": "member2",
+      "action": "burst",
+      "timeMs": 600,
+      "id": "action-2"
+    },
+    {
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 2100,
+      "id": "action-3"
+    },
+    {
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 2800,
+      "id": "action-4"
+    },
+    {
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 3900,
+      "id": "action-5"
+    },
+    {
+      "kind": "action",
+      "actor": "member3",
+      "action": "burst",
+      "timeMs": 4600,
+      "id": "action-6"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 6600,
+      "id": "action-7"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 10500,
+      "id": "action-8"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 11200,
+      "id": "action-9"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 14000,
+      "id": "action-10"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 18000,
+      "id": "action-11"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 18700,
+      "id": "action-12"
+    },
+    {
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 22600,
+      "id": "action-13"
+    }
+  ]
+}

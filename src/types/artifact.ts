@@ -28,6 +28,7 @@ export interface IArtifact {
     star: number,
     mainTag: IArtifactMainTag,
     normalTags: IArtifactSubTag[],
+    unactivatedTags?: IArtifactSubTag[],
     level: number,
 
     omit: boolean,
@@ -51,6 +52,7 @@ export interface IArtifactContentOnly {
     star: number,
     mainTag: IArtifactTag,
     normalTags: IArtifactTag[],
+    unactivatedTags?: IArtifactTag[],
     level: number
 }
 

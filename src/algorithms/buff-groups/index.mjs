@@ -1,4 +1,4 @@
-const skillFields = { skill1: 'skill1', skill2: 'skill2', skill3: 'skill3', e_level: 'skill2', q_level: 'skill3', burst_level: 'skill3' }
+const skillFields = { talent_level: 'skill1', skill1: 'skill1', skill2: 'skill2', skill3: 'skill3', e_level: 'skill2', q_level: 'skill3', burst_level: 'skill3' }
 const skillsByBuff = { LaumaSkillResMinus: 'skill2', LaumaBurst: 'skill3', KamisatoAyatoQ: 'skill3', FurinaQ: 'skill3',
     XilonenE: 'skill2', YumemizukiMizukiE: 'skill2', IllugaQ: 'skill3', AlyoshaHunterPrecision: 'skill2' }
 const constellationFields = { c1: 1, c2: 2, c4: 4, c6: 6, enable_c6: 6, has_c2: 2, is_c6: 6, c4_enabled: 4 }

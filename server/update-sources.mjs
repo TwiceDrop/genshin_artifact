@@ -12,7 +12,7 @@ export const UPDATE_SOURCES = [
 ]
 export function compareVersions(left, right) {
     const parts = value => {
-        const match = String(value || '').trim().match(/^v?(\d+(?:\.\d+)*)(?:[-+].*)?$/i)
+        const match = String(value || '').trim().match(/^v?(\d+(?:\.\d+)*)(?:EA|[-+].*)?$/i)
         return match ? match[1].split('.').map(Number) : null
     }
     const a = parts(left), b = parts(right)

@@ -1,5 +1,6 @@
 import { selectUidInventory } from './uid-inventory.mjs'
 import { artifactFingerprint } from './miyoushe.mjs'
+import { levelZeroMatches } from './level-zero-match.cjs'
 const clone = value => JSON.parse(JSON.stringify(value))
 const slots = ['flower', 'feather', 'sand', 'cup', 'head']
 const stats = new Set(['lifeStatic','lifePercentage','attackStatic','attackPercentage','defendStatic','defendPercentage','critical','criticalDamage','elementalMastery','recharge','cureEffect','fireBonus','waterBonus','thunderBonus','windBonus','iceBonus','rockBonus','dendroBonus','physicalBonus'])
@@ -62,13 +63,29 @@ export function validateUidPackage(pack, catalog) {
     return pack
 }
 
-export function importUidPackage(pack, { data, presets, inventory, addArtifact, addPreset, catalog }) {
+export function importUidPackage(pack, { data, presets, inventory, addArtifact, updateArtifact, addPreset, catalog }) {
     validateUidPackage(pack, catalog)
     const pool = new Map(), used = new Set(), mapping = new Map()
-    for (const a of selectUidInventory(pack.uid, data, presets, inventory, true)) { const fp = artifactFingerprint(a); if (!pool.has(fp)) pool.set(fp, []); pool.get(fp).push(a.id) }
+    const existing = selectUidInventory(pack.uid, data, presets, inventory, true)
+    const zeroMatches = levelZeroMatches(existing, pack.artifacts)
+    for (const a of existing) { const fp = artifactFingerprint(a); if (!pool.has(fp)) pool.set(fp, []); pool.get(fp).push(a.id) }
     let added = 0
-    for (const a of pack.artifacts) {
-        const id = pool.get(artifactFingerprint(a))?.find(id => !used.has(id))
+    for (const [index, a] of pack.artifacts.entries()) {
+        let id = pool.get(artifactFingerprint(a))?.find(id => !used.has(id))
+        if (id !== undefined && a.level === 0 && a.unactivatedTags?.length) {
+            updateArtifact(id, { ...inventory.get(id), unactivatedTags: clone(a.unactivatedTags) })
+        }
+        const previous = zeroMatches[index]
+        if (id === undefined && previous && !used.has(previous.id)) {
+            id = previous.id
+            if (a.level === 0) {
+                const oldFingerprint = artifactFingerprint(previous)
+                pool.set(oldFingerprint, pool.get(oldFingerprint).filter(value => value !== id))
+                // Keep the live ID and its omit flag so saved equipment references remain valid.
+                const { id: sourceId, contentHash, ...content } = clone(a)
+                updateArtifact(id, { ...content, omit: previous.omit })
+            }
+        }
         const mapped = id === undefined ? addArtifact(clone(a)) : id
         if (id === undefined) added++
         mapping.set(a.id, mapped); used.add(mapped)

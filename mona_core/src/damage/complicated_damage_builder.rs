@@ -352,6 +352,24 @@ impl DamageBuilder for ComplicatedDamageBuilder {
         }
     }
 
+    fn direct_stellar_conduct(&self,a:&Self::AttributeType,e:&Enemy,ratio:f64,independent:f64,base_bonus:f64,level:usize,skill:SkillType)->Self::Result {
+ let mut result=self.damage(a,e,Element::Electro,skill,level,None);
+ result.normal=crate::damage::direct_stellar_conduct::calculate(a,e,ratio,independent,base_bonus,skill);
+ result.melt=None;result.vaporize=None;result.spread=None;result.aggravate=None;
+ result.direct_moonelectro=None;result.bonus.clear();result.def_minus.clear();result.def_penetration.clear();result.extra_damage.clear();result.em_ratio.remove("独立伤害倍率修正");
+ result.critical=a.get_composition_merge(&[AttributeName::CriticalBase,AttributeName::CriticalAttacking,AttributeName::CriticalElectro,AttributeName::StellarConductCritRate]).0;
+ result.critical_damage=a.get_composition_merge(&[AttributeName::CriticalDamageBase,AttributeName::CriticalDamageElectro,AttributeName::StellarConductCritDamage,AttributeName::StellarConductCritDamageElectro]).0;
+ result.extra_damage=a.get_composition_merge(&[AttributeName::StellarConductFlat,AttributeName::StellarConductFlatElectro]).0;
+
+ { use AttributeName::*; use crate::damage::damage_analysis::StellarDamageAnalysis;
+ let get=|attrs:&[AttributeName]|a.get_composition_merge(attrs).0;
+ let mut base=get(&[StellarConductBaseBonus]);base.insert("米提亚·星耀祝礼".into(),base_bonus);
+ let mut bonus=get(&[EnhanceStellarSuperconduct]);let em=a.get_em_all().max(0.0);bonus.insert("精通".into(),6.0*em/(2000.0+em));
+ let mut coefficient=get(&[StellarConductBaseMultiplier]);coefficient.insert("基础倍率".into(),1.0);
+ result.stellar_detail=Some(StellarDamageAnalysis {element:Element::Electro,scaling_name:"元素精通".into(),scaling:get(&[ElementalMastery,ElementalMasteryExtra]),ratio:HashMap::from([("技能倍率".into(),ratio)]),extra_base:HashMap::new(),independent:if independent!=1.0{HashMap::from([("米提亚六命·稳态炉心".into(),independent-1.0)])}else{HashMap::new()},base_multiplier:coefficient,base_bonus:base,bonus,flat:get(&[StellarConductFlat,StellarConductFlatElectro]),critical:get(&[CriticalBase,CriticalAttacking,CriticalElectro]),critical_damage:get(&[CriticalDamageBase,CriticalDamageElectro]),reaction_critical:get(&[StellarConductCritRate]),reaction_critical_damage:get(&[StellarConductCritDamage,StellarConductCritDamageElectro]),res_minus:get(&[ResMinusBase,ResMinusElectro]),elevation:get(&[StellarConductElevation]),universal_elevation:HashMap::new(),final_multiplier:HashMap::new(),active:ratio!=0.0});
+ }
+ result
+ }
     fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result {
       let mut result=self.damage(attribute,enemy,Element::Anemo,skill,level,None);
       result.normal=crate::damage::stellar_swirl::calculate(attribute,enemy,ratio);

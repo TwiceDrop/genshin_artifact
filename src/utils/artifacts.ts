@@ -18,6 +18,7 @@ import { positions } from "@/constants/artifact"
 import {useI18n} from "@/i18n/i18n";
 import {useKumiStore} from "@/store/pinia/kumi";
 import { convertGoodArtifacts } from '@/import/good'
+import { isPreviewLevelFour, levelZeroMatches, confirmedZeroDuplicates } from '@/import/level-zero-match.cjs'
 
 
 const artifactStore = useArtifactStore()
@@ -101,13 +102,14 @@ interface ImportJsonResult {
     add: number,
 }
 
-export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupImportDir: boolean): ImportJsonResult {
+export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupImportDir: boolean, cleanupContext?: any): ImportJsonResult {
     if (rawObj?.format === 'GOOD') rawObj = convertGoodArtifacts(rawObj)
     for (const position of positions) {
         if (rawObj?.[position] !== undefined && !Array.isArray(rawObj[position])) throw new Error(`圣遗物部位 ${position} 必须是数组`)
     }
     const importFlat = positions.flatMap(position => rawObj?.[position] ?? [])
     if (importFlat.length === 0) throw new Error('文件中没有可导入的圣遗物')
+    const zeroMatches = levelZeroMatches([...artifactStore.artifacts.value.values()], importFlat)
     const matchesInitialSubstats = (previous: IArtifact, next: IArtifactContentOnly) =>
         previous.level < 4 && previous.normalTags.length === 3 &&
         previous.setName === next.setName && previous.position === next.position &&
@@ -115,7 +117,7 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
         next.level >= previous.level && previous.normalTags.every(oldTag =>
             next.normalTags.some(tag => tag.name === oldTag.name && tag.value.toFixed(5) === oldTag.value.toFixed(5)))
     const fourthStatUpgrades = importFlat.map(next => {
-        if (next.level < 4 || next.normalTags.length !== 4) return undefined
+        if (isPreviewLevelFour(next) || next.level < 4 || next.normalTags.length !== 4) return undefined
         const matches = [...artifactStore.artifacts.value.values()].filter(previous => matchesInitialSubstats(previous, next))
         if (matches.length !== 1) return undefined
         const previous = matches[0]
@@ -145,14 +147,33 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
         const h = hash(artifact)
         const hev = hashExceptValue(artifact)
         let artifactId = 0
-        const upgraded = hashEV[hev] && artifact.level > hashEV[hev].level ? hashEV[hev] : fourthStatUpgrades[index]
+        const upgraded = !isPreviewLevelFour(artifact) && (hashEV[hev] && artifact.level > hashEV[hev].level ? hashEV[hev] : fourthStatUpgrades[index])
 
         if (hashAll[h]) {
             // this artifacts exists
             const id = hashAll[h].id
+            if (artifact.level === 0 && artifact.unactivatedTags?.length) {
+                updateArtifact(id, { ...hashAll[h], unactivatedTags: artifact.unactivatedTags })
+            }
             skipCount += 1
             existingIds.add(id)
             artifactId = id
+        } else if (zeroMatches[index]) {
+            const previous = zeroMatches[index]
+            artifactId = previous.id
+            existingIds.add(artifactId)
+            if (artifact.level === 0) {
+                delete hashAll[hash(previous)]
+                delete hashEV[hashExceptValue(previous)]
+                const { id: sourceId, contentHash, ...content } = artifact
+                updateArtifact(artifactId, { ...content, omit: previous.omit })
+                const corrected = artifactStore.artifacts.value.get(artifactId)!
+                hashAll[h] = corrected
+                hashEV[hev] = corrected
+                upgradeCount += 1
+            } else {
+                skipCount += 1
+            }
         } else if (upgraded) {
             const id = upgraded.id
             const content = { ...artifact, omit: upgraded.omit }
@@ -187,6 +208,14 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
                 console.log("remove", originalArtifacts)
                 removeArtifact(id)
             }
+        }
+    }
+
+    if (cleanupContext) {
+        for (const ids of equips.values()) for (const id of ids) if (id !== null) cleanupContext.protectedIds.add(id)
+        for (const pair of confirmedZeroDuplicates([...artifactStore.artifacts.value.values()], cleanupContext)) {
+            removeArtifact(pair.removedId)
+            removeCount++
         }
     }
 

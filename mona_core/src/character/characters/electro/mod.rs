@@ -1,3 +1,5 @@
+pub mod mitya;pub use mitya::Mitya;
+pub mod valeriy;pub use valeriy::Valeriy;
 pub mod beidou;
 pub mod keqing;
 pub mod kujou_sara;

@@ -7,6 +7,7 @@ use crate::object::mona_object::{MonaObject, MonaObjectEnum, MonaObjectTrait};
 
 pub struct MonaObjectDamage {
     pub normal: DamageResult,
+    pub direct_stellarconduct: Option<DamageResult>,
     pub direct_stellarswirl: Option<DamageResult>,
     pub melt: Option<DamageResult>,
     pub vaporize: Option<DamageResult>,
@@ -27,6 +28,7 @@ impl MonaObjectTrait for MonaObjectDamage {
 
         let result = match k.as_str() {
             "normal" | "n" => MonaObjectDamageNumber::from_damage_result(&self.normal),
+            "direct_stellarconduct" => {if let Some(ref x)=self.direct_stellarconduct{MonaObjectDamageNumber::from_damage_result(x)}else{return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound,"damage direct_stellarconduct not exist"));}},
             "direct_stellarswirl" => {
                 if let Some(ref x) = self.direct_stellarswirl {
                     MonaObjectDamageNumber::from_damage_result(x)

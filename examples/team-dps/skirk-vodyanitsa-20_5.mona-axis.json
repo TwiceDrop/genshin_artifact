@@ -1,0 +1,576 @@
+{
+  "format": "mona-team-axis",
+  "formatVersion": 1,
+  "id": "skirk-furina-escoffier-vodyanitsa",
+  "revision": 5,
+  "title": "丝柯克／沃雅妮莎四人20.5秒",
+  "mechanics": "skirk-hydro-cryo/1",
+  "durationMs": 20500,
+  "endHit": "include",
+  "initialActiveSlot": "hydro",
+  "members": [
+    {
+      "slot": "carry",
+      "character": "Skirk"
+    },
+    {
+      "slot": "hydro",
+      "character": "Furina"
+    },
+    {
+      "slot": "healer",
+      "character": "Escoffier"
+    },
+    {
+      "slot": "support",
+      "character": "Vodyanitsa"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "event-1",
+      "kind": "switch",
+      "timeMs": 3000,
+      "actor": "healer"
+    },
+    {
+      "id": "event-2",
+      "kind": "switch",
+      "timeMs": 6500,
+      "actor": "support"
+    },
+    {
+      "id": "event-3",
+      "kind": "switch",
+      "timeMs": 7500,
+      "actor": "carry"
+    },
+    {
+      "id": "event-4",
+      "kind": "cast",
+      "timeMs": 0,
+      "actor": "hydro",
+      "action": "skill"
+    },
+    {
+      "id": "event-5",
+      "kind": "cast",
+      "timeMs": 500,
+      "actor": "hydro",
+      "action": "burst"
+    },
+    {
+      "id": "event-6",
+      "kind": "cast",
+      "timeMs": 3000,
+      "actor": "healer",
+      "action": "skill"
+    },
+    {
+      "id": "event-7",
+      "kind": "cast",
+      "timeMs": 5500,
+      "actor": "healer",
+      "action": "burst"
+    },
+    {
+      "id": "event-8",
+      "kind": "cast",
+      "timeMs": 6500,
+      "actor": "support",
+      "action": "skill"
+    },
+    {
+      "id": "event-9",
+      "kind": "cast",
+      "timeMs": 7500,
+      "actor": "carry",
+      "action": "skill"
+    },
+    {
+      "id": "event-10",
+      "kind": "cast",
+      "timeMs": 8000,
+      "actor": "carry",
+      "action": "burst"
+    },
+    {
+      "id": "event-11",
+      "kind": "heal",
+      "timeMs": 5500,
+      "actor": "healer",
+      "recipients": "team"
+    },
+    {
+      "id": "event-12",
+      "kind": "heal",
+      "timeMs": 6500,
+      "actor": "healer",
+      "recipients": "active",
+      "repeat": {
+        "count": 9,
+        "intervalMs": 1000
+      }
+    },
+    {
+      "id": "event-13",
+      "kind": "heal",
+      "timeMs": 15500,
+      "actor": "healer",
+      "recipients": "active",
+      "repeat": {
+        "count": 6,
+        "intervalMs": 1000
+      },
+      "when": {
+        "slot": "healer",
+        "constellationAtLeast": 4
+      }
+    },
+    {
+      "id": "event-14",
+      "kind": "heal",
+      "timeMs": 6500,
+      "actor": "support",
+      "recipients": "active",
+      "repeat": {
+        "count": 10,
+        "intervalMs": 1500
+      }
+    },
+    {
+      "id": "event-15",
+      "kind": "hit",
+      "timeMs": 0,
+      "actor": "hydro",
+      "action": "furina.skill",
+      "label": "荒性泡沫"
+    },
+    {
+      "id": "event-16",
+      "kind": "hit",
+      "timeMs": 2500,
+      "actor": "hydro",
+      "action": "furina.burst",
+      "label": "万众狂欢"
+    },
+    {
+      "id": "event-17",
+      "kind": "hit",
+      "timeMs": 0,
+      "actor": "hydro",
+      "action": "furina.salon.madame",
+      "label": "海薇玛夫人",
+      "repeat": {
+        "count": 13,
+        "intervalMs": 1700
+      }
+    },
+    {
+      "id": "event-18",
+      "kind": "hit",
+      "timeMs": 0,
+      "actor": "hydro",
+      "action": "furina.salon.usher",
+      "label": "乌瑟勋爵",
+      "repeat": {
+        "count": 7,
+        "intervalMs": 3400
+      }
+    },
+    {
+      "id": "event-19",
+      "kind": "hit",
+      "timeMs": 0,
+      "actor": "hydro",
+      "action": "furina.salon.crab",
+      "label": "谢贝蕾妲小姐",
+      "repeat": {
+        "count": 4,
+        "intervalMs": 5300
+      }
+    },
+    {
+      "id": "event-20",
+      "kind": "hit",
+      "timeMs": 3000,
+      "actor": "healer",
+      "action": "escoffier.skill",
+      "label": "冻霜芭菲",
+      "repeat": {
+        "count": 18,
+        "intervalMs": 1000
+      }
+    },
+    {
+      "id": "event-21",
+      "kind": "hit",
+      "timeMs": 5500,
+      "actor": "healer",
+      "action": "escoffier.burst",
+      "label": "花刀技法"
+    },
+    {
+      "id": "event-22",
+      "kind": "hit",
+      "timeMs": 6500,
+      "actor": "support",
+      "action": "vodyanitsa.skill",
+      "label": "晨声纷流·施放"
+    },
+    {
+      "id": "event-23",
+      "kind": "hit",
+      "timeMs": 9500,
+      "actor": "support",
+      "action": "vodyanitsa.horn",
+      "label": "唤春角笛",
+      "repeat": {
+        "count": 4,
+        "intervalMs": 3000
+      }
+    },
+    {
+      "id": "event-24",
+      "kind": "hit",
+      "timeMs": 7750,
+      "actor": "carry",
+      "action": "skirk.normal.1",
+      "label": "E后·一段"
+    },
+    {
+      "id": "event-25",
+      "kind": "hit",
+      "timeMs": 8000,
+      "actor": "carry",
+      "action": "skirk.normal.2",
+      "label": "E后·二段"
+    },
+    {
+      "id": "event-26",
+      "kind": "hit",
+      "timeMs": 8500,
+      "actor": "carry",
+      "action": "skirk.normal.1",
+      "label": "第1轮·第1段"
+    },
+    {
+      "id": "event-27",
+      "kind": "hit",
+      "timeMs": 9000,
+      "actor": "carry",
+      "action": "skirk.normal.2",
+      "label": "第1轮·第2段"
+    },
+    {
+      "id": "event-28",
+      "kind": "hit",
+      "timeMs": 9500,
+      "actor": "carry",
+      "action": "skirk.normal.3",
+      "label": "第1轮·第3段"
+    },
+    {
+      "id": "event-29",
+      "kind": "hit",
+      "timeMs": 9500,
+      "actor": "carry",
+      "action": "skirk.c6",
+      "label": "虚境裂隙·六命",
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-30",
+      "kind": "hit",
+      "timeMs": 10000,
+      "actor": "carry",
+      "action": "skirk.normal.4",
+      "label": "第1轮·第4段"
+    },
+    {
+      "id": "event-31",
+      "kind": "hit",
+      "timeMs": 10500,
+      "actor": "carry",
+      "action": "skirk.normal.5",
+      "label": "第1轮·第5段"
+    },
+    {
+      "id": "event-32",
+      "kind": "hit",
+      "timeMs": 10500,
+      "actor": "carry",
+      "action": "skirk.c6",
+      "label": "虚境裂隙·六命",
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-33",
+      "kind": "hit",
+      "timeMs": 11500,
+      "actor": "carry",
+      "action": "skirk.normal.1",
+      "label": "第2轮·第1段"
+    },
+    {
+      "id": "event-34",
+      "kind": "hit",
+      "timeMs": 12000,
+      "actor": "carry",
+      "action": "skirk.normal.2",
+      "label": "第2轮·第2段"
+    },
+    {
+      "id": "event-35",
+      "kind": "hit",
+      "timeMs": 12500,
+      "actor": "carry",
+      "action": "skirk.normal.3",
+      "label": "第2轮·第3段"
+    },
+    {
+      "id": "event-36",
+      "kind": "hit",
+      "timeMs": 12500,
+      "actor": "carry",
+      "action": "skirk.c6",
+      "label": "虚境裂隙·六命",
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-37",
+      "kind": "hit",
+      "timeMs": 13000,
+      "actor": "carry",
+      "action": "skirk.normal.4",
+      "label": "第2轮·第4段"
+    },
+    {
+      "id": "event-38",
+      "kind": "hit",
+      "timeMs": 13500,
+      "actor": "carry",
+      "action": "skirk.normal.5",
+      "label": "第2轮·第5段"
+    },
+    {
+      "id": "event-39",
+      "kind": "hit",
+      "timeMs": 13500,
+      "actor": "carry",
+      "action": "skirk.c6",
+      "label": "虚境裂隙·六命",
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-40",
+      "kind": "hit",
+      "timeMs": 14500,
+      "actor": "carry",
+      "action": "skirk.normal.1",
+      "label": "第3轮·第1段"
+    },
+    {
+      "id": "event-41",
+      "kind": "hit",
+      "timeMs": 15000,
+      "actor": "carry",
+      "action": "skirk.normal.2",
+      "label": "第3轮·第2段"
+    },
+    {
+      "id": "event-42",
+      "kind": "hit",
+      "timeMs": 15500,
+      "actor": "carry",
+      "action": "skirk.normal.3",
+      "label": "第3轮·第3段"
+    },
+    {
+      "id": "event-43",
+      "kind": "hit",
+      "timeMs": 15500,
+      "actor": "carry",
+      "action": "skirk.c6",
+      "label": "虚境裂隙·六命",
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-44",
+      "kind": "hit",
+      "timeMs": 16000,
+      "actor": "carry",
+      "action": "skirk.normal.4",
+      "label": "第3轮·第4段"
+    },
+    {
+      "id": "event-45",
+      "kind": "hit",
+      "timeMs": 16500,
+      "actor": "carry",
+      "action": "skirk.normal.5",
+      "label": "第3轮·第5段"
+    },
+    {
+      "id": "event-46",
+      "kind": "hit",
+      "timeMs": 16500,
+      "actor": "carry",
+      "action": "skirk.c6",
+      "label": "虚境裂隙·六命",
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "event-47",
+      "kind": "hit",
+      "timeMs": 18500,
+      "actor": "carry",
+      "action": "skirk.normal.1",
+      "label": "第4轮·第1段"
+    },
+    {
+      "id": "event-48",
+      "kind": "hit",
+      "timeMs": 19000,
+      "actor": "carry",
+      "action": "skirk.normal.2",
+      "label": "第4轮·第2段"
+    },
+    {
+      "id": "event-49",
+      "kind": "hit",
+      "timeMs": 19500,
+      "actor": "carry",
+      "action": "skirk.normal.3",
+      "label": "第4轮·第3段"
+    },
+    {
+      "id": "event-50",
+      "kind": "hit",
+      "timeMs": 20000,
+      "actor": "carry",
+      "action": "skirk.normal.4",
+      "label": "第4轮·第4段"
+    },
+    {
+      "id": "event-51",
+      "kind": "hit",
+      "timeMs": 20500,
+      "actor": "carry",
+      "action": "skirk.normal.5",
+      "label": "第4轮·第5段"
+    },
+    {
+      "id": "event-52",
+      "kind": "hit",
+      "timeMs": 17500,
+      "actor": "carry",
+      "action": "skirk.charged",
+      "label": "七相一闪·重击"
+    },
+    {
+      "id": "event-53",
+      "kind": "hit",
+      "timeMs": 8000,
+      "actor": "carry",
+      "action": "skirk.c1",
+      "label": "一命·追加重击",
+      "repeat": {
+        "count": 3,
+        "intervalMs": 0
+      },
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 1
+      }
+    },
+    {
+      "id": "event-54",
+      "kind": "hit",
+      "timeMs": 17500,
+      "actor": "carry",
+      "action": "skirk.c1",
+      "label": "一命·追加重击",
+      "repeat": {
+        "count": 2,
+        "intervalMs": 0
+      },
+      "when": {
+        "slot": "carry",
+        "constellationAtLeast": 1
+      }
+    },
+    {
+      "id": "event-55",
+      "kind": "hit",
+      "timeMs": 2500,
+      "actor": "hydro",
+      "action": "furina.c6.normal",
+      "label": "六命·普通攻击",
+      "when": {
+        "slot": "hydro",
+        "constellationAtLeast": 6
+      }
+    },
+    {
+      "id": "freeze-coverage",
+      "kind": "state",
+      "timeMs": 3000,
+      "actor": "healer",
+      "state": "frozen",
+      "durationMs": 17500
+    }
+  ],
+  "coverage": {
+    "fanfare": {
+      "startMs": 500,
+      "endMs": 18500
+    },
+    "skirkC2": {
+      "startMs": 8000,
+      "endMs": 20500
+    },
+    "vodyFlat": {
+      "startMs": 6500,
+      "endMs": 21500,
+      "frontUses": 25,
+      "backUses": 10
+    },
+    "escoFlat": {
+      "startMs": 3000,
+      "endMs": 18000,
+      "uses": 5
+    },
+    "deathCrossing": {
+      "startNormal": 3,
+      "uses": 10
+    }
+  },
+  "sources": [
+    {
+      "url": "https://cs.gensri.wiki/skirk/",
+      "note": "保留首轮理论轴；芙宁娜计时及首次授予命中顺序待校准。"
+    },
+    {
+      "note": "修订5：保留既有动作时刻和爆发覆盖；公共血量账本自动计算沙龙扣血、实际治疗、溢出与气氛。初始血量由计算任务设置；永久排除敌人伤害。反应及漩流沿用用户已定口径。"
+    }
+  ]
+}

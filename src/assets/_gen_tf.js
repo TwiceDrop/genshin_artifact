@@ -1,4 +1,3 @@
-// Published metadata with verified Stellar Swirl support.
 export default {
   "MaxATK": {
     "name": "MaxATK",
@@ -2979,7 +2978,7 @@ export default {
   },
   "VodyanitsaMaxHP": {
     "name": "VodyanitsaMaxHP",
-    "nameLocale": 3732,
+    "nameLocale": 3777,
     "description": 1869,
     "tags": [
       "生命"
@@ -3083,6 +3082,24 @@ export default {
     ],
     "for": "LumineCryo",
     "badge": "/characters/lumine-avatar.png",
+    "config": []
+  },
+  "MityaDefault": {
+    "name": "MityaDefault",
+    "nameLocale": 3754,
+    "description": 0,
+    "tags": [],
+    "for": "Mitya",
+    "badge": "/characters/mitya-avatar.png",
+    "config": []
+  },
+  "ValeriyDefault": {
+    "name": "ValeriyDefault",
+    "nameLocale": 3762,
+    "description": 0,
+    "tags": [],
+    "for": "Valeriy",
+    "badge": "/characters/valeriy-avatar.png",
     "config": []
   }
 }

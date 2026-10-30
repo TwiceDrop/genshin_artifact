@@ -1,3 +1,5 @@
+pub mod mitya_default;pub use mitya_default::MityaDefaultTargetFunction;
+pub mod valeriy_default;pub use valeriy_default::ValeriyDefaultTargetFunction;
 pub mod beidou_default;
 pub mod fischl_default;
 pub mod keqing_default;

@@ -300,3 +300,108 @@ test('review: ambiguous three-to-four upgrades do not reuse an existing artifact
         assert.equal(store.getArtifact(id).omit, true)
     }
 })
+
+const zeroWithFourth = () => ({ ...initialThreeStats(), unactivatedSubstats: [{ key: 'enerRech_', value: 6.5 }] })
+const previewRecord = () => {
+    const a = convertGoodArtifacts(good([zeroWithFourth()])).flower[0]
+    return { ...a, level: 4, normalTags: [...a.normalTags, ...a.unactivatedTags], unactivatedTags: [] }
+}
+test('level-zero: both import orders preserve zero, ID, omit and saved equipment; repeat is stable', () => {
+    for (const reverse of [false, true]) for (const remove of [false, true]) {
+        reset()
+        const zero = good([zeroWithFourth()]), preview = { flower: [previewRecord()] }
+        importMonaJson(reverse ? zero : preview, false, false)
+        const id = [...store.artifacts.value.keys()][0]
+        store.lockArtifact(id)
+        const saved = kumi.createKumi(0, '合成保留配装'); kumi.addArtifact(saved, id)
+        const result = importMonaJson(reverse ? preview : zero, remove, false)
+        assert.equal(result.add, 0); assert.equal(result.remove, 0)
+        const a = store.getArtifact(id)
+        assert.equal(store.artifactsCount.value, 1); assert.equal(a.level, 0)
+        assert.equal(a.mainTag.value, 717); assert.equal(a.normalTags.length, 3)
+        assert.equal(a.unactivatedTags.length, 1); assert.equal(a.omit, true)
+        assert.equal(convertArtifact(a).sub_stats.length, 3)
+        assert.equal(kumi.itemById(saved).artifactIds[0], id)
+        assert.equal(importMonaJson(zero, remove, false).add, 0)
+        assert.equal(importMonaJson(preview, remove, false).add, 0)
+        assert.equal(store.artifactsCount.value, 1); assert.equal(store.getArtifact(id).level, 0)
+        // Persistence must retain matching evidence without activating the fourth stat.
+        const reloaded = JSON.parse(JSON.stringify({ flower: [...store.artifacts.value.values()] }))
+        store.init(reloaded)
+        assert.equal(importMonaJson(preview, false, false).add, 0)
+        assert.equal(store.getArtifact(id).normalTags.length, 3)
+    }
+})
+test('level-zero: exact four-stat variant matches; real upgrades, differing fourth stats and ambiguity stay distinct', () => {
+    reset()
+    const zero = convertGoodArtifacts(good([zeroWithFourth()])).flower[0]
+    zero.normalTags.push(...zero.unactivatedTags); zero.unactivatedTags = []
+    const id = store.addArtifact({ ...zero, level: 4 }, true)
+    assert.equal(importMonaJson({ flower: [zero] }, false, false).add, 0)
+    assert.equal(store.getArtifact(id).level, 0)
+    for (const mutation of [
+        a => { a.normalTags[3].value = .058 },
+        a => { a.mainTag.value = 1530 },
+        a => { a.setName = 'crimsonWitch' },
+    ]) {
+        reset()
+        const old = previewRecord(); mutation(old)
+        const oldId = store.addArtifact(old)
+        assert.equal(importMonaJson(good([zeroWithFourth()]), false, false).add, 1)
+        assert.equal(store.getArtifact(oldId).level, 4)
+    }
+    reset()
+    importMonaJson(good([initialThreeStats()]), false, false) // No fourth-stat evidence.
+    assert.equal(importMonaJson({ flower: [previewRecord()] }, false, false).add, 1)
+    assert.equal([...store.artifacts.value.values()][0].level, 0)
+    reset()
+    store.addArtifact(previewRecord()); store.addArtifact(previewRecord())
+    assert.equal(importMonaJson(good([zeroWithFourth()]), false, false).add, 1)
+    assert.equal(store.artifactsCount.value, 3)
+    reset()
+    importMonaJson(good([zeroWithFourth()]), false, false)
+    const upgrade = importMonaJson(good([addedFourthStat()]), false, false)
+    assert.equal(upgrade.upgrade, 1); assert.equal(store.artifactsCount.value, 1)
+    assert.equal([...store.artifacts.value.values()][0].mainTag.value, 1530)
+})
+
+const { artifactImportContext, confirmedZeroDuplicates } = load('src/import/level-zero-match.cjs')
+test('confirmed cleanup: remove only the unreferenced preview and leave saved presets and ownership byte-identical', () => {
+    reset()
+    const zero = convertGoodArtifacts(good([zeroWithFourth()])).flower[0]
+    const zeroId = store.addArtifact(zero), previewId = store.addArtifact(previewRecord())
+    const presets = { saved: { item: { artifactIds: [zeroId], targetMode: 'dsl', dslSource: 'result = 1', buffs: [{name:'synthetic'}] } } }
+    const data = { entries: [{ uid: '111111111', artifactIds: [zeroId] }], uidArtifactIds: { '111111111': [zeroId, previewId] } }
+    const groups = [{ artifactIds: [zeroId] }]
+    const before = JSON.stringify({presets, data, groups})
+    const context = artifactImportContext(presets, groups, data)
+    assert.deepEqual(confirmedZeroDuplicates([...store.artifacts.value.values()], context), [{ removedId: previewId, keptId: zeroId }])
+    const result = importMonaJson(good([zeroWithFourth()]), false, false, context)
+    assert.equal(result.remove, 1); assert.equal(result.add, 0)
+    assert.equal(store.artifactsCount.value, 1)
+    assert.equal(store.getArtifact(zeroId).level, 0)
+    assert.equal(store.getArtifact(previewId), undefined)
+    assert.equal(JSON.stringify({presets, data, groups}), before)
+    assert.equal(importMonaJson(good([zeroWithFourth()]), false, false, context).remove, 0)
+    assert.equal(importMonaJson({flower:[previewRecord()]}, false, false, context).add, 0)
+    assert.equal(store.artifactsCount.value, 1)
+})
+test('confirmed cleanup: referenced, cross-UID, ambiguous and different-stat equipment is never deleted', () => {
+    const zero = {...convertGoodArtifacts(good([zeroWithFourth()])).flower[0], id:10, omit:false}
+    const preview = {...previewRecord(), id:20, omit:false}
+    for (const [presets, groups, data] of [
+        [{saved:{item:{artifactIds:[20]}}},[],{}],
+        [{},[{artifactIds:[20]}],{}],
+        [{},[],{entries:[{uid:'111111111',artifactIds:[20]}]}],
+        [{},[],{artifactComparison:{history:[{items:[{id:20}]}]}}],
+        [{},[],{uidArtifactIds:{'111111111':[10],'222222222':[20]}}],
+    ]) assert.deepEqual(confirmedZeroDuplicates([zero,preview],artifactImportContext(presets,groups,data)),[])
+    const context = artifactImportContext({},[],{})
+    for(const items of [
+        [zero,preview,{...preview,id:21}],
+        [zero,{...preview,omit:true}],
+        [{...zero,unactivatedTags:[]},preview],
+        [zero,{...preview,normalTags:preview.normalTags.map(t=>({...t,value:t.value+1}))}],
+        [zero,{...preview,mainTag:{name:'lifeStatic',value:1530}}],
+    ]) assert.deepEqual(confirmedZeroDuplicates(items,context),[])
+})

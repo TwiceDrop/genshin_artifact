@@ -1,0 +1,2796 @@
+{
+  "source": {
+    "version": "7.1.53",
+    "revision": 48845164,
+    "beta": "V4",
+    "url": "https://gi.gachabase.net/characters/10000137/valeriy/beta/7.1.53/48845164?lang=chs"
+  },
+  "id": 10000137,
+  "name": "Valeriy",
+  "nameZh": "瓦列里",
+  "attributes": [
+    {
+      "attribute_id": 1,
+      "curve_id": 22,
+      "value": 838.8477
+    },
+    {
+      "attribute_id": 4,
+      "curve_id": 32,
+      "value": 21.3696
+    },
+    {
+      "attribute_id": 7,
+      "curve_id": 22,
+      "value": 58.94175
+    }
+  ],
+  "promotions": [
+    {
+      "level": 0,
+      "stat_additions": []
+    },
+    {
+      "level": 1,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 626.6622
+        },
+        {
+          "stat_id": 7,
+          "value": 44.0325
+        },
+        {
+          "stat_id": 4,
+          "value": 15.96456
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 1071.9221
+        },
+        {
+          "stat_id": 7,
+          "value": 75.31875
+        },
+        {
+          "stat_id": 4,
+          "value": 27.3078
+        },
+        {
+          "stat_id": 6,
+          "value": 0.06
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 1665.6022
+        },
+        {
+          "stat_id": 7,
+          "value": 117.03375
+        },
+        {
+          "stat_id": 4,
+          "value": 42.43212
+        },
+        {
+          "stat_id": 6,
+          "value": 0.12
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 2110.862
+        },
+        {
+          "stat_id": 7,
+          "value": 148.32
+        },
+        {
+          "stat_id": 4,
+          "value": 53.77536
+        },
+        {
+          "stat_id": 6,
+          "value": 0.12
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 2556.122
+        },
+        {
+          "stat_id": 7,
+          "value": 179.60625
+        },
+        {
+          "stat_id": 4,
+          "value": 65.1186
+        },
+        {
+          "stat_id": 6,
+          "value": 0.18
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 3001.382
+        },
+        {
+          "stat_id": 7,
+          "value": 210.8925
+        },
+        {
+          "stat_id": 4,
+          "value": 76.46184
+        },
+        {
+          "stat_id": 6,
+          "value": 0.24
+        }
+      ]
+    }
+  ],
+  "curves": {
+    "22": {
+      "id": 22,
+      "operation": 2,
+      "values": [
+        1,
+        1.083,
+        1.165,
+        1.248,
+        1.33,
+        1.413,
+        1.495,
+        1.578,
+        1.661,
+        1.743,
+        1.826,
+        1.908,
+        1.991,
+        2.073,
+        2.156,
+        2.239,
+        2.321,
+        2.404,
+        2.486,
+        2.569,
+        2.651,
+        2.734,
+        2.817,
+        2.899,
+        2.982,
+        3.064,
+        3.147,
+        3.229,
+        3.312,
+        3.394,
+        3.477,
+        3.56,
+        3.642,
+        3.725,
+        3.807,
+        3.89,
+        3.972,
+        4.055,
+        4.138,
+        4.22,
+        4.303,
+        4.385,
+        4.468,
+        4.55,
+        4.633,
+        4.716,
+        4.798,
+        4.881,
+        4.963,
+        5.046,
+        5.128,
+        5.211,
+        5.294,
+        5.376,
+        5.459,
+        5.541,
+        5.624,
+        5.706,
+        5.789,
+        5.872,
+        5.954,
+        6.037,
+        6.119,
+        6.202,
+        6.284,
+        6.367,
+        6.45,
+        6.532,
+        6.615,
+        6.697,
+        6.78,
+        6.862,
+        6.945,
+        7.028,
+        7.11,
+        7.193,
+        7.275,
+        7.358,
+        7.44,
+        7.523,
+        7.606,
+        7.688,
+        7.771,
+        7.853,
+        7.936,
+        8.018,
+        8.101,
+        8.183,
+        8.266,
+        8.349,
+        8.431,
+        8.514,
+        8.596,
+        8.679,
+        8.761,
+        8.844,
+        8.927,
+        9.009,
+        9.092,
+        9.174
+      ]
+    },
+    "32": {
+      "id": 32,
+      "operation": 2,
+      "values": [
+        1,
+        1.083,
+        1.165,
+        1.248,
+        1.33,
+        1.413,
+        1.495,
+        1.578,
+        1.661,
+        1.743,
+        1.826,
+        1.908,
+        1.991,
+        2.073,
+        2.156,
+        2.239,
+        2.321,
+        2.404,
+        2.486,
+        2.569,
+        2.651,
+        2.734,
+        2.817,
+        2.899,
+        2.982,
+        3.064,
+        3.147,
+        3.229,
+        3.312,
+        3.394,
+        3.477,
+        3.56,
+        3.642,
+        3.725,
+        3.807,
+        3.89,
+        3.972,
+        4.055,
+        4.138,
+        4.22,
+        4.303,
+        4.385,
+        4.468,
+        4.55,
+        4.633,
+        4.716,
+        4.798,
+        4.881,
+        4.963,
+        5.046,
+        5.128,
+        5.211,
+        5.294,
+        5.376,
+        5.459,
+        5.541,
+        5.624,
+        5.706,
+        5.789,
+        5.872,
+        5.954,
+        6.037,
+        6.119,
+        6.202,
+        6.284,
+        6.367,
+        6.45,
+        6.532,
+        6.615,
+        6.697,
+        6.78,
+        6.862,
+        6.945,
+        7.028,
+        7.11,
+        7.193,
+        7.275,
+        7.358,
+        7.44,
+        7.523,
+        7.606,
+        7.688,
+        7.771,
+        7.853,
+        7.936,
+        8.018,
+        8.101,
+        8.183,
+        8.266,
+        8.349,
+        8.653,
+        8.957,
+        9.262,
+        9.566,
+        9.87,
+        10.174,
+        10.479,
+        10.783,
+        11.087,
+        11.392
+      ]
+    }
+  },
+  "talents": [
+    {
+      "id": 30601,
+      "name": "近卫战法·盾剑攻斥",
+      "description": "<color=#FFD780FF>普通攻击</color>\\n进行至多三段的连续剑击。\\n\\n<color=#FFD780FF>重击</color>\\n消耗一定体力，向前方跃起，并砸击地面，对附近的敌人造成物理伤害。\\n瓦列里拥有至少40点<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>时，将消耗所有<color=#FFD780FF>冲击势能</color>，改为进行特殊重击<color=#FFD780FF>{LINK#N11370001}臼炮直射·抵近轰击{/LINK}</color>。\\n\\n<color=#FFD780FF>下落攻击</color>\\n从空中下坠冲击地面，攻击下落路径上的敌人，并在落地时造成范围伤害。{LINK#N11370002}{/LINK}",
+      "levels": [
+        {
+          "level": 1,
+          "descriptions": [
+            {
+              "key": "3557856310",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1121821182",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2552703303",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3720746399",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "877807070",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "967449890",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "819384527",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3649250573",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "2778145236",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "673539119",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2550285628",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "129754467",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.324839,
+            0.29326,
+            0.454175,
+            1.00276,
+            2.292,
+            20,
+            0.2432,
+            0.7296,
+            15,
+            18,
+            0.639324,
+            1.278377,
+            1.596762
+          ]
+        },
+        {
+          "level": 2,
+          "descriptions": [
+            {
+              "key": "3015966958",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "342446278",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3094779167",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3924725239",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1066673390",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2615517666",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "3413317831",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3234172981",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3528848788",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "3912116455",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1283498052",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "3411450115",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.35128,
+            0.31713,
+            0.491142,
+            1.08438,
+            2.4639,
+            20,
+            0.26144,
+            0.78432,
+            15,
+            18,
+            0.691362,
+            1.382431,
+            1.726731
+          ]
+        },
+        {
+          "level": 3,
+          "descriptions": [
+            {
+              "key": "2228038126",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3524074854",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "692026495",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "4022560199",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "647218190",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2757272026",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "2705377415",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "2001559661",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "15297924",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "4018425935",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2179544396",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "2302516683",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.37772,
+            0.341,
+            0.52811,
+            1.166,
+            2.6358,
+            20,
+            0.27968,
+            0.83904,
+            15,
+            18,
+            0.7434,
+            1.486485,
+            1.8567
+          ]
+        },
+        {
+          "level": 4,
+          "descriptions": [
+            {
+              "key": "1793805334",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "788740470",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2562190687",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "4156736831",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1226813838",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2487517650",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1744433599",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "1393027173",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "199087460",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "1511819367",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1909341484",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "2307329115",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.415492,
+            0.3751,
+            0.580921,
+            1.2826,
+            2.865,
+            20,
+            0.304,
+            0.912,
+            15,
+            18,
+            0.81774,
+            1.635134,
+            2.04237
+          ]
+        },
+        {
+          "level": 5,
+          "descriptions": [
+            {
+              "key": "441010390",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2605584846",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3869169895",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1732380135",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "727515342",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "1346946058",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "3998913575",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "357768429",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3852649764",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "2514019815",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2530670764",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "3664443539",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.441932,
+            0.39897,
+            0.617889,
+            1.36422,
+            3.0369,
+            20,
+            0.32224,
+            0.96672,
+            15,
+            18,
+            0.869778,
+            1.739187,
+            2.172339
+          ]
+        },
+        {
+          "level": 6,
+          "descriptions": [
+            {
+              "key": "3895001398",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2576134150",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1386284071",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2971929087",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "3940944998",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "3512235498",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1361369271",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "791615549",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "244669540",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "2439697823",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "4122912884",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "2491903427",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.47215,
+            0.42625,
+            0.660137,
+            1.4575,
+            3.2088,
+            20,
+            0.34048,
+            1.02144,
+            15,
+            18,
+            0.92925,
+            1.858106,
+            2.320875
+          ]
+        },
+        {
+          "level": 7,
+          "descriptions": [
+            {
+              "key": "4003340710",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "4030020046",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "684645847",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2819473599",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "2247045310",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2887430274",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1155678543",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "1547190581",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3992360100",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "4210454999",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3047779820",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "4192992459",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.513699,
+            0.46376,
+            0.71823,
+            1.58576,
+            3.438,
+            20,
+            0.3648,
+            1.0944,
+            15,
+            18,
+            1.011024,
+            2.02162,
+            2.525112
+          ]
+        },
+        {
+          "level": 8,
+          "descriptions": [
+            {
+              "key": "1966196926",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1816044990",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "82272431",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "4279145511",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1371632126",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2574244282",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "2078268447",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3792737773",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3082288316",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "3172374591",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2725518484",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "3368725747",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.555248,
+            0.50127,
+            0.776322,
+            1.71402,
+            3.6672,
+            20,
+            0.38912,
+            1.16736,
+            15,
+            18,
+            1.092798,
+            2.185133,
+            2.729349
+          ]
+        },
+        {
+          "level": 9,
+          "descriptions": [
+            {
+              "key": "3062604830",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3342297230",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3643927711",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3246132735",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "302762430",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "862682562",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1607946263",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "961957053",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3579097236",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "617350311",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3761452364",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "2013048939",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.596798,
+            0.53878,
+            0.834414,
+            1.84228,
+            3.8964,
+            20,
+            0.41344,
+            1.24032,
+            15,
+            18,
+            1.174572,
+            2.348646,
+            2.933586
+          ]
+        },
+        {
+          "level": 10,
+          "descriptions": [
+            {
+              "key": "3012230158",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2042488198",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1095231871",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2478162135",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "2912950390",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "3608595738",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1781634375",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3397207085",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "146658700",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "3683778839",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1992122444",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "2560752107",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.642124,
+            0.5797,
+            0.897787,
+            1.9822,
+            4.1256,
+            20,
+            0.43776,
+            1.31328,
+            15,
+            18,
+            1.26378,
+            2.527025,
+            3.15639
+          ]
+        },
+        {
+          "level": 11,
+          "descriptions": [
+            {
+              "key": "2025590206",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "976013678",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "272536687",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "120860719",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "789142630",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "3848942074",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1656987783",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "2227506445",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3467763868",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "1163049303",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "340455548",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "1701237211",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.68745,
+            0.62062,
+            0.96116,
+            2.12212,
+            4.3548,
+            20,
+            0.46208,
+            1.38624,
+            15,
+            18,
+            1.352988,
+            2.705403,
+            3.379194
+          ]
+        },
+        {
+          "level": 12,
+          "descriptions": [
+            {
+              "key": "1532481662",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1584720334",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "312451287",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3782263839",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1524574654",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "1016597938",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "2857723031",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "2619651317",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "3797122172",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "2973366455",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3335148028",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "3752960379",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.732777,
+            0.66154,
+            1.024533,
+            2.26204,
+            4.584,
+            20,
+            0.4864,
+            1.4592,
+            15,
+            18,
+            1.442196,
+            2.883781,
+            3.601998
+          ]
+        },
+        {
+          "level": 13,
+          "descriptions": [
+            {
+              "key": "1997392118",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "31767958",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1526653303",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3314628727",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1207276006",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "3273514418",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1571095999",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "2218864661",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "1024243852",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "2385156559",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1661213004",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "1196527099",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.778103,
+            0.70246,
+            1.087907,
+            2.40196,
+            4.8705,
+            20,
+            0.5168,
+            1.5504,
+            15,
+            18,
+            1.531404,
+            3.062159,
+            3.824802
+          ]
+        },
+        {
+          "level": 14,
+          "descriptions": [
+            {
+              "key": "2269680790",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3900952966",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "48597239",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2990942327",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1327759606",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2192408618",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "1177477535",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "1847083445",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "970566988",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "4037731359",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "4210732492",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "3465309483",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.82343,
+            0.74338,
+            1.15128,
+            2.54188,
+            5.157,
+            20,
+            0.5472,
+            1.6416,
+            15,
+            18,
+            1.620612,
+            3.240537,
+            4.047606
+          ]
+        },
+        {
+          "level": 15,
+          "descriptions": [
+            {
+              "key": "2415979006",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "128263374",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1287169287",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "435341671",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1497412814",
+              "text": "臼炮直射·抵近轰击伤害|{param5:F1P}",
+              "override": null
+            },
+            {
+              "key": "2443219042",
+              "text": "重击体力消耗|{param6:F1}点",
+              "override": null
+            },
+            {
+              "key": "4244611287",
+              "text": "雷元素伤害增加|{param7:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "594250101",
+              "text": "星超导反应伤害增加|{param8:F2P}攻击力",
+              "override": null
+            },
+            {
+              "key": "1395828900",
+              "text": "攻斥指令层数|{param9:I}层",
+              "override": null
+            },
+            {
+              "key": "2227279119",
+              "text": "攻斥指令持续时间|{param10:F1}秒",
+              "override": null
+            },
+            {
+              "key": "187817084",
+              "text": "下坠期间伤害|{param11:F1P}",
+              "override": null
+            },
+            {
+              "key": "1976818739",
+              "text": "低空/高空坠地冲击伤害|{param12:F1P}/{param13:F1P}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.868756,
+            0.7843,
+            1.214653,
+            2.6818,
+            5.4435,
+            20,
+            0.5776,
+            1.7328,
+            15,
+            18,
+            1.70982,
+            3.418915,
+            4.27041
+          ]
+        }
+      ]
+    },
+    {
+      "id": 30602,
+      "name": "攻势防御·堡垒骤进",
+      "description": "举盾并向前冲刺，造成<color=#FFACFFFF>雷元素范围伤害</color>，获得40点<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>，并展开蓄雷护盾。\\n蓄雷护盾的伤害吸收量受益于瓦列里的攻击力，对<color=#FFACFFFF>雷元素伤害</color>有250%的吸收效果。",
+      "levels": [
+        {
+          "level": 1,
+          "descriptions": [
+            {
+              "key": "1199819238",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1183672702",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "3750871215",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3159395631",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.66,
+            2.08896,
+            1309.6384,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 2,
+          "descriptions": [
+            {
+              "key": "2321663382",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2054026478",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "18342375",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2699596055",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.7845,
+            2.245632,
+            1440.6204,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 3,
+          "descriptions": [
+            {
+              "key": "1426888094",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1249608062",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "2495503639",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3330875711",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.909,
+            2.402304,
+            1582.5176,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 4,
+          "descriptions": [
+            {
+              "key": "879486366",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3499545734",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "3143312719",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2639794295",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.075,
+            2.6112,
+            1735.33,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 5,
+          "descriptions": [
+            {
+              "key": "3618886790",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1989502030",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "3215964463",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2083519823",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.1995,
+            2.767872,
+            1899.0575,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 6,
+          "descriptions": [
+            {
+              "key": "361220438",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1804921254",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "1847594415",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2033590359",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.324,
+            2.924544,
+            2073.7002,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 7,
+          "descriptions": [
+            {
+              "key": "501246214",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1250082838",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "3715190799",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "661093391",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.49,
+            3.13344,
+            2259.258,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 8,
+          "descriptions": [
+            {
+              "key": "2330489966",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "257353054",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "1389373695",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2314232311",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.656,
+            3.342336,
+            2455.7312,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 9,
+          "descriptions": [
+            {
+              "key": "1351390470",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3282649190",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "4199346655",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2145132951",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.822,
+            3.551232,
+            2663.1194,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 10,
+          "descriptions": [
+            {
+              "key": "1280476358",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "4050568638",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "1057134991",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3111235783",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.988,
+            3.760128,
+            2881.4229,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 11,
+          "descriptions": [
+            {
+              "key": "1198640334",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1892016166",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "4158256279",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1761085951",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.154,
+            3.969024,
+            3110.6414,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 12,
+          "descriptions": [
+            {
+              "key": "486466598",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "4169013710",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "3119536623",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3380839511",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.32,
+            4.17792,
+            3350.7751,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 13,
+          "descriptions": [
+            {
+              "key": "557272358",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "25104822",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "2333690023",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2911547567",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.5275,
+            4.43904,
+            3601.824,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 14,
+          "descriptions": [
+            {
+              "key": "2322501686",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "209679630",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "2470725687",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "290434247",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.735,
+            4.70016,
+            3863.788,
+            18,
+            10
+          ]
+        },
+        {
+          "level": 15,
+          "descriptions": [
+            {
+              "key": "633244102",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3088007382",
+              "text": "护盾吸收量|{param2:F1P}攻击力+{param3:I}",
+              "override": null
+            },
+            {
+              "key": "1305414983",
+              "text": "护盾持续时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3595160647",
+              "text": "冷却时间|{param5:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.9425,
+            4.96128,
+            4136.6675,
+            18,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "id": 30605,
+      "name": "火力焦点·雷霰急袭",
+      "description": "对附近的敌人造成<color=#FFACFFFF>雷元素范围伤害</color>，并向高空发射<color=#FFD780FF>雷霰重弹</color>。<color=#FFD780FF>雷霰重弹</color>会分散成大量弹幕坠向地面，对附近的敌人造成<color=#FFACFFFF>雷元素范围伤害</color>。",
+      "levels": [
+        {
+          "level": 1,
+          "descriptions": [
+            {
+              "key": "636054782",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1344954374",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "622913719",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3273029967",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1761801710",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.3512,
+            0.3152,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 2,
+          "descriptions": [
+            {
+              "key": "1374676070",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2205785118",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "704684511",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1224752447",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1641414790",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.45254,
+            0.33884,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 3,
+          "descriptions": [
+            {
+              "key": "2644988270",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "224868622",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3709441375",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "647772175",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "277730678",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.55388,
+            0.36248,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 4,
+          "descriptions": [
+            {
+              "key": "3211655662",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "225759598",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "866142327",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "77700399",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3697527182",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.689,
+            0.394,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 5,
+          "descriptions": [
+            {
+              "key": "783420646",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2273007886",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2940885143",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3928249807",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3197834734",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.79034,
+            0.41764,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 6,
+          "descriptions": [
+            {
+              "key": "4036815878",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3891094566",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1045663775",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "773310815",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1805635750",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.89168,
+            0.44128,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 7,
+          "descriptions": [
+            {
+              "key": "1178744278",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "798622918",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2945572327",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1189437927",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1450754342",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.0268,
+            0.4728,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 8,
+          "descriptions": [
+            {
+              "key": "2778230078",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2483076246",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2453824591",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3199229407",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3771047294",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.16192,
+            0.50432,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 9,
+          "descriptions": [
+            {
+              "key": "3754698150",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1263254710",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2103644567",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2641182991",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2441094526",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.29704,
+            0.53584,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 10,
+          "descriptions": [
+            {
+              "key": "1834864878",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3879898470",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3808263407",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3634988463",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3360472542",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.43216,
+            0.56736,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 11,
+          "descriptions": [
+            {
+              "key": "1496596710",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1380198454",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2215556191",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3008121343",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "746220686",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.56728,
+            0.59888,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 12,
+          "descriptions": [
+            {
+              "key": "2280705254",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2429557766",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2642417735",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2794488039",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2024493462",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.7024,
+            0.6304,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 13,
+          "descriptions": [
+            {
+              "key": "3297409246",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "426315838",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3066196223",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "615327911",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1486611750",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.8713,
+            0.6698,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 14,
+          "descriptions": [
+            {
+              "key": "2238190030",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "304727422",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "4120618103",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1226185095",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "4066208886",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.0402,
+            0.7092,
+            12,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 15,
+          "descriptions": [
+            {
+              "key": "465750158",
+              "text": "技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2017916190",
+              "text": "雷霰重弹伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2482601359",
+              "text": "持续时间|{param3:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2141799935",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "174460086",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.2091,
+            0.7486,
+            12,
+            15,
+            60
+          ]
+        }
+      ]
+    }
+  ],
+  "passives": [
+    {
+      "id": 1372101,
+      "name": "与徐进弹幕为伴",
+      "description": "元素爆发<color=#FFD780FF>{LINK#S30605}火力焦点·雷霰急袭{/LINK}</color>中的<color=#FFD780FF>雷霰重弹</color>下坠期间，队伍中附近的当前场上其他角色的元素类型为<color=#FFACFFFF>雷元素</color>的攻击命中敌人时，瓦列里将获得5点<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>。每次施放元素爆发后，至多通过这种方式获得80点<color=#FFD780FF>冲击势能</color>。",
+      "parameters": [
+        5,
+        80
+      ]
+    },
+    {
+      "id": 1372201,
+      "name": "向防线缺口突击",
+      "description": "<color=#FFD780FF>{LINK#N11370002}攻斥指令{/LINK}</color>获得强化：依据进行特殊重击<color=#FFD780FF>{LINK#N11370001}臼炮直射·抵近轰击{/LINK}</color>时消耗的<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>，每消耗一点<color=#FFD780FF>冲击势能</color>，都会使<color=#FFD780FF>攻斥指令</color>的伤害加成效果进一步提升。若瓦列里：\\n·处于<color=#FFD780FF>辉映·星超导</color>状态：每点消耗的<color=#FFD780FF>冲击势能</color>都会使<color=#FFD780FF>攻斥指令</color>的伤害加成效果提升，提升值相当于瓦列里攻击力的0.9%；\\n·不处于<color=#FFD780FF>辉映·星超导</color>状态：每点消耗的<color=#FFD780FF>冲击势能</color>都会使<color=#FFD780FF>攻斥指令</color>的伤害加成效果提升，提升值相当于瓦列里攻击力的0.3%。",
+      "parameters": [
+        0.003,
+        0.009
+      ]
+    },
+    {
+      "id": 1372301,
+      "name": "极寒应变惯性",
+      "description": "处于{LINK#N11330003}<color=#FFD780FF>极星辉域</color>{/LINK}中时，瓦列里将会进入<color=#FFD780FF>辉映·星超导</color>状态。",
+      "parameters": []
+    },
+    {
+      "id": 1372501,
+      "name": "冰原行动情报",
+      "description": "在至冬（挪德卡莱除外）执行时长为20小时的探索派遣任务时，获得的奖励增加25%。",
+      "parameters": []
+    }
+  ],
+  "constellations": [
+    {
+      "id": 1371,
+      "name": "持续压制的时序",
+      "description": "进行特殊重击<color=#FFD780FF>{LINK#N11370001}臼炮直射·抵近轰击{/LINK}</color>后，会为瓦列里恢复6点元素能量。依据进行特殊重击时消耗的<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>，超过40点的部分，每消耗10点，都会使瓦列里额外恢复1.5点元素能量。每次进行特殊重击<color=#FFD780FF>臼炮直射·抵近轰击</color>，至多通过这种方式为瓦列里恢复15点元素能量。该效果每15秒至多触发一次。\\n此外，每次进入战斗状态时，瓦列里首次施放元素战技<color=#FFD780FF>{LINK#S30602}攻势防御·堡垒骤进{/LINK}</color>时，还会额外获得相当于原本150%的<color=#FFD780FF>冲击势能</color>。",
+      "parameters": [
+        6,
+        15,
+        1.5
+      ]
+    },
+    {
+      "id": 1372,
+      "name": "伴随冲阵的队型",
+      "description": "施放元素战技<color=#FFD780FF>{LINK#S30602}攻势防御·堡垒骤进{/LINK}</color>后的18秒内，队伍中附近的所有角色的元素精通提升100点。\\n此外，处于蓄雷护盾庇护下时，若瓦列里的<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>已达到上限，触发获取<color=#FFD780FF>冲击势能</color>的效果时，将转为提升蓄雷护盾的伤害吸收量，每1点溢出的<color=#FFD780FF>冲击势能</color>都会使蓄雷护盾的伤害吸收量提升瓦列里攻击力的8%，至多通过这种方式转化20点溢出的<color=#FFD780FF>冲击势能</color>。",
+      "parameters": [
+        0.08,
+        100,
+        20,
+        18
+      ]
+    },
+    {
+      "id": 1373,
+      "name": "白刃对决的戒备",
+      "description": "普通攻击<color=#FFD780FF>{LINK#S30601}近卫战法·盾剑攻斥{/LINK}</color>的技能等级提高3级。\\n至多提升至15级。",
+      "parameters": []
+    },
+    {
+      "id": 1374,
+      "name": "不惧折损的韧性",
+      "description": "<color=#FFD780FF>{LINK#N11370003}冲击势能{/LINK}</color>的上限提升30点，且获取效率提升30%。\\n此外，突破天赋<color=#FFD780FF>{LINK#P1372101}与徐进弹幕为伴{/LINK}</color>的效果获得强化：每次施放元素爆发后，至多可以通过该天赋获得104点<color=#FFD780FF>冲击势能</color>。需要解锁突破天赋<color=#FFD780FF>与徐进弹幕为伴</color>。",
+      "parameters": [
+        0.3
+      ]
+    },
+    {
+      "id": 1375,
+      "name": "分割歼灭的专意",
+      "description": "元素战技<color=#FFD780FF>{LINK#S30602}攻势防御·堡垒骤进{/LINK}</color>的技能等级提高3级。\\n至多提升至15级。",
+      "parameters": []
+    },
+    {
+      "id": 1376,
+      "name": "穿透敌阵的威能",
+      "description": "特殊重击<color=#FFD780FF>{LINK#N11370001}臼炮直射·抵近轰击{/LINK}</color>与元素爆发<color=#FFD780FF>{LINK#S30605}火力焦点·雷霰急袭{/LINK}</color>中的<color=#FFD780FF>雷霰重弹</color>获得强化：造成的伤害提升100%，并且在命中敌人后的7秒内，使其受到的<color=#FFACFFFF>雷元素伤害</color>的暴击率提升10%；若受到的<color=#FFACFFFF>雷元素伤害</color>为星超导反应伤害，则该伤害的暴击伤害也会提升40%。",
+      "parameters": [
+        1,
+        7,
+        0.1,
+        0.4
+      ]
+    }
+  ],
+  "tooltips": {
+    "11330003": {
+      "id": 11330003,
+      "name": {
+        "key": "952980404",
+        "text": "极星辉域",
+        "override": null
+      },
+      "description": {
+        "key": "1792761473",
+        "text": "触发星超导反应时，附近的区域会短暂变化为<color=#FFD780FF>极星辉域</color>；处于极星辉域中时，特定角色将会进入<color=#FFD780FF>辉映·星超导</color>状态，使其不同技能分别获得对应的强化效果。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "11370001": {
+      "id": 11370001,
+      "name": {
+        "key": "3753429596",
+        "text": "臼炮直射·抵近轰击",
+        "override": null
+      },
+      "description": {
+        "key": "3298017961",
+        "text": "瓦列里的特殊重击。拥有至少40点<color=#FFD780FF>冲击势能</color>时进行重击，会消耗所有<color=#FFD780FF>冲击势能</color>，改为进行该特殊重击，对前方造成<color=#FFACFFFF>雷元素范围伤害</color>，并获得15层<color=#FFD780FF>攻斥指令</color>。\\n再次施放特殊重击时，<color=#FFD780FF>攻斥指令</color>的层数将会刷新。\\n施放元素战技<color=#FFD780FF>攻势防御·堡垒骤进</color>或元素爆发<color=#FFD780FF>火力焦点·雷霰急袭</color>后的0.8秒内，若瓦列里拥有至少40点<color=#FFD780FF>冲击势能</color>，则瓦列里进行的下一次普通攻击将会转为进行特殊重击<color=#FFD780FF>臼炮直射·抵近轰击</color>。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "11370002": {
+      "id": 11370002,
+      "name": {
+        "key": "1164001276",
+        "text": "攻斥指令",
+        "override": null
+      },
+      "description": {
+        "key": "522292873",
+        "text": "瓦列里进行特殊重击<color=#FFD780FF>臼炮直射·抵近轰击</color>后，会获得的特殊效果。依据瓦列里是否处于<color=#FFD780FF>辉映·星超导</color>状态，提升不同类型的<color=#FFACFFFF>雷元素伤害</color>。若瓦列里：\\n·处于<color=#FFD780FF>辉映·星超导</color>状态：队伍中附近的当前场上角色的普通攻击、重击、下落攻击、元素战技或元素爆发对敌人造成视为星超导反应伤害的<color=#FFACFFFF>雷元素伤害</color>时，将消耗一层<color=#FFD780FF>攻斥指令</color>，提升造成的伤害，提升值基于瓦列里的攻击力；\\n·不处于<color=#FFD780FF>辉映·星超导</color>状态：队伍中附近的当前场上角色的普通攻击、重击、下落攻击、元素战技或元素爆发对敌人造成<color=#FFACFFFF>雷元素伤害</color>时，将消耗一层<color=#FFD780FF>攻斥指令</color>，提升造成的伤害，提升值基于瓦列里的攻击力。\\n一次<color=#FFACFFFF>雷元素伤害</color>同时命中多名敌人时，会依据命中敌人的数量消耗<color=#FFD780FF>攻斥指令</color>的层数。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "11370003": {
+      "id": 11370003,
+      "name": {
+        "key": "3094386684",
+        "text": "冲击势能",
+        "override": null
+      },
+      "description": {
+        "key": "4228876817",
+        "text": "瓦列里用于强化战斗的特殊能量，初始上限为100点。拥有至少40点<color=#FFD780FF>冲击势能</color>时，可以进行特殊重击<color=#FFD780FF>臼炮直射·抵近轰击</color>。\\n瓦列里可以通过以下方式获取<color=#FFD780FF>冲击势能</color>：\\n·施放元素战技<color=#FFD780FF>攻势防御·堡垒骤进</color>时；\\n·解锁突破天赋「与徐进弹幕为伴」后，元素爆发<color=#FFD780FF>火力焦点·雷霰急袭</color>持续期间，队伍中附近的当前场上角色的元素类型为<color=#FFACFFFF>雷元素</color>的攻击命中敌人时。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
+  }
+}

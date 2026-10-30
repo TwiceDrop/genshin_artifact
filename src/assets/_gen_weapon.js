@@ -4711,7 +4711,7 @@ export default {
     "star": 5,
     "type": "Catalyst",
     "url": "/weapons/hymn-of-the-maelstrom.png",
-    "effect": 3736,
+    "effect": 3781,
     "configs": [
       {
         "name": "hp",
@@ -4751,7 +4751,7 @@ export default {
     "star": 5,
     "type": "Sword",
     "url": "/beta/chrysalis.webp",
-    "effect": 3746,
+    "effect": 3795,
     "configs": [
       {
         "name": "loyal_rate",
@@ -4899,6 +4899,37 @@ export default {
         "name": "stacks",
         "title": 1152,
         "type": "int"
+      }
+    ]
+  },
+  "StarsealedEdict": {
+    "name": "StarsealedEdict",
+    "internalName": "StarsealedEdict",
+    "nameLocale": 3773,
+    "star": 5,
+    "url": "/weapons/starsealed-edict.png",
+    "type": "Catalyst",
+    "effect": 3774,
+    "configs": [
+      {
+        "name": "skill_active",
+        "title": 3775,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "stacks",
+        "title": 3776,
+        "type": "int",
+        "min": 0,
+        "max": 3,
+        "default": 0
+      },
+      {
+        "name": "radiance",
+        "title": 3056,
+        "type": "bool",
+        "default": false
       }
     ]
   }

@@ -1,0 +1,120 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/11",
+  "id": "sandrone-yae-actions",
+  "title": "桑多涅／八重神子四人动作轴",
+  "endHit": "include",
+  "initialActiveSlot": "member1",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Sandrone"
+    },
+    {
+      "slot": "member2",
+      "character": "Odette"
+    },
+    {
+      "slot": "member3",
+      "character": "YaeMiko"
+    },
+    {
+      "slot": "member4",
+      "character": "Qiqi"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "a0",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 0
+    },
+    {
+      "id": "a1",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 950
+    },
+    {
+      "id": "a2",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 1900
+    },
+    {
+      "id": "a3",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 2100
+    },
+    {
+      "id": "a4",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 2500
+    },
+    {
+      "id": "a5",
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 3900
+    },
+    {
+      "id": "a6",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 6100
+    },
+    {
+      "id": "a7",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 10100
+    },
+    {
+      "id": "a8",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 10800
+    },
+    {
+      "id": "a9",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 13100
+    },
+    {
+      "id": "a10",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 17100
+    },
+    {
+      "id": "a11",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 17500
+    },
+    {
+      "id": "a12",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 21600
+    }
+  ]
+}

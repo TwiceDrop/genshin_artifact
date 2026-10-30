@@ -1,5 +1,5 @@
 import {isLimitedWeapon, normalizeLimitedWeapon, limitedWeaponEffects, bounded} from './limited-weapons.mjs';
-import {isSignatureWeapon, normalizeSignatureWeapon, chrysalisEffects} from './weapon-effects.mjs';
+import {isSignatureWeapon, normalizeSignatureWeapon, chrysalisEffects, hymnAttackBonus} from './weapon-effects.mjs';
 
 const clone=x=>JSON.parse(JSON.stringify(x));
 const native=c=>['Vodyanitsa','Vesna'].includes(c?.name);
@@ -66,7 +66,7 @@ export function createLimitedWeaponFacade(base, original, data, signatureData = 
         if(p.stacks)x.buffs.push(named('HPPercentage',{p:100*coef*p.stacks*m}));
         if(p.on_field&&p.stacks) {
             if(p.hp){
-                const attack=Math.min(Math.max(p.hp-40000,0)/1000*coef/10,2*coef)*p.stacks*m;
+                const attack=hymnAttackBonus(p.hp,w.refine,p.stacks,p.boosted);
                 if(attack)x.buffs.push(named('ATKPercentage',{p:100*attack}));
             }else{
                 x.buffs.push(named('ExtensionEffect',{label:'漩流颂歌·场上加攻',values:{HymnHPToATKPercentage:coef*p.stacks*m/10000}}));

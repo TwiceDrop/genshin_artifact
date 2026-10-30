@@ -1,6 +1,8 @@
 <template>
     <section class="mys-import">
         <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
+        <el-button v-if="verificationNeeded && loggedIn && !isNative" type="primary" :disabled="busy" @click="startVerification">完成验证</el-button>
+        <miyoushe-verification v-if="verification" :verification="verification" :submitting="submittingVerification" @complete="finishVerification" @cancel="cancelVerification" />
         <div class="mys-section-title"><h3>Cookie 账号管理</h3><span>{{ savedAccounts.length }} 个账号</span></div>
         <div class="mys-roster">
             <div v-for="account in savedAccounts" :key="account.id" class="mys-character">
@@ -69,6 +71,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import QRCode from 'qrcode'
+import MiyousheVerification from './MiyousheVerification.vue'
 import MiyousheCharacterPicker from './MiyousheCharacterPicker.vue'
 import characters from '@/assets/_gen_character'
 import weapons from '@/assets/_gen_weapon'
@@ -95,6 +98,8 @@ const error = ref(''), busy = ref(false), loggedIn = ref(false), qrImage = ref('
 const roles = ref([]), selectedUid = ref(''), result = ref(null), progress = ref({ completed: 0, total: 0 }), fileInput = ref(null)
 const savedAccounts = ref([]), activeId = ref(''), manualOpen = ref(false), manualCookie = ref('')
 const includeInventory = ref(true)
+const verificationNeeded = ref(false), verification = ref(null), submittingVerification = ref(false)
+let verificationContext = null
 const importRecords = computed(() => store.data.value.importRecords || [])
 const undoResult = ref('')
 async function persistImport(accountId) {
@@ -109,7 +114,7 @@ async function undoImport(id) {
         const inventory = useArtifactStore(), presets = usePresetStore(), accountId = accounts.currentAccountId.value
         const undone = undoImportRecord(id, { data: store.data.value, presets: presets.presets.value, inventory: inventory.artifacts.value,
             addPreset: (name, item) => presets.addOrOverwrite(name, item), deletePreset: name => presets.deletePreset(name),
-            removeArtifact: id => inventory.removeArtifact(id), extraArtifactIds: useKumiStore().kumi.value.flatMap(k => k.artifactIds || []) })
+            removeArtifact: id => inventory.removeArtifact(id), updateArtifact: (id, a) => inventory.updateArtifact(id, a), extraArtifactIds: useKumiStore().kumi.value.flatMap(k => k.artifactIds || []) })
         store.init(undone.data)
         await persistImport(accountId)
         result.value = null
@@ -125,7 +130,7 @@ async function api(path, method = 'GET', body) {
     catch { throw new Error('本机服务连接失败，请在项目目录运行 npm start，并打开 http://127.0.0.1:4174') }
     if (!response.headers.get('Content-Type')?.includes('application/json')) throw new Error('扫码登录需要本机服务。请运行 npm start，打开 http://127.0.0.1:4174')
     const data = await response.json()
-    if (!response.ok) throw new Error(data.error || '同步失败')
+    if (!response.ok) throw Object.assign(new Error(data.error || '同步失败'), { retcode: data.retcode })
     return data
 }
 function stopTimers() { clearTimeout(timer); clearInterval(clock); clearInterval(progressTimer) }
@@ -153,7 +158,7 @@ async function refreshRoles() {
 }
 async function selectAccount(id) {
     const run = ++generation
-    stopTimers(); busy.value = true; error.value = ''; qrImage.value = ''; manualCookie.value = ''
+    stopTimers(); verificationNeeded.value = false; busy.value = true; error.value = ''; qrImage.value = ''; manualCookie.value = ''
     try {
         const data = await api('select', 'POST', { id })
         if (disposed || run !== generation) return
@@ -173,7 +178,7 @@ async function deleteAccount(id) {
 }
 async function addCookie() {
     const run = ++generation
-    stopTimers(); busy.value = true; error.value = ''; qrImage.value = ''
+    stopTimers(); verificationNeeded.value = false; busy.value = true; error.value = ''; qrImage.value = ''
     const cookie = manualCookie.value
     manualCookie.value = ''
     try {
@@ -192,7 +197,7 @@ async function cancelSync() {
 }
 async function login() {
     const run = ++generation
-    stopTimers(); error.value = ''; busy.value = true; qrImage.value = ''; loggedIn.value = false; activeId.value = ''; roles.value = []; selectedUid.value = ''
+    stopTimers(); verificationNeeded.value = false; error.value = ''; busy.value = true; qrImage.value = ''; loggedIn.value = false; activeId.value = ''; roles.value = []; selectedUid.value = ''
     try {
         const qr = await api('login', 'POST')
         if (run !== generation || disposed) return
@@ -248,11 +253,49 @@ async function save(snapshot, accountId, source = '米游社同步') {
 }
 async function sync() {
     const run = ++generation, accountId = accounts.currentAccountId.value
-    error.value = ''; result.value = null; busy.value = true
+    error.value = ''; result.value = null; busy.value = true; verificationNeeded.value = false
     progressTimer = setInterval(async () => { try { const p = await api('progress'); if (run === generation) progress.value = p } catch { /* Main request reports errors. */ } }, 1500)
     try { const snapshot = await api('import', 'POST', { uid: selectedUid.value }); if (run === generation && !disposed) await save(snapshot, accountId) }
-    catch (e) { if (run === generation) error.value = e.message }
+    catch (e) { if (run === generation) { error.value = e.message; verificationNeeded.value = e.retcode === 1034 } }
     finally { clearInterval(progressTimer); if (run === generation) busy.value = false; await loadAccounts().catch(() => {}) }
+}
+async function startVerification() {
+    const run = generation
+    submittingVerification.value = false
+    busy.value = true
+    verificationContext = { run, uid: selectedUid.value, accountId: accounts.currentAccountId.value }
+    try {
+        const data = await api('verification/start', 'POST')
+        if (disposed || run !== generation) return
+        verification.value = data
+    } catch (e) { if (run === generation) { error.value = e.message; busy.value = false } }
+}
+async function cancelVerification() {
+    if (!verification.value) return
+    const run = ++generation
+    verification.value = null; verificationContext = null
+    try { await api('verification/cancel', 'POST') }
+    catch (e) { if (!disposed) error.value = e.message }
+    finally { if (!disposed && run === generation) busy.value = false }
+}
+async function finishVerification(result) {
+    if (submittingVerification.value || !verification.value) return
+    const flowId = verification.value.flowId, context = verificationContext
+    let ownedRun = context?.run
+    submittingVerification.value = true
+    try {
+        await api('verification/complete', 'POST', { flowId, result })
+        if (disposed || !context || context.run !== generation) return
+        if (context.uid !== selectedUid.value || context.accountId !== accounts.currentAccountId.value) throw new Error('账号已切换，请重新同步角色')
+        verification.value = null
+        submittingVerification.value = false
+        verificationNeeded.value = false
+        ownedRun = generation + 1
+        await sync()
+    } catch (e) { if (!disposed && context?.run === generation) { verification.value = null; error.value = e.message } }
+    finally {
+        if (!disposed && ownedRun === generation) { submittingVerification.value = false; verificationContext = null; busy.value = false }
+    }
 }
 async function exportSnapshots() {
     try { await saveText(JSON.stringify(Object.values(store.data.value.snapshots), null, 2), 'application/json', 'mona-miyoushe-characters.json') }
@@ -276,7 +319,7 @@ async function restore(event) {
             const inventory = useArtifactStore(), presets = usePresetStore()
             const before = captureImportState(store.data.value, presets.presets.value, inventory.artifacts.value)
             const imported = importUidPackage(raw, { data: store.data.value, presets: presets.presets.value, inventory: inventory.artifacts.value,
-                addArtifact: a => inventory.addArtifact(a), addPreset: (name, item) => presets.addOrOverwrite(name, item), catalog: { characters, weapons, artifacts, targets } })
+                addArtifact: a => inventory.addArtifact(a), updateArtifact: (id, a) => inventory.updateArtifact(id, a), addPreset: (name, item) => presets.addOrOverwrite(name, item), catalog: { characters, weapons, artifacts, targets } })
             store.init(appendImportRecord(imported.data, before, presets.presets.value, inventory.artifacts.value, { source: file.name, uids: [raw.uid] }))
             await new Promise(resolve => setTimeout(resolve, 0))
             for (const [type, content] of Object.entries({ miyoushe: store.data.value, artifacts: artifactsContent(), presets: presetsContent() })) await backend.setItem(`mona_account_${type}_${accountId}`, JSON.parse(JSON.stringify(content)))
@@ -300,7 +343,7 @@ onMounted(async () => {
     finally { if (!disposed) busy.value = false }
 })
 onBeforeUnmount(() => {
-    disposed = true; generation++; stopTimers(); manualCookie.value = ''
+    disposed = true; generation++; stopTimers(); manualCookie.value = ''; verification.value = null
     if (busy.value && loggedIn.value) api('cancel', 'POST').catch(() => {})
 })
 </script>

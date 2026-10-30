@@ -1,4 +1,3 @@
-// Published metadata with verified Stellar Swirl support.
 export default {
   "ATKPercentage": {
     "name": "ATKPercentage",
@@ -643,7 +642,7 @@ export default {
   "QiqiTalent2StellarConduct": {
     "name": "QiqiTalent2StellarConduct",
     "nameLocale": 3648,
-    "description": 3738,
+    "description": 3783,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qiqi.png",
     "genre": "Character",
     "config": []
@@ -651,7 +650,7 @@ export default {
   "QiqiC6StellarConduct": {
     "name": "QiqiC6StellarConduct",
     "nameLocale": 3650,
-    "description": 3739,
+    "description": 3784,
     "badge": "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Qiqi.png",
     "genre": "Character",
     "config": [
@@ -3403,7 +3402,7 @@ export default {
   "SandroneTalent1": {
     "name": "SandroneTalent1",
     "nameLocale": 3652,
-    "description": 3740,
+    "description": 3785,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
     "genre": "Character",
     "config": [
@@ -3420,7 +3419,7 @@ export default {
   "SandroneC1": {
     "name": "SandroneC1",
     "nameLocale": 3654,
-    "description": 3741,
+    "description": 3786,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
     "genre": "Character",
     "config": []
@@ -4513,7 +4512,7 @@ export default {
   "VodyanitsaE": {
     "name": "VodyanitsaE",
     "nameLocale": 3545,
-    "description": 3733,
+    "description": 3778,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4556,7 +4555,7 @@ export default {
   "VodyanitsaA4": {
     "name": "VodyanitsaA4",
     "nameLocale": 3547,
-    "description": 3734,
+    "description": 3779,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4599,7 +4598,7 @@ export default {
   "VodyanitsaC1": {
     "name": "VodyanitsaC1",
     "nameLocale": 3549,
-    "description": 3742,
+    "description": 3787,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4642,7 +4641,7 @@ export default {
   "VodyanitsaC2": {
     "name": "VodyanitsaC2",
     "nameLocale": 3551,
-    "description": 3743,
+    "description": 3788,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4685,7 +4684,7 @@ export default {
   "VodyanitsaC6": {
     "name": "VodyanitsaC6",
     "nameLocale": 3553,
-    "description": 3744,
+    "description": 3789,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4728,7 +4727,7 @@ export default {
   "VodyanitsaSignature": {
     "name": "VodyanitsaSignature",
     "nameLocale": 3555,
-    "description": 3736,
+    "description": 3781,
     "genre": "Weapon",
     "badge": "/weapons/hymn-of-the-maelstrom.png",
     "config": [
@@ -4793,7 +4792,7 @@ export default {
   "VodyanitsaA1": {
     "name": "VodyanitsaA1",
     "nameLocale": 3591,
-    "description": 3735,
+    "description": 3780,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
     "config": [
@@ -4836,7 +4835,7 @@ export default {
   "VesnaTalent1": {
     "name": "VesnaTalent1",
     "nameLocale": 3669,
-    "description": 3737,
+    "description": 3782,
     "badge": "/characters/vesna.webp",
     "genre": "Character",
     "config": [
@@ -4861,7 +4860,7 @@ export default {
   "BreezeborneRefrainSupport": {
     "name": "BreezeborneRefrainSupport",
     "nameLocale": 3628,
-    "description": 3745,
+    "description": 3790,
     "badge": "https://i.gachabase.net/ztuDbp624ovROhZ6_MRYUNYGxTuqFgDks6LLUY4tnV8/q:50/f:webp/plain/gi/assets/6c662094dcaba2c59b6024646af690a8.png",
     "genre": "Weapon",
     "config": [
@@ -4948,5 +4947,160 @@ export default {
         "default": true
       }
     ]
+  },
+  "MityaSupport": {
+    "name": "MityaSupport",
+    "nameLocale": 3766,
+    "description": 3791,
+    "badge": "/characters/mitya-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "em",
+        "title": 3763,
+        "type": "floatInput",
+        "min": 0,
+        "max": 10000,
+        "default": 500
+      },
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "ascension",
+        "title": 3764,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 6
+      },
+      {
+        "name": "core_mode",
+        "title": 3732,
+        "type": "option",
+        "options": [
+          "无",
+          "稳态",
+          "过载"
+        ],
+        "default": 2
+      },
+      {
+        "name": "beacons",
+        "title": 3733,
+        "type": "int",
+        "min": 0,
+        "max": 5,
+        "default": 4
+      },
+      {
+        "name": "polestar",
+        "title": 3736,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3765,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "from": "Mitya"
+  },
+  "ValeriyDirective": {
+    "name": "ValeriyDirective",
+    "nameLocale": 3770,
+    "description": 3792,
+    "badge": "/characters/valeriy-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "atk",
+        "title": 3767,
+        "type": "floatInput",
+        "min": 0,
+        "max": 10000,
+        "default": 2000
+      },
+      {
+        "name": "talent_level",
+        "title": 3768,
+        "type": "int",
+        "min": 1,
+        "max": 15,
+        "default": 10
+      },
+      {
+        "name": "ascended",
+        "title": 3769,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "momentum",
+        "title": 3739,
+        "type": "int",
+        "min": 0,
+        "max": 130,
+        "default": 40
+      },
+      {
+        "name": "radiance",
+        "title": 3056,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3765,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "active",
+        "title": 3738,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "from": "Valeriy"
+  },
+  "ValeriyC2": {
+    "name": "ValeriyC2",
+    "nameLocale": 3771,
+    "description": 3793,
+    "badge": "/characters/valeriy-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "active",
+        "title": 3741,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "from": "Valeriy"
+  },
+  "ValeriyC6": {
+    "name": "ValeriyC6",
+    "nameLocale": 3772,
+    "description": 3794,
+    "badge": "/characters/valeriy-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "active",
+        "title": 3742,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "from": "Valeriy"
   }
 }

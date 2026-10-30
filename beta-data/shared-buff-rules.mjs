@@ -1,4 +1,5 @@
 // Equipment support rules. Character rules moved to character-effect-rules.mjs.
+import {symphonistAttack} from './equipment-effect-values.mjs';
 // Rule inputs are the published BUFF config plus the beneficiary calculation input.
 // Manually enabling a BUFF declares its source/trigger prerequisites satisfied;
 // explicit recipient flags still restrict eligibility. See docs/shared-buff-rules.md.
@@ -42,7 +43,7 @@ export const SHARED_BUFF_RULES=Object.freeze({
   const r=refine(p),value=Math.min(number(p,'atk',2700)/1000*(.07+.03*r),.18+.08*r);
   return {BonusBase:value*(offField?.5:1)};
  },
- SymphonistOfScents:p=>({ATKPercentage:(.24+.08*refine(p))*rate(p)}),
+ SymphonistOfScents:p=>({ATKPercentage:symphonistAttack(refine(p))*rate(p)}),
  HeavensGift4:p=>{
   const upgraded=flag(p,'is_secret_arts',true);
   const selected=[...new Set([...elementList(p,'elements1'),...(upgraded?elementList(p,'elements2'):[])])];

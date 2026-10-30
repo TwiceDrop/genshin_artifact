@@ -4,7 +4,14 @@
             <el-radio-button v-for="option in reactionOptions" :key="option.key" :label="option.key">{{ option.key === 'normal' ? normalDamageName : option.label }}</el-radio-button>
         </el-radio-group>
 
-        <span class="damage-display" v-if="selectedActualResult">{{ formatStellarDamage(selectedActualResult.expectation) }}</span>
+        <template v-if="teamHit && selectedActualResult">
+            <span v-if="eventProbability !== 1">触发概率 {{ formatStellarDamage(eventProbability * 100) }}%</span>
+            <span v-if="targetCount !== 1">目标数 {{ targetCount }}</span>
+            <span>期望伤害 {{ formatStellarDamage(selectedActualResult.expectation) }}</span>
+            <span>暴击伤害 {{ formatStellarDamage(selectedActualResult.critical) }}</span>
+            <span>非暴击伤害 {{ formatStellarDamage(selectedActualResult.non_critical) }}</span>
+        </template>
+        <span class="damage-display" v-else-if="selectedActualResult">{{ formatStellarDamage(selectedActualResult.expectation) }}</span>
     </div>
 
     <stellar-damage-detail v-if="selectedStellarDetail" :state="selectedStellarDetail" :kind="damageType" />
@@ -19,9 +26,9 @@
 
     <div v-if="!selectedStellarResult" class="header-row" style="overflow: auto; margin-bottom: 16px;">
         <div>
-            <div class="big-title base-damage-region" :title="Math.round(baseDamageSpread*1000)/1000" v-if="damageType === 'spread'">{{ baseRegionName }}</div>
-            <div class="big-title base-damage-region" :title="Math.round(baseDamageAggravate*1000)/1000" v-else-if="damageType === 'aggravate'">{{ baseRegionName }}</div>
-            <div class="big-title base-damage-region" :title="Math.round(baseDamage*1000)/1000" v-else>{{ baseRegionName }}</div>
+            <div class="big-title base-damage-region" :title="Math.round(baseDamageSpread*100)/100" v-if="damageType === 'spread'">{{ baseRegionName }}</div>
+            <div class="big-title base-damage-region" :title="Math.round(baseDamageAggravate*100)/100" v-else-if="damageType === 'aggravate'">{{ baseRegionName }}</div>
+            <div class="big-title base-damage-region" :title="Math.round(baseDamage*100)/100" v-else>{{ baseRegionName }}</div>
             <div class="header-row">
                 <damage-analysis-util
                     v-if="atkRatioState.length > 0"
@@ -65,6 +72,7 @@
                 ></damage-analysis-util>
                 <damage-analysis-util v-if="finalIndependentState.length" :arr="finalIndependentState" title="最终独立倍率增量"></damage-analysis-util>
                 <damage-analysis-util v-if="independentState.length" :arr="independentState" title="普通独立倍率增量"></damage-analysis-util>
+                <damage-analysis-util v-if="atkAdditiveRatioState.length" :arr="atkAdditiveRatioState" title="逐次攻击力加算倍率"></damage-analysis-util>
                 <damage-analysis-util
                     v-if="extraDamageState.length > 0"
                     :arr="extraDamageState"
@@ -73,13 +81,13 @@
                 <div v-if="damageType === 'spread'" style="min-width: 100px">
                     <div class="big-title" style="background: rgb(236, 245, 255)">蔓激化基础伤害</div>
                     <div class="header-row" style="height: 100%; display: flex; align-items: center; justify-content: center">
-                        <span>{{ Math.round(baseDamageQuicken * 1000) / 1000 }}</span>
+                        <span>{{ Math.round(baseDamageQuicken * 100) / 100 }}</span>
                     </div>
                 </div>
                 <div v-if="damageType === 'aggravate'" style="min-width: 100px">
                     <div class="big-title" style="background: rgb(236, 245, 255)">超激化基础伤害</div>
                     <div class="header-row" style="height: 100%; display: flex; align-items: center; justify-content: center">
-                        <span>{{ Math.round(baseDamageQuicken * 1000) / 1000 }}</span>
+                        <span>{{ Math.round(baseDamageQuicken * 100) / 100 }}</span>
                     </div>
                 </div>
                 <damage-analysis-util
@@ -95,7 +103,7 @@
             </div>
         </div>
         <div v-show="isDamage">
-            <div class="big-title critical-region" :title="Math.round(this.critical * this.criticalDamage * 1000)/1000">暴击</div>
+            <div class="big-title critical-region" :title="Math.round(this.critical * this.criticalDamage * 100)/100">暴击</div>
             <div class="header-row">
                 <damage-analysis-util
                     :arr="criticalState"
@@ -195,6 +203,11 @@ export default {
     data() {
         return {
             damageType: "normal",
+            teamHit: false,
+            ignoreDefense: false,
+            eventProbability: 1,
+            targetCount: 1,
+            atkAdditiveRatioState: [],
             stellarResults: [],
             reactionOptions: [],
             nativeResults: {},
@@ -230,9 +243,13 @@ export default {
     },
     methods: {
         formatStellarDamage(value) {
-            return Number.isFinite(value) ? Math.round(value).toLocaleString("zh-CN") : "—"
+            return Number.isFinite(value) ? value.toLocaleString('zh-CN', {maximumFractionDigits: 2}) : "—"
         },
         setValue(analysis) {
+            this.teamHit = analysis.team_hit === true
+            this.ignoreDefense = analysis.ignore_defense === true
+            this.eventProbability = analysis.event_probability ?? 1
+            this.targetCount = this.teamHit ? (analysis.target_count ?? 1) : 1
             this.nativeResults = analysis
             this.stellarDetailStates = Object.fromEntries(STELLAR_DETAIL_KEYS.filter(key => analysis[key]).map(key => [key, stellarDetailState(stellarDetail(analysis,key,this.characterName))]))
             let map = {
@@ -240,6 +257,7 @@ export default {
                 "finalIndependentState": "independent_multiplier",
                 "atkState": "atk",
                 "atkRatioState": "atk_ratio",
+                "atkAdditiveRatioState": "atk_additive_ratio",
                 "defState": "def",
                 "defRatioState": "def_ratio",
                 "hpState": "hp",
@@ -284,7 +302,13 @@ export default {
     },
     computed: {
         selectedStellarDetail() { return this.stellarDetailStates[this.damageType] },
-        selectedActualResult() { return this.selectedStellarDetail ? stellarDetailResult(this.selectedStellarDetail,this.enemyConfig) : this.nativeResults[this.damageType] },
+        selectedActualResult() {
+            if (this.teamHit) {
+                const n = this.baseDamage * (1 + this.bonus) * this.defMultiplier * this.resRatio * this.eventProbability * this.targetCount
+                return {non_critical: n, critical: n * (1 + this.criticalDamage), expectation: n * (1 + this.critical * this.criticalDamage)}
+            }
+            return this.selectedStellarDetail ? stellarDetailResult(this.selectedStellarDetail,this.enemyConfig) : this.nativeResults[this.damageType]
+        },
         ordinaryPreview() {
             return { normal: this.damageNormal, melt: this.damageMelt, vaporize: this.damageVaporize,
                 spread: this.damageSpread, aggravate: this.damageAggravate }[this.damageType]
@@ -448,7 +472,7 @@ export default {
         },
 
         baseDamage() {
-            return (this.atk * this.atkRatio + this.def * this.defRatio + this.hp * this.hpRatio + this.em * this.emRatio) * (1 + sum(this.independentState)) + this.extraDamage;
+            return (this.atk * this.atkRatio + this.def * this.defRatio + this.hp * this.hpRatio + this.em * this.emRatio) * (1 + sum(this.independentState)) + this.atk * sum(this.atkAdditiveRatioState) + this.extraDamage;
         },
 
         spreadEnhance() {
@@ -488,6 +512,7 @@ export default {
             // console.log(this.enemyConfig)
             const originalRes = this.enemyConfig[this.element.toLowerCase() + "_res"]
             const res = originalRes - this.resMinus
+            if (this.teamHit) return res < 0 ? 1 - res / 2 : res < .75 ? 1 - res : 1 / (1 + res * 4)
             let res_ratio
             if (res > 0.75) {
                 res_ratio = 1 / (1 + res * 4)
@@ -500,9 +525,11 @@ export default {
         },
 
         defMultiplier() {
+            if (this.teamHit && this.ignoreDefense) return 1
             const enemyLevel = this.enemyConfig.level
             const characterLevel = this.characterLevel
             const c = 100 + characterLevel
+            if (this.teamHit) return c / ((1 - Math.min(1, this.defPenetration)) * (1 - Math.min(.9, this.defMinus)) * (100 + enemyLevel) + c)
             return c / ((1 - this.defPenetration) * (1 - this.defMinus) * (100 + enemyLevel) + c)
         },
 
@@ -524,7 +551,7 @@ export default {
             } else {
                 d = (1 + sum(this.finalIndependentState)) * this.baseDamage * (1 + this.critical * this.criticalDamage) * (1 + this.bonus) * this.resRatio * this.defMultiplier
             }
-            return d
+            return d * (this.teamHit ? this.eventProbability * this.targetCount : 1)
         },
 
         damageMelt() {

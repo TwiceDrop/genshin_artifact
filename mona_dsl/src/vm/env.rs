@@ -113,6 +113,7 @@ impl MonaEnv {
                 let obj = MonaObjectDamage {
                     normal: damage.normal.clone(),
                     direct_stellarswirl,
+                    direct_stellarconduct:if name==CharacterName::Mitya&&matches!(damage_config.skill_index,8|12|13|15){Some(damage.normal)}else{None},
                     melt: damage.melt.clone(),
                     vaporize: damage.vaporize.clone(),
                     spread: damage.spread.clone(),

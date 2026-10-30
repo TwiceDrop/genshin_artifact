@@ -20,7 +20,8 @@ impl<A: Attribute> WeaponEffect<A> for CashflowSupervisionEffect {
         let refine = data.refine as f64;
 
         attribute.add_atk_percentage("金流监督被动", 0.12 + 0.04 * refine);
-        attribute.set_value_by(AttributeName::BonusNormalAttack, "金流监督被动", (0.012 + 0.04 * refine) * self.stack);
+        attribute.set_value_by(AttributeName::BonusNormalAttack, "金流监督被动", (0.12 + 0.04 * refine) * self.stack);
+        attribute.set_value_by(AttributeName::EnhanceStellarSuperconduct, "金流监督·星超导", (0.105 + 0.035 * refine) * self.stack);
         attribute.set_value_by(AttributeName::BonusChargedAttack, "金流监督被动", (0.105 + 0.035 * refine) * self.stack);
     }
 }

@@ -13,7 +13,7 @@ a=p.parse_args()
 root=Path(__file__).resolve().parent.parent
 source=a.input or root/'mona_wasm/pkg/mona_effect_bridge.wasm'
 target=a.output or source
-work=root/'.build-target/optimizer-graph-7112'
+work=root/'.build-target/optimizer-graph-7201'
 work.mkdir(parents=True,exist_ok=True)
 tools=Path(a.wabt)
 wat=work/'production-input.wat'

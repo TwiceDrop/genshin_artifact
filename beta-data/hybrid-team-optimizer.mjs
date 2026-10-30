@@ -1,6 +1,6 @@
 import {expandedWeaponEffects} from './expanded-weapons.mjs';
 
-export const TEAM_BUFF_SOURCES = Object.freeze(['Vodyanitsa','Vesna','Odette','Qiqi','Sandrone']);
+export const TEAM_BUFF_SOURCES = Object.freeze(['Vodyanitsa','Vesna','Odette','Qiqi','Sandrone','Mitya','Valeriy']);
 
 const SLOTS = ['Flower', 'Feather', 'Sand', 'Goblet', 'Head'];
 const RESULT_SLOT = Object.fromEntries(SLOTS.map(slot => [slot, slot.toLowerCase()]));
@@ -64,6 +64,15 @@ export function deriveTeamBuffs(api, interfaces, selected, recipientIndex) {
         const talent=character.level>20 || (character.level===20 && character.ascend);
         const addSupport=(buff,config={})=>out.push({name:buff,source_character:name,source_id:sourceId,
             source_effect:sourceId+':'+buff,config:Object.keys(config).length?{[buff]:config}:'NoConfig'});
+        if(name==='Mitya'){
+            const p=character.params?.Mitya||{};
+            addSupport('MityaSupport',{em:sum(panel.elemental_mastery),constellation:character.constellation,ascension:character.level>60||character.level===60&&character.ascend?4:talent?1:0,core_mode:p.core_mode??2,beacons:p.beacons??4,polestar:p.polestar!==false,recipient_on_field:recipient.team_effects?.on_field!==false});continue;
+        }
+        if(name==='Valeriy'){
+            const p=character.params?.Valeriy||{};
+            if(p.directive)addSupport('ValeriyDirective',{atk:sum(panel.atk),talent_level:character.skill1+1,ascended:character.level>60||character.level===60&&character.ascend,momentum:p.momentum??40,radiance:p.radiance!==false,recipient_on_field:recipient.team_effects?.on_field!==false,active:true});
+            if(character.constellation>=2&&p.c2_active)addSupport('ValeriyC2',{active:true});if(character.constellation>=6&&p.c6_active)addSupport('ValeriyC6',{active:true});continue;
+        }
         if(name==='Odette'){
             const mode=Number(triggers.odetteRadianceMode ?? 0);
             if(!Number.isInteger(mode)||mode<0||mode>2)throw Error('奥黛塔辉映状态无效');
@@ -81,7 +90,7 @@ export function deriveTeamBuffs(api, interfaces, selected, recipientIndex) {
         }
         if(name==='Qiqi'){
             if(triggers.qiqiTalisman)addSupport('QiqiTalent2StellarConduct');
-            if(character.constellation>=6 && triggers.qiqiC6)addSupport('QiqiC6StellarConduct',{atk:sum(panel.atk)});
+            if(character.constellation>=6 && triggers.qiqiC6 && recipient.team_effects?.on_field!==false)addSupport('QiqiC6StellarConduct',{atk:sum(panel.atk)});
             continue;
         }
         if(name==='Sandrone'){

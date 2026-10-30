@@ -73,7 +73,7 @@ impl<A:Attribute> WeaponEffect<A> for ExpandedEffect {
             WeaponName::WhitelakeFrostfeather=>{
                 let stacks=self.stacks.clamp(0.0,3.0);
                 a.add_atk_percentage(self.label,at([0.08,0.10,0.12,0.14,0.16],r)*stacks*self.rate);
-                if stacks>=3.0 {a.set_value_by(StellarSwirlCritDamage,self.label,at([0.50,0.65,0.80,0.95,1.10],r)*self.rate);}
+                if stacks>=3.0 {a.set_value_by(StellarSwirlCritDamage,self.label,at([0.50,0.65,0.80,0.95,1.10],r)*self.rate);a.set_value_by(StellarConductCritDamage,self.label,at([0.50,0.65,0.80,0.95,1.10],r)*self.rate);}
             },
             WeaponName::ExaiphanesBlade=>if self.traveler{
                 if self.active{a.add_atk_percentage(self.label,at([0.16,0.20,0.24,0.32,0.40],r)*self.rate);}

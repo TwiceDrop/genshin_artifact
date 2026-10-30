@@ -1,8 +1,8 @@
-"""7.1.12 only: read-only progress copies; function mapping verified against this version."""
+"""Add read-only optimizer progress imports to copies of both deployed kernels."""
 import pathlib,re,subprocess,argparse
 p=argparse.ArgumentParser();p.add_argument('--wabt',default='D:/Documents/ChatGPT/kernel-recovery-lab/tools/wabt-1.0.42/bin');args=p.parse_args()
-root=pathlib.Path(__file__).resolve().parent.parent;work=root/'.build-target/progress-results-7112';work.mkdir(parents=True,exist_ok=True)
-for kind,source,group,loop,leaf in [('published','mona_wasm/pkg/mona_effect_bridge','f119','L7','f91'),('extension','mona_wasm/extension/mona_extension_bg','f110','L4','f1476')]:
+root=pathlib.Path(__file__).resolve().parent.parent;work=root/'.build-target/progress-results-7201';work.mkdir(parents=True,exist_ok=True)
+for kind,source,group,loop,leaf in [('published','mona_wasm/pkg/mona_effect_bridge','f119','L7','f91'),('extension','mona_wasm/extension/mona_extension_bg','f109','L4','f1491')]:
  wat=work/(kind+'.wat');subprocess.run([args.wabt+'/wasm2wat.exe',str(root/(source+'.wasm')),'--generate-names','-o',str(wat)],check=True);s=wat.read_text(encoding='utf-8')
  # Named references keep function/table indices correct when adding an import.
  at=s.index('  (func ');s=s[:at]+'  (import "mona_progress" "observe" (func $mona_observe (param i32 i32 i32)))\n'+s[at:]
@@ -24,19 +24,19 @@ for kind,source,group,loop,leaf in [('published','mona_wasm/pkg/mona_effect_brid
   edit(leaf,leaf_patch)
  else:edit(leaf,lambda b:entry(b,'    i32.const 2\n    i32.const 0\n    i32.const 0\n    call $mona_observe'))
  # Upper-bound evaluations also keep the UI alive during large pruned branches.
- edit('f113' if kind=='published' else 'f1971',lambda b:entry(b,'    i32.const 3\n    i32.const 0\n    i32.const 0\n    call $mona_observe'))
+ edit('f113' if kind=='published' else 'f1997',lambda b:entry(b,'    i32.const 3\n    i32.const 0\n    i32.const 0\n    call $mona_observe'))
  # Naive uses the recursive enumerator; its second check is the terminal real build.
  def call_hook(body,target,index,event):
   matches=list(re.finditer(r'call \$'+target+r'\b',body));assert len(matches)>index
   at=matches[index].start();return body[:at]+f'i32.const {event}\n    i32.const 0\n    i32.const 0\n    call $mona_observe\n    '+body[at:]
- edit('f80' if kind=='published' else 'f111',lambda b:call_hook(b,'f437' if kind=='published' else 'f1266',1,2))
- edit('f437' if kind=='published' else 'f1266',lambda b:entry(b,'    i32.const 3\n    i32.const 0\n    i32.const 0\n    call $mona_observe'))
+ edit('f80' if kind=='published' else 'f110',lambda b:call_hook(b,'f437' if kind=='published' else 'f1281',1,2))
+ edit('f437' if kind=='published' else 'f1281',lambda b:entry(b,'    i32.const 3\n    i32.const 0\n    i32.const 0\n    call $mona_observe'))
  if kind=='published':
   edit('f314',lambda b:entry(b,'    i32.const 5\n    i32.const 0\n    i32.const 0\n    call $mona_observe'))
   edit('f61',lambda b:call_hook(b,'f189',0,5))
  else:
-  for name in ['f89','f99','f107']:edit(name,lambda b:call_hook(b,'f1266',0,5))
-  edit('f71',lambda b:call_hook(b,'f635',0,5))
+  for name in ['f86','f98','f105']:edit(name,lambda b:call_hook(b,'f1281',0,5))
+  edit('f71',lambda b:call_hook(b,'f647',0,5))
  output=work/(kind+'-progress.wat');output.write_text(s,encoding='utf-8');subprocess.run([args.wabt+'/wat2wasm.exe',str(output),'-o',str(root/(source+'_progress.wasm'))],check=True)
  print(kind,'progress copy generated')
 

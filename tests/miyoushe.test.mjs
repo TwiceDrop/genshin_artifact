@@ -7,7 +7,7 @@ import { MysClient, ds } from '../server/mys.mjs'
 import { createLocalServer } from '../server/local.mjs'
 import ts from 'typescript'
 
-const meta = name => JSON.parse(fs.readFileSync(new URL(`../src/assets/_gen_${name}.js`, import.meta.url), 'utf8').replace(/^.*\nexport default /, '').trim().replace(/;$/, ''))
+const meta = name => JSON.parse(fs.readFileSync(new URL(`../src/assets/_gen_${name}.js`, import.meta.url), 'utf8').replace(/^[\s\S]*?export default\s+/, '').trim().replace(/;$/, ''))
 const characters = meta('character'), weapons = meta('weapon'), artifacts = meta('artifact'), targets = meta('tf')
 const locale = JSON.parse(fs.readFileSync(new URL('../src/i18n/generated/zh-cn.json', import.meta.url)))
 const converter = createMysConverter({ characters, weapons, artifacts, targets, locale })
@@ -105,13 +105,27 @@ test('owned roster uses authenticated list + batched details; rejects unbound UI
     const snapshot = await client.snapshot('123456789')
     assert.equal(snapshot.total, 2); assert.equal(snapshot.characters.length, 1); assert.equal(snapshot.failures.length, 1)
     assert.equal(calls[1].options.headers.Cookie, undefined)
-    assert.equal(JSON.parse(calls[1].options.body).device_id, client.device)
+    const fpBody = JSON.parse(calls[1].options.body), profile = JSON.parse(fpBody.ext_fields)
+    assert.equal(fpBody.device_id, client.device)
+    assert.equal(fpBody.platform, '1')
+    assert.equal(calls[1].options.headers.DS, undefined)
+    assert.match(calls[1].options.headers['User-Agent'], /iPhone OS 17_0_2/)
+    assert.equal(profile.IDFV, client.device)
     const recordCalls = calls.filter(c => c.url.includes('/character/'))
     assert.equal(recordCalls.length, 2)
     for (const call of recordCalls) {
         assert.equal(call.options.headers.Cookie, 'test-cookie')
         assert.equal(call.options.headers['x-rpc-device_fp'], '0123456789')
         assert.equal(call.options.headers['x-rpc-device_id'], client.device)
+        assert.equal(call.options.headers['x-rpc-device_name'], profile.model)
+        assert.equal(call.options.headers['x-rpc-sys_version'], profile.osVersion)
+        assert.equal(call.options.headers['x-rpc-app_version'], '2.112.0')
+        assert.match(call.options.headers['User-Agent'], /iPhone OS 17_0_2.*miHoYoBBS\/2\.112\.0$/)
+        assert.equal(call.options.headers['X-Requested-With'], 'com.mihoyo.hyperion')
+        assert.equal(call.options.headers.Origin, 'https://webstatic.mihoyo.com')
+        assert.equal(call.options.headers['x-rpc-page'], 'v6.6.1-gr-cn_#/ys')
+        const [t, nonce, signature] = call.options.headers.DS.split(',')
+        assert.equal(signature, createHash('md5').update(`salt=xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs&t=${t}&r=${nonce}&b=${call.options.body}&q=`).digest('hex'))
     }
     assert.deepEqual(JSON.parse(recordCalls[1].options.body).character_ids, [10000021, 10000022])
     await client.snapshot('123456789')

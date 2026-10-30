@@ -5,6 +5,26 @@ import {checkLatestRelease, compareVersions, createReleaseCheckCoordinator,
     AUTOMATIC_UPDATE_CHANGED_EVENT, RELEASE_API} from '../src/platform/release-update.mjs'
 const githubOnly = fetcher => (url, options) => url.startsWith('https://cnb.cool/') ? Promise.reject(Error('CNB unavailable')) : fetcher(url, options)
 
+test('EA display and package versions compare consistently without offering an older stable release', async () => {
+    assert.equal(compareVersions('v7.2.01EA', '7.2.1-EA'), 0)
+    assert.equal(compareVersions('v7.2.02EA', '7.2.01EA'), 1)
+    assert.equal(compareVersions('v7.1.12', '7.2.01EA'), -1)
+    assert.equal(compareVersions('7.2.01unknown', '7.2.01EA'), null)
+    for (const current of ['7.2.01EA', '7.2.1-EA']) {
+        const calls = []
+        const check = version => checkLatestRelease(current, async url => {
+            calls.push(url)
+            return {ok: true, json: async () => ({tag_name: version,
+                html_url: 'https://github.com/TwiceDrop/genshin_artifact/releases/tag/' + version})}
+        })
+        assert.equal((await check('v7.1.12')).newer, false)
+        assert.equal(calls.length, 2, 'an older CNB release must still be followed by GitHub')
+        calls.length = 0
+        assert.equal((await check('v7.2.02EA')).newer, true)
+        assert.equal(calls.length, 1, 'a newer EA release from CNB completes the check')
+    }
+})
+
 test('four-part and zero-padded release versions compare numerically', () => {
     assert.equal(compareVersions('v7.1.05','7.1.04'),1)
     assert.equal(compareVersions('7.1.04','v7.1.4'),0)

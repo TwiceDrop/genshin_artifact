@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {parentPort,workerData} from 'node:worker_threads';
+import {api} from '../../beta-tools/runtime-7106.mjs';
+import {optimizeTeamDps,optimizeTeamDpsParallel,evaluateTeamDps} from '../../beta-data/team-dps-optimizer.mjs';
+import {createTeamDpsEvaluator} from '../../beta-data/team-dps-evaluator.mjs';
+const original=workerData.original?await import(workerData.original):null;
+const file=workerData.scorer?'team_dps_score.js':'team_dps.js';
+const source=fs.readFileSync(new URL('../../src/workers/'+file,import.meta.url),'utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
+const self={postMessage:data=>parentPort.postMessage(data)};
+vm.runInNewContext(source,{self,api,optimizeTeamDps:original?.optimizeTeamDps||optimizeTeamDps,optimizeTeamDpsParallel,evaluateTeamDps,createTeamDpsEvaluator,Promise,Map,Error});
+parentPort.on('message',data=>self.onmessage({data}));

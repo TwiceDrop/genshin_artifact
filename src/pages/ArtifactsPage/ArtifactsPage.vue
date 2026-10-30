@@ -216,6 +216,9 @@
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import { scoreCharacterNames, rankingContext, scoreBuild, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 import {importMonaJson} from '@/utils/artifacts'
+import {artifactImportContext} from '@/import/level-zero-match.cjs'
+import {useKumiStore} from '@/store/pinia/kumi'
+import {useMiyousheStore} from '@/store/pinia/miyoushe'
 import {positions} from '@/constants/artifact'
 import {downloadString} from '@/utils/common'
 import {deviceIsPC} from "@/utils/device"
@@ -415,7 +418,8 @@ function handleImportJsonClicked() {
 async function importJson(text: string, deleteUnseen: boolean, backupKumiDir: boolean) {
     try {
         const rawObj = JSON.parse(text)
-        await importMonaJson(rawObj, deleteUnseen, backupKumiDir)
+        await importMonaJson(rawObj, deleteUnseen, backupKumiDir, artifactImportContext(
+            presetStore.presets.value, useKumiStore().kumi.value, useMiyousheStore().data.value))
     } catch (e) {
         console.error('圣遗物文件导入失败', e)
         ElMessage({

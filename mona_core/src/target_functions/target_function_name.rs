@@ -7,6 +7,7 @@ use strum_macros::{Display, EnumIter};
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 #[derive(TargetFunctionData, EnumLen, FromPrimitive, Display, EnumIter)]
 pub enum TargetFunctionName {
+    MityaDefault, ValeriyDefault,
     VesnaDefault,
     VodyanitsaDefault,
     MaxATK,

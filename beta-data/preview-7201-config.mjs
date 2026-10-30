@@ -1,0 +1,1 @@
+export const previewDefaults={"Mitya":{"core_mode":2,"beacons":4,"crit_stacks":4,"on_field":true,"polestar":true,"field_hits":0},"Valeriy":{"radiance":true,"directive":false,"momentum":40,"shield_overflow":0,"c2_active":false,"c6_active":false,"on_field":true}};

@@ -12,7 +12,7 @@
 <!--                    <span class="name">{{ sourceName(item.name) }}</span>-->
                 </div>
                 <div class="item-bottom">
-                    <input type="text" v-model.number="item.value" class="input" />
+                    <input type="text" :value="formatValue(item.value)" @change="updateValue(item,$event)" class="input" />
                 </div>
             </div>
         </div>
@@ -41,6 +41,13 @@ export default {
             return source ? `${ta(source.index)}${source.count}件套` : name
         }}
     },
+    methods: {
+        formatValue(value) { return String(Number(Number.parseFloat(value).toFixed(2))) },
+        updateValue(item,event) {
+            item.value = Number.parseFloat(event.target.value)
+            event.target.value = this.formatValue(item.value)
+        }
+    },
     computed: {
         result() {
             let s = 0
@@ -49,7 +56,7 @@ export default {
                     s += parseFloat(item.value)
                 }
             }
-            return Math.round(s*1000)/1000
+            return Math.round(s*100)/100
         }
     }
 }

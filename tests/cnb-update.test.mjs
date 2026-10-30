@@ -10,7 +10,7 @@ const asset=(version,suffix,size=524288)=>({name:`genshin_artifact_V${version}_$
 const release=(version='7.1.12')=>({tag_name:`v${version}`,html_url:`https://github.com/TwiceDrop/genshin_artifact/releases/tag/v${version}`,body:'Synthetic CNB update test',assets:['windows_x64_setup.exe','web.zip','android.apk','mobiletest_android.apk'].map(s=>asset(version,s))});
 test('CNB uses exact release tag and asset name for EXE/ZIP/two APK channels',()=>{
  assert.equal(UPDATE_SOURCES[0].id,'github');assert.equal(UPDATE_SOURCES.filter(s=>s.id==='cnb').length,1);
- for(const version of ['7.1.11','7.1.12'])for(const kind of ['installer','portable','android','android-test']){
+ for(const version of ['7.1.11','7.1.12','7.2.01EA','7.2.1-EA'])for(const kind of ['installer','portable','android','android-test']){
   const a=releaseAsset(release(version),kind);assert.equal(sourceUrl(a.browser_download_url,'cnb'),`https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v${version}/${a.name}`);
   if(kind==='android')assert.ok(!a.name.includes('mobiletest'));
  }

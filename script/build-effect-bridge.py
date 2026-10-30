@@ -6,7 +6,16 @@ src=root/'mona_wasm/pkg/mona_wasm_bg.wasm'
 work=root/'.build-target/effect-bridge';work.mkdir(parents=True,exist_ok=True)
 wat=work/'input.wat';output=work/'output.wat';tools=pathlib.Path(args.wabt)
 subprocess.run([str(tools/'wasm2wat.exe'),str(src),'--generate-names','-o',str(wat)],check=True)
-s=wat.read_text(); signature='  (func $f2436 (type $t0) (param $p0 i32) (param $p1 i32)\n    local.get $p1\n    i32.const 66\n    i32.const 1183370\n    i32.const 18\n    local.get $p0\n    f64.load\n    call $f430)'
+s=wat.read_text()
+# Character skill3 is already zero-based. Both Illuga attribute graphs share
+# this constructor; subtracting again underflows at talent level 1.
+start=s.index('  (func $f1238 (type $t2) (param $p0 i32) (param $p1 i32) (param $p2 i32) (result i32)\n')
+end=s.index('\n  (',start+1)
+body=s[start:end]
+site='        local.get $p1\n        i32.const 1\n        i32.sub\n        i32.store offset=8'
+if body.count(site)!=1:raise SystemExit('Pinned Illuga burst talent index changed')
+s=s[:start]+body.replace(site,'        local.get $p1\n        i32.store offset=8')+s[end:]
+signature='  (func $f2436 (type $t0) (param $p0 i32) (param $p1 i32)\n    local.get $p1\n    i32.const 66\n    i32.const 1183370\n    i32.const 18\n    local.get $p0\n    f64.load\n    call $f430)'
 if s.count(signature)!=1:raise SystemExit('Pinned CustomBonus write site changed')
 replacement='  (func $f2436 (type $t0) (param $p0 i32) (param $p1 i32)\n    (local $bridge_value f64) (local $bridge_index i32) (local $bridge_record i32)\n    local.get $p0\n    f64.load\n    local.set $bridge_value\n    global.get $effect_count\n    if\n      local.get $bridge_value\n      f64.const -1099511627776\n      f64.le\n      if\n        f64.const -1099511627776\n        local.get $bridge_value\n        f64.sub\n        local.tee $bridge_value\n        f64.const 0\n        f64.ge\n        local.get $bridge_value\n        global.get $effect_count\n        f64.convert_i32_u\n        f64.lt\n        i32.and\n        if\n          local.get $bridge_value\n          i32.trunc_f64_u\n          local.tee $bridge_index\n          f64.convert_i32_u\n          local.get $bridge_value\n          f64.eq\n          if\n            global.get $effect_records\n            local.get $bridge_index\n            i32.const 24\n            i32.mul\n            i32.add\n            local.set $bridge_record\n            local.get $p1\n            local.get $bridge_record\n            i32.load\n            local.get $bridge_record\n            i32.load offset=16\n            local.get $bridge_record\n            i32.load offset=20\n            local.get $bridge_record\n            f64.load offset=8\n            call $f430\n            return\n          end\n        end\n      end\n    end\n    local.get $p1\n    i32.const 66\n    i32.const 1183370\n    i32.const 18\n    local.get $p0\n    f64.load\n    call $f430)'
 dynamic_site='            local.set $bridge_record\n'

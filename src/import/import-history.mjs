@@ -24,7 +24,7 @@ export function appendImportRecord(data, before, presets, inventory, { source, u
 }
 
 // Compare-and-restore: later user edits are never overwritten by an import undo.
-export function undoImportRecord(id, { data, presets, inventory, addPreset, deletePreset, removeArtifact, extraArtifactIds = [] }) {
+export function undoImportRecord(id, { data, presets, inventory, addPreset, deletePreset, removeArtifact, updateArtifact, extraArtifactIds = [] }) {
     const records = data.importRecords || [], index = records.findIndex(r => r.id === id), record = records[index]
     if (!record || record.status !== 'active') throw new Error('该导入记录已撤销或不存在')
     if (records.slice(0, index).some(r => r.status === 'active' && r.uids.some(uid => record.uids.includes(uid)))) {
@@ -44,11 +44,14 @@ export function undoImportRecord(id, { data, presets, inventory, addPreset, dele
     for (const row of Object.values(state.presets)) for (const id of row.item?.artifactIds || []) referenced.add(id)
     for (const ids of Object.values(state.ownership)) for (const id of ids) referenced.add(id)
     for (const row of Object.values(state.history)) for (const a of row.items || []) if (a) referenced.add(a.id)
-    const deletions = []
+    const deletions = [], restorations = []
     for (const change of record.changes.artifacts) {
-        // Imports only append artifacts; duplicates always reuse an existing item.
-        if (change.before !== null) { retained++; continue }
         const key = Number(change.key)
+        if (change.before !== null) {
+            if (equal(inventory.get(key), change.after)) restorations.push([key, clone(change.before)])
+            else retained++
+            continue
+        }
         if (!inventory.has(key)) continue
         if (referenced.has(key) || !equal(inventory.get(key), change.after)) { retained++; continue }
         deletions.push(key)
@@ -58,6 +61,7 @@ export function undoImportRecord(id, { data, presets, inventory, addPreset, dele
         const value = state.presets[change.key]
         if (value) addPreset(change.key, clone(value.item)); else deletePreset(change.key)
     }
+    for (const [id, artifact] of restorations) updateArtifact(id, { ...artifact, unactivatedTags: artifact.unactivatedTags })
     for (const id of deletions) removeArtifact(id)
     return { removed: deletions.length, retained, data: { ...data,
         entries: Object.values(state.entries), snapshots: state.snapshots, uidArtifactIds: state.ownership,

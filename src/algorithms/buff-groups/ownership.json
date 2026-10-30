@@ -750,5 +750,21 @@
   "LumineCryoC6": {
     "character": "LumineCryo",
     "minConstellation": 6
+  },
+  "MityaSupport": {
+    "character": "Mitya",
+    "minConstellation": 0
+  },
+  "ValeriyDirective": {
+    "character": "Valeriy",
+    "minConstellation": 0
+  },
+  "ValeriyC2": {
+    "character": "Valeriy",
+    "minConstellation": 2
+  },
+  "ValeriyC6": {
+    "character": "Valeriy",
+    "minConstellation": 6
   }
 }

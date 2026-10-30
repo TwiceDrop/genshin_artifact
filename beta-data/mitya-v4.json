@@ -1,0 +1,2692 @@
+{
+  "source": {
+    "version": "7.1.53",
+    "revision": 48845164,
+    "beta": "V4",
+    "url": "https://gi.gachabase.net/characters/10000136/mitya/beta/7.1.53/48845164?lang=chs"
+  },
+  "id": 10000136,
+  "name": "Mitya",
+  "nameZh": "米提亚",
+  "attributes": [
+    {
+      "attribute_id": 1,
+      "curve_id": 21,
+      "value": 905.654
+    },
+    {
+      "attribute_id": 4,
+      "curve_id": 31,
+      "value": 20.482
+    },
+    {
+      "attribute_id": 7,
+      "curve_id": 21,
+      "value": 61.6249
+    },
+    {
+      "attribute_id": 28,
+      "curve_id": 0,
+      "value": 100
+    }
+  ],
+  "promotions": [
+    {
+      "level": 0,
+      "stat_additions": []
+    },
+    {
+      "level": 1,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 776.5164
+        },
+        {
+          "stat_id": 7,
+          "value": 52.839
+        },
+        {
+          "stat_id": 4,
+          "value": 17.56018
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 1328.2517
+        },
+        {
+          "stat_id": 7,
+          "value": 90.3825
+        },
+        {
+          "stat_id": 4,
+          "value": 30.03715
+        },
+        {
+          "stat_id": 22,
+          "value": 0.096
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 2063.899
+        },
+        {
+          "stat_id": 7,
+          "value": 140.4405
+        },
+        {
+          "stat_id": 4,
+          "value": 46.67311
+        },
+        {
+          "stat_id": 22,
+          "value": 0.192
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 2615.6343
+        },
+        {
+          "stat_id": 7,
+          "value": 177.984
+        },
+        {
+          "stat_id": 4,
+          "value": 59.15008
+        },
+        {
+          "stat_id": 22,
+          "value": 0.192
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 3167.3696
+        },
+        {
+          "stat_id": 7,
+          "value": 215.5275
+        },
+        {
+          "stat_id": 4,
+          "value": 71.62705
+        },
+        {
+          "stat_id": 22,
+          "value": 0.288
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "stat_additions": [
+        {
+          "stat_id": 1,
+          "value": 3719.105
+        },
+        {
+          "stat_id": 7,
+          "value": 253.071
+        },
+        {
+          "stat_id": 4,
+          "value": 84.10402
+        },
+        {
+          "stat_id": 22,
+          "value": 0.384
+        }
+      ]
+    }
+  ],
+  "curves": {
+    "21": {
+      "id": 21,
+      "operation": 2,
+      "values": [
+        1,
+        1.083,
+        1.166,
+        1.25,
+        1.333,
+        1.417,
+        1.5,
+        1.584,
+        1.668,
+        1.751,
+        1.835,
+        1.919,
+        2.003,
+        2.088,
+        2.172,
+        2.256,
+        2.341,
+        2.425,
+        2.51,
+        2.594,
+        2.679,
+        2.764,
+        2.849,
+        2.934,
+        3.019,
+        3.105,
+        3.19,
+        3.275,
+        3.361,
+        3.446,
+        3.532,
+        3.618,
+        3.704,
+        3.789,
+        3.875,
+        3.962,
+        4.048,
+        4.134,
+        4.22,
+        4.307,
+        4.393,
+        4.48,
+        4.567,
+        4.653,
+        4.74,
+        4.827,
+        4.914,
+        5.001,
+        5.089,
+        5.176,
+        5.263,
+        5.351,
+        5.438,
+        5.526,
+        5.614,
+        5.702,
+        5.79,
+        5.878,
+        5.966,
+        6.054,
+        6.142,
+        6.23,
+        6.319,
+        6.407,
+        6.496,
+        6.585,
+        6.673,
+        6.762,
+        6.851,
+        6.94,
+        7.029,
+        7.119,
+        7.208,
+        7.297,
+        7.387,
+        7.476,
+        7.566,
+        7.656,
+        7.746,
+        7.836,
+        7.926,
+        8.016,
+        8.106,
+        8.196,
+        8.286,
+        8.377,
+        8.467,
+        8.558,
+        8.649,
+        8.739,
+        8.83,
+        8.921,
+        9.012,
+        9.103,
+        9.195,
+        9.286,
+        9.377,
+        9.469,
+        9.56,
+        9.652
+      ]
+    },
+    "31": {
+      "id": 31,
+      "operation": 2,
+      "values": [
+        1,
+        1.083,
+        1.166,
+        1.25,
+        1.333,
+        1.417,
+        1.5,
+        1.584,
+        1.668,
+        1.751,
+        1.835,
+        1.919,
+        2.003,
+        2.088,
+        2.172,
+        2.256,
+        2.341,
+        2.425,
+        2.51,
+        2.594,
+        2.679,
+        2.764,
+        2.849,
+        2.934,
+        3.019,
+        3.105,
+        3.19,
+        3.275,
+        3.361,
+        3.446,
+        3.532,
+        3.618,
+        3.704,
+        3.789,
+        3.875,
+        3.962,
+        4.048,
+        4.134,
+        4.22,
+        4.307,
+        4.393,
+        4.48,
+        4.567,
+        4.653,
+        4.74,
+        4.827,
+        4.914,
+        5.001,
+        5.089,
+        5.176,
+        5.263,
+        5.351,
+        5.438,
+        5.526,
+        5.614,
+        5.702,
+        5.79,
+        5.878,
+        5.966,
+        6.054,
+        6.142,
+        6.23,
+        6.319,
+        6.407,
+        6.496,
+        6.585,
+        6.673,
+        6.762,
+        6.851,
+        6.94,
+        7.029,
+        7.119,
+        7.208,
+        7.297,
+        7.387,
+        7.476,
+        7.566,
+        7.656,
+        7.746,
+        7.836,
+        7.926,
+        8.016,
+        8.106,
+        8.196,
+        8.286,
+        8.377,
+        8.467,
+        8.558,
+        8.649,
+        8.739,
+        9.028,
+        9.317,
+        9.606,
+        9.895,
+        10.184,
+        10.473,
+        10.762,
+        11.051,
+        11.34,
+        11.629
+      ]
+    }
+  },
+  "talents": [
+    {
+      "id": 11361,
+      "name": "链式反应",
+      "description": "<color=#FFD780FF>普通攻击</color>\\n进行至多三段的攻击，造成<color=#FFACFFFF>雷元素伤害</color>。\\n\\n<color=#FFD780FF>重击</color>\\n消耗一定体力，短暂咏唱后，对前方区域造成<color=#FFACFFFF>雷元素范围伤害</color>。\\n若当前场上存在米提亚自己创造的<color=#FFD780FF>{LINK#N11360002}侦测炉心·过载{/LINK}</color>，且米提亚拥有至少一枚<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>，米提亚将改为进行不消耗体力的特殊重击<color=#FFD780FF>递变聚爆</color>：对前方区域造成一次<color=#FFACFFFF>雷元素范围伤害</color>，并在长按时持续消耗<color=#FFD780FF>递变信标</color>；每消耗一枚<color=#FFD780FF>递变信标</color>，都会对前方区域造成一次视为星超导反应伤害的<color=#FFACFFFF>雷元素范围伤害</color>。\\n\\n<color=#FFD780FF>下落攻击</color>\\n从空中下坠冲击地面，攻击下落路径上的敌人，并在落地时造成<color=#FFACFFFF>雷元素范围伤害</color>。",
+      "levels": [
+        {
+          "level": 1,
+          "descriptions": [
+            {
+              "key": "67160534",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3493642358",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1623231903",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3721167967",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "390276494",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "497151354",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "2278100311",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "3249711285",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "551722044",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.587984,
+            0.483008,
+            0.690224,
+            1.3688,
+            50,
+            0.568288,
+            1.136335,
+            1.419344,
+            1.68,
+            2.24
+          ]
+        },
+        {
+          "level": 2,
+          "descriptions": [
+            {
+              "key": "2122030270",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1440076806",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1955386599",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "258826391",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "3549725950",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2172979482",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "372001999",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "1075315989",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "2744197564",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.632083,
+            0.519234,
+            0.741991,
+            1.47146,
+            50,
+            0.614544,
+            1.228828,
+            1.534872,
+            1.806,
+            2.408
+          ]
+        },
+        {
+          "level": 3,
+          "descriptions": [
+            {
+              "key": "3268528342",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2385738790",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1995916551",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "4125632823",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "134118478",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "3230212146",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "2280457727",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "1132475621",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "404241428",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.676182,
+            0.555459,
+            0.793758,
+            1.57412,
+            50,
+            0.6608,
+            1.32132,
+            1.6504,
+            1.932,
+            2.576
+          ]
+        },
+        {
+          "level": 4,
+          "descriptions": [
+            {
+              "key": "3561299142",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3371653294",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3943967991",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1940749791",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "3311947094",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2415547666",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1277699447",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "4047893",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "459506884",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.73498,
+            0.60376,
+            0.86278,
+            1.711,
+            50,
+            0.72688,
+            1.453452,
+            1.81544,
+            2.1,
+            2.8
+          ]
+        },
+        {
+          "level": 5,
+          "descriptions": [
+            {
+              "key": "131126318",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3115841926",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "128170119",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3767533735",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "327647614",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "3229677722",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1429171679",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "1637054725",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "1948374420",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.779079,
+            0.639986,
+            0.914547,
+            1.81366,
+            50,
+            0.773136,
+            1.545944,
+            1.930968,
+            2.226,
+            2.968
+          ]
+        },
+        {
+          "level": 6,
+          "descriptions": [
+            {
+              "key": "1009531014",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3944260830",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3472828567",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "847521111",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "2433815606",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2415251946",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "2839939223",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "2239245765",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "1098743884",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.823178,
+            0.676211,
+            0.966314,
+            1.91632,
+            50,
+            0.826,
+            1.65165,
+            2.063,
+            2.352,
+            3.136
+          ]
+        },
+        {
+          "level": 7,
+          "descriptions": [
+            {
+              "key": "1344872742",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2251371606",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2591327359",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3242429647",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "555752790",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "3013083506",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "3714716815",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "1478588829",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "777952484",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.881976,
+            0.724512,
+            1.035336,
+            2.0532,
+            50,
+            0.898688,
+            1.796995,
+            2.244544,
+            2.52,
+            3.36
+          ]
+        },
+        {
+          "level": 8,
+          "descriptions": [
+            {
+              "key": "107435030",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "835608910",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1996118439",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2225464407",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "4226913782",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "1378221130",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1976415471",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "737645021",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "1787034924",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.940774,
+            0.772813,
+            1.104358,
+            2.19008,
+            50,
+            0.971376,
+            1.94234,
+            2.426088,
+            2.688,
+            3.584
+          ]
+        },
+        {
+          "level": 9,
+          "descriptions": [
+            {
+              "key": "3411737078",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2642491622",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1704063207",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1872519287",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1584535774",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2895722666",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1779717615",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "1999451397",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "4209972732",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.999573,
+            0.821114,
+            1.173381,
+            2.32696,
+            50,
+            1.044064,
+            2.087686,
+            2.607632,
+            2.856,
+            3.808
+          ]
+        },
+        {
+          "level": 10,
+          "descriptions": [
+            {
+              "key": "1928702046",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3866414566",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1376641047",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "999119191",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "2781133174",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2828979226",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1074032847",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "770722181",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "104289596",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.058371,
+            0.869414,
+            1.242403,
+            2.46384,
+            50,
+            1.12336,
+            2.246244,
+            2.80568,
+            3.024,
+            4.032
+          ]
+        },
+        {
+          "level": 11,
+          "descriptions": [
+            {
+              "key": "196410670",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "295227814",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "844478735",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "4027849047",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "2693567814",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2150185466",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "14509423",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "4187817445",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "331383060",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.11717,
+            0.917715,
+            1.311426,
+            2.60072,
+            50,
+            1.202656,
+            2.404802,
+            3.003728,
+            3.192,
+            4.256
+          ]
+        },
+        {
+          "level": 12,
+          "descriptions": [
+            {
+              "key": "3633371518",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3023237166",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "291768503",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3161454039",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "6822118",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "753116178",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1690660103",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "926545357",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "3621080108",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.175968,
+            0.966016,
+            1.380448,
+            2.7376,
+            50,
+            1.281952,
+            2.563361,
+            3.201776,
+            3.36,
+            4.48
+          ]
+        },
+        {
+          "level": 13,
+          "descriptions": [
+            {
+              "key": "3927412958",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2020474214",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "580328543",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1608094063",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "3934389678",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "2931653706",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "789164455",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "1520532709",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "2891080972",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.249466,
+            1.026392,
+            1.466726,
+            2.9087,
+            50,
+            1.361248,
+            2.721919,
+            3.399824,
+            3.57,
+            4.76
+          ]
+        },
+        {
+          "level": 14,
+          "descriptions": [
+            {
+              "key": "3089042670",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1543345486",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2819697887",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1749772759",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "1621928150",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "3723145458",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1330515071",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "3196633213",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "3950612892",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.322964,
+            1.086768,
+            1.553004,
+            3.0798,
+            50,
+            1.440544,
+            2.880478,
+            3.597872,
+            3.78,
+            5.04
+          ]
+        },
+        {
+          "level": 15,
+          "descriptions": [
+            {
+              "key": "356624454",
+              "text": "一段伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3771589662",
+              "text": "二段伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1424851407",
+              "text": "三段伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2476124327",
+              "text": "重击伤害|{param4:F1P}",
+              "override": null
+            },
+            {
+              "key": "2529347942",
+              "text": "重击体力消耗|{param5:F1}点",
+              "override": null
+            },
+            {
+              "key": "3929889082",
+              "text": "下坠期间伤害|{param6:F1P}",
+              "override": null
+            },
+            {
+              "key": "1165653479",
+              "text": "低空/高空坠地冲击伤害|{param7:F1P}/{param8:F1P}",
+              "override": null
+            },
+            {
+              "key": "951198157",
+              "text": "递变聚爆伤害|{param9:F1P}",
+              "override": null
+            },
+            {
+              "key": "4150805524",
+              "text": "递变聚爆星超导伤害|{param10:F1P}元素精通",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.396462,
+            1.147144,
+            1.639282,
+            3.2509,
+            50,
+            1.51984,
+            3.039036,
+            3.79592,
+            3.99,
+            5.32
+          ]
+        }
+      ]
+    },
+    {
+      "id": 11362,
+      "name": "律定·变量侦测",
+      "description": "以理论上比较安全的当量，适度进行理论上比较安全的实验，造成<color=#FFACFFFF>雷元素范围伤害</color>，并依据点按、长按，以不同的方式创造<color=#FFD780FF>{LINK#N11360002}侦测炉心{/LINK}</color>。\\n\\n施放元素战技<color=#FFD780FF>律定·变量侦测</color>后的6秒内，再次点按元素战技，可以切换<color=#FFD780FF>侦测炉心</color>的状态；每1.5秒至多通过这种方式切换一次状态。",
+      "levels": [
+        {
+          "level": 1,
+          "descriptions": [
+            {
+              "key": "258552886",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1755115806",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "4094285223",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2160401551",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3182901510",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "2975659266",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2616161519",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.9072,
+            1.296,
+            0.72,
+            0.8,
+            0.92,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 2,
+          "descriptions": [
+            {
+              "key": "3137422518",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "4022593782",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2061780159",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1665938719",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "464653486",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "2028175554",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3341285831",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            0.97524,
+            1.3932,
+            0.774,
+            0.86,
+            0.989,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 3,
+          "descriptions": [
+            {
+              "key": "3099188366",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3392338358",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2646479263",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1366449263",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "2504869278",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "2025639130",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1108094407",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.04328,
+            1.4904,
+            0.828,
+            0.92,
+            1.058,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 4,
+          "descriptions": [
+            {
+              "key": "2360697238",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "4237843846",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1867752831",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "616716575",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1356234110",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "1750442218",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1207800207",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.134,
+            1.62,
+            0.9,
+            1,
+            1.15,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 5,
+          "descriptions": [
+            {
+              "key": "3405377878",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2954184782",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3526683655",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1248626127",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "2555319806",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "1961142610",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3102254559",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.20204,
+            1.7172,
+            0.954,
+            1.06,
+            1.219,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 6,
+          "descriptions": [
+            {
+              "key": "2577786326",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "863103174",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1437401559",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3794815183",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1913299206",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "487210410",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3822698535",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.27008,
+            1.8144,
+            1.008,
+            1.12,
+            1.288,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 7,
+          "descriptions": [
+            {
+              "key": "937021582",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2338664854",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1019180199",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3000650151",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "230280454",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "3454173450",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3906573719",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.3608,
+            1.944,
+            1.08,
+            1.2,
+            1.38,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 8,
+          "descriptions": [
+            {
+              "key": "2684036398",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1400192366",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1329748455",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3448105463",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3367954822",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "1366627490",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3165309279",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.45152,
+            2.0736,
+            1.152,
+            1.28,
+            1.472,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 9,
+          "descriptions": [
+            {
+              "key": "1889310086",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2249940238",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1515684895",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "49833287",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1533844942",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "1677583434",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "63184279",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.54224,
+            2.2032,
+            1.224,
+            1.36,
+            1.564,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 10,
+          "descriptions": [
+            {
+              "key": "2368452822",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "3647157510",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "232800471",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2429133007",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "2363461078",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "1428642970",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "343931039",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.63296,
+            2.3328,
+            1.296,
+            1.44,
+            1.656,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 11,
+          "descriptions": [
+            {
+              "key": "1296466238",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2690851902",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "1300457967",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "2059226399",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3369320742",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "2687526138",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1128210599",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.72368,
+            2.4624,
+            1.368,
+            1.52,
+            1.748,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 12,
+          "descriptions": [
+            {
+              "key": "3079312670",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1394734110",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2019003863",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "34487767",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "120024478",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "3381501186",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "394542439",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.8144,
+            2.592,
+            1.44,
+            1.6,
+            1.84,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 13,
+          "descriptions": [
+            {
+              "key": "92327070",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "524547294",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "3256845391",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "3739237879",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1863986422",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "3214475490",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3458135159",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            1.9278,
+            2.754,
+            1.53,
+            1.7,
+            1.955,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 14,
+          "descriptions": [
+            {
+              "key": "2689121342",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "1140724166",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "2672364735",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1215745311",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3749881134",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "2790210626",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2848952655",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.0412,
+            2.916,
+            1.62,
+            1.8,
+            2.07,
+            25,
+            18
+          ]
+        },
+        {
+          "level": 15,
+          "descriptions": [
+            {
+              "key": "2136062430",
+              "text": "短按技能伤害|{param1:F1P}",
+              "override": null
+            },
+            {
+              "key": "2461371462",
+              "text": "长按技能伤害|{param2:F1P}",
+              "override": null
+            },
+            {
+              "key": "953330911",
+              "text": "稳态炉心伤害|{param3:F1P}",
+              "override": null
+            },
+            {
+              "key": "1663469871",
+              "text": "稳态炉心消耗递变信标伤害|{param4:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "279341118",
+              "text": "稳态炉心引爆伤害|{param5:F1P}元素精通/每枚递变信标",
+              "override": null
+            },
+            {
+              "key": "85077346",
+              "text": "侦测炉心持续时间|{param6:F1}秒",
+              "override": null
+            },
+            {
+              "key": "696753631",
+              "text": "冷却时间|{param7:F1}秒",
+              "override": null
+            }
+          ],
+          "parameters": [
+            2.1546,
+            3.078,
+            1.71,
+            1.9,
+            2.185,
+            25,
+            18
+          ]
+        }
+      ]
+    },
+    {
+      "id": 11364,
+      "name": "解析·递变之理",
+      "description": "让元素像灵感一样爆发吧！造成<color=#FFACFFFF>雷元素范围伤害</color>，并创造3枚<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>。",
+      "levels": [
+        {
+          "level": 1,
+          "descriptions": [
+            {
+              "key": "442843614",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1386203550",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1825286335",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3369861295",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.336,
+            6.672,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 2,
+          "descriptions": [
+            {
+              "key": "1922466190",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1505375678",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1378684327",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2126937199",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.5862,
+            7.1724,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 3,
+          "descriptions": [
+            {
+              "key": "3218055486",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1760970182",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "3515722223",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3445272895",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            3.8364,
+            7.6728,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 4,
+          "descriptions": [
+            {
+              "key": "3577897246",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3073997958",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1494403495",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "4272326111",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            4.17,
+            8.34,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 5,
+          "descriptions": [
+            {
+              "key": "3577666582",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3642509494",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1532099007",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2709347839",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            4.4202,
+            8.8404,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 6,
+          "descriptions": [
+            {
+              "key": "2279824678",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1395893574",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "2475102639",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3101633927",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            4.6704,
+            9.3408,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 7,
+          "descriptions": [
+            {
+              "key": "169448598",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "188767494",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "930559343",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "2537626775",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            5.004,
+            10.008,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 8,
+          "descriptions": [
+            {
+              "key": "2238008678",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1478583350",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "4284407087",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "1512501359",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            5.3376,
+            10.6752,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 9,
+          "descriptions": [
+            {
+              "key": "2208327798",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "2130437462",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "2538785951",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "511353887",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            5.6712,
+            11.3424,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 10,
+          "descriptions": [
+            {
+              "key": "4198689150",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "2481703078",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "42892631",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "4144980063",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            6.0048,
+            12.0096,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 11,
+          "descriptions": [
+            {
+              "key": "4023044566",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3905454262",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "145195415",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "281282711",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            6.3384,
+            12.6768,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 12,
+          "descriptions": [
+            {
+              "key": "1740433782",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1852503374",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1842917807",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3452795167",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            6.672,
+            13.344,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 13,
+          "descriptions": [
+            {
+              "key": "375549142",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "1681048582",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1366870303",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "504888695",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            7.089,
+            14.178,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 14,
+          "descriptions": [
+            {
+              "key": "3563525382",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3679351046",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "3483538503",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3550706895",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            7.506,
+            15.012,
+            3,
+            15,
+            60
+          ]
+        },
+        {
+          "level": 15,
+          "descriptions": [
+            {
+              "key": "3107252686",
+              "text": "技能伤害|{param1:F1P}攻击力+{param2:F1P}元素精通",
+              "override": null
+            },
+            {
+              "key": "3320928342",
+              "text": "生成递变信标|{param3:F1}个",
+              "override": null
+            },
+            {
+              "key": "1117229087",
+              "text": "冷却时间|{param4:F1}秒",
+              "override": null
+            },
+            {
+              "key": "3770598463",
+              "text": "元素能量|{param5:I}",
+              "override": null
+            }
+          ],
+          "parameters": [
+            7.923,
+            15.846,
+            3,
+            15,
+            60
+          ]
+        }
+      ]
+    }
+  ],
+  "passives": [
+    {
+      "id": 1362101,
+      "name": "基准承压测验",
+      "description": "元素战技<color=#FFD780FF>律定·变量侦测</color>创造的<color=#FFD780FF>{LINK#N11360002}侦测炉心{/LINK}</color>获得强化。若创造的<color=#FFD780FF>侦测炉心</color>为：\\n·稳态：每携带一枚<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>，都会使队伍中附近的所有角色的元素精通提升30点；\\n·过载：队伍中附近的所有角色触发星超导反应后，获得<color=#FFD780FF>递变信标</color>的数量提升：改为在6秒内，每1.5秒获得一枚<color=#FFD780FF>递变信标</color>。",
+      "parameters": [
+        30
+      ]
+    },
+    {
+      "id": 1362201,
+      "name": "超限易爆试剂",
+      "description": "<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>的持续时间提升至10秒。此外，创造<color=#FFD780FF>递变信标</color>后的15秒内，米提亚的暴击率提升5%，该效果至多叠加4层。",
+      "parameters": [
+        0.05
+      ]
+    },
+    {
+      "id": 1362301,
+      "name": "星耀祝礼·极密协议",
+      "description": "队伍中的角色触发超导反应时，将转为触发星超导反应。触发星超导反应时，将不会创造<color=#FFD780FF>星辉棱晶</color>，而是改为在触发星超导反应后的3秒内，每1.5秒在附近创造一枚可以被米提亚携带的<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>，并将其附近更大的区域变换为<color=#FFD780FF>极星辉域</color>。\\n此外，基于米提亚的元素精通，提升队伍中附近的所有角色造成的星超导反应的基础伤害：每点元素精通都将提升0.028%星超导反应的基础伤害，至多通过这种方式提升14%基础伤害。处于<color=#FFD780FF>极星辉域</color>中时，米提亚还会进入<color=#FFD780FF>辉映·星超导</color>状态。",
+      "parameters": [
+        0.00028,
+        0.14
+      ]
+    },
+    {
+      "id": 1362501,
+      "name": "能源活性催化",
+      "description": "周围存在可破坏的岩块时，<color=#FFD780FF>{LINK#N11360002}侦测炉心·稳态{/LINK}</color>可以快速清理岩块。\\n此外，米提亚在队伍中时，创造<color=#FFD780FF>臻冰造物·简易暖源</color>时，无需消耗克什尼克能量。",
+      "parameters": [
+        0.2
+      ]
+    }
+  ],
+  "constellations": [
+    {
+      "id": 1361,
+      "name": "缺位寻踪的观察者",
+      "description": "<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>的可携带上限提升至5枚。施放元素战技<color=#FFD780FF>律定·变量侦测</color>时，还会额外创造一枚<color=#FFD780FF>递变信标</color>。\\n<color=#FFD780FF>{LINK#N11360002}侦测炉心{/LINK}</color>存在期间，队伍中自己的当前场上角色的暴击伤害提升40%。\\n此外，创造<color=#FFD780FF>递变信标</color>时，还会为米提亚自己恢复10点元素能量，该效果每8秒至多触发一次。",
+      "parameters": [
+        0.4,
+        10,
+        8
+      ]
+    },
+    {
+      "id": 1362,
+      "name": "惰性之外的沉寂物",
+      "description": "<color=#FFD780FF>{LINK#N11360002}侦测炉心{/LINK}</color>存在期间，处于<color=#FFD780FF>极星辉域</color>内的所有敌人<color=#99FFFFFF>冰元素抗性</color>与<color=#FFACFFFF>雷元素抗性</color>降低20%。\\n此外，若创造的<color=#FFD780FF>侦测炉心</color>为：\\n·稳态：队伍中附近的所有角色的元素精通提升123点；\\n·过载：队伍中自己的当前场上角色的元素精通提升234点。",
+      "parameters": [
+        0.2,
+        123,
+        234
+      ]
+    },
+    {
+      "id": 1363,
+      "name": "拓扑不变的扭结弦",
+      "description": "元素战技{LINK#S11362}<color=#FFD780FF>律定·变量侦测</color>{/LINK}的技能等级提高3级。\\n至多提升至15级。",
+      "parameters": []
+    },
+    {
+      "id": 1364,
+      "name": "衰变相生的同位素",
+      "description": "场上存在米提亚自己创造的<color=#FFD780FF>{LINK#N11360002}侦测炉心{/LINK}</color>时，每消耗5枚<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>，<color=#FFD780FF>侦测炉心</color>都会对周围的敌人造成一次相当于米提亚元素精通300%的、视为星超导反应伤害的<color=#FFACFFFF>雷元素范围伤害</color>。",
+      "parameters": [
+        3
+      ]
+    },
+    {
+      "id": 1365,
+      "name": "勘定万物的周期律",
+      "description": "普通攻击{LINK#S11361}<color=#FFD780FF>链式反应</color>{/LINK}的技能等级提高3级。\\n至多提升至15级。",
+      "parameters": []
+    },
+    {
+      "id": 1366,
+      "name": "元素阶跃的理之门",
+      "description": "<color=#FFD780FF>{LINK#N11360002}侦测炉心{/LINK}</color>获得强化。若创造的<color=#FFD780FF>侦测炉心</color>为：\\n·稳态：<color=#FFD780FF>侦测炉心</color>造成原本115%的伤害；\\n·过载：消耗<color=#FFD780FF>{LINK#N11360001}递变信标{/LINK}</color>时，有34%的概率创造一枚新的<color=#FFD780FF>递变信标</color>。\\n此外，队伍中附近的所有角色造成的星超导反应伤害<color=#FFD780FF>{LINK#N11190007}擢升{/LINK}</color>20%。",
+      "parameters": [
+        0.34,
+        0.2,
+        0.15
+      ]
+    }
+  ],
+  "tooltips": {
+    "11190007": {
+      "id": 11190007,
+      "name": {
+        "key": "65905204",
+        "text": "擢升",
+        "override": null
+      },
+      "description": {
+        "key": "3069893425",
+        "text": "特殊的伤害提升效果，与其他的伤害提升效果分别独立计算。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "11360001": {
+      "id": 11360001,
+      "name": {
+        "key": "470295188",
+        "text": "递变信标",
+        "override": null
+      },
+      "description": {
+        "key": "969904649",
+        "text": "米提亚在队伍中时，触发星超导反应时，将不会创造<color=#FFD780FF>星辉棱晶</color>，而是会转而创造持续6秒的<color=#FFD780FF>递变信标</color>。米提亚可以消耗<color=#FFD780FF>递变信标</color>，触发各种各样的效果。\\n<color=#FFD780FF>递变信标</color>会跟随当前场上角色，并在创造<color=#FFD780FF>递变信标</color>时将其附近更大的区域变换为<color=#FFD780FF>极星辉域</color>。米提亚可以携带多枚<color=#FFD780FF>递变信标</color>，初始最多携带4枚。创造<color=#FFD780FF>递变信标</color>时，将会重置所有<color=#FFD780FF>递变信标</color>的持续时间。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "11360002": {
+      "id": 11360002,
+      "name": {
+        "key": "2304248476",
+        "text": "侦测炉心",
+        "override": null
+      },
+      "description": {
+        "key": "825306977",
+        "text": "施放元素战技后创造的能源装置。点按可以创造<color=#FFD780FF>稳态</color>的炉心，长按可以创造<color=#FFD780FF>过载</color>的炉心。\\n\\n<color=#FFD780FF>侦测炉心·稳态</color>\\n·将持续跟随周围的敌人，并间歇性造成<color=#FFACFFFF>雷元素范围伤害</color>；\\n·当米提亚<color=#FFD780FF>递变信标</color>达到可携带上限时，新生成的<color=#FFD780FF>递变信标</color>将会被该装置消耗，并造成视为星超导反应伤害的<color=#FFACFFFF>雷元素范围伤害</color>；\\n·持续时间结束时，或重新创造<color=#FFD780FF>侦测炉心</color>时，将消耗所有携带的<color=#FFD780FF>递变信标</color>，并依据消耗的数量，造成视为星超导反应伤害的<color=#FFACFFFF>雷元素范围伤害</color>。\\n\\n<color=#FFD780FF>侦测炉心·过载</color>\\n·该装置存在且米提亚拥有至少一枚<color=#FFD780FF>递变信标</color>时，米提亚可以进行不消耗体力的特殊重击<color=#FFD780FF>递变聚爆</color>。",
+        "override": null
+      },
+      "parameters": [
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
+  }
+}

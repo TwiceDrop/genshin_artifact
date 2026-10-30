@@ -3,6 +3,7 @@ import {LUNAR_EQUIPMENT_RULES,prepareLunarEquipmentBuffs} from './lunar-equipmen
 import {REACTION_PARAMETER_RULES} from './reaction-parameter-rules.mjs';
 import {createBuffRuleRegistry} from './buff-rule-registry.mjs';
 import {SHARED_BUFF_RULES} from './shared-buff-rules.mjs';
+import {floatingDreamsMastery,evenstarAttack,cinderBonusValues} from './equipment-effect-values.mjs';
 // Character formulas are owned by CHARACTER_EFFECT_RULES; equipment remains separately scoped.
 // Odette parameters: 7.1 release character description and published buff metadata.
 // Each value is a native attribute, so candidate optimization evaluates the same formula.
@@ -23,12 +24,12 @@ const recipes={
  // Ordinary and Stellar Swirl multipliers are distinct named effects.
  IndependentDamageMultiplier:p=>({IndependentBaseMultiplier:n(p,'p',100,0,Number.MAX_VALUE)/100-1}),
  StellarSwirlDamageMultiplier:p=>({StellarSwirlIndependentBaseMultiplier:n(p,'p',100,0,Number.MAX_VALUE)/100-1}),
- AThousandFloatingDreams:p=>({ElementalMastery:40+2*(ref(p)-1)}),
- WanderingEvenstar:p=>({ATKFromSecondaryConversion:n(p,'em',900)*(.24+.06*(ref(p)-1))*.3}),
+ AThousandFloatingDreams:p=>({ElementalMastery:floatingDreamsMastery(ref(p))}),
+ WanderingEvenstar:p=>({ATKFromSecondaryConversion:evenstarAttack(n(p,'em',900),ref(p),.3)}),
  ScrollOfTheHeroOfCinderCity4:p=>{
  const chosen=p.elements??[];
  if(!Array.isArray(chosen)||chosen.some(e=>!elements.includes(e)))throw Error('烬城 BUFF 元素无效');
- return Object.fromEntries([...new Set(chosen)].map(e=>['Bonus'+e,.12*n(p,'rate1',1,0,1)+.28*n(p,'rate2',1,0,1)]));
+ return cinderBonusValues(chosen,n(p,'rate1',1,0,1),n(p,'rate2',1,0,1));
  },
  SongOfDaysPast4:p=>({ExtraDmgBase:.08*Math.min(n(p,'regeneration',15000),15000)*rate(p)}),
  HeartOfTheFurnace4:p=>star(.5*rate(p)),

@@ -260,6 +260,13 @@ impl DamageBuilder for SimpleDamageBuilder {
         }
     }
 
+    fn direct_stellar_conduct(&self,a:&Self::AttributeType,e:&Enemy,ratio:f64,independent:f64,base_bonus:f64,level:usize,skill:SkillType)->Self::Result {
+ let mut result=self.damage(a,e,Element::Electro,skill,level,None);
+ result.normal=crate::damage::direct_stellar_conduct::calculate(a,e,ratio,independent,base_bonus,skill);
+ result.melt=None;result.vaporize=None;result.spread=None;result.aggravate=None;
+
+ result
+ }
     fn stellar_swirl(&self, attribute:&Self::AttributeType, enemy:&Enemy, ratio:f64, level:usize, skill:SkillType)->Self::Result {
       let mut result=self.damage(attribute,enemy,Element::Anemo,skill,level,None);
       result.normal=crate::damage::stellar_swirl::calculate(attribute,enemy,ratio);

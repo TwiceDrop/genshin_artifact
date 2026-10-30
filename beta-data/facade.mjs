@@ -2,7 +2,7 @@ import {VODYANITSA_SUPPORT_RULES} from './scoped-character-effect-rules.mjs';
 import {evaluateEffectRule} from './effect-rule-engine.mjs';
 // Existing characters keep the published core; Vodyanitsa uses the compiled extension.
 import {prepareExtensionBuffs} from './extension-buffs.mjs';
-import {normalizeSignatureWeapon} from './weapon-effects.mjs';
+import {normalizeSignatureWeapon,hymnAttackBonus} from './weapon-effects.mjs';
 import {markReactionAvailability} from './reaction-availability.mjs';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const named=(name,config)=>({name,config:{[name]:config}});
@@ -68,8 +68,7 @@ export function createFacade(original,extension,data,support,characters) {
    if(id==='Signature'&&on) {
     const r=Number(p.refine),stacks=Number(p.stacks);
     if(!Number.isInteger(r)||r<1||r>5||!Number.isInteger(stacks)||stacks<0||stacks>3)throw Error('专武精炼或层数无效');
-    const coef=.03+.01*r,m=p.boosted?1.75:1;
-    add('ATKPercentage',{p:100*stacks*Math.min(Math.max(hp-40000,0)/1000*coef/10,2*coef)*m});
+    add('ATKPercentage',{p:100*hymnAttackBonus(hp,r,stacks,p.boosted)});
    }
   }
   out.buffs.push(...fresh);return prepareExtensionBuffs(out);

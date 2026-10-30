@@ -1,4 +1,5 @@
 import {progressImports} from '../../beta-data/optimizer-progress.mjs';
+import {createPreview7201Facade} from '../../beta-data/preview-7201-facade.mjs';
 import {withDirectReactionScope} from '../../beta-data/direct-reaction-scope.mjs';
 import {withLegacyEnemyBridge} from '../../beta-data/enemy-interface.mjs';
 import {withInterfaceContracts} from '../../beta-data/interface-contracts.mjs';
@@ -34,5 +35,5 @@ const originalApi = withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginalApi,
 const baseApi = createFacade(originalApi,extension,data,support,characters);
 const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(baseApi,extension,support),originalApi,weaponData,signatureData),originalApi);
 const strengthened = createStrengthenedFacade(stellar.facade,stellar.transformStellarTarget);
-const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withLumineTraveler(withHybridTeamOptimization(createExpandedWeaponsFacade(strengthened,originalApi,extension))))));
+const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withLumineTraveler(withHybridTeamOptimization(createExpandedWeaponsFacade(createPreview7201Facade(strengthened,extension),originalApi,extension))))));
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;

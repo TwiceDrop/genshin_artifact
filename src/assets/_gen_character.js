@@ -1,4 +1,3 @@
-// Published metadata with verified Stellar Swirl support.
 export default {
   "AetherAnemo": {
     "name": "AetherAnemo",
@@ -14023,5 +14022,252 @@ export default {
         "type": "bool"
       }
     ]
+  },
+  "Mitya": {
+    "name": "Mitya",
+    "nameLocale": 3743,
+    "element": "Electro",
+    "weapon": "Catalyst",
+    "star": 5,
+    "avatar": "/characters/mitya-avatar.png",
+    "splash": "/characters/mitya-splash.png",
+    "skillName1": 3744,
+    "skillName2": 3745,
+    "skillName3": 3746,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 150
+      },
+      {
+        "index": 1,
+        "text": 297
+      },
+      {
+        "index": 2,
+        "text": 200
+      },
+      {
+        "index": 3,
+        "text": 3146
+      },
+      {
+        "index": 4,
+        "text": 218
+      },
+      {
+        "index": 5,
+        "text": 370
+      },
+      {
+        "index": 6,
+        "text": 3441
+      },
+      {
+        "index": 7,
+        "text": 3747
+      },
+      {
+        "index": 8,
+        "text": 3748
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 9,
+        "text": 3749
+      },
+      {
+        "index": 10,
+        "text": 3213
+      },
+      {
+        "index": 11,
+        "text": 3750
+      },
+      {
+        "index": 12,
+        "text": 3751
+      },
+      {
+        "index": 13,
+        "text": 3752
+      },
+      {
+        "index": 15,
+        "text": 3753
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 14,
+        "text": 3524
+      }
+    ],
+    "config": [
+      {
+        "name": "core_mode",
+        "title": 3732,
+        "type": "option",
+        "options": [
+          "无",
+          "稳态",
+          "过载"
+        ],
+        "default": 2
+      },
+      {
+        "name": "beacons",
+        "title": 3733,
+        "type": "int",
+        "min": 0,
+        "max": 5,
+        "default": 4
+      },
+      {
+        "name": "crit_stacks",
+        "title": 3734,
+        "type": "int",
+        "min": 0,
+        "max": 4,
+        "default": 4
+      },
+      {
+        "name": "on_field",
+        "title": 3735,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "polestar",
+        "title": 3736,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "field_hits",
+        "title": 3737,
+        "type": "int",
+        "min": 0,
+        "max": 12,
+        "default": 0
+      }
+    ],
+    "configSkill": []
+  },
+  "Valeriy": {
+    "name": "Valeriy",
+    "nameLocale": 3755,
+    "element": "Electro",
+    "weapon": "Sword",
+    "star": 4,
+    "avatar": "/characters/valeriy-avatar.png",
+    "splash": "/characters/valeriy-splash.png",
+    "skillName1": 3756,
+    "skillName2": 3757,
+    "skillName3": 3758,
+    "skillMap1": [
+      {
+        "index": 0,
+        "text": 150
+      },
+      {
+        "index": 1,
+        "text": 297
+      },
+      {
+        "index": 2,
+        "text": 200
+      },
+      {
+        "index": 3,
+        "text": 3146
+      },
+      {
+        "index": 4,
+        "text": 3759
+      },
+      {
+        "index": 5,
+        "text": 218
+      },
+      {
+        "index": 6,
+        "text": 370
+      },
+      {
+        "index": 7,
+        "text": 3441
+      }
+    ],
+    "skillMap2": [
+      {
+        "index": 8,
+        "text": 1334
+      },
+      {
+        "index": 9,
+        "text": 3760
+      }
+    ],
+    "skillMap3": [
+      {
+        "index": 10,
+        "text": 3524
+      },
+      {
+        "index": 11,
+        "text": 3761
+      }
+    ],
+    "config": [
+      {
+        "name": "radiance",
+        "title": 3056,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "directive",
+        "title": 3738,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "momentum",
+        "title": 3739,
+        "type": "int",
+        "min": 0,
+        "max": 130,
+        "default": 40
+      },
+      {
+        "name": "shield_overflow",
+        "title": 3740,
+        "type": "int",
+        "min": 0,
+        "max": 20,
+        "default": 0
+      },
+      {
+        "name": "c2_active",
+        "title": 3741,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "c6_active",
+        "title": 3742,
+        "type": "bool",
+        "default": false
+      },
+      {
+        "name": "on_field",
+        "title": 3735,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "configSkill": []
   }
 }

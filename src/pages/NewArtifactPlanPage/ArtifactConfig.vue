@@ -68,7 +68,7 @@ import {useI18n} from "@/i18n/i18n";
 export default {
     name: "ArtifactConfig",
     components: {ItemConfig},
-    props: ["modelValue"],
+    props: ["modelValue", "excludeSets"],
     emits: ["update:modelValue"],
     data() {
         return {
@@ -83,6 +83,7 @@ export default {
                 const config4 = d.config4 ?? []
                 const config2 = d.config2 ?? []
                 const name2 = d.name2
+                if (this.excludeSets?.includes(name2)) continue
                 if (config4.length > 0 || config2.length > 0) {
                     results.push({
                         name: name2,

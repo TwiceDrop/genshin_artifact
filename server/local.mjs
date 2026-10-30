@@ -112,7 +112,19 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                     res.setHeader('Set-Cookie', 'mona_mys=; HttpOnly; SameSite=Strict; Path=/api/mys; Max-Age=0')
                     return json({ ok: true })
                 }
-                if (url.pathname === '/api/mys/cancel' && req.method === 'POST') { session.cancelled = true; return json({ ok: true }) }
+                if (url.pathname === '/api/mys/cancel' && req.method === 'POST') { session.cancelled = true; c.cancelVerification(); return json({ ok: true }) }
+                if (url.pathname === '/api/mys/verification/cancel' && req.method === 'POST') {
+                    c.cancelVerification(); return json({ ok: true })
+                }
+                if (['/api/mys/verification/start', '/api/mys/verification/complete'].includes(url.pathname) && req.method === 'POST') {
+                    if (session.busy) return json({ error: '已有请求正在进行' }, 409)
+                    session.busy = true; session.cancelled = false
+                    try {
+                        const result = url.pathname.endsWith('/start') ? await c.startVerification() : await c.completeVerification(await input())
+                        if (session.cancelled) throw new Error('验证已取消')
+                        return json(result)
+                    } finally { session.busy = false }
+                }
                 if (url.pathname === '/api/mys/poll' && req.method === 'POST') {
                     const state = await c.pollQR()
                     if (state.status === 'Confirmed' && !session.accountId) await persistLogin(session)
@@ -138,7 +150,7 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                 if (session?.accountId && !session.cancelled && Number.isFinite(e.retcode)) {
                     await credentialStore.update(session.accountId, { status: [-100, 10001, 10002].includes(e.retcode) ? 'expired' : 'error', lastError: e.message }).catch(() => {})
                 }
-                return json({ error: e instanceof SyntaxError ? '请求格式无效' : e.message }, 502)
+                return json({ error: e instanceof SyntaxError ? '请求格式无效' : e.message, ...(Number.isFinite(e.retcode) ? { retcode: e.retcode } : {}) }, 502)
             }
         }
         if (!['GET', 'HEAD'].includes(req.method)) return json({ error: '方法无效' }, 405)

@@ -6,7 +6,7 @@ import { exportUidPackage, importUidPackage, validateUidPackage } from '../src/i
 import { createHash as nativeHash } from 'node:crypto'
 import { createHash, randomBytes, randomInt } from '../src/platform/crypto-browser.mjs'
 
-const meta = name => JSON.parse(fs.readFileSync(new URL(`../src/assets/_gen_${name}.js`, import.meta.url), 'utf8').replace(/^.*\nexport default /, '').trim().replace(/;$/, ''))
+const meta = name => JSON.parse(fs.readFileSync(new URL(`../src/assets/_gen_${name}.js`, import.meta.url), 'utf8').replace(/^[\s\S]*?export default\s+/, '').trim().replace(/;$/, ''))
 const catalog = { characters: meta('character'), weapons: meta('weapon'), artifacts: meta('artifact'), targets: meta('tf'), locale: JSON.parse(fs.readFileSync(new URL('../src/i18n/generated/zh-cn.json', import.meta.url))) }
 const converter = createMysConverter(catalog)
 function fixture(uid = '111111111') {
@@ -25,6 +25,7 @@ function fixture(uid = '111111111') {
 function destination() {
     const state = fixture('222222222')
     return { ...state, catalog, addArtifact(a) { const id = 1000 + state.inventory.size; state.inventory.set(id, { ...a, id }); return id },
+        updateArtifact(id, a) { Object.assign(state.inventory.get(id), a) },
         addPreset(name, item) { state.presets[name] = { name, item } } }
 }
 test('UID package carries only chosen roles, presets and history, survives ID remapping and repeated import', () => {
@@ -161,4 +162,34 @@ test('unrelated newer UID import does not block undo and retains its inventory',
     undoRecorded(record,dest)
     assert.equal(JSON.stringify(dest.data.entries.filter(e=>e.uid==='333333333')),other)
     assert.ok(dest.data.entries.every(e=>e.artifactIds.every(id=>dest.inventory.has(id))))
+})
+
+test('level-zero: UID import prefers zero in both orders, keeps ownership/ID and supports correction undo', () => {
+    for (const reverse of [false, true]) {
+        const source = fixture(), pack = exportUidPackage('111111111', source.data, source.presets, source.inventory)
+        const zero = { ...pack.artifacts[0], level: 0, position: 'flower', mainTag: { name: 'lifeStatic', value: 717 },
+            normalTags: [{ name: 'critical', value: .039 }, { name: 'criticalDamage', value: .078 }, { name: 'attackPercentage', value: .058 }],
+            unactivatedTags: [{ name: 'recharge', value: .065 }] }
+        const preview = { ...zero, level: 4, normalTags: [...zero.normalTags, ...zero.unactivatedTags], unactivatedTags: [] }
+        const dest = destination()
+        const saved = structuredClone(reverse ? zero : preview); saved.id = 9000; saved.omit = true
+        dest.inventory.set(saved.id, saved)
+        dest.presets.manual = { name: 'manual', item: { artifactIds: [saved.id] } }
+        const manual = JSON.stringify(dest.presets.manual)
+        pack.artifacts[0] = structuredClone(reverse ? preview : zero)
+        const original = structuredClone(saved)
+        const record = applyRecorded(pack, dest)
+        assert.equal(dest.inventory.get(saved.id).level, 0)
+        assert.equal(dest.inventory.get(saved.id).normalTags.length, 3)
+        assert.equal(dest.inventory.get(saved.id).omit, true)
+        assert.ok(dest.data.entries.find(e => e.key === pack.characters[0].entry.key).artifactIds.includes(saved.id))
+        assert.equal(JSON.stringify(dest.presets.manual), manual)
+        const count = dest.inventory.size
+        const repeated = applyRecorded(pack, dest)
+        assert.equal(repeated.added, 0); assert.equal(dest.inventory.size, count)
+        undoRecorded(repeated, dest)
+        undoRecorded(record, dest)
+        assert.deepEqual(dest.inventory.get(saved.id), original)
+        assert.equal(JSON.stringify(dest.presets.manual), manual)
+    }
 })

@@ -132,5 +132,8 @@ export const LEGACY_EFFECT_SLOTS={
   "EnhanceMoonbloom": 102,
   "EnhanceMoonCrystallize": 100,
   "StellarConductCritDamage": 217,
+  "StellarConductElevation": 215,
+  "StellarConductCritRate": 216,
+  "StellarConductFlat": 218,
   "StellarSwirlReactionAnemoFlat": 231
 };

@@ -5,7 +5,7 @@ const catalog=new Map([...data.weapons,silverLight].map(w=>[w.name,w]));
 const bool=x=>typeof x==='boolean';
 const pct=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=1;
 const count=(x,max)=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&x<=max;
-const nativeRole=name=>name==='Vesna'||name==='Vodyanitsa';
+const nativeRole=name=>['Vesna','Vodyanitsa','Mitya','Valeriy'].includes(name);
 const travelerRole=name=>/^(?:Aether|Lumine|Manekina)(?:Anemo|Geo|Electro|Dendro|Hydro|Pyro|Cryo)$/.test(name||'');
 // Marginal coverages determine overlap only when one state is absent or full.
 // Two partial coverages need timing information; min(a,b) invents nesting.

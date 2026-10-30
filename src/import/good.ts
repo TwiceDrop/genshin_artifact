@@ -35,12 +35,15 @@ export function convertGoodArtifacts(raw: any): any {
         if (!position || !(mainStatMap as any)[position].includes(name)) throw new Error(`${label}：部位或主词条无法识别 ${a.slotKey} / ${a.mainStatKey}`)
         const value = (mainStats as any)[a.rarity]?.[a.mainStatKey]?.[a.level]
         if (!Number.isInteger(a.rarity) || !Number.isInteger(a.level) || value === undefined) throw new Error(`${label}：不支持的星级或等级 ${a.rarity} / ${a.level}`)
-        const normalTags = a.substats.map((s: any) => {
+        const convertSubstat = (s: any) => {
             const subName = stats[s.key]
             if (!['hp', 'hp_', 'atk', 'atk_', 'def', 'def_', 'eleMas', 'enerRech_', 'critRate_', 'critDMG_'].includes(s.key) || !Number.isFinite(s.value))
                 throw new Error(`${label}：副词条无法识别 ${s.key}`)
             return { name: subName, value: s.key.endsWith('_') ? s.value / 100 : s.value }
-        })
+        }
+        const normalTags = a.substats.map(convertSubstat)
+        const unactivatedTags = a.level === 0 && normalTags.length === 3 && a.unactivatedSubstats?.length === 1
+            ? a.unactivatedSubstats.map(convertSubstat) : []
         let equip = a.location
         const character = characterData[a.location as keyof typeof characterData]
         if (character) equip = ta(character.nameLocale)
@@ -48,7 +51,7 @@ export function convertGoodArtifacts(raw: any): any {
         result[position].push({
             setName, position, star: a.rarity, level: a.level,
             mainTag: { name, value: a.mainStatKey.endsWith('_') ? value : Math.round(value) },
-            normalTags, equip
+            normalTags, unactivatedTags, equip
         })
     })
     return result

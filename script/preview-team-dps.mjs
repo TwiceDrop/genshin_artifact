@@ -1,0 +1,10 @@
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createLocalServer} from '../server/local.mjs';
+import {CredentialStore} from '../server/credentials.mjs';
+import {LocalUpdater} from '../server/updates.mjs';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const port=Number(process.argv[2]||4185);
+const trial=path.join(root,'.build-target/team-dps-preview-'+port);
+const server=createLocalServer({root:path.join(root,'dist'),credentialStore:new CredentialStore(path.join(trial,'miyoushe.dpapi')),updater:new LocalUpdater({root:trial})});
+server.listen(port,'127.0.0.1',()=>console.log(`Team DPS preview http://127.0.0.1:${port}/#/team-optimization`));
