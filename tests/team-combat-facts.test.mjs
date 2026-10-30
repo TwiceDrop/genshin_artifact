@@ -7,7 +7,7 @@ import {escoffier} from '../beta-data/team-engine/characters/escoffier.mjs';
 import {skirk} from '../beta-data/team-engine/characters/skirk.mjs';
 import {effectInput,action} from './helpers/team-effect-refactor.mjs';
 import {equipmentRuntimeInput} from './helpers/team-equipment-runtime.mjs';
-import {gatedHealthOutputs,gatedWeaponOutputs} from './helpers/team-combat-facts.mjs';
+import {gatedHealthOutputs,gatedWeaponOutputs,gatedWeaponPath} from './helpers/team-combat-facts.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<=1e-10*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 
 test('disabled health events do not heal, drain, create bonds or alter fanfare in scalar and numeric execution',()=>{
@@ -20,11 +20,16 @@ test('disabled health events do not heal, drain, create bonds or alter fanfare i
 });
 
 test('disabled weapon trials cannot spend deterministic or probabilistic healing cooldowns',()=>{
+ for(const [criticals,enabled,disabled]of [[[0,0],[0,0],[0,0]],[[0,1],[0,10],[0,10]],[[1,0],[10,0],[0,0]],[[1,1],[10,0],[0,10]]]){
+  assert.deepEqual(gatedWeaponPath(scalarMath,1,'TheBlackSword',criticals),enabled);
+  assert.deepEqual(gatedWeaponPath(scalarMath,0,'TheBlackSword',criticals),disabled);
+ }
  for(const weapon of ['PrizedIsshinBlade','TheBlackSword']){
   const builder=createNumericProgram(),program=builder.finish(gatedWeaponOutputs(builder.math,builder.input(0),weapon));
   for(const gate of [0,1]){
    const expected=weapon==='PrizedIsshinBlade'?(gate?[10,0]:[0,10]):(gate?[5,2.5]:[0,5]);
    const scalar=gatedWeaponOutputs(scalarMath,gate,weapon),compiled=executeNumericProgram(program,[gate]);
+   assert.equal(scalar.length,2);assert.equal(compiled.length,2);
    scalar.forEach((v,i)=>near(v,expected[i]));compiled.forEach((v,i)=>near(v,expected[i]));
   }
  }

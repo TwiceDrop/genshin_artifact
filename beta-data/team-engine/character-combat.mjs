@@ -1,20 +1,27 @@
 import {characterPackages} from './character-packages.mjs';
 import {actionTime} from './rule-utils.mjs';
 import {eventKey,compareEvents} from './event-order.mjs';
+import {createReactionEmitter} from './reaction-events.mjs';
 
-export function createCharacterCombat(profiles,plan,{math:m,observeHit,refresh}){
+export function createCharacterCombat(profiles,plan,{math:m,observeHit,refresh,settings}){
  const windows={...plan.windows},providers=new Map(),completions=new Map(plan.combatCompletions);
- const rotation={...plan,windows,events:plan.events.map(e=>({...e}))};let current=rotation,enqueue,serial=plan.events.length;
+ const rotation={...plan,windows,events:plan.events.map(e=>({...e})),resources:[...(plan.resources??[])],reactionFacts:[...(plan.reactionFacts??[])]};let current=rotation,enqueue,serial=plan.events.length;
  const known=new Map(rotation.events.map(e=>[eventKey(e),e])),plugins=new Map();
- rotation.covered=(key,time,rootOrder)=>providers.has(key)?providers.get(key).covered(time,rootOrder):plan.covered(key,time,rootOrder);
+ const emitReaction=createReactionEmitter({actorIds:plan.slots,settings,math:m,observeHit,enqueue:e=>enqueue(e),initialFacts:rotation.reactionFacts,
+  record:fact=>{current.reactionFacts.push(fact);refresh(current);}});
+ rotation.covered=(key,time,rootOrder)=>providers.has(key)?providers.get(key).covered(time,rootOrder,key):plan.covered(key,time,rootOrder);
  const hit=(a,template,offset=0,suffix='',phase=20)=>{
   const time=actionTime(a.time+offset);
-  for(let part=0;part<(template.hits??template.parts??1);part++)enqueue({...template,kind:'hit',time,role:a.role,
-   rootOrder:a.rootOrder+phase,part:template.part??part,eventId:a.id+'/'+suffix,parentEventId:eventKey(a),runtimeHit:true});
+  for(let part=0;part<(template.hits??template.parts??1);part++){
+   const e={...template,kind:'hit',time,role:a.role,rootOrder:a.rootOrder+phase,part:template.part??part,eventId:a.id+'/'+suffix,parentEventId:eventKey(a),runtimeHit:true};
+   if(e.variant){e.contactId=eventKey(e);e.eventId+='/variant/'+e.variant;}
+   enqueue(e);
+  }
  };
  for(const role of plan.runtimeRoles){
   const profile=profiles[role];let plugin;
-  plugin=characterPackages[profile.character.name].createCombat({role,profile,profiles,math:m,activeRole:plan.activeRole,window:plan.window,covered:rotation.covered,windows,hit,observeHit,
+  plugin=characterPackages[profile.character.name].createCombat({role,profile,profiles,math:m,actorIds:plan.slots,emitReaction,activeRole:plan.activeRole,window:plan.window,covered:rotation.covered,windows,hit,observeHit,
+   recordResource:row=>current.resources.push(row),
    enqueue:e=>enqueue(e.kind==='hit'?{...e,runtimeHit:true}:e),
    addWindow(key,a,life,offset=0,values={}){
     if(!providers.has(key)){windows[key]=[];providers.set(key,plugin);}
@@ -43,7 +50,7 @@ export function createCharacterCombat(profiles,plan,{math:m,observeHit,refresh})
     const row=known.get(eventKey(event));
     if(row){const changed=row.element!==event.element||row.enabled!==event.enabled||row.probability!==event.probability;Object.assign(row,event);if(changed)refresh(current);}
     else if(event.runtimeHit){
-     known.set(eventKey(event),event);event.order??=serial++;event.serial=event.order;current.events.push(event);current.events.sort(compareEvents);refresh(current);
+     known.set(eventKey(event),event);const ordinal=serial++;event.order??=ordinal;event.serial=ordinal;current.events.push(event);current.events.sort(compareEvents);refresh(current);
     }
    }else for(const [,plugin]of subscribers)plugin.onEvent?.(event);
   },

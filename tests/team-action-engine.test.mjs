@@ -33,7 +33,7 @@ test('V1: Skirk hold charges resource without Seven-Phase; both burst forms and 
  for(const cons of [0,6]){
   const x=fixture([row('hold','carry','skill.hold',0,{absorbedRifts:3}),row('q','carry','burst',1000)],cons),out=evaluate(x),q=out.hits.filter(h=>h.label.startsWith('极恶技·灭'));
   assert.equal(q.length,6);assert.deepEqual(q.map(h=>h.index),[15,15,15,15,15,16]);near(out.duration,1+158/60);
-  const resource=out.resources.find(h=>h.label==='吸收裂隙');assert.equal(resource.value,69+(cons>=2?10:0));assert.equal(out.resources.at(-1).value,0);
+  const resource=out.resources.find(h=>h.label==='吸收裂隙');assert.equal(resource.value,69+(cons>=2?10:0));assert.equal(out.resources.filter(h=>h.resource==='蛇之狡谋').at(-1).value,0);
   const native=api.CalculatorInterface.get_damage_analysis({...out.profiles[0],artifacts:builds(x)[0],skill:{index:15,config:{Skirk:{cunning_stacks:resource.value,seven_phase_mode:false,death_crossing_stacks:0,void_rift_count:0}}}},null);
   near(q[0].analysis.atk_ratio['技能倍率'],sum(native.atk_ratio),'native burst ratio');
   assert.equal(out.hits.filter(h=>h.label==='一命·晶刃').length,cons?3:0);assert.equal(out.hits.filter(h=>h.label==='虚境裂隙·六命爆发追加').length,cons?3:0);

@@ -2,13 +2,14 @@ import {afterEvent,compareEventPosition,eventKey} from './event-order.mjs';
 import {hitTargets} from './hit-targets.mjs';
 import {observeProcHit} from './proc-outcomes.mjs';
 import {initialEffectStacks,activateEffectStacks,effectStackCount} from './effect-stacks.mjs';
+import {matchesEffect as match} from './effect-contract.mjs';
 
-const match=(filter,event)=>Object.entries(filter).every(([key,value])=>
- Array.isArray(value)?value.includes(event[key]):(event[key]??null)===value);
 export const effectApplies=(definition,source,role,event,activeRole)=>{
  const target=definition.target,onField=activeRole(event.time,event.rootOrder)===role;
  if(target==='self'&&role!==source.role||target==='other'&&role===source.role)return false;
+ if(target==='selfOnField'&&(role!==source.role||!onField)||target==='selfOffField'&&(role!==source.role||onField))return false;
  if(target==='otherOnField'&&(role===source.role||!onField))return false;
+ if(target==='otherOffField'&&(role===source.role||onField))return false;
  if(target==='teamOnField'&&!onField||target==='teamOffField'&&onField)return false;
  return !definition.filter||match(definition.filter,event);
 };

@@ -13,7 +13,7 @@ import {scalarMath,createTeamNumericRules} from './team-dps-numeric-rules.mjs';
 import {normalizeTeamProfiles,createCharacterRules,characterRules} from './team-engine/registry.mjs';
 import {equipmentHealingBase,equipmentRecipientHealing,equipmentObservesCritical} from './team-engine/equipment-healing.mjs';
 import {createHitOutcomes} from './team-engine/hit-outcomes.mjs';
-import {describeTeamBuffSources} from './team-dps-source-detail.mjs';
+import {describeTeamBuffSources,describeCompiledTeamSources} from './team-dps-source-detail.mjs';
 import {compileActionAxis} from './team-engine/timeline.mjs';
 import {compileEffectPlan} from './team-engine/effect-plan.mjs';
 import {createEffectState} from './team-engine/effect-state.mjs';
@@ -26,6 +26,9 @@ import {combineTeamOutcomes} from './team-dps-outcome-results.mjs';
 import {createHitResults} from './team-dps-hit-results.mjs';
 import {createOutcomeChoices} from './team-engine/outcome-choices.mjs';
 import {scaleTalentPart} from './team-engine/rule-utils.mjs';
+import {compileDamageModels} from './team-engine/damage-models.mjs';
+import {snapshotEvent,mergeSnapshotDamage} from './team-engine/stat-snapshot.mjs';
+import {targetObservation} from './team-engine/hit-observation.mjs';
 export const sum=x=>Object.values(x||{}).reduce((a,b)=>a+b,0);
 const effect=(label,values)=>({name:'ExtensionEffect',config:{ExtensionEffect:{label,values}}});
 export function createTeamDpsEvaluator(api,input,execution={}){
@@ -35,19 +38,20 @@ export function createTeamDpsEvaluator(api,input,execution={}){
  const rotation=execution.compileRotation(input.team_dps.axis,profiles,input.team_dps,{runtime:true});
  const effectPlan=compileEffectPlan(profiles,rotation,input.team_dps);
  const equipmentPlan=compileEquipmentProcRules(profiles,input.team_dps);
+ const damageModels=compileDamageModels(profiles);
  let plans=[{themes:{},labels:[]}];
  for(let r=0;r<input.single_interfaces.length;r++)if(input.single_interfaces[r].weapon.name==='TheWidsith'){
   const mode=input.team_dps.widsith_mode?.[r]??'average';
   const themes=mode==='average'?WIDSITH_THEMES.slice(1):WIDSITH_THEMES.filter(([key])=>key===mode);
   for(const trigger of widsithTriggers(rotation,r))plans=plans.flatMap(p=>themes.map(([theme,label])=>({themes:{...p.themes,[r]:[...(p.themes[r]||[]),theme]},labels:[...p.labels,`${Number(trigger.time.toFixed(2))}秒 ${label}`]})));
  }
- const branching=equipmentPlan.some(rule=>rule&&rule.chance>0&&rule.chance<1)||profiles.some(p=>p.weapon.name==='TheBlackSword'||characterRules[p.character.name].randomHealth?.(p));
+ const branching=damageModels.randomOutcomes||equipmentPlan.some(rule=>rule&&rule.chance>0&&rule.chance<1)||profiles.some(p=>p.weapon.name==='TheBlackSword'||characterRules[p.character.name].randomHealth?.(p));
  const entries=plans.map(plan=>{
   const captured={events:[],rotation:null},runExecution=branching?{...execution,
    captureCombatEvent:execution.captureCombatEvent?event=>captured.events.push(event):undefined,
    captureRotation:execution.captureRotation?rotation=>{captured.rotation=rotation;}:undefined,
   }:execution;
-  return {plan,captured,evaluator:createFixedTeamDpsEvaluator(api,{...input,team_dps:{...input.team_dps,widsith_themes:plan.themes}},runExecution,{profiles,rotation,effectPlan,equipmentPlan})};
+  return {plan,captured,evaluator:createFixedTeamDpsEvaluator(api,{...input,team_dps:{...input.team_dps,widsith_themes:plan.themes}},runExecution,{profiles,rotation,effectPlan,equipmentPlan,damageModels})};
  });
  if(!branching&&entries.length===1)return entries[0].evaluator;
  const average=values=>m.div(values.reduce((a,b)=>m.add(a,b),0),values.length);
@@ -78,7 +82,7 @@ export function createTeamDpsEvaluator(api,input,execution={}){
  };
 }
 
-function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effectPlan,equipmentPlan}){
+function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effectPlan,equipmentPlan,damageModels}){
  const m=execution.math||scalarMath,numeric=createTeamNumericRules(m),sum=x=>Object.values(x||{}).reduce((a,b)=>m.add(a,b),0);
  const settings=input.team_dps,defer=equipmentPlan.some(rule=>rule&&rule.chance>0&&rule.chance<1);
  let currentRotation=rotation,equipment=createEquipmentAxisRules(profiles,rotation,settings,execution);
@@ -131,14 +135,25 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
    const outcomePrefix=JSON.stringify([settings.widsith_themes,[...(procContext.observed??[])]]);
    const choices=createOutcomeChoices(m,procContext.observed,execution.random?(id,p)=>execution.random(outcomePrefix+'/'+id,p):undefined);
    const outcomes=createHitOutcomes(m,choices.draw,role=>rotation.slots[role]);
-  const combat=rotation.runtimeRoles?createCharacterCombat(profiles,rotation,{math:m,observeHit:observeProcHit,refresh}):null;
+  const combat=rotation.runtimeRoles?createCharacterCombat(profiles,rotation,{math:m,observeHit:observeProcHit,refresh,settings}):null;
   const candidateRotation=combat?.rotation??rotation;
+  // A marginal Royal distribution is sufficient for damage-only averaging.
+  // Once its CR feeds nonlinear random healing, retain the actual hit result
+  // and candidate-owned stacks through the same outcome mechanism.
+  const royalWeapons=profiles.map(p=>['RoyalLongsword','RoyalSpear','RoyalGrimoire'].includes(p.weapon.name));
+  const exactRoyal=profiles.map((p,r)=>royalWeapons[r]&&!!characters.rules[r].randomHealth?.(p)),royalStacks=profiles.map(()=>0);
   
   beginEffects(builds,trace,readEffectStat);
   refresh({...candidateRotation,heals:[],bonds:[]});
   const results=createHitResults(m,profiles.length,{defer}),{rows,totals,byRole}=results;
   const capturedEvents=defer&&execution.captureCombatEvent?[]:undefined;
-  const panelAt=(r,h)=>{const s=equipmentState(builds,h);return source(r,builds[r],h,attackBuffs(r,h,s.panels),s.buffs[r]);};
+  const panelAt=(r,h)=>{
+   const s=equipmentState(builds,h),panel=source(r,builds[r],h,attackBuffs(r,h,s.panels),s.buffs[r]);
+   if(!exactRoyal[r])return panel;
+   const critical={...panel.critical};delete critical['宗室被动等效'];
+   critical['宗室·当前叠层']=m.mul(royalStacks[r],.06+.02*profiles[r].weapon.refine);
+   return {...panel,critical};
+  };
   function readEffectStat(role,dependency,event){
    const s=equipmentState(builds,event);
    const panel=dependency.stage==='base'?s.panels[role]:source(role,builds[role],event,attackBuffs(role,event,s.panels),s.buffs[role]);
@@ -173,23 +188,26 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
     // Selection is a read of the same resolved contact. It must never advance
     // probability state or consume an effect a second time. The current finite
     // effects add flat base damage, so their per-target sums can be reduced here.
-    function resolveDamage(targetIds,collect,observe=false){
+    function resolveDamage(targetIds,collect,observe=false,diagnose=collect){
    const {time:t,role:r}=e,element=characters.hitElement(r,e);
     const targets=targetIds.length;
-   const state=equipmentState(builds,e),at=e.statSnapshot?{...e,...e.statSnapshot}:e,statState=e.statSnapshot?equipmentState(builds,at):state,values=attackBuffs(r,at,statState.panels);
+   const state=equipmentState(builds,e),at=snapshotEvent(e),statState=e.statSnapshot?equipmentState(builds,at):state,values=attackBuffs(r,at,statState.panels),attackCount=values.length;
    const sourceAt=role=>source(role,builds[role],e,attackBuffs(role,e,state.panels),state.buffs[role]);
    values.push(...characters.damageBuffs(r,{...e,element},state.panels,sourceAt));
      values.push(...effects.resolve('damage',r,{...e,element},(role,dependency)=>sum((dependency.stage==='base'?state.panels[role]:sourceAt(role))[dependency.stat]),targetIds));
-    if(healingDamage.flat.has(e.order))values.push(effect('昔时之歌·昔时的回响',{ExtraDmgBase:healingDamage.flatFor(e,targetIds)}));
+    if(healingDamage.flat.has(eventKey(e)))values.push(effect('昔时之歌·昔时的回响',{ExtraDmgBase:healingDamage.flatFor(e,targetIds)}));
    const health=currentRotation.healthAt(e);
    const x=context(r,builds[r],at,values,statState.buffs[r]),cacheKey=key(builds[r])+'/'+JSON.stringify([x.character,x.weapon.params,activeSetConfig(x.artifact_config,builds[r]),values,statState.buffs[r],e.index,e.category,e.nativeElement,e.furinaC6,x.skill.config]);
    let d=caches[r].get(cacheKey);
    if(!d){d=readDamage(x,r,e);caches[r].set(cacheKey,d);}
+   let liveInput;
    if(e.statSnapshot){
     // A skill snapshots its caster's stats; target resistance/defense and
     // character damage modifiers still use the actual impact's state.
-    const target=readDamage(context(r,builds[r],e,values,state.buffs[r]),r,e);
-    d={...d,...Object.fromEntries(['def_minus','def_penetration','res_minus'].map(k=>[k,target[k]]))};
+    const liveValues=e.statSnapshot.fields===undefined?values:[...attackBuffs(r,e,state.panels),...values.slice(attackCount)];
+    liveInput=context(r,builds[r],e,liveValues,state.buffs[r]);
+    const target=readDamage(liveInput,r,e);
+    d=mergeSnapshotDamage(d,target,e.statSnapshot.fields);
    }
     const multiplier=characters.instances[r].multiplier?.(e)??1;
    const talentPart=value=>scaleTalentPart(m,e,value);
@@ -206,38 +224,57 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
    const base=m.add(m.add(m.add(m.mul(scaled,m.add(1,sum(d.independent_damage_multiplier))),additive),m.mul(sum(d.atk),echoesRatio)),sum(d.extra_damage));
    const level=profiles[r].character.level,def=numeric.defense(level,enemy.level,sum(d.def_minus),sum(d.def_penetration));
    const res0=m.sub(enemy[element.toLowerCase()+'_res'],sum(d.res_minus)),res=numeric.resistance(res0);
-   if(['RoyalLongsword','RoyalSpear','RoyalGrimoire'].includes(profiles[r].weapon.name)){
+   if(royalWeapons[r]){
     d={...d,critical:{...d.critical}};delete d.critical['宗室被动等效'];
+    if(exactRoyal[r])d.critical['宗室·当前叠层']=m.mul(royalStacks[r],.06+.02*profiles[r].weapon.refine);
+    else{
      const baseCritical=sum(d.critical),step=royalHit(royalBefore,baseCritical,profiles[r].weapon.refine,m);
      if(collect)royal[r]=step.state.map((value,i)=>m.choose(e.enabled??1,value,royalBefore[i]));
     d.critical['宗室·逐击概率']=m.sub(step.critical,m.min(1,m.max(0,baseCritical)));
+    }
    }
    if(equipmentWeakpoint(profiles[r],e)){d={...d,critical:{...d.critical,'命中弱点':m.sub(1,m.min(1,m.max(0,sum(d.critical))))}};}
    const cd=sum(d.critical_damage),cr=m.min(1,m.max(0,sum(d.critical)));
    const damage=numeric.damage(base,sum(d.bonus),def,res,m.mul(targets,e.enabled??1),cr,cd);
-    if(trace&&collect){
-     const detail=execution.query?d:describeTeamBuffSources(x,d);
+    if(trace&&diagnose){
+     const detail=execution.query?describeCompiledTeamSources(d):e.statSnapshot?.fields===undefined?describeTeamBuffSources(x,d):mergeSnapshotDamage(describeTeamBuffSources(x,d),describeTeamBuffSources(liveInput,d),e.statSnapshot.fields);
     // Describe the scored hit, not the unsplit native skill or hypothetical reactions.
     const split=values=>Object.fromEntries(Object.entries(values).map(([name,value])=>[name,talentPart(value)]));
     const adjusted=characters.rules[r].separateAtkRatio||e.ratio!==undefined;
     const analysis={team_hit:true,target_count:targets,element,is_heal:false,is_shield:false,normal:{...damage},
      ...Object.fromEntries(['atk','hp','def','em','extra_damage','independent_damage_multiplier','critical','critical_damage','bonus','def_minus','def_penetration','res_minus'].map(k=>[k,{...detail[k]}])),
-     atk_ratio:adjusted?{'技能倍率':m.div(atkRatio,multiplier),...(multiplier===1?{}:{[characters.rules[r].ratioLabel]:m.mul(m.div(atkRatio,multiplier),multiplier-1)})}:split(d.atk_ratio),
-     atk_additive_ratio:{...(adjusted?Object.fromEntries(Object.entries(d.atk_ratio).filter(([name])=>!talentFields.has(name))):{}),...(echoesProbability===undefined?{}:{[execution.query?'来歆余响4':`来歆余响4（70% × ${Number((echoesProbability*100).toFixed(2))}%）`]:echoesRatio})},
-     hp_ratio:split({...d.hp_ratio,...(hpExtra===0?{}:{[characters.rules[r].hpRatioLabel]:hpExtra})}),def_ratio:split(d.def_ratio),em_ratio:split(d.em_ratio)};
+     atk_ratio:adjusted?{'技能倍率':m.div(atkRatio,multiplier),...(multiplier===1?{}:{[characters.rules[r].ratioLabel]:m.mul(m.div(atkRatio,multiplier),multiplier-1)})}:split(detail.atk_ratio),
+     atk_additive_ratio:{...(adjusted?Object.fromEntries(Object.entries(detail.atk_ratio).filter(([name])=>!talentFields.has(name))):{}),...(echoesProbability===undefined?{}:{[execution.query?'来歆余响4':`来歆余响4（70% × ${Number((echoesProbability*100).toFixed(2))}%）`]:echoesRatio})},
+     hp_ratio:split({...detail.hp_ratio,...(hpExtra===0?{}:{[characters.rules[r].hpRatioLabel]:hpExtra})}),def_ratio:split(detail.def_ratio),em_ratio:split(detail.em_ratio)};
     row={...e,...damage,analysis,fanfare:health.fanfare,furina_overflow:health.overflow,hp_ratios:health.ratios,echoes_probability:echoesProbability,atk:sum(d.atk),hp:sum(d.hp),em:sum(d.em),crit:cr,crit_damage:cd,bonus:sum(d.bonus),flat:sum(d.extra_damage),def,res};
    }
     return observe?outcomes.contact(e,targetIds[0],cr,damage):damage;
     }
+    if(effects.needsIndividualTargets(e.role,{...e,element:characters.hitElement(e.role,e)})){
+     const zero=()=>({expectation:0,critical:0,non_critical:0}),selected=zero(),actual=zero(),details=[];
+     const observe=exactRoyal[e.role]||equipmentObservesCritical(profiles[e.role],e);
+     if(observe)outcomes.begin(e);
+     for(const [i,target]of actualTargets.entries()){
+      const chosen=selectedTargets.includes(target),value=resolveDamage([target],i===0,observe,chosen),damage=observe?{expectation:value.damage,critical:value.critical_damage,non_critical:value.non_critical}:value;
+      if(exactRoyal[e.role])royalStacks[e.role]=m.choose(e.enabled??1,m.choose(value.critical,0,m.min(5,m.add(royalStacks[e.role],1))),royalStacks[e.role]);
+      for(const key of Object.keys(actual)){actual[key]=m.add(actual[key],damage[key]);if(chosen)selected[key]=m.add(selected[key],damage[key]);}
+      if(trace&&chosen){Object.assign(row,damage);Object.assign(row.analysis.normal,damage);if(observe)row.contacts=[value];details.push(targetObservation(row,e,target,rotation.slots[e.role]));}
+     }
+     return {selected,actual,row:trace?details:undefined};
+    }
     let selected=resolveDamage(selectedTargets,true),actual=actualTargets.length===selectedTargets.length?selected:resolveDamage(actualTargets,false);
-    if(equipmentObservesCritical(profiles[e.role],e)){
+    if(exactRoyal[e.role]||equipmentObservesCritical(profiles[e.role],e)){
      outcomes.begin(e);
-     const contacts=actualTargets.map(target=>resolveDamage([target],false,true));
+     const contacts=actualTargets.map(target=>{
+      const contact=resolveDamage([target],false,true);
+      if(exactRoyal[e.role])royalStacks[e.role]=m.choose(e.enabled??1,m.choose(contact.critical,0,m.min(5,m.add(royalStacks[e.role],1))),royalStacks[e.role]);
+      return contact;
+     });
      const total=filter=>contacts.filter(filter).reduce((value,contact)=>m.add(value,contact.damage),0);
      selected={...selected,expectation:total(contact=>selectedTargets.includes(contact.targetId))};actual={...actual,expectation:total(()=>true)};
      if(row){row.expectation=selected.expectation;row.analysis.normal.expectation=selected.expectation;row.contacts=contacts;}
     }
-    return results.add(e,selected,actual,row);
+    return {selected,actual,row};
   }
   function scoreEquipment(e){
    let row;
@@ -252,23 +289,29 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
    const cr=e.noCrit?0:e.forceCritical?1:m.min(1,m.max(0,sum(p.critical))),cd=e.noCrit?0:sum(p.critical_damage),probability=e.enabled??1,targetCount=scoredTargets(e,settings).length,n=m.mul(m.mul(m.mul(m.mul(m.mul(base,m.add(1,bonus)),def),res),probability),targetCount);
    const damage={non_critical:n,critical:m.mul(n,m.add(1,cd)),expectation:m.mul(n,m.add(1,m.mul(cr,cd)))};
    if(trace&&targetCount){
-    const detail=execution.query?p:describeTeamBuffSources(context(r,builds[r],at,extra,s.buffs[r]),p);
+    const detail=execution.query?describeCompiledTeamSources(p):describeTeamBuffSources(context(r,builds[r],at,extra,s.buffs[r]),p);
     const analysis={team_hit:true,event_probability:probability,target_count:targetCount,ignore_defense:!!e.ignoreDefense,element:'Physical',normal:{...damage},is_heal:false,is_shield:false,
-     atk:{...detail.atk},hp:{...detail.hp},def:{...detail.def},em:{...p.elemental_mastery},atk_ratio:e.stat==='atk'?{[e.label]:e.ratio}:{},hp_ratio:e.stat==='hp'?{[e.label]:e.ratio}:{},def_ratio:{},em_ratio:{},atk_additive_ratio:{},independent_damage_multiplier:{},
-     extra_damage:e.fixed===undefined?{}:{[e.label]:e.fixed},bonus:e.fixed===undefined?{...p.bonus_physical}:{},critical:e.noCrit||e.forceCritical?{'追加攻击暴击规则':cr}:{...p.critical},critical_damage:e.noCrit?{'追加攻击暴击规则':0}:{...p.critical_damage},def_minus:reduction.DefMinus,def_penetration:reduction.DefPenetration,res_minus:Object.fromEntries([...new Set([...Object.keys(reduction.ResMinusBase),...Object.keys(reduction.ResMinusPhysical)])].map(k=>[k,(reduction.ResMinusBase[k]||0)+(reduction.ResMinusPhysical[k]||0)]))};
+     atk:{...detail.atk},hp:{...detail.hp},def:{...detail.def},em:{...detail.elemental_mastery},atk_ratio:e.stat==='atk'?{[e.label]:e.ratio}:{},hp_ratio:e.stat==='hp'?{[e.label]:e.ratio}:{},def_ratio:{},em_ratio:{},atk_additive_ratio:{},independent_damage_multiplier:{},
+     extra_damage:e.fixed===undefined?{}:{[e.label]:e.fixed},bonus:e.fixed===undefined?{...detail.bonus_physical}:{},critical:e.noCrit||e.forceCritical?{'追加攻击暴击规则':cr}:{...detail.critical},critical_damage:e.noCrit?{'追加攻击暴击规则':0}:{...detail.critical_damage},def_minus:reduction.DefMinus,def_penetration:reduction.DefPenetration,res_minus:Object.fromEntries([...new Set([...Object.keys(reduction.ResMinusBase),...Object.keys(reduction.ResMinusPhysical)])].map(k=>[k,(reduction.ResMinusBase[k]||0)+(reduction.ResMinusPhysical[k]||0)]))};
     row={...e,...damage,analysis,category:'equipment',part:0,onField:activeRole(e.time,e.rootOrder)===r,atk:sum(p.atk),hp:sum(p.hp),crit:cr,crit_damage:cd,bonus,flat:e.fixed||0,def,res};
    }
    const actualTargets=hitTargets(e,settings).length;
-   if(actualTargets===targetCount)return results.add(e,damage,damage,row);
+   if(actualTargets===targetCount)return {selected:damage,actual:damage,row};
    const actual=m.mul(m.mul(m.mul(m.mul(m.mul(base,m.add(1,bonus)),def),res),probability),actualTargets);
-   return results.add(e,damage,{non_critical:actual,critical:m.mul(actual,m.add(1,cd)),expectation:m.mul(actual,m.add(1,m.mul(cr,cd)))},row);
+   return {selected:damage,actual:{non_critical:actual,critical:m.mul(actual,m.add(1,cd)),expectation:m.mul(actual,m.add(1,m.mul(cr,cd)))},row};
   }
+  const scoreHit=damageModels({nativeSkill:scoreSkill,equipmentPhysical:scoreEquipment,results,
+   math:m,numeric,profiles,settings,enemy,trace,panelAt,outcomes,actorIds:rotation.slots,
+   targets:e=>({actual:hitTargets(e,settings),scored:scoredTargets(e,settings)}),
+   effects:(stage,role,event,targetIds)=>effects.resolve(stage,role,event,readEffectStat,targetIds),
+   needsIndividualTargets:(role,event)=>effects.needsIndividualTargets(role,event),
+  });
   const healthState=createPortableHealth(profiles,builds,candidateRotation,{panelAt,healAt,criticalHitAt:outcomes.anyCritical,refresh,...execution,random:choices.draw});
   combat?.bind(healthState.rotation);
   const resolved=resolveCombatTimeline(effectPlan.schedule,healthState,effectState,{
    ...(combat?{math:m,horizon:rotation.duration,minimumDuration:rotation.combatDurationFloor,prepareEvent:combat.prepare}:{}),
    beforeHit(event){runtimeEquipment.beforeHit(event);healingDamage.beforeHit(event);},
-   hit:e=>e.category==='equipment'?scoreEquipment(e):scoreSkill(e),
+   hit:scoreHit,
     afterEvent(event,enqueue){healingDamage.afterEvent(event,enqueue);combat?.after(event,enqueue);runtimeEquipment?.afterEvent(event,enqueue);if(capturedEvents)capturedEvents.push(event);else execution.captureCombatEvent?.(event);},
   });
   const conditioned=procContext.observed?.size?conditionProcClocks(runtimeEquipment.clocks,procContext.observed,m):{probability:1};

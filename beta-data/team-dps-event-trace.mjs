@@ -24,8 +24,12 @@ export function compileEventTrace(result,m){
     if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([,v])=>v!==undefined&&typeof v!=='function').map(([k,v])=>[k,encode(v)]));
     return value;
    }
-   const template=encode(row),mass=m.mul(outcome.probability,row.enabled??1);
-   groups.push({id:channel+'/'+branch+'/'+ordinal,channel,eventId:eventKey(row),branch,label:outcome.label,template,nodes,consumedRoleMask:row.consumedRoles?.some(isRef)??false,mass:isRef(mass)?{node:mass.index}:{constant:mass}});
+   // Legacy hit rows are expected contributions. Observations instead carry
+   // occurrence mass and the conditional damage, without a second weighting.
+   const {damageOnOccurrence,...value}=row;
+   const conditional=damageOnOccurrence?{...value,...damageOnOccurrence,analysis:{...value.analysis,event_probability:1,normal:{...damageOnOccurrence}}}:value;
+   const template=encode(conditional),mass=m.mul(m.mul(outcome.probability,row.enabled??1),channel==='hits'?row.probability??1:1);
+   groups.push({id:channel+'/'+branch+'/'+ordinal,channel,eventId:row.contactId??eventKey(row),branch,label:outcome.label,template,nodes,consumedRoleMask:row.consumedRoles?.some(isRef)??false,mass:isRef(mass)?{node:mass.index}:{constant:mass}});
   }
   }
  }

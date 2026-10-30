@@ -2,7 +2,7 @@ import {TEAM_ACTION_CATALOG} from './action-catalog.mjs';
 import {compileActionAxis} from './timeline.mjs';
 export {TEAM_ACTION_CATALOG};
 export {actionAxisTimeline} from './action-timing.mjs';
-export const TEAM_ACTION_RULES_VERSION='mona-team-engine/28';
+export const TEAM_ACTION_RULES_VERSION='mona-team-engine/31';
 export function createActionAxis(id,characters){
  const members=characters.map((character,i)=>({slot:'member'+(i+1),character}));
  return {format:'mona-action-axis',formatVersion:1,rulesVersion:TEAM_ACTION_RULES_VERSION,id,title:'新动作轴',endHit:'include',initialActiveSlot:members[0].slot,members,timeline:[]};

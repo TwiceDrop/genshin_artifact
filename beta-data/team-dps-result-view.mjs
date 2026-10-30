@@ -1,4 +1,4 @@
-export const TEAM_DPS_RESULT_VERSION='team-dps-result/1';
+export const TEAM_DPS_RESULT_VERSION='team-dps-result/2';
 export const TEAM_EVENT_CHANNELS=[['hits','伤害'],['health','生命'],['heals','治疗'],['effects','效果'],['resources','资源'],['bonds','生命之契']];
 export const teamProbabilityText=value=>typeof value==='number'?(value>0&&value<.0001?(value*100).toExponential(2):(value*100).toLocaleString('zh-CN',{maximumFractionDigits:2}))+'%':'—';
 
@@ -15,7 +15,7 @@ export function teamEventRows(trace){
 }
 export const canRestoreTeamDpsResult=(saved,axis,engineRulesVersion)=>saved?.resultVersion===TEAM_DPS_RESULT_VERSION&&saved.engineRulesVersion===engineRulesVersion&&JSON.stringify(saved.axis)===JSON.stringify(axis);
 export const teamDamageAnalysis=analysis=>Object.fromEntries(Object.entries(analysis).map(([field,values])=>[
- field,values&&typeof values==='object'&&!Array.isArray(values)&&Object.hasOwn(values,'compiled')?Object.fromEntries(Object.entries(values).map(([key,value])=>[key==='compiled'?'未分项合计':key,value])):values,
+ field,field!=='normal'&&values&&typeof values==='object'&&!Array.isArray(values)?Object.fromEntries(Object.entries(values).filter(([,value])=>value!==0).map(([key,value])=>[key==='compiled'?'未分项合计':key,value])):values,
 ]));
 
 // Saved tasks also support JSON-backed storage. Preserve IEEE sentinel values

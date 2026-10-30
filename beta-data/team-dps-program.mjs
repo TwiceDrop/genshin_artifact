@@ -17,7 +17,7 @@ export function compileTeamDpsExpression(api,input,artifacts,resources,evaluator
  const sets=[...new Set(candidates.map(a=>a.set_name))].filter(name=>name!=='Empty'&&new Set(candidates.filter(a=>a.set_name===name).map(a=>a.slot)).size>=2),stride=TEAM_PROGRAM_STATS.length+sets.length,builder=createNumericProgram();
  const setCount=(role,name)=>sets.includes(name)?builder.input(role*stride+TEAM_PROGRAM_STATS.length+sets.indexOf(name)):0;
  const stats=(role,name)=>builder.input(role*stride+TEAM_PROGRAM_STATS.indexOf(name));
- const query=createPortableNativeQuery({...resources,api,builder,sets,setCount,stats});
+ const query=createPortableNativeQuery({...resources,api,builder,sets,setCount,stats,sourceDetails:trace});
  const evaluator=evaluatorFactory(api,input,{math:query.math,query:query.query,setCount,random:builder.bernoulli});
  const result=evaluator.evaluate([[],[],[],[]],trace),sum=values=>Object.values(values).reduce((a,b)=>query.math.add(a,b),0);
  const outputs=[...totals.map(k=>result[k]),...result.character_damage.flatMap(row=>damage.map(k=>row[k])),...result.panels.flatMap(panel=>TEAM_PROGRAM_PANELS.map(k=>sum(panel[k]))),result.duration,result.dps];

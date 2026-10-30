@@ -2,6 +2,7 @@ import {scalarMath} from './team-dps-numeric-rules.mjs';
 import {createEventScheduler} from './team-engine/scheduler.mjs';
 import {hitTargets,scoredTargets,scoredUses} from './team-engine/hit-targets.mjs';
 import {actionTime} from './team-engine/rule-utils.mjs';
+import {eventKey} from './team-engine/event-order.mjs';
 
 // Healing creates candidate-owned accumulators. Timers have static reachable
 // times; their enabled state and recorded amounts remain numeric expressions.
@@ -55,12 +56,12 @@ export function createEquipmentHealingDamage(profiles,rotation,healAmount,has,se
  function beforeHit(e){
   if(!e.onField||!['normal','charged','plunge','skill','burst'].includes(e.category))return;
   const active=and(enabled(e),and(m.lt(e.time,echoEnd),m.gt(remaining,0))),used=m.choose(active,m.min(hitTargets(e,settings).length,remaining),0);
-  amounts.set(e.order,echoAmount);
-  usage.set(e.order,{used,before:remaining,after:m.sub(remaining,used)});remaining=m.sub(remaining,used);
-  if(typeof active==='object'||active)flat.set(e.order,flatFor(e,scoredTargets(e,settings)));
+  const key=eventKey(e);amounts.set(key,echoAmount);
+  usage.set(key,{used,before:remaining,after:m.sub(remaining,used)});remaining=m.sub(remaining,used);
+  if(typeof active==='object'||active)flat.set(key,flatFor(e,scoredTargets(e,settings)));
  }
  function flatFor(e,targets){
-  const used=usage.get(e.order)?.used??0,amount=amounts.get(e.order)??0;
+  const key=eventKey(e),used=usage.get(key)?.used??0,amount=amounts.get(key)??0;
   return targets.length?m.div(m.mul(m.mul(.08,m.min(15000,amount)),scoredUses(e,used,settings,m,targets)),targets.length):0;
  }
  return {afterEvent,beforeHit,waves,procs,flat,flatFor,usage};

@@ -39,7 +39,7 @@ export const escoffier={
  ...actions,
  effects:(profile,{elements})=>[...(profile.character.constellation>=2?[{
   id:'escoffier.c2',label:'爱可菲·二命·冷盘',stage:'damage',target:'otherOnField',
-  trigger:{kind:'cast',action:'skill'},duration:15,uses:5,
+  trigger:{kind:'cast',action:'skill'},duration:15,uses:5,targetAggregation:'linearFlat',
   filter:{element:'Cryo',category:['normal','charged','plunge','skill','burst']},
   reads:{attack:{stat:'atk',stage:'attack',timing:'live'}},
   value:({m,read})=>({ExtraDmgBase:m.mul(2.4,read('attack'))}),

@@ -8,6 +8,7 @@ import {createPortableHealth} from '../beta-data/team-dps-portable-health.mjs';
 import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';
 import {vodyanitsa} from '../beta-data/team-engine/characters/vodyanitsa.mjs';
 import {scalarMath} from '../beta-data/team-dps-numeric-rules.mjs';
+import {eventKey} from '../beta-data/team-engine/event-order.mjs';
 import {effectInput} from './helpers/team-effect-refactor.mjs';
 import {equipmentRuntimeInput} from './helpers/team-equipment-runtime.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<=1e-10*Math.max(1,Math.abs(b)),`${a} != ${b}`);
@@ -25,14 +26,15 @@ test('resolved damage can enqueue healing, which emits a later clam hit in the s
  });
  assert.equal(resolved.heals.length,1);near(resolved.heals[0].amount,100);assert.equal(resolved.heals[0].rawAmounts[0],200);
  const explosion=facts.find(e=>e.category==='equipment');assert.equal(explosion.time,4);assert.equal(explosion.damage.expectation,180);assert.equal(explosion.parentEventId,'bubble_end/4');assert.equal(explosion.onField,false);
- assert.deepEqual(facts.map(e=>e.kind),['hit','heal','bubble_end','hit']);
+ assert.deepEqual(facts.map(e=>e.kind),['hit','heal','hp_change','bubble_end','hit']);
+ const change=facts[2];assert.equal(change.parentEventId,'damage/heal/1/0/0');assert.equal(change.role,2);assert.equal(change.change,'increase');near(change.amount,100);near(change.ratio,.1);
 });
 
 test('Song expiry precedes the same-time hit and spends real targets even outside the score',()=>{
  const profiles=Array(4).fill({}),rotation={slots:['a','b','c','d'],heals:[{kind:'heal',role:2,time:0,rootOrder:0,order:0,amount:15000},{kind:'heal',role:2,time:6,rootOrder:10,order:0,amount:1000}],events:[0,1,2].map((order)=>({kind:'hit',role:0,time:6+order,rootOrder:20,onField:true,category:'normal',order,targetIds:order===1?[2,1,0]:[0,1,2]}))};
  const run=damage_scope=>equipmentHealingDamage(profiles,rotation,h=>h.amount,(r,s)=>r===2&&s==='SongOfDaysPast',{damage_scope,enemy_count:3});
  const all=run('all'),single=run('single');assert.deepEqual([...all.usage.values()].map(x=>x.used),[3,2,0]);assert.deepEqual([...single.usage.values()],[...all.usage.values()]);
- assert.deepEqual([0,1,2].map(i=>all.flat.get(i)??0),[1200,800,0]);assert.deepEqual([0,1,2].map(i=>single.flat.get(i)??0),[1200,0,0]);
+ assert.deepEqual(rotation.events.map(e=>all.flat.get(eventKey(e))??0),[1200,800,0]);assert.deepEqual(rotation.events.map(e=>single.flat.get(eventKey(e))??0),[1200,0,0]);
  assert.equal(all.waves[0].amount,15000);assert.equal(all.waves[1].amount,1000);
 });
 

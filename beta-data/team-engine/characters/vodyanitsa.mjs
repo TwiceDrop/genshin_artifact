@@ -44,7 +44,7 @@ export const vodyanitsa={
   ['front','teamOnField',25],['back','teamOffField',10],
  ].map(([pool,target,uses])=>({
   id:'vodyanitsa.a4.'+pool,label:'沃雅妮莎·十二弦的泪歌',stage:'damage',target,
-  trigger:{kind:'cast',action:'skill'},duration:30,uses,
+  trigger:{kind:'cast',action:'skill'},duration:30,uses,targetAggregation:'linearFlat',
   filter:{element:['Hydro','Cryo'],category:['normal','charged','plunge','skill','burst']},
   reads:{maxHP:{stat:'hp',stage:'base',timing:'live'}},
   value:({m,read})=>({ExtraDmgBase:m.min(3500,m.mul(m.max(0,m.sub(read('maxHP'),40000)),.14))}),

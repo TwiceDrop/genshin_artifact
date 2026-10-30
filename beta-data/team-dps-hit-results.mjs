@@ -16,7 +16,9 @@ export function createHitResults(m,roleCount,{defer=false}={}){
  function add(event,selected,actual=selected,row){
   if(!defer){
    const p=observeProcHit(event),damage=weighted(selected,p);accumulate(event.role,damage);
-   if(row&&p!==0){if(p!==1){Object.assign(row,damage);Object.assign(row.analysis.normal,damage);}rows.push(row);}
+   if(row&&p!==0)for(const detail of Array.isArray(row)?row:[row]){
+    if(p!==1){const value=Array.isArray(row)?weighted(detail,p):damage;Object.assign(detail,value);Object.assign(detail.analysis.normal,value);}rows.push(detail);
+   }
    return weighted(actual,p);
   }
   pending.push({event,selected,row});
@@ -35,9 +37,13 @@ export function createHitResults(m,roleCount,{defer=false}={}){
   for(const {event,selected,row}of pending){
    const p=probability(event),damage=weighted(selected,p);accumulate(event.role,damage);
    if(!row||p===0)continue;
-   Object.assign(row,damage);Object.assign(row.analysis.normal,damage);
-   if(event.probability!==undefined){row.probability=p;row.analysis.event_probability=m.mul(p,event.enabled??1);}
-   rows.push(row);
+   for(const detail of Array.isArray(row)?row:[row]){
+    const conditional=Array.isArray(row)?Object.fromEntries(keys.map(key=>[key,detail[key]])):selected,contribution=Array.isArray(row)?weighted(conditional,p):damage;
+    if(p!==1)detail.damageOnOccurrence={...conditional};
+    Object.assign(detail,contribution);Object.assign(detail.analysis.normal,contribution);
+    if(event.probability!==undefined){detail.probability=p;detail.analysis.event_probability=m.mul(p,event.enabled??1);}
+    rows.push(detail);
+   }
   }
  }
  function report(event){

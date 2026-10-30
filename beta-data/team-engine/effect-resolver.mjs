@@ -7,7 +7,12 @@ import {scoredTargets,scoredUses} from './hit-targets.mjs';
 export function createEffectResolver(plan,state,m){
  const stages=new Map();
  for(const source of state.sources){const stage=source.definition.stage;if(!stages.has(stage))stages.set(stage,[]);stages.get(stage).push(source);}
+ // Observation shape is structural. A spent/disabled numeric pool must not
+ // turn three contacts into one row only on the scalar or one candidate path.
+ const individual=plan.sources.filter(({definition:d})=>d.uses!==undefined&&(d.targetAggregation!=='linearFlat'||d.stacking&&(d.stacking.mode??'highest')!=='sum'));
+ const needsIndividualTargets=(role,event)=>individual.some(source=>effectApplies(source.definition,source,role,event,plan.rotation.activeRole));
   function resolve(stage,role,event,read,targetIds=scoredTargets(event,plan.settings)){
+  if(stage==='damage'&&targetIds.length>1&&needsIndividualTargets(role,event))throw Error('有限次数效果需要逐目标求值：'+(event.eventId??event.id));
   const grouped=new Map();
   for(const source of stages.get(stage)||[]){
    const {definition}=source;
@@ -35,12 +40,13 @@ export function createEffectResolver(plan,state,m){
     for(const [attribute,amount]of Object.entries(value(captures,1)))total[attribute]=m.add(total[attribute]??0,m.choose(live,amount,0));
     return total;
    },{}):value(undefined,status.stacks??1);
+   if(definition.targetAggregation==='linearFlat'&&Object.keys(values).some(key=>key!=='ExtraDmgBase'))throw Error('线性目标汇总仅支持追加基础伤害：'+definition.id);
    const scaled=gate===1?values:Object.fromEntries(Object.entries(values).map(([key,value])=>[key,m.mul(gate,value)]));
    const key=definition.stacking?.group??source.key,previous=grouped.get(key);
-   if(previous)for(const [attribute,value]of Object.entries(scaled))previous.values[attribute]=m.max(previous.values[attribute]??value,value);
+   if(previous)for(const [attribute,value]of Object.entries(scaled))previous.values[attribute]=definition.stacking?.mode==='sum'?m.add(previous.values[attribute]??0,value):m.max(previous.values[attribute]??value,value);
    else grouped.set(key,{label:definition.label,values:scaled});
   }
   return [...grouped.values()].map(({label,values})=>effect(label,values));
  }
- return {resolve};
+ return {resolve,needsIndividualTargets};
 }

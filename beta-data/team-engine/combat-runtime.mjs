@@ -1,5 +1,6 @@
 import {createEventScheduler} from './scheduler.mjs';
 import {scalarMath} from '../team-dps-numeric-rules.mjs';
+import {compareEvents} from './event-order.mjs';
 
 // Casts, hits and resolved health changes share one causal delivery stream.
 // Resolving an event reads its pre-event state. Its fact is then published to
@@ -41,5 +42,6 @@ export function resolveCombatTimeline(events,health,effects,hooks={}){
   health.rotation.events=trim(health.rotation.events,health.rotation.endHit==='include');
   health.rotation.resources=trim(health.rotation.resources??[],true);
  }
+ health.rotation.resources?.sort(compareEvents);
  return health.rotation;
 }

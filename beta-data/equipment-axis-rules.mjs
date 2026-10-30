@@ -69,7 +69,7 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
  const element=profiles.map(p=>characters[p.character.name].element);
  const capabilities=TEAM_DPS_CHARACTER_CAPABILITIES,hasShield=profiles.some(p=>capabilities[p.character.name]?.shield);
  const state=(role,name,e)=>name==='shield'?hasShield:roots.some(s=>s.kind==='state'&&s.state===name&&s.role===role&&within(s,e,s.durationMs/1000));
- const reactions=equipmentReactionFacts(events.map(h=>({...h,element:equipmentHitElement(profiles[h.role],h)})),element,roots),energy=equipmentEnergy(profiles,rotation,{math:m,history}),pickups=equipmentPickups(profiles,rotation,reactions,{math:m,history});
+ const reactions=equipmentReactionFacts(events.map(h=>({...h,element:equipmentHitElement(profiles[h.role],h)})),element,roots,rotation.reactionFacts),energy=equipmentEnergy(profiles,rotation,{math:m,history}),pickups=equipmentPickups(profiles,rotation,reactions,{math:m,history});
  const defaults=defaultWeaponOptions(),manual=(r,n)=>({...defaults[n],...weapon_conditions[r]?.[n]});
  const songs=profiles.map((_,r)=>widsithTriggers(rotation,r));
  const hp=rotation.hpEvents.slice().sort(order);
@@ -149,7 +149,9 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
  function prepare(p,r,e,build=p.artifacts){
   const setNames=build.map(a=>a.set_name),setCounts={};for(const name of setNames)setCounts[name]=(setCounts[name]??0)+1;
   const relevant=name=>{const count=execution.setCount?execution.setCount(r,name):(setCounts[name]??0);return typeof count==='object'||count>=2;};
-  const cacheKey=[eventKey(e),e.order,e.step,...setNames].join('/');
+  // Identity belongs to the contact; a historical/snapshot query can reuse
+  // that identity at a different position and with a different query shape.
+  const cacheKey=JSON.stringify([eventKey(e),e.time,e.rootOrder,e.order,e.step,e.role,e.category,e.index,e.onField,e.weakpoint,setNames]);
   const cached=prepared[r].get(cacheKey);if(cached){p.weapon.params=structuredClone(cached.weapon);p.artifact_config=structuredClone(cached.artifacts);return p;}
   const on=activeRole(e.time,e.rootOrder)===r,n=p.weapon.name;
   // Direct kernel callers do not need UI-created parameters for automatic rules.

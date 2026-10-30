@@ -35,6 +35,9 @@ fn main(@builtin(global_invocation_id) id:vec3<u32>){
   }
  }
 }`;
+// All numerical segments use the same interpreter shader; only their data
+// buffers differ. Share its pending compilation across scorers on one device.
+const devicePipelines=new WeakMap();
 export async function createWebGpuNumericExecutor(device,program){
  program=scheduleNumericProgram(program,{streamOutputs:true});
  const words=new Uint32Array(program.nodes.length*7),emissions=[],bits=new Uint32Array(2),value=new Float64Array(bits.buffer);
@@ -45,8 +48,11 @@ export async function createWebGpuNumericExecutor(device,program){
   words.set([...row.slice(0,4),node.retain?node.target:0xffffffff,emissions.length,node.emits.length],i*7);
   emissions.push(...node.emits);
  });
- const module=device.createShaderModule({code:teamF64Wgsl+main});
- const pipeline=await device.createComputePipelineAsync({layout:'auto',compute:{module,entryPoint:'main'}});
+ if(!devicePipelines.has(device)){
+  const module=device.createShaderModule({code:teamF64Wgsl+main});
+  devicePipelines.set(device,device.createComputePipelineAsync({layout:'auto',compute:{module,entryPoint:'main'}}));
+ }
+ const pipeline=await devicePipelines.get(device);
  const buffer=(data,usage)=>{const b=device.createBuffer({size:data.byteLength,usage:usage|GPUBufferUsage.COPY_DST});device.queue.writeBuffer(b,0,data);return b;};
  const code=buffer(words,GPUBufferUsage.STORAGE),selected=buffer(new Uint32Array(emissions),GPUBufferUsage.STORAGE);
  return {

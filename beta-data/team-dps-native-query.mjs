@@ -4,12 +4,13 @@ import {LEGACY_EFFECT_SLOTS} from './legacy-effect-slots.mjs';
 import {characterPackages} from './team-engine/character-packages.mjs';
 import {nativeBackends} from './team-engine/native-bindings.mjs';
 import {createNativeDamageProjector} from './team-engine/native-projection.mjs';
+import {attachTeamSources,describeTeamBuffSources} from './team-dps-source-detail.mjs';
 const statSlots={HPFixed:24,ATKFixed:28,DEFFixed:32,HPPercentage:25,ATKPercentage:29,DEFPercentage:33,ElementalMastery:4,Recharge:8,CriticalRate:37,CriticalDamage:52,HealingBonus:2};
 for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])statSlots[element+'Bonus']=LEGACY_EFFECT_SLOTS['Bonus'+element];
 const isRef=v=>v&&typeof v==='object'&&Number.isInteger(v.index)&&Object.keys(v).length===1;
 const keyEdge=e=>JSON.stringify([e.from1,e.from2,e.to,e.label,e.fn,e.data]);
 const slotKey=n=>'config_'+n.replace(/([A-Z])/g,'_$1').slice(1).toLowerCase();
-export function createPortableNativeQuery({api,capture,libraries,extensionSlots,builder,stats,setCount,sets,onProgress}){
+export function createPortableNativeQuery({api,capture,libraries,extensionSlots,builder,stats,setCount,sets,onProgress,sourceDetails=false}){
  const compilers=libraries.map(lib=>createNativeGraphCompiler(builder,lib)),m=compilers[0].math;
  const templates=new Map(),setTemplates=new Map(),projectDamage=createNativeDamageProjector(extensionSlots);
  function native(input,damage=false,nativeElement=null){
@@ -68,7 +69,8 @@ export function createPortableNativeQuery({api,capture,libraries,extensionSlots,
     const sampled=native(variant,damage,event.nativeElement??null);
     delta(sampled.snapshot,base.snapshot,scale);
     const fields=[...new Set(group.flatMap(entry=>parameterBindings[entry.path.join('.')]?.constantFields??[]))];
-    if(damage&&fields.length)outputConstants.push({sampled,fields,value:scale});
+    const terms=Object.fromEntries(fields.map(field=>[field,[...new Set(group.flatMap(entry=>parameterBindings[entry.path.join('.')]?.constantTerms?.[field]??[]))]]));
+    if(damage&&fields.length)outputConstants.push({sampled,fields,terms,value:scale});
    }
   }
   for(const name of sets){
@@ -84,18 +86,33 @@ export function createPortableNativeQuery({api,capture,libraries,extensionSlots,
     previous=variant;
    }
   }
-  const overrides=new Map(),graph=compiler.graph(snapshot,overrides),add=(i,v)=>overrides.set(i,m.add(overrides.get(i)||0,v));
+  const overrides=new Map(),overrideSources=new Map(),graph=compiler.graph(snapshot,overrides),add=(i,v,label)=>{
+   overrides.set(i,m.add(overrides.get(i)||0,v));
+   if(sourceDetails){const parts=overrideSources.get(i)||{};parts[label]=m.add(parts[label]||0,v);overrideSources.set(i,parts);}
+  };
   for(const [name,i]of Object.entries(statSlots))if(stats(role,name)!==0){
    const value=stats(role,name),baseSlot={HPPercentage:23,ATKPercentage:27,DEFPercentage:31}[name];
-   add(slot(i),baseSlot?m.mul(graph.get(slot(baseSlot)),value):value);
+   add(slot(i),baseSlot?m.mul(graph.get(slot(baseSlot)),value):value,baseSlot?'圣遗物百分比词条':'圣遗物词条');
   }
   for(const p of buffDynamic){
    const attribute=p.path.at(-1),baseSlot={HPPercentage:23,ATKPercentage:27,DEFPercentage:31}[attribute];
-   add(ext?extensionSlots[attribute]:LEGACY_EFFECT_SLOTS[attribute],baseSlot?m.mul(graph.get(slot(baseSlot)),p.value):p.value);
+   add(ext?extensionSlots[attribute]:LEGACY_EFFECT_SLOTS[attribute],baseSlot?m.mul(graph.get(slot(baseSlot)),p.value):p.value,input.buffs[p.path[1]].config.ExtensionEffect.label);
   }
   const panelMap={atk:[27,29,28,6],hp:[23,25,24],def:[31,33,32],elemental_mastery:[4,5],recharge:[8],critical:[37],critical_damage:[52],healing_bonus:[2],shield_strength:[9]};
   for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])panelMap['bonus_'+element.toLowerCase()]=[LEGACY_EFFECT_SLOTS['Bonus'+element]];
-  if(!damage)return Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,{compiled:slots.reduce((n,i)=>m.add(n,graph.get(slot(i))),0)}]));
+  const graphParts=(reader,slots)=>{
+   const out={};for(const i of slots)for(const [label,value]of Object.entries(reader.sources(i)))out[label]=m.add(out[label]||0,value);return out;
+  };
+  const currentParts=slots=>{
+   const out=graphParts(graph,slots);for(const i of slots)for(const [label,value]of Object.entries(overrideSources.get(i)||{}))out[label]=m.add(out[label]||0,value);return out;
+  };
+  const splitPercent=parts=>describeTeamBuffSources(fixed,{atk:{},hp:{},def:{},...parts},m);
+  if(!damage){
+   const result=Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,{compiled:slots.reduce((n,i)=>m.add(n,graph.get(slot(i))),0)}]));
+   if(sourceDetails){let detail;for(const [field,values]of Object.entries(result))attachTeamSources(values,()=>{
+    detail??=splitPercent(Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,currentParts(slots.map(slot))])));return detail[field];
+   });}return result;
+  }
   const character=characterPackages[input.character.name],projection=projectDamage(character,input,event);
   const originalGraph=compiler.graph(base.snapshot),result={};
   const constants=outputConstants.map(entry=>({...entry,graph:compiler.graph(entry.sampled.snapshot)}));
@@ -108,14 +125,44 @@ export function createPortableNativeQuery({api,capture,libraries,extensionSlots,
    }
    result[field]={compiled:output};
   }
-  character.adjustNativeDamage?.({input,event,fixed,native:base.result,result,math:m});
+  const sourceAdjustments=[];
+  character.adjustNativeDamage?.({input,event,fixed,native:base.result,result,math:m,adjustSource:sourceDetails?(field,label,value,replace=false)=>sourceAdjustments.push({field,label,value,replace}):undefined});
   for(const [field,names]of [['atk_ratio',['技能倍率',...(event.talentRatioFields||[])]],['hp_ratio',['技能倍率']]])for(const name of names){
-   result[field][name]=base.result[field][name]||0;
+   // Preserve named talent terms so their dynamic part receives the same
+   // talent multiplier as their scalar native counterpart.
+   let value=base.result[field][name]||0;
+   for(const entry of constants)if(entry.terms[field]?.includes(name))value=m.add(value,m.mul((entry.sampled.result[field][name]||0)-(base.result[field][name]||0),entry.value));
+   result[field][name]=value;
    result[field].compiled=m.sub(result[field].compiled,result[field][name]);
   }
   if(['RoyalLongsword','RoyalSpear','RoyalGrimoire'].includes(input.weapon.name)){
    const royal=(projection.critical||[]).reduce((n,i)=>m.add(n,graph.named(i,'宗室被动等效')),0);
    result.critical.compiled=m.sub(result.critical.compiled,royal);result.critical['宗室被动等效']=royal;
+  }
+  if(sourceDetails){
+   let detail;
+   const read=()=>{
+    if(detail)return detail;
+    const parts={};
+    for(const field of Object.keys(result)){
+     const slots=projection[field]||[],original=graphParts(originalGraph,slots),values=currentParts(slots);
+     for(const name of new Set([...Object.keys(base.result[field]||{}),...Object.keys(original)])){
+      const constant=(base.result[field]?.[name]||0)-(original[name]||0);
+      values[name]=m.add(values[name]||0,constant);
+     }
+     for(const entry of constants)if(entry.fields.includes(field)){
+      const sampled=graphParts(entry.graph,slots);
+      for(const name of new Set([...Object.keys(values),...Object.keys(entry.sampled.result[field]||{}),...Object.keys(sampled)])){
+       const before=(base.result[field]?.[name]||0)-(original[name]||0),after=(entry.sampled.result[field]?.[name]||0)-(sampled[name]||0);
+       values[name]=m.add(values[name]||0,m.mul(after-before,entry.value));
+      }
+     }
+     parts[field]=values;
+    }
+    for(const {field,label,value,replace}of sourceAdjustments)parts[field][label]=replace?value:m.add(parts[field][label]||0,value);
+    detail=splitPercent(parts);return detail;
+   };
+   for(const [field,values]of Object.entries(result))attachTeamSources(values,()=>read()[field]);
   }
   return result;
  }

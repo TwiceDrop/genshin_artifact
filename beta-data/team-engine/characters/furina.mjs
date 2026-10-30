@@ -17,12 +17,14 @@ export const furina={
   ...Object.fromEntries([9,10,11,12].map(index=>[index,{category:'skill',element:'Hydro'}])),
   13:{kind:'healing'},14:{category:'burst',element:'Hydro'},
  },
- adjustNativeDamage({input,event,fixed,native,result,math:m}){
+ adjustNativeDamage({input,event,fixed,native,result,math:m,adjustSource}){
   if(![10,11,12].includes(event.index))return;
   const talent=native.hp_ratio['技能倍率'],count=input.skill.config.Furina.hp_above50_count;
   result.hp_ratio.compiled=m.add(result.hp_ratio.compiled,m.mul(talent*.1,m.sub(count,fixed.skill.config.Furina.hp_above50_count)));
+  adjustSource?.('hp_ratio','「沙龙成员」加成',m.mul(talent*.1,m.sub(count,fixed.skill.config.Furina.hp_above50_count)));
   const original=native.bonus['天赋「无人听的自白」'];
   if(original!==undefined)result.bonus.compiled=m.add(m.sub(result.bonus.compiled,original),m.min(.28,m.mul(.007,m.floor(m.div(result.hp.compiled,1000)))));
+  if(original!==undefined)adjustSource?.('bonus','天赋「无人听的自白」',m.min(.28,m.mul(.007,m.floor(m.div(result.hp.compiled,1000)))),true);
  },
  defaultWeapon:'SplendorOfTranquilWaters',previewWeapon:'DullBlade',
  capabilities:{energy:60,shield:false,nightsoul:false,arkhe:true},
