@@ -11,7 +11,7 @@ for (let name in _data) {
     if (!Object.prototype.hasOwnProperty.call(_buffByGenre, genre)) {
         _buffByGenre[genre] = []
     }
-    _buffByGenre[genre].push(buff)
+    if (buff.selectable !== false) _buffByGenre[genre].push(buff)
 }
 for (let genre in _buffByGenre) {
     // _buffByGenre[genre].sort((a, b) => a.chs.localeCompare(b.chs))
@@ -23,7 +23,7 @@ export const buffByGenre = _buffByGenre
 
 let _buffFlat = []
 for (let name in _data) {
-    _buffFlat.push(_data[name])
+    if (_data[name].selectable !== false) _buffFlat.push(_data[name])
 }
 Object.freeze(_buffFlat)
 

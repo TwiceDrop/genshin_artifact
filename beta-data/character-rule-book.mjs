@@ -19,7 +19,7 @@ export const CHARACTER_RULE_BOOK={
  IfaTalent2:R([E('EnhanceSwirlBase',mul(.015,P('rescue_essentials',0))),E('EnhanceElectroCharged',mul(.015,P('rescue_essentials',0))),E('EnhanceMoonelectro',mul(.002,P('rescue_essentials',0)))],{when:P('effect_active',true)}),
  IansanTalent2:R([E('ATKFixed',min(mul(P('atk',2000),choose(op('lt',P('nightsoul',42),42),mul(P('nightsoul',42),.005),.27)),at([330,370,410,450,490,530,570,610,650,690,730,770,810,850,890],sub(P('skill_level',10),1)))),E('ATKPercentage',.3,P('off_field_buff',false)),E('BonusBase',.25,P('training_buff',false))],{when:onField}),
  NicoleE:R([E('ATKFixed',add(min(mul(P('nicole_atk',4000),at([.0825,.09,.0975,.105,.1125,.12,.1275,.135,.1425,.15,.159,.168,.177,.186,.195],sub(P('e_level',10),1))),at([330,360,390,420,450,480,510,540,570,600,636,672,708,744,780],sub(P('e_level',10),1))),choose(P('ascended',true),300,0),choose(P('c2',false),300,0)))]),
- OdetteTalent1:R([E('StellarSwirlBaseBonus',choose(eq(mode,2),min(mul(P('atk',2000),.00007),.14),0))]),
+ OdetteTalent1:R([E('StellarConductBaseBonus',min(mul(P('atk',2000),.00007),.14),eq(mode,1)),E('StellarSwirlBaseBonus',min(mul(P('atk',2000),.00007),.14),eq(mode,2))]),
  OdetteMarvelousSplendor:R([E('StellarSwirlBonus',mul(.15,stacks))]),
  OdetteC2MarvelousSplendor:R([E('ATKPercentage',mul(.07,stacks))]),
  OdetteC2SoloDance:R([E('ResMinusCryo',.2),E('ResMinusAnemo',.2,eq(mode,2)),E('ResMinusElectro',.2,eq(mode,1))],{when:not(eq(mode,0))}),

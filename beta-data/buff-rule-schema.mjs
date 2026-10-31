@@ -3149,36 +3149,15 @@ export const BUFF_RULE_SCHEMA={
     "label": "沃雅妮莎-「宣叙·晨声纷流」",
     "fields": [
       {
-        "name": "hp",
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
-        "name": "constellation",
-        "type": "int",
-        "default": 0,
-        "min": 0,
-        "max": 6
-      },
-      {
         "name": "e_level",
         "type": "int",
         "default": 10,
         "min": 1,
         "max": 15
-      },
-      {
-        "name": "on_field",
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "type": "bool",
-        "default": true
       }
     ]
   },
+
   "VodyanitsaA4": {
     "label": "沃雅妮莎-「十二弦的泪歌」",
     "fields": [
@@ -3188,20 +3167,6 @@ export const BUFF_RULE_SCHEMA={
         "default": 60000
       },
       {
-        "name": "constellation",
-        "type": "int",
-        "default": 0,
-        "min": 0,
-        "max": 6
-      },
-      {
-        "name": "e_level",
-        "type": "int",
-        "default": 10,
-        "min": 1,
-        "max": 15
-      },
-      {
         "name": "on_field",
         "type": "bool",
         "default": true
@@ -3213,6 +3178,7 @@ export const BUFF_RULE_SCHEMA={
       }
     ]
   },
+
   "VodyanitsaC1": {
     "label": "沃雅妮莎-「聚光灯下的水华」",
     "fields": [
@@ -3227,47 +3193,19 @@ export const BUFF_RULE_SCHEMA={
         "default": 0,
         "min": 0,
         "max": 6
-      },
-      {
-        "name": "e_level",
-        "type": "int",
-        "default": 10,
-        "min": 1,
-        "max": 15
-      },
-      {
-        "name": "on_field",
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "type": "bool",
-        "default": true
       }
     ]
   },
+
   "VodyanitsaC2": {
     "label": "沃雅妮莎-「穿彻风雪的余响」",
     "fields": [
       {
-        "name": "hp",
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
         "name": "constellation",
         "type": "int",
         "default": 0,
         "min": 0,
         "max": 6
-      },
-      {
-        "name": "e_level",
-        "type": "int",
-        "default": 10,
-        "min": 1,
-        "max": 15
       },
       {
         "name": "on_field",
@@ -3281,40 +3219,20 @@ export const BUFF_RULE_SCHEMA={
       }
     ]
   },
+
   "VodyanitsaC6": {
     "label": "沃雅妮莎-「永不落幕的盛歌」",
     "fields": [
       {
-        "name": "hp",
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
         "name": "constellation",
         "type": "int",
         "default": 0,
         "min": 0,
         "max": 6
-      },
-      {
-        "name": "e_level",
-        "type": "int",
-        "default": 10,
-        "min": 1,
-        "max": 15
-      },
-      {
-        "name": "on_field",
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "type": "bool",
-        "default": true
       }
     ]
   },
+
   "VodyanitsaSignature": {
     "label": "漩流颂歌（队友武器特效）",
     "fields": [
@@ -3324,26 +3242,7 @@ export const BUFF_RULE_SCHEMA={
         "default": 60000
       },
       {
-        "name": "constellation",
-        "type": "int",
-        "default": 0,
-        "min": 0,
-        "max": 6
-      },
-      {
-        "name": "e_level",
-        "type": "int",
-        "default": 10,
-        "min": 1,
-        "max": 15
-      },
-      {
         "name": "on_field",
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
         "type": "bool",
         "default": true
       },
@@ -3368,40 +3267,12 @@ export const BUFF_RULE_SCHEMA={
       }
     ]
   },
+
   "VodyanitsaA1": {
     "label": "沃雅妮莎-「最后的塑诗者」",
-    "fields": [
-      {
-        "name": "hp",
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
-        "name": "constellation",
-        "type": "int",
-        "default": 0,
-        "min": 0,
-        "max": 6
-      },
-      {
-        "name": "e_level",
-        "type": "int",
-        "default": 10,
-        "min": 1,
-        "max": 15
-      },
-      {
-        "name": "on_field",
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "type": "bool",
-        "default": true
-      }
-    ]
+    "fields": []
   },
+
   "VesnaTalent1": {
     "label": "薇斯纳·突破被动·星扩散基础伤害",
     "fields": [

@@ -76,7 +76,10 @@ const { t, ta } = useI18n()
 
 <style scoped>
 .tn {
-    height: 80%;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    object-fit: contain;
     border-radius: 50%;
     display: inline-block;
     margin-right: 8px;
@@ -85,6 +88,7 @@ const { t, ta } = useI18n()
 .item {
     display: flex;
     align-items: center;
-    height: 100%;
+    min-height: 28px;
+    min-width: 0;
 }
 </style>

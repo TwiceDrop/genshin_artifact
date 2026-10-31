@@ -1,4 +1,5 @@
 import {normalizeEnemy} from './enemy-interface.mjs';
+import {expandMityaBuffs} from './preview-7201-buffs.mjs';
 import sets from '../src/assets/_gen_artifact.js';
 const defaults=Object.fromEntries(Object.values(sets).filter(s=>(s.config2?.length||s.config4?.length)).map(s=>[
  'config_'+s.name2.replace(/([A-Z])/g,'_$1').replace(/^_/,'').toLowerCase(),
@@ -19,7 +20,7 @@ function normalizeInput(input){
  // Character-specific HP target shares the native MaxHP calculation.
  for(const key of ['target_function','tf'])if(input[key]?.name==='VodyanitsaMaxHP')
   input={...input,[key]:{...input[key],name:'MaxHP'}};
- if(input.character&&Array.isArray(input.buffs))input={...input,buffs:input.buffs.filter(buff=>buff.lock!==true&&buff.config?.[buff.name]?.active!==false)};
+ if(input.character&&Array.isArray(input.buffs))input={...input,buffs:expandMityaBuffs(input.buffs).filter(buff=>buff.lock!==true&&buff.config?.[buff.name]?.active!==false)};
  if(input.character&&input.enemy!=null)input={...input,enemy:normalizeEnemy(input.enemy)};
  if(!input.character||input.artifact_config==null)return input;
  return {...input,artifact_config:normalizeBonusInput({artifact_config:input.artifact_config}).artifact_config};

@@ -8,7 +8,7 @@ export function isBoundBuffField(buff, field) {
 }
 export function groupCharacterBuffs(buffs, rules) {
     const groups = new Map()
-    for (const buff of buffs.filter(b => b.genre === 'Character')) {
+    for (const buff of buffs.filter(b => b.genre === 'Character' && b.selectable !== false)) {
         const owner = rules[buff.name]?.character || 'Unmapped'
         if (!groups.has(owner)) groups.set(owner, { character: owner, buffs: [] })
         groups.get(owner).buffs.push(buff)

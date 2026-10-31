@@ -6,8 +6,8 @@
         <div class="mys-section-title"><h3>Cookie 账号管理</h3><span>{{ savedAccounts.length }} 个账号</span></div>
         <div class="mys-roster">
             <div v-for="account in savedAccounts" :key="account.id" class="mys-character">
-                <div><strong>{{ account.roles[0]?.nickname || `米游社 ${account.id}` }}{{ activeId === account.id ? ' · 当前' : '' }}</strong>
-                    <small>米游社 ID {{ account.id }} · Cookie {{ account.cookieVersion }} · {{ account.status === 'expired' ? '需要更新' : account.status === 'error' ? '上次读取失败' : '已保存' }}</small>
+                <div><strong>{{ account.roles[0]?.nickname || `${platformName(account.platform)} ${account.accountUid}` }}{{ activeId === account.id ? ' · 当前' : '' }}</strong>
+                    <small>{{ platformName(account.platform) }} ID {{ account.accountUid }} · Cookie {{ account.cookieVersion }} · {{ account.status === 'expired' ? '需要更新' : account.status === 'error' ? '上次读取失败' : '已保存' }}</small>
                     <small>{{ account.roles.map(r => `${r.uid} ${r.regionName || ''}`).join(' / ') || '待读取绑定角色' }}</small>
                     <small v-if="account.lastError" class="mys-warnings">{{ account.lastError }}</small>
                 </div>
@@ -25,8 +25,11 @@
                 <el-button v-if="isNative" @click="saveQr">保存登录二维码</el-button>
             </div>
             <div class="mys-actions">
-                <el-button v-if="!loggedIn" type="primary" :loading="busy" @click="login">{{ qrImage ? '刷新二维码' : '米游社扫码登录' }}</el-button>
-                <template v-else>
+                <template v-if="!loggedIn || loginChoice">
+                    <el-button type="primary" :disabled="busy" @click="login('miyoushe')">使用米游社登录</el-button>
+                    <el-button :disabled="busy" @click="login('hoyolab')">使用 HoYoLAB 登录</el-button>
+                </template>
+                <template v-if="loggedIn">
                     <el-select v-model="selectedUid" placeholder="选择原神账号" :disabled="busy">
                         <el-option v-for="r in roles" :key="r.uid" :value="r.uid" :label="`${r.nickname} · ${r.uid} · ${r.regionName}`" />
                     </el-select>
@@ -34,10 +37,12 @@
                     <el-button v-if="busy" @click="cancelSync">取消同步</el-button>
                     <el-button v-else @click="refreshRoles">刷新绑定角色</el-button>
                 </template>
-                <el-button v-if="loggedIn" :disabled="busy" @click="login">扫码添加 / 更新账号</el-button>
+                <el-button v-if="loggedIn" :disabled="busy" @click="loginChoice = !loginChoice">添加 / 更新账号</el-button>
                 <el-button :disabled="busy" @click="manualOpen = !manualOpen">手动录入 Cookie</el-button>
             </div>
+            <p v-if="webLoginPending">请在 HoYoLAB 官方窗口完成登录。<el-button @click="cancelLogin">取消登录</el-button></p>
             <div v-if="manualOpen" class="mys-manual">
+                <el-select v-model="loginPlatform" aria-label="Cookie 平台"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
                 <el-input v-model="manualCookie" type="password" autocomplete="off" placeholder="粘贴完整 Cookie（支持 v1 / v2）" aria-label="完整 Cookie" />
                 <el-button :loading="busy" :disabled="!manualCookie.trim()" @click="addCookie">验证并保存 Cookie</el-button>
             </div>
@@ -97,6 +102,8 @@ const entries = computed(() => store.data.value.entries)
 const error = ref(''), busy = ref(false), loggedIn = ref(false), qrImage = ref(''), qrStatus = ref('等待扫码'), secondsLeft = ref(120)
 const roles = ref([]), selectedUid = ref(''), result = ref(null), progress = ref({ completed: 0, total: 0 }), fileInput = ref(null)
 const savedAccounts = ref([]), activeId = ref(''), manualOpen = ref(false), manualCookie = ref('')
+const loginPlatform = ref('miyoushe'), loginChoice = ref(false), webLoginPending = ref(false)
+const platformName = platform => platform === 'hoyolab' ? 'HoYoLAB' : '米游社'
 const includeInventory = ref(true)
 const verificationNeeded = ref(false), verification = ref(null), submittingVerification = ref(false)
 let verificationContext = null
@@ -152,7 +159,7 @@ async function refreshRoles() {
         if (disposed || run !== generation) return
         roles.value = data
         if (!data.some(r => r.uid === selectedUid.value)) selectedUid.value = data[0]?.uid || ''
-        if (!data.length) error.value = '当前账号没有可导入的国服原神角色'
+        if (!data.length) error.value = '当前账号没有可导入的原神角色'
     } catch (e) { if (!disposed && run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false; await loadAccounts().catch(() => {}) }
 }
@@ -162,7 +169,7 @@ async function selectAccount(id) {
     try {
         const data = await api('select', 'POST', { id })
         if (disposed || run !== generation) return
-        activeId.value = id; roles.value = data.roles; selectedUid.value = data.roles[0]?.uid || ''; loggedIn.value = true
+        activeId.value = id; loginPlatform.value = data.account.platform || 'miyoushe'; webLoginPending.value = false; loginChoice.value = false; roles.value = data.roles; selectedUid.value = data.roles[0]?.uid || ''; loggedIn.value = true
         if (!data.roles.length) await refreshRoles()
     } catch (e) { if (run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false }
@@ -182,7 +189,7 @@ async function addCookie() {
     const cookie = manualCookie.value
     manualCookie.value = ''
     try {
-        const data = await api('accounts', 'POST', { cookie })
+        const data = await api('accounts', 'POST', { cookie, platform: loginPlatform.value })
         if (disposed || run !== generation) return
         await loadAccounts(); manualOpen.value = false
         activeId.value = data.account.id; roles.value = data.account.roles; selectedUid.value = roles.value[0]?.uid || ''; loggedIn.value = true
@@ -195,42 +202,48 @@ async function cancelSync() {
     catch (e) { error.value = e.message }
     finally { busy.value = false }
 }
-async function login() {
+async function cancelLogin() {
+    generation++; stopTimers(); webLoginPending.value = false
+    try { await api('cancel', 'POST') } catch (e) { error.value = e.message }
+}
+async function login(platform = 'miyoushe') {
+    loginPlatform.value = platform; loginChoice.value = false; webLoginPending.value = false
     const run = ++generation
     stopTimers(); verificationNeeded.value = false; error.value = ''; busy.value = true; qrImage.value = ''; loggedIn.value = false; activeId.value = ''; roles.value = []; selectedUid.value = ''
     try {
-        const qr = await api('login', 'POST')
+        const qr = await api('login', 'POST', { platform })
         if (run !== generation || disposed) return
-        qrImage.value = await QRCode.toDataURL(qr.url, { width: 256, margin: 2 })
+        webLoginPending.value = qr.mode === 'web'
+        if (!webLoginPending.value) qrImage.value = await QRCode.toDataURL(qr.url, { width: 256, margin: 2 })
         qrStatus.value = '等待扫码'
         const tick = () => { secondsLeft.value = Math.max(0, Math.ceil((qr.expiresAt - Date.now()) / 1000)); if (!secondsLeft.value) { stopTimers(); qrImage.value = ''; error.value = '二维码已过期，请重新生成' } }
-        tick(); clock = setInterval(tick, 1000)
+        if (!webLoginPending.value) { tick(); clock = setInterval(tick, 1000) }
         async function poll() {
             try {
                 const state = await api('poll', 'POST')
                 if (run !== generation || disposed) return
                 if (state.status === 'Confirmed') {
-                    stopTimers(); qrImage.value = ''; loggedIn.value = true
+                    stopTimers(); qrImage.value = ''; webLoginPending.value = false; loggedIn.value = true
                     const saved = await loadAccounts()
                     if (run !== generation || disposed) return
                     activeId.value = saved?.activeId || ''
                     roles.value = await api('roles')
                     if (run !== generation || disposed) return
                     selectedUid.value = roles.value[0]?.uid || ''
-                    if (!roles.value.length) error.value = '当前米游社账号没有可导入的国服原神角色'
+                    if (!roles.value.length) error.value = '当前账号没有可导入的原神角色'
                     await loadAccounts()
                     return
                 }
                 if (state.status === 'Expired') { stopTimers(); qrImage.value = ''; error.value = '二维码已过期，请刷新'; return }
                 qrStatus.value = state.status === 'Scanned' ? '已扫码，请在手机确认登录' : '等待扫码'
-                if (secondsLeft.value > 0) timer = setTimeout(poll, 3000)
-            } catch (e) { if (run === generation) { stopTimers(); error.value = e.message; qrImage.value = '' } }
+                if (webLoginPending.value || secondsLeft.value > 0) timer = setTimeout(poll, 3000)
+            } catch (e) { if (run === generation) { stopTimers(); error.value = e.message; qrImage.value = ''; webLoginPending.value = false } }
         }
         timer = setTimeout(poll, 3000)
     } catch (e) { if (run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false }
 }
-async function save(snapshot, accountId, source = '米游社同步') {
+async function save(snapshot, accountId, source = snapshot.source === 'hoyolab' ? 'HoYoLAB 同步' : '米游社同步') {
     const run = generation
     const mona = await useMona()
     if (disposed || run !== generation || accounts.currentAccountId.value !== accountId) throw new Error('同步已取消或莫娜账号已切换，数据未写入')
@@ -256,7 +269,7 @@ async function sync() {
     error.value = ''; result.value = null; busy.value = true; verificationNeeded.value = false
     progressTimer = setInterval(async () => { try { const p = await api('progress'); if (run === generation) progress.value = p } catch { /* Main request reports errors. */ } }, 1500)
     try { const snapshot = await api('import', 'POST', { uid: selectedUid.value }); if (run === generation && !disposed) await save(snapshot, accountId) }
-    catch (e) { if (run === generation) { error.value = e.message; verificationNeeded.value = e.retcode === 1034 } }
+    catch (e) { if (run === generation) { error.value = e.message; verificationNeeded.value = e.retcode === 1034 && loginPlatform.value !== 'hoyolab' } }
     finally { clearInterval(progressTimer); if (run === generation) busy.value = false; await loadAccounts().catch(() => {}) }
 }
 async function startVerification() {
@@ -344,7 +357,7 @@ onMounted(async () => {
 })
 onBeforeUnmount(() => {
     disposed = true; generation++; stopTimers(); manualCookie.value = ''; verification.value = null
-    if (busy.value && loggedIn.value) api('cancel', 'POST').catch(() => {})
+    if (webLoginPending.value || (busy.value && loggedIn.value)) api('cancel', 'POST').catch(() => {})
 })
 </script>
 <style scoped>

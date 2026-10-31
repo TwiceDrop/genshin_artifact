@@ -1,7 +1,7 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core'
 export const isNative = Capacitor.isNativePlatform()
 export const MonaLocal = registerPlugin('MonaLocal')
-const hosts = new Set(['passport-api.mihoyo.com','api-takumi.mihoyo.com','api-takumi-record.mihoyo.com','public-data-api.mihoyo.com'])
+const hosts = new Set(['passport-api.mihoyo.com','api-takumi.mihoyo.com','api-takumi-record.mihoyo.com','public-data-api.mihoyo.com','api-os-takumi.mihoyo.com','sg-public-api.hoyolab.com'])
 export async function nativeFetch(url, options = {}) {
     const parsed = new URL(url)
     if (parsed.protocol !== 'https:' || !hosts.has(parsed.hostname)) throw new Error('不受支持的米游社接口')

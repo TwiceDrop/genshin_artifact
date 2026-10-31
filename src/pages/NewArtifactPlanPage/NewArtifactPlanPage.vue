@@ -291,7 +291,7 @@
             ></artifact-config>
         </el-dialog>
 
-        <el-dialog v-model="showMiyousheImport" title="米游社 · 导入我的角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+        <el-dialog v-model="showMiyousheImport" title="导入我的角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
             <miyoushe-import v-if="showMiyousheImport" @apply="name => { usePreset(name); showMiyousheImport = false }" />
         </el-dialog>
         <el-dialog v-model="showMyCharacters" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
@@ -306,7 +306,7 @@
                     <div class="select-character">
                         <p class="common-title">{{ t("misc.character") }}</p>
                         <div class="my-characters-import">
-                            <el-button size="small" type="primary" plain @click="showMiyousheImport = true">米游社导入</el-button>
+                            <el-button size="small" type="primary" plain @click="showMiyousheImport = true">账号导入</el-button>
                             <el-button size="small" @click="showMyCharacters = true">我的角色</el-button>
                         </div>
                         <div style="display: flex; gap: 12px">

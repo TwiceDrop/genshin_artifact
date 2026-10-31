@@ -30,6 +30,8 @@ https://github.com/TwiceDrop/mhy-qdcode-to-cookie
 
 ## 运行库与游戏资源
 
+V7.2.02 Windows 包的 HoYoLAB 登录窗口使用 Microsoft Edge WebView2。随包分发的 WebView2 SDK 组件版本为 1.0.4129.50，许可证及声明位于 `runtime/hoyolab-login/LICENSE.txt`、`NOTICE.txt`；系统需要安装 Microsoft Edge WebView2 Runtime。
+
 V7.0.11 的 Windows 安装包包含 Node.js 22.23.2，来自 Node.js 官方 Windows x64 发行包；其许可证位于安装目录 `runtime/LICENSE`。本次 7.1.01 beta1 网页压缩包不捆绑 Node.js，使用用户自行安装的运行环境。
 
 前端依赖及版本在 `package-lock.json` 中记录，包含 Vue、Element Plus、ECharts、Monaco Editor 等。各依赖按其自身许可证提供；构建时生成的许可证文件随对应资源一同分发。图标、字体及其他第三方素材按各自许可证提供。

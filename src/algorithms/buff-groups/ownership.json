@@ -766,5 +766,25 @@
   "ValeriyC6": {
     "character": "Valeriy",
     "minConstellation": 6
+  },
+  "MityaA1": {
+    "character": "Mitya",
+    "minConstellation": 0
+  },
+  "MityaStellarBlessing": {
+    "character": "Mitya",
+    "minConstellation": 0
+  },
+  "MityaC1": {
+    "character": "Mitya",
+    "minConstellation": 1
+  },
+  "MityaC2": {
+    "character": "Mitya",
+    "minConstellation": 2
+  },
+  "MityaC6": {
+    "character": "Mitya",
+    "minConstellation": 6
   }
 }

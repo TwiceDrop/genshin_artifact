@@ -44,7 +44,7 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
         if (normalTags.some(t => !['critical', 'criticalDamage', 'attackStatic', 'attackPercentage', 'lifeStatic', 'lifePercentage', 'defendStatic', 'defendPercentage', 'elementalMastery', 'recharge'].includes(t.name)) || new Set(normalTags.map(t => t.name)).size !== normalTags.length || normalTags.some(t => t.name === mainTag.name)) throw new Error('副词条类型无效')
         return { setName: matches[0], position, star, level, mainTag, normalTags }
     }
-    function character(raw, uid) {
+    function character(raw, uid, source = 'miyoushe') {
         const base = raw.base || {}, id = integer(base.id, 1, 999999999, '角色 ID')
         let name = find(characters, base)
         name = travelerName(id, base.element) || name
@@ -75,7 +75,7 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
         if (new Set(gear.map(a => a.position)).size !== gear.length) throw new Error('圣遗物部位重复')
         return { key: `${uid}:${id}:${base.element || ''}`, label: locale[characters[name].nameLocale], id,
             gender: id === 10000007 ? 'Lumine' : id === 10000005 ? 'Aether' : undefined, element: characters[name].element, gear,
-            preset: { name: `米游社 ${uid} · ${locale[characters[name].nameLocale]}`, character: c, weapon: w,
+            preset: { name: `${source === 'hoyolab' ? 'HoYoLAB' : '米游社'} ${uid} · ${locale[characters[name].nameLocale]}`, character: c, weapon: w,
                 targetFunction: { name: tf.name, params: defaults(tf.name, tf.config) }, buffs: [], artifactEffectMode: 'auto' } }
     }
     return { artifact, character }

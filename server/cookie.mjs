@@ -13,6 +13,11 @@ export function normalizeCookie(raw) {
 }
 
 export function publicAccount(a) {
-    return { id: a.id, roles: a.roles || [], createdAt: a.createdAt, updatedAt: a.updatedAt, lastUsedAt: a.lastUsedAt,
+    return { id: a.id, platform: a.platform || 'miyoushe', accountUid: a.accountUid || a.id, roles: a.roles || [], createdAt: a.createdAt, updatedAt: a.updatedAt, lastUsedAt: a.lastUsedAt,
         status: a.status || 'saved', lastError: a.lastError || '', cookieVersion: a.cookie?.includes('cookie_token_v2=') ? 'v2' : 'v1' }
+}
+
+export function communityAccount(cookie, platform = 'miyoushe') {
+    const normalized = normalizeCookie(cookie)
+    return { ...normalized, accountUid: normalized.id, platform, id: platform === 'hoyolab' ? `hoyolab:${normalized.id}` : normalized.id }
 }

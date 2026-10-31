@@ -4,13 +4,15 @@ import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LocalUpdater } from './updates.mjs'
-import { MysClient } from './mys.mjs'
+import { communityClient } from './hoyolab.mjs'
+import { communityAccount } from './cookie.mjs'
+import { startHoyolabWebLogin } from './hoyolab-web-login.mjs'
 import { CredentialStore, normalizeCookie, publicAccount } from './credentials.mjs'
 
-export function createLocalServer({ clientFactory = () => new MysClient(), root = fileURLToPath(new URL('../dist/', import.meta.url)),
+export function createLocalServer({ clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
     updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     const sessions = new Map()
-    const cleanup = s => { s.cancelled = true; s.client.clear() }
+    const cleanup = s => { s.cancelled = true; s.webLogin?.cancel(); s.client.clear() }
     const timer = setInterval(() => { for (const [id, s] of sessions) if (Date.now() > s.expires) { cleanup(s); sessions.delete(id) } }, 60000).unref()
     const server = http.createServer(async (req, res) => {
         const json = (value, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)) }
@@ -40,8 +42,8 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
             }
             const persistLogin = async s => {
                 if (s.cancelled) throw new Error('登录已取消')
-                const c = s.client, { id, cookie } = normalizeCookie(c.cookie)
-                await credentialStore.upsert({ id, cookie, device: c.device, deviceSeed: c.deviceSeed, deviceFp: c.deviceFp,
+                const c = s.client, account = communityAccount(c.cookie, c.platform), { id } = account
+                await credentialStore.upsert({ ...account, device: c.device, deviceSeed: c.deviceSeed, deviceFp: c.deviceFp,
                     roles: c.roles, status: 'saved', lastError: '', lastUsedAt: new Date().toISOString() })
                 s.accountId = id
                 invalidate(id, s)
@@ -74,7 +76,7 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                 }
                 if (url.pathname === '/api/mys/accounts' && req.method === 'POST') {
                     if (session?.busy) return json({ error: '同步中，请先取消' }, 409)
-                    const normalized = normalizeCookie((await input()).cookie), client = clientFactory()
+                    const body = await input(), normalized = communityAccount(body.cookie, body.platform), client = clientFactory(normalized.platform)
                     client.cookie = normalized.cookie
                     // Validate ownership before accepting a manually supplied Cookie.
                     await client.getRoles()
@@ -86,7 +88,7 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                     if (session?.busy) return json({ error: '同步中，请先取消' }, 409)
                     const saved = await credentialStore.get(String((await input()).id))
                     if (!saved) return json({ error: '已保存账号不存在，请添加账号' }, 404)
-                    const client = clientFactory()
+                    const client = clientFactory(saved.platform)
                     for (const key of ['cookie', 'device', 'deviceSeed', 'deviceFp', 'roles']) if (saved[key] !== undefined) client[key] = saved[key]
                     activate(client, saved.id)
                     await credentialStore.update(saved.id, { lastUsedAt: new Date().toISOString() })
@@ -100,7 +102,17 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                 }
                 if (url.pathname === '/api/mys/login' && req.method === 'POST') {
                     if (session?.busy) return json({ error: '同步中，请先取消' }, 409)
-                    const client = clientFactory()
+                    const { platform = 'miyoushe' } = await input()
+                    const client = clientFactory(platform)
+                    if (platform === 'hoyolab') {
+                        activate(client)
+                        const current = session
+                        current.webLogin = webLoginFactory(path.join(path.dirname(credentialStore.file), 'hoyolab-webview'))
+                        current.webLogin.promise.then(cookie => {
+                            if (!current.cancelled) client.cookie = normalizeCookie(cookie).cookie
+                        }).catch(error => { if (!current.cancelled) current.loginError = error })
+                        return json({ mode: 'web' })
+                    }
                     const qr = await client.createQR()
                     activate(client)
                     return json(qr)
@@ -112,7 +124,7 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                     res.setHeader('Set-Cookie', 'mona_mys=; HttpOnly; SameSite=Strict; Path=/api/mys; Max-Age=0')
                     return json({ ok: true })
                 }
-                if (url.pathname === '/api/mys/cancel' && req.method === 'POST') { session.cancelled = true; c.cancelVerification(); return json({ ok: true }) }
+                if (url.pathname === '/api/mys/cancel' && req.method === 'POST') { session.cancelled = true; session.webLogin?.cancel(); c.cancelVerification(); return json({ ok: true }) }
                 if (url.pathname === '/api/mys/verification/cancel' && req.method === 'POST') {
                     c.cancelVerification(); return json({ ok: true })
                 }
@@ -126,7 +138,9 @@ export function createLocalServer({ clientFactory = () => new MysClient(), root 
                     } finally { session.busy = false }
                 }
                 if (url.pathname === '/api/mys/poll' && req.method === 'POST') {
-                    const state = await c.pollQR()
+                    if (session.cancelled) throw new Error('登录已取消')
+                    if (session.loginError) throw session.loginError
+                    const state = session.webLogin ? { status: c.cookie ? 'Confirmed' : 'Waiting' } : await c.pollQR()
                     if (state.status === 'Confirmed' && !session.accountId) await persistLogin(session)
                     return json(state)
                 }

@@ -4517,38 +4517,12 @@ export default {
     "badge": "/characters/vodyanitsa.webp",
     "config": [
       {
-        "name": "hp",
-        "title": 3541,
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
-        "name": "constellation",
-        "title": 743,
-        "type": "int",
-        "min": 0,
-        "max": 6,
-        "default": 0
-      },
-      {
         "name": "e_level",
         "title": 3542,
         "type": "int",
         "min": 1,
         "max": 15,
         "default": 10
-      },
-      {
-        "name": "on_field",
-        "title": 3543,
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "title": 3544,
-        "type": "bool",
-        "default": true
       }
     ]
   },
@@ -4564,22 +4538,6 @@ export default {
         "title": 3541,
         "type": "floatInput",
         "default": 60000
-      },
-      {
-        "name": "constellation",
-        "title": 743,
-        "type": "int",
-        "min": 0,
-        "max": 6,
-        "default": 0
-      },
-      {
-        "name": "e_level",
-        "title": 3542,
-        "type": "int",
-        "min": 1,
-        "max": 15,
-        "default": 10
       },
       {
         "name": "on_field",
@@ -4615,26 +4573,6 @@ export default {
         "min": 0,
         "max": 6,
         "default": 0
-      },
-      {
-        "name": "e_level",
-        "title": 3542,
-        "type": "int",
-        "min": 1,
-        "max": 15,
-        "default": 10
-      },
-      {
-        "name": "on_field",
-        "title": 3543,
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "title": 3544,
-        "type": "bool",
-        "default": true
       }
     ]
   },
@@ -4646,26 +4584,12 @@ export default {
     "badge": "/characters/vodyanitsa.webp",
     "config": [
       {
-        "name": "hp",
-        "title": 3541,
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
         "name": "constellation",
         "title": 743,
         "type": "int",
         "min": 0,
         "max": 6,
         "default": 0
-      },
-      {
-        "name": "e_level",
-        "title": 3542,
-        "type": "int",
-        "min": 1,
-        "max": 15,
-        "default": 10
       },
       {
         "name": "on_field",
@@ -4689,38 +4613,12 @@ export default {
     "badge": "/characters/vodyanitsa.webp",
     "config": [
       {
-        "name": "hp",
-        "title": 3541,
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
         "name": "constellation",
         "title": 743,
         "type": "int",
         "min": 0,
         "max": 6,
         "default": 0
-      },
-      {
-        "name": "e_level",
-        "title": 3542,
-        "type": "int",
-        "min": 1,
-        "max": 15,
-        "default": 10
-      },
-      {
-        "name": "on_field",
-        "title": 3543,
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "title": 3544,
-        "type": "bool",
-        "default": true
       }
     ]
   },
@@ -4738,30 +4636,8 @@ export default {
         "default": 60000
       },
       {
-        "name": "constellation",
-        "title": 743,
-        "type": "int",
-        "min": 0,
-        "max": 6,
-        "default": 0
-      },
-      {
-        "name": "e_level",
-        "title": 3542,
-        "type": "int",
-        "min": 1,
-        "max": 15,
-        "default": 10
-      },
-      {
         "name": "on_field",
         "title": 3543,
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "title": 3544,
         "type": "bool",
         "default": true
       },
@@ -4795,42 +4671,7 @@ export default {
     "description": 3780,
     "genre": "Character",
     "badge": "/characters/vodyanitsa.webp",
-    "config": [
-      {
-        "name": "hp",
-        "title": 3541,
-        "type": "floatInput",
-        "default": 60000
-      },
-      {
-        "name": "constellation",
-        "title": 743,
-        "type": "int",
-        "min": 0,
-        "max": 6,
-        "default": 0
-      },
-      {
-        "name": "e_level",
-        "title": 3542,
-        "type": "int",
-        "min": 1,
-        "max": 15,
-        "default": 10
-      },
-      {
-        "name": "on_field",
-        "title": 3543,
-        "type": "bool",
-        "default": true
-      },
-      {
-        "name": "ordinary_mode",
-        "title": 3544,
-        "type": "bool",
-        "default": true
-      }
-    ]
+    "config": []
   },
   "VesnaTalent1": {
     "name": "VesnaTalent1",
@@ -5011,7 +4852,8 @@ export default {
         "default": true
       }
     ],
-    "from": "Mitya"
+    "from": "Mitya",
+    "selectable": false
   },
   "ValeriyDirective": {
     "name": "ValeriyDirective",
@@ -5102,5 +4944,165 @@ export default {
       }
     ],
     "from": "Valeriy"
+  },
+  "MityaA1": {
+    "name": "MityaA1",
+    "nameLocale": 3796,
+    "description": 3797,
+    "badge": "/characters/mitya-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "ascension",
+        "title": 3764,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 6
+      },
+      {
+        "name": "core_mode",
+        "title": 3732,
+        "type": "option",
+        "options": [
+          "无",
+          "稳态",
+          "过载"
+        ],
+        "default": 2,
+        "optionCount": 3
+      },
+      {
+        "name": "beacons",
+        "title": 3733,
+        "type": "int",
+        "min": 0,
+        "max": 5,
+        "default": 4
+      }
+    ],
+    "from": "Mitya"
+  },
+  "MityaStellarBlessing": {
+    "name": "MityaStellarBlessing",
+    "nameLocale": 3798,
+    "description": 3799,
+    "badge": "/characters/mitya-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "em",
+        "title": 3763,
+        "type": "floatInput",
+        "min": 0,
+        "max": 10000,
+        "default": 500
+      }
+    ],
+    "from": "Mitya"
+  },
+  "MityaC1": {
+    "name": "MityaC1",
+    "nameLocale": 3800,
+    "description": 3801,
+    "badge": "/characters/mitya-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "core_mode",
+        "title": 3732,
+        "type": "option",
+        "options": [
+          "无",
+          "稳态",
+          "过载"
+        ],
+        "default": 2,
+        "optionCount": 3
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3765,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "from": "Mitya"
+  },
+  "MityaC2": {
+    "name": "MityaC2",
+    "nameLocale": 3802,
+    "description": 3803,
+    "badge": "/characters/mitya-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      },
+      {
+        "name": "core_mode",
+        "title": 3732,
+        "type": "option",
+        "options": [
+          "无",
+          "稳态",
+          "过载"
+        ],
+        "default": 2,
+        "optionCount": 3
+      },
+      {
+        "name": "polestar",
+        "title": 3736,
+        "type": "bool",
+        "default": true
+      },
+      {
+        "name": "recipient_on_field",
+        "title": 3765,
+        "type": "bool",
+        "default": true
+      }
+    ],
+    "from": "Mitya"
+  },
+  "MityaC6": {
+    "name": "MityaC6",
+    "nameLocale": 3804,
+    "description": 3805,
+    "badge": "/characters/mitya-avatar.png",
+    "genre": "Character",
+    "config": [
+      {
+        "name": "constellation",
+        "title": 743,
+        "type": "int",
+        "min": 0,
+        "max": 6,
+        "default": 0
+      }
+    ],
+    "from": "Mitya"
   }
 }

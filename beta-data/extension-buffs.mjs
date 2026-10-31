@@ -1,7 +1,8 @@
 import {CHARACTER_EFFECT_RULES} from './character-effect-rules.mjs';
 import {LUNAR_EQUIPMENT_RULES,prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
 import {REACTION_PARAMETER_RULES} from './reaction-parameter-rules.mjs';
-import {createBuffRuleRegistry} from './buff-rule-registry.mjs';
+import {createBuffRuleRegistry,normalizeBuffParameters} from './buff-rule-registry.mjs';
+import {BUFF_RULE_SCHEMA} from './buff-rule-schema.mjs';
 import {SHARED_BUFF_RULES} from './shared-buff-rules.mjs';
 import {floatingDreamsMastery,evenstarAttack,cinderBonusValues} from './equipment-effect-values.mjs';
 // Character formulas are owned by CHARACTER_EFFECT_RULES; equipment remains separately scoped.
@@ -41,6 +42,11 @@ const recipes={
 };
 export const EXTENSION_BUFF_REGISTRY=createBuffRuleRegistry({...recipes,...CHARACTER_EFFECT_RULES});
 export const EXTENSION_BUFF_ADAPTERS=EXTENSION_BUFF_REGISTRY.names;
+export function normalizeVodyanitsaBuffParameters(name,raw){
+ const p=normalizeBuffParameters(name,raw);
+ if(BUFF_RULE_SCHEMA[name].fields.some(field=>field.name==='hp')&&(!Number.isFinite(p.hp)||p.hp<=0||p.hp>500000))throw Error('沃雅妮莎 BUFF 参数无效');
+ return p;
+}
 export function prepareExtensionBuffs(input){
  if(!['Vodyanitsa','Vesna'].includes(input?.character?.name))return input;
  const out={...input,buffs:[]},state={flat:0,base:0,bonus:0,crit_damage:0,elevation:0,anemo_res:0};

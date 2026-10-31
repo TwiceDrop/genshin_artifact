@@ -13,7 +13,12 @@ const stages = {
     '/game_record/app/genshin/api/character/list': '角色列表读取',
     '/game_record/app/genshin/api/character/detail': '角色详情读取',
 }
-export function ds(body = '', query = '') {
+export function ds(body = '', query = '', platform = 'miyoushe') {
+    if (platform === 'hoyolab') {
+        const t = Math.floor(Date.now() / 1000), letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        const r = Array.from({length: 6}, () => letters[randomInt(0, letters.length)]).join('')
+        return `${t},${r},${createHash('md5').update(`salt=6s25p5ox5y14umn1p61aqyyvbvvl3lrt&t=${t}&r=${r}`).digest('hex')}`
+    }
     const t = Math.floor(Date.now() / 1000), r = randomInt(100001, 200000)
     const salt = 'xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs'
     return `${t},${r},${createHash('md5').update(`salt=${salt}&t=${t}&r=${r}&b=${body}&q=${query}`).digest('hex')}`
@@ -172,7 +177,7 @@ export class MysClient {
             if (i + 5 < ids.length) await new Promise(resolve => setTimeout(resolve, 350))
         }
         this.challengeRequest = null; this.verification = null; this.verifiedChallenges.clear()
-        return { version: 1, source: 'miyoushe', role, importedAt: new Date().toISOString(), total: ids.length, characters, failures, scope: 'owned-characters-equipped-artifacts' }
+        return { version: 1, source: this.platform || 'miyoushe', role, importedAt: new Date().toISOString(), total: ids.length, characters, failures, scope: 'owned-characters-equipped-artifacts' }
     }
     clear() { this.challengeRequest = null; this.verification = null; this.verifiedChallenges.clear(); this.cookie = ''; this.ticket = ''; this.roles = []; this.deviceFp = ''; this.deviceSeed = randomBytes(8).toString('hex') }
 }

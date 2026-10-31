@@ -2,7 +2,7 @@ import {prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
 import characterElements from './character-elements.mjs';
 import {createStarsealedEdictAdapter} from './starsealed-edict.mjs';
 import {previewDefaults} from './preview-7201-config.mjs';
-import {PREVIEW_BUFFS,previewBuffValues,previewRecipientOnField} from './preview-7201-buffs.mjs';
+import {PREVIEW_BUFFS,previewBuffValues,previewRecipientOnField,expandMityaBuffs} from './preview-7201-buffs.mjs';
 import {EXTENSION_BUFF_REGISTRY} from './extension-buffs.mjs';
 import {normalizeBuffParameters} from './buff-rule-registry.mjs';
 import {normalizeLimitedWeapon,isLimitedWeapon} from './limited-weapons.mjs';
@@ -33,13 +33,12 @@ export function compilePreviewBuff(b,input){
   if(name==='VodyanitsaSignature'&&on&&p.on_field){const r=p.refine,c=.03+.01*r;v.ATKPercentage=p.stacks*Math.min(Math.max(p.hp-40000,0)*c/10000,2*c)*(p.boosted?1.75:1);}
   return [effect(name,v)];
  }
- let compiled=EXTENSION_BUFF_REGISTRY.compile(b,input);
+ const compiled=EXTENSION_BUFF_REGISTRY.compile(b,input);
  if(compiled===null)return [b];
  // These source descriptions grant both Stellar families; keep distinct slots.
  const dual={OdetteMarvelousSplendor:['StellarSwirlBonus','EnhanceStellarSuperconduct'],OdetteC4SnowSwanDream:['StellarSwirlBonus','EnhanceStellarSuperconduct'],OdetteC6MarvelousSplendor:['StellarSwirlElevation','StellarConductElevation'],DionaC6StellarConduct:['StellarSwirlBonus','EnhanceStellarSuperconduct'],EnhanceStellarGlimmerReaction:['StellarSwirlBonus','EnhanceStellarSuperconduct'],ElevateStellarGlimmerReaction:['StellarSwirlElevation','StellarConductElevation'],HeartOfTheFurnace4:['StellarSwirlBonus','EnhanceStellarSuperconduct']}[name];
  if(dual)for(const b of compiled){const values=b.config.ExtensionEffect.values;add(values,dual[1],values[dual[0]]||0);}
  if(name==='HeartOfTheFurnace4')for(const b of compiled)b.config.ExtensionEffect.values.HeartOfTheFurnaceTeamBonus=b.config.ExtensionEffect.values.StellarSwirlBonus||0;
- if(name==='OdetteTalent1'&&p.radiance_mode===1)compiled=[effect(name,{StellarConductBaseBonus:Math.min(p.atk*.000035,.07)})];
  return compiled;
 }
 export function preparePreviewInput(input){
@@ -47,7 +46,7 @@ export function preparePreviewInput(input){
  const x={...input,character:{...input.character,params:{[name]:p}},buffs:[]};
  if(isLimitedWeapon(input.weapon))x.weapon=normalizeLimitedWeapon(input.weapon);
  if(isSignatureWeapon(input.weapon))x.weapon=normalizeSignatureWeapon(input.weapon);
- const source=prepareLunarEquipmentBuffs(input.buffs||[],input),seen=new Set(),repeat=new Set(['ExtensionEffect','CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
+ const source=expandMityaBuffs(prepareLunarEquipmentBuffs(input.buffs||[],input)),seen=new Set(),repeat=new Set(['ExtensionEffect','CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
  // A selected shared Polestar buff owns the field count, preventing duplicate application.
  const field=source.find(b=>b.name==='ResonancePolestarField'&&!b.lock&&b.config?.ResonancePolestarField?.active!==false);
  if(name==='Mitya'&&field){p.polestar=true;p.field_hits=normalizeBuffParameters(field.name,field.config?.[field.name]||{}).stacks;}
@@ -59,7 +58,7 @@ export function createPreview7201Facade(base,extension){const edict=createStarse
  if(input?.weapon?.name==='StarsealedEdict'){input=edict(input);args=[...args];args[i]=input;}
  if(!names.has(input?.character?.name)){
   if(input?.character&&(input.buffs||[]).some(b=>PREVIEW_BUFFS[b.name])){
-   const seen=new Set();input={...input,buffs:input.buffs.flatMap(b=>{if(!PREVIEW_BUFFS[b.name])return [b];if(seen.has(b.name))return [];seen.add(b.name);return compilePreviewBuff(b,input).map(e=>{const values={...e.config.ExtensionEffect.values};for(const [scoped,plain]of [['StellarConductFlatElectro','StellarConductFlat'],['StellarConductCritDamageElectro','StellarConductCritDamage']])if(scoped in values){if(characterElements[input.character.name]==='Electro')add(values,plain,values[scoped]);delete values[scoped];}return {...e,config:{ExtensionEffect:{...e.config.ExtensionEffect,values}}};});})};args=[...args];args[i]=input;
+   const seen=new Set();input={...input,buffs:expandMityaBuffs(input.buffs).flatMap(b=>{if(!PREVIEW_BUFFS[b.name])return [b];if(seen.has(b.name))return [];seen.add(b.name);return compilePreviewBuff(b,input).map(e=>{const values={...e.config.ExtensionEffect.values};for(const [scoped,plain]of [['StellarConductFlatElectro','StellarConductFlat'],['StellarConductCritDamageElectro','StellarConductCritDamage']])if(scoped in values){if(characterElements[input.character.name]==='Electro')add(values,plain,values[scoped]);delete values[scoped];}return {...e,config:{ExtensionEffect:{...e.config.ExtensionEffect,values}}};});})};args=[...args];args[i]=input;
   }
   return fn(...args);
  }

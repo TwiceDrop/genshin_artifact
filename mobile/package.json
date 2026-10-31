@@ -1,7 +1,7 @@
 {
   "name": "mona-mobile-ui",
   "private": true,
-  "version": "7.2.1",
+  "version": "7.2.2",
   "dependencies": {
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

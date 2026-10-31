@@ -1,7 +1,7 @@
 import {VODYANITSA_SUPPORT_RULES} from './scoped-character-effect-rules.mjs';
 import {evaluateEffectRule} from './effect-rule-engine.mjs';
 // Existing characters keep the published core; Vodyanitsa uses the compiled extension.
-import {prepareExtensionBuffs} from './extension-buffs.mjs';
+import {prepareExtensionBuffs,normalizeVodyanitsaBuffParameters} from './extension-buffs.mjs';
 import {normalizeSignatureWeapon,hymnAttackBonus} from './weapon-effects.mjs';
 import {markReactionAvailability} from './reaction-availability.mjs';
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -44,8 +44,7 @@ export function createFacade(original,extension,data,support,characters) {
   const ids=new Set();
   for(const b of buffs.filter(special)) {
    if(b.lock||b.config?.[b.name]?.active===false||ids.has(b.name))continue;ids.add(b.name);
-   const p=b.config?.[b.name]||{},hp=Number(p.hp),c=Number(p.constellation),level=Number(p.e_level);
-   if(!Number.isFinite(hp)||hp<=0||hp>500000||!Number.isInteger(c)||c<0||c>6||!Number.isInteger(level)||level<1||level>15)throw Error('沃雅妮莎 BUFF 参数无效');
+   const p=normalizeVodyanitsaBuffParameters(b.name,b.config?.[b.name]||{}),hp=p.hp,c=p.constellation,level=p.e_level;
    const relevant=['Hydro','Cryo'].includes(element),ordinary=p.ordinary_mode!==false,on=p.on_field!==false;
    const id=b.name.slice('Vodyanitsa'.length);
    const add=(n,v)=>fresh.push(named(n,v));

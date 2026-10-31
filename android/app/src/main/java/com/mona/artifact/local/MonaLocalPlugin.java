@@ -17,6 +17,24 @@ import javax.crypto.spec.GCMParameterSpec;
 
 @CapacitorPlugin(name = "MonaLocal")
 public class MonaLocalPlugin extends Plugin {
+    private HoyolabLoginDialog hoyolabDialog;
+    @PluginMethod public void loginHoyolab(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            if (hoyolabDialog != null) { call.reject("请先完成或关闭当前 HoYoLAB 登录窗口"); return; }
+            hoyolabDialog = new HoyolabLoginDialog(getActivity(), new HoyolabLoginDialog.Result() {
+                public void complete(String cookie) { hoyolabDialog = null; call.resolve(new JSObject().put("cookie", cookie)); }
+                public void cancelled() { hoyolabDialog = null; call.reject("HoYoLAB 登录已取消"); }
+            });
+            hoyolabDialog.open("https://www.hoyolab.com/home");
+        });
+    }
+    @PluginMethod public void cancelHoyolabLogin(PluginCall call) {
+        getActivity().runOnUiThread(() -> { if (hoyolabDialog != null) hoyolabDialog.dismiss(); call.resolve(); });
+    }
+    @Override protected void handleOnDestroy() {
+        if (hoyolabDialog != null) hoyolabDialog.dismiss();
+        super.handleOnDestroy();
+    }
     private static final String KEY = "mona-cookie-v1";
     private SecretKey key() throws Exception {
         KeyStore store = KeyStore.getInstance("AndroidKeyStore"); store.load(null);

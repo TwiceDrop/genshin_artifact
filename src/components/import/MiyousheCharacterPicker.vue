@@ -33,7 +33,7 @@
                     <p>{{ entry.weapon }}</p>
                 </div>
             </button>
-            <p v-if="!visibleEntries.length" class="character-picker-empty">{{ entries.length ? '暂无该元素的已导入角色' : '暂无已导入角色，请先通过米游社同步或恢复角色快照' }}</p>
+            <p v-if="!visibleEntries.length" class="character-picker-empty">{{ entries.length ? '暂无该元素的已导入角色' : '暂无已导入角色，请先同步账号或恢复角色快照' }}</p>
         </div>
     </section>
 </template>

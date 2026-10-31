@@ -21,6 +21,8 @@ try {
     Copy-Item -LiteralPath (Join-Path $projectRoot 'dist'),(Join-Path $projectRoot 'server') -Destination $stage -Recurse
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'start-local.mjs') -Destination (Join-Path $stage 'script')
     & (Join-Path $PSScriptRoot 'build-tray-launcher.ps1') -NodeRuntime $NodeRuntime -OutputDirectory $stage
+    & (Join-Path $PSScriptRoot 'build-hoyolab-login.ps1')
+    Copy-Item -LiteralPath (Join-Path $projectRoot 'runtime/hoyolab-login') -Destination (Join-Path $stage 'runtime') -Recurse
     foreach ($name in @('LICENSE','THIRD_PARTY_NOTICES.md','README.md')) {
         Copy-Item -LiteralPath (Join-Path $projectRoot $name) -Destination $stage
     }

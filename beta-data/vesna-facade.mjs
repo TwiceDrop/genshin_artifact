@@ -1,4 +1,4 @@
-import {prepareExtensionBuffs} from './extension-buffs.mjs';
+import {prepareExtensionBuffs,normalizeVodyanitsaBuffParameters} from './extension-buffs.mjs';
 import {VODYANITSA_SUPPORT_RULES} from './scoped-character-effect-rules.mjs';
 import {evaluateEffectRule} from './effect-rule-engine.mjs';
 import {normalizeSignatureWeapon, chrysalisEffects} from './weapon-effects.mjs';
@@ -24,8 +24,7 @@ export function createBeta2(base,extension,support){
   for(const b of x.buffs||[]){
    if(b.name!=='ExtensionEffect'&&seen.has(b.name))continue;seen.add(b.name);
    if(b.name.startsWith('Vodyanitsa')){
-    const p=b.config?.[b.name]||{},hp=Number(p.hp),co=Number(p.constellation),id=b.name.slice(10),star=p.ordinary_mode===false,on=p.on_field!==false;
-    if(!Number.isFinite(hp)||hp<=0||hp>500000||!Number.isInteger(co)||co<0||co>6)throw Error('沃雅妮莎 BUFF 的生命或命座无效');
+    const p=normalizeVodyanitsaBuffParameters(b.name,b.config?.[b.name]||{}),hp=p.hp,co=p.constellation,id=b.name.slice(10),star=p.ordinary_mode===false,on=p.on_field!==false;
     if(id==='A1')state.anemo_res=Math.max(state.anemo_res,.35);
     if(id==='A4'&&star&&on)state.flat=Math.max(state.flat,Math.min(Math.max(hp-40000,0)*.26,6500));
     if(id==='C1'&&co>=1)buffs.push(named('ATKFixed',{value:hp*.008}));

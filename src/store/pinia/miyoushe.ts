@@ -27,13 +27,13 @@ const selectedUid = computed({
     set: (uid: string) => { if (uidGroups.value.some(g => g.uid === String(uid))) data.value.selectedUid = String(uid) },
 })
 function importSnapshot(snapshot: any, converter: any, source = '米游社同步') {
-    if (snapshot?.version !== 1 || snapshot?.source !== 'miyoushe' || !/^\d{8,10}$/.test(snapshot.role?.uid) || !Array.isArray(snapshot.characters) || snapshot.characters.length > 300) throw new Error('不是支持的米游社角色快照')
+    if (snapshot?.version !== 1 || !['miyoushe', 'hoyolab'].includes(snapshot?.source) || !/^\d{8,10}$/.test(snapshot.role?.uid) || !Array.isArray(snapshot.characters) || snapshot.characters.length > 300) throw new Error('不是支持的米游社角色快照')
     const uid = String(snapshot.role.uid), converted: any[] = [], rejected: any[] = [], keys = new Set()
     for (const raw of snapshot.characters) {
         const key = `${uid}:${raw.base?.id}:${raw.base?.element || ''}`
         if (keys.has(key)) throw new Error('快照含重复角色')
         keys.add(key)
-        try { converted.push(converter.character(raw, uid)) }
+        try { converted.push(converter.character(raw, uid, snapshot.source)) }
         catch (e: any) {
             const previous = data.value.entries.find((entry: any) => entry.key === key)
             rejected.push(previous?.presetName && usePresetStore().getPreset(previous.presetName)
