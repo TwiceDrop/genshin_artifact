@@ -1,7 +1,6 @@
 import {scalarMath} from './team-dps-numeric-rules.mjs';
-const before=(a,b)=>a.time<b.time||(a.time===b.time&&(a.rootOrder<b.rootOrder||(a.rootOrder===b.rootOrder&&a.order<b.order)));
+import {eventBefore as before,compareEvents as order} from './team-engine/event-order.mjs';
 const within=(a,e,seconds)=>before(a,e)&&e.time<a.time+seconds;
-const order=(a,b)=>a.time-b.time||a.rootOrder-b.rootOrder||(a.order??0)-(b.order??0);
 
 export function createEquipmentHealthRules(profiles,rotation,{math=scalarMath}={}){
  const m=math,and=(a,b)=>m.choose(a,b,0),or=(a,b)=>m.max(a,b),enabled=h=>h.enabled??1;
@@ -48,17 +47,20 @@ export function createEquipmentHealthRules(profiles,rotation,{math=scalarMath}={
    let amount=0,ratio=0;for(const h of changes)if(h.change!=='clear'&&before(h,e)){amount=m.choose(enabled(h),h.amount,amount);ratio=m.choose(enabled(h),h.ratio,ratio);}
    return {rate1:m.choose(m.gt(amount,0),1,0),rate2:m.choose(m.ge(ratio,.3),1,0)};
   }
-  if(name==='ProspectorsDrill'||name==='TheDockhandsAssistant')return {stack:marks(r,e)};
+  if(['ProspectorsDrill','TheDockhandsAssistant','PortablePowerSaw'].includes(name))return {stack:marks(r,e)};
+  if(name==='TidalShadow')return {rate:heals.filter(h=>within(h,e,8)).reduce((v,h)=>or(v,and(enabled(h),and(m.gt(h.healingAmount,0),recipient(h,r)))),0)};
+  if(name==='FerrousShadow')return {rate:m.choose(m.lt(rotation.healthAt(e).ratios[r],.65+.05*profiles[r].weapon.refine),1,0)};
   if(name==='HarbingerOfDawn')return {rate:m.choose(m.gt(rotation.healthAt(e).ratios[r],.9),1,0)};
   if(name==='StaffOfHoma')return {be50_rate:m.choose(m.lt(rotation.healthAt(e).ratios[r],.5),1,0)};
   return {};
  }
  function artifactState(r,e){
-  const own=hp.filter(h=>h.role===r),front=own.filter(h=>rotation.activeRole(h.time,h.rootOrder)===r),burst=rotation.lastCast(r,'burst',e.time,e.rootOrder);
+  const own=hp.filter(h=>h.role===r),burst=rotation.lastCast(r,'burst',e.time,e.rootOrder);
   const on=rotation.activeRole(e.time,e.rootOrder)===r,vermillion=on&&e.time>=burst&&e.time<burst+16&&burst>=rotation.entered(e.time,e.rootOrder);
   return {
    Berserker:{rate:m.choose(m.lt(rotation.healthAt(e).ratios[r],.7),1,0)},
-   MarechausseeHunter:{stack:refreshed(front,e,5,3)},
+   // Four-piece stacks are owned by the shared effect lifecycle.
+   MarechausseeHunter:{stack:0},
    VermillionHereafter:{rate_q:vermillion?1:0,stack:vermillion?count(own.filter(h=>['decrease','damage'].includes(h.change)&&h.time>=burst),e,16,4,.8):0},
    FragmentOfHarmonicWhimsy:{level:refreshed(bonds.filter(h=>h.role===r&&h.change!=='clear'),e,6,3,.3)},
   };

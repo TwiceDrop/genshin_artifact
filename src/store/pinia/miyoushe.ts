@@ -6,9 +6,11 @@ import { captureImportState, appendImportRecord } from '@/import/import-history.
 import { mergeEquipped } from '@/import/miyoushe.mjs'
 
 const data = ref<any>({ snapshots: {}, entries: [] })
-function init(value: any) {
+const comparisonSettings = ref({ enabled: true, mode: 'session' })
+function init(value: any, settings: any) {
     data.value = { snapshots: {}, entries: [], ...value }
     data.value.entries = data.value.entries.map((entry: any) => ({ ...entry, uid: String(entry.uid) }))
+    comparisonSettings.value = settings || { enabled: data.value.artifactComparison?.enabled !== false, mode: data.value.artifactComparison?.mode || 'session' }
 }
 const uidGroups = computed(() => {
     const groups = new Map<string, any>()
@@ -69,5 +71,6 @@ function importSnapshot(snapshot: any, converter: any, source = '米游社同步
     data.value = appendImportRecord(data.value, before, presets.presets.value, store.artifacts.value, { source, uids: [uid] })
     return { ...result, imported: entries.length, rejected: rejected.length, warnings: [...(snapshot.failures || []), ...rejected.map(e => `${e.label}：${e.error || e.warning}`)] }
 }
-export const useMiyousheStore = () => ({ data, init, importSnapshot, uidGroups, selectedUid })
+export const useMiyousheStore = () => ({ data, comparisonSettings, init, importSnapshot, uidGroups, selectedUid })
 export const watchContent = () => data.value
+export const watchComparisonSettings = () => comparisonSettings.value

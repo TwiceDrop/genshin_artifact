@@ -10,16 +10,17 @@ export function compareEquipment(items, baseline) {
         if (!current && !old) return ''
         if (!current) return '已卸下'
         if (!old) return '新增'
-        return current.id !== old.id || artifactFingerprint(current) !== artifactFingerprint(old) ? '已替换' : ''
+        const knownIds = Number.isInteger(current.id) && current.id >= 0 && Number.isInteger(old.id) && old.id >= 0
+        return (knownIds && current.id !== old.id) || artifactFingerprint(current) !== artifactFingerprint(old) ? '已替换' : ''
     })
 }
 
 // Storage is part of the active Mona account; key includes the game UID and character.
-export function useArtifactComparison({ storage, key, items, gameBaseline }) {
+export function useArtifactComparison({ storage, settings, key, items, gameBaseline }) {
     const sessionBaseline = ref(null), selectedHistoryId = ref('')
     const update = patch => { storage.value = { ...storage.value, ...patch } }
-    const enabled = computed({ get: () => storage.value.enabled !== false, set: enabled => update({ enabled }) })
-    const mode = computed({ get: () => storage.value.mode || 'session', set: mode => update({ mode }) })
+    const enabled = computed({ get: () => settings.value.enabled, set: enabled => { settings.value.enabled = enabled } })
+    const mode = computed({ get: () => settings.value.mode, set: mode => { settings.value.mode = mode } })
     const history = computed(() => (storage.value.history || []).filter(row => row.key === key.value))
     const historyId = computed({
         get: () => history.value.some(row => row.id === selectedHistoryId.value) ? selectedHistoryId.value : history.value[0]?.id || '',
@@ -41,11 +42,12 @@ export function useArtifactComparison({ storage, key, items, gameBaseline }) {
         selectedHistoryId.value = previousSelection || row.id
         return row.id
     }
+    function restore(equipment) { sessionBaseline.value = snapshotEquipment(equipment) }
     function begin(equipment) {
-        sessionBaseline.value = snapshotEquipment(equipment)
+        restore(equipment)
         record('计算前穿戴', equipment)
     }
     function reset() { sessionBaseline.value = null; selectedHistoryId.value = '' }
     watch(key, reset, { flush: 'sync' })
-    return { enabled, mode, history, historyId, baseline, changes, record, begin, reset }
+    return { enabled, mode, history, historyId, baseline, changes, record, begin, restore, reset }
 }

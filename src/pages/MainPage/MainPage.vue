@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <div class="main mona-scroll" :class="{ mobile: !geSmall, notMobile: geSmall }">
+    <div class="main" :class="{ mobile: !geSmall, notMobile: geSmall, 'mona-scroll': $route.name !== 'calculate' }">
         <div class="main-view">
             <router-view v-slot="{ Component }">
                 <template v-if="Component">

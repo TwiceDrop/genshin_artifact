@@ -1,0 +1,20 @@
+export const equipmentEffects=[{
+ id:'artifact.tenacity.4',label:'千岩牢固4',stage:'base',
+ equipment:{set:'TenacityOfTheMillelith',count:4},target:'team',
+ trigger:{kind:'hit',category:'skill'},duration:3,cooldown:.5,
+ stacking:{group:'artifact.tenacity.4',mode:'highest'},reads:{},
+ value:()=>({ATKPercentage:.2,ShieldStrength:.3}),
+},{
+ id:'artifact.marechaussee.4',label:'逐影猎人4',stage:'base',
+ equipment:{set:'MarechausseeHunter',count:4},target:'self',
+ trigger:{kind:'hp_change',onField:true},duration:5,
+ stacks:{limit:3,refresh:'all'},reads:{},
+ value:({m,stacks})=>({CriticalBase:m.mul(.12,stacks)}),
+},{
+ id:'artifact.long_nights_oath.4',label:'长夜之誓4',stage:'base',
+ equipment:{set:'LongNightsOath',count:4},target:'self',
+ trigger:{kind:'hit',category:['plunge','charged','skill']},duration:6,
+ cooldown:1,cooldownKey:event=>event.category,
+ stacks:{limit:5,refresh:'independent',overflow:'replaceOldest',gain:event=>event.category==='plunge'?1:2},reads:{},
+ value:({m,stacks})=>({BonusPlungingAttack:m.mul(.15,stacks)}),
+}];

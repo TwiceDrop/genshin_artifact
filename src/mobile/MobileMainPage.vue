@@ -59,7 +59,7 @@ const primary = computed(() => [
   { path:'/uid-data',label:'UID 数据',icon:UserIcon },
 ])
 const groups = computed(() => [
-  {title:t('nav.compute'),items:[{path:'/calculate',label:t('nav.calculate'),icon:CalculatorIcon},{path:'/team-optimization',label:t('nav.teamOptimize'),icon:CalculatorIcon},{path:'/playground',label:t('nav.playground'),icon:TerminalIcon}]},
+  {title:t('nav.compute'),items:[{path:'/calculate',label:t('nav.calculate'),icon:CalculatorIcon},{path:'/team-optimization',label:t('nav.teamOptimize'),icon:CalculatorIcon},{path:'/calculation-history',label:'历史记录',icon:FolderIcon},{path:'/playground',label:t('nav.playground'),icon:TerminalIcon}]},
   {title:t('nav.repo'),items:[{path:'/artifacts',label:t('nav.artifact'),icon:ArtifactIcon},{path:'/artifacts-kumi',label:t('nav.kumi'),icon:FolderIcon},{path:'/presets',label:t('nav.preset'),icon:FolderIcon},{path:'/uid-data',label:'UID 数据 / 手机互传',icon:UserIcon}]},
   {title:t('nav.other'),items:[{path:'/intro',label:t('nav.home'),icon:HomeIcon},{path:'/account',label:t('nav.account'),icon:UserIcon},{path:'/setup',label:t('nav.setup'),icon:SetupIcon},{path:'/help/export-tools',label:t('nav.exportTool'),icon:HelpIcon}]},
 ])

@@ -2,7 +2,7 @@
 import {buffData} from "@buff"
 import {RandomIDProvider} from "@/utils/idProvider"
 import type {IBuffWasm} from "@/types/preset"
-import { POLESTAR_FIELD, polestarFieldState, updatePolestarField } from '@/algorithms/polestar-field.mjs'
+import { polestarFieldState, updatePolestarField } from '@/algorithms/polestar-field.mjs'
 
 export interface BuffEntry {
     id: number,
@@ -45,7 +45,6 @@ export function useBuff() {
     })
 
     function addBuff(name: string, configured?: any) {
-        if (name === POLESTAR_FIELD) { polestarEnabled.value = true; return }
         const data = buffData[name]
         if (!data) throw new Error(`此 BUFF 已移除或不存在：${name}`)
         let defaultConfig: any = {}

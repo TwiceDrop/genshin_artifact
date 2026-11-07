@@ -27,8 +27,10 @@ export function createTeamNumericRules(m=scalarMath){
    const n=mul(mul(mul(mul(base,add(1,bonus)),defense),resistance),targets),cr=clamp(critical,0,1);
    return {non_critical:n,critical:mul(n,add(1,criticalDamage)),expectation:mul(n,add(1,mul(cr,criticalDamage)))};
   },
-  superconduct:(levelBase,em,bonus,resistance,targets)=>{
-   const n=mul(mul(mul(mul(1.5,levelBase),add(add(1,div(mul(16,em),add(2000,em))),bonus)),resistance),targets);
+  defense:(level,enemyLevel,minus,penetration)=>div(add(level,100),add(add(level,100),mul(mul(add(enemyLevel,100),sub(1,min(.9,minus))),sub(1,min(1,penetration))))),
+  resistance:value=>choose(lt(value,0),sub(1,div(value,2)),choose(lt(value,.75),sub(1,value),div(1,add(mul(4,value),1)))),
+  transformative:(coefficient,levelBase,em,bonus,resistance,targets)=>{
+   const n=mul(mul(mul(mul(coefficient,levelBase),add(add(1,div(mul(16,em),add(2000,em))),bonus)),resistance),targets);
    return {non_critical:n,critical:n,expectation:n};
   },
   stellarConduct:({base,coefficient,baseBonus,em,bonus,independent,flat,elevation,resistance,targets,critical,criticalDamage})=>{
@@ -36,8 +38,6 @@ export function createTeamNumericRules(m=scalarMath){
    const n=mul(mul(mul(add(body,flat),resistance),add(1,elevation)),targets),cr=clamp(critical,0,1);
    return {non_critical:n,critical:mul(n,add(1,criticalDamage)),expectation:mul(n,add(1,mul(cr,criticalDamage)))};
   },
-  defense:(level,enemyLevel,minus,penetration)=>div(add(level,100),add(add(level,100),mul(mul(add(enemyLevel,100),sub(1,min(.9,minus))),sub(1,min(1,penetration))))),
-  resistance:value=>choose(lt(value,0),sub(1,div(value,2)),choose(lt(value,.75),sub(1,value),div(1,add(mul(4,value),1)))),
   hpChanged:(before,after)=>gt(abs(sub(after,before)),0),
   salonEligible:ratio=>gt(ratio,.5),
   lowHP:ratio=>lt(ratio,.5),
@@ -47,3 +47,8 @@ export function createTeamNumericRules(m=scalarMath){
  };
 }
 export const teamNumericRules=createTeamNumericRules();
+
+// Search and display use the completed candidate's duration, never the axis
+// preview or another candidate's time. Damage mode retains its original units.
+export const teamDpsObjectiveValue=(result,objective='damage',metric='expectation')=>
+ objective==='dps'?result[metric]/result.duration:result[metric];

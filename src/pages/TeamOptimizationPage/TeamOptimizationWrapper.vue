@@ -27,7 +27,7 @@
           <el-table-column label="时间（秒）" width="125"><template #default="{row}"><el-input-number :model-value="row.timeMs/1000" :min="0" :step="0.1" :controls="false" @update:model-value="row.timeMs=$event*1000"/></template></el-table-column>
           <el-table-column label="角色" width="115"><template #default="{row}"><el-select popper-class="team-dps-popper" v-model="row.actor" @change="changeActor(row)"><el-option v-for="m in draft.members" :key="m.slot" :value="m.slot" :label="locale[characterData[m.character].nameLocale]"/></el-select></template></el-table-column>
           <el-table-column label="类型" width="110"><template #default="{row}"><el-select popper-class="team-dps-popper" v-model="row.kind" @change="changeKind(row)"><el-option value="action" label="动作"/><el-option value="switch" label="切换至"/></el-select></template></el-table-column>
-          <el-table-column label="技能" min-width="270"><template #default="{row}"><el-select v-if="row.kind==='action'" popper-class="team-dps-popper" v-model="row.action" @change="changeAction(row)"><el-option v-for="a in actionsFor(row)" :key="a.id" :value="a.id" :label="a.label"/></el-select><div v-if="bubbleAction(row)" class="action-effect"><span>破泡延迟（秒）</span><el-input-number :model-value="row.params?.bubbleDelayMs===undefined?undefined:row.params.bubbleDelayMs/1000" :min="0" :max="8" :step="0.1" :controls="false" placeholder="自动" aria-label="泡影破裂延迟（秒）" @update:model-value="setBubbleDelay(row,$event)"/><small>留空：下一次命中破泡，最多等待8秒</small></div><div v-if="riftAction(row)" class="action-effect"><span>吸收裂隙</span><el-input-number :model-value="row.params?.absorbedRifts" :min="0" :max="3" :step="1" :controls="false" aria-label="吸收裂隙" @update:model-value="setRifts(row,$event)"/><small>本次动作吸收的裂隙数量，0～3个</small></div></template></el-table-column>
+          <el-table-column label="技能" min-width="270"><template #default="{row}"><el-select v-if="row.kind==='action'" popper-class="team-dps-popper" v-model="row.action" @change="changeAction(row)"><el-option v-for="a in actionsFor(row)" :key="a.id" :value="a.id" :label="a.label"/></el-select><div v-for="field in parametersFor(row)" :key="field.key" class="action-effect"><span>{{ field.label }}</span><el-input-number :model-value="row.params?.[field.key]===undefined?undefined:row.params[field.key]/(field.scale||1)" :min="field.min/(field.scale||1)" :max="field.max/(field.scale||1)" :step="field.step" :controls="false" :placeholder="field.placeholder" :aria-label="field.label" @update:model-value="setActionParameter(row,field,$event)"/><small v-if="field.help">{{ field.help }}</small></div></template></el-table-column>
           <el-table-column label="顺序" width="145"><template #default="{$index}"><el-button :disabled="$index===0" aria-label="上移" @click="moveAction($index,-1)">↑</el-button><el-button :disabled="$index===draft.timeline.length-1" aria-label="下移" @click="moveAction($index,1)">↓</el-button><el-button type="danger" link @click="draft.timeline.splice($index,1)">删除</el-button></template></el-table-column>
          </el-table>
         </template>
@@ -44,7 +44,7 @@
   </template>
   <template v-else>
    <div v-if="library.entries.length" class="choose-config"><el-select popper-class="team-dps-popper" :model-value="library.selectedId" placeholder="选择计算配置" :disabled="saving" @update:model-value="choose($event)"><el-option v-for="entry in library.entries" :key="entry.key" :value="entry.key" :label="entry.axis.title"/></el-select><el-button :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
-   <team-dps-page v-if="selected" :key="selected.key+'-'+generation" :configuration="selected.axis" :task-key="selected.key" :tasks="tasks[selected.key]||{}" @save-task="saveTask"/>
+   <team-dps-page v-if="selected" :key="selected.key+'-'+generation" :configuration="selected.axis" :task-key="selected.key" :tasks="tasks[selected.key]||{}" :axis-file-name="selected.sourceFileName||selected.axis.id+'.mona-axis.json'" :history-detail="historyDetail||undefined" @save-task="saveTask"/>
    <div v-else class="empty"><el-button type="primary" size="large" :disabled="saving" @click="createDraft">新建动作轴</el-button><el-button size="large" :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
   </template>
   <team-multiplier-preview v-if="multiplierPreview" :axis="multiplierPreview.axis" :characters="multiplierPreview.characters" @close="multiplierPreview=null"/>
@@ -62,7 +62,9 @@
 </template>
 <script setup lang="ts">
 import './team-dps-theme.css'
-import {ref,computed,watch,onBeforeUnmount} from 'vue'
+import {ref,shallowRef,computed,watch,onBeforeUnmount,onActivated} from 'vue'
+import {useRoute} from 'vue-router'
+import {calculationHistory} from '@/store/calculation-history'
 import {ElMessage} from 'element-plus'
 import 'element-plus/es/components/message/style/css'
 import TeamDpsPage from './TeamDpsPage.vue'
@@ -80,7 +82,8 @@ import {validateTeamDpsConfiguration} from '../../../beta-data/team-dps-config.m
 import {legacyActionAxis} from '../../../beta-data/team-engine/legacy-conversion.mjs'
 const account=useAccountStore(),mys=useMiyousheStore(),library=ref<any>(emptyTeamDpsLibrary()),managing=ref(false),loading=ref(true),saving=ref(false),error=ref(''),generation=ref(0)
 const fileInput=ref<HTMLInputElement|null>(null),editingKey=ref<number|null>(null),draft=ref<any>(null),timelineText=ref(''),coverageText=ref(''),editorTab=ref('timeline')
-const tasks=ref<Record<string,any>>({})
+const tasks=shallowRef<Record<string,any>>({})
+const route=useRoute(),historyDetail=shallowRef<any>(null),historyId=ref(0)
 const jsonDialog=ref(false),actionDraft=computed(()=>draft.value?.format==='mona-action-axis')
 const multiplierPreview=ref<any>(null)
 function openMultiplierPreview(){try{validateTeamDpsConfiguration(currentDraft());const fields=editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields;multiplierPreview.value=JSON.parse(JSON.stringify({axis:currentDraft(),characters:fields?.members.map((m:any)=>m.character)}));error.value=''}catch(e){fail(e)}}
@@ -89,16 +92,14 @@ const selectingMembers=ref(false),newMembers=ref<string[]>([]),characterSearch=r
 const selectableCharacters=computed(()=>Object.keys(TEAM_ACTION_CATALOG).filter(name=>(name+' '+locale[characterData[name].nameLocale]).toLowerCase().includes(characterSearch.value.toLowerCase())))
 function toggleMember(name:string){const index=newMembers.value.indexOf(name);if(index<0)newMembers.value.push(name);else newMembers.value.splice(index,1)}
 const actionsFor=(row:any)=>TEAM_ACTION_CATALOG[draft.value.members.find((m:any)=>m.slot===row.actor).character]
-const riftAction=(row:any)=>row.kind==='action'&&actionsFor(row).find((a:any)=>a.id===row.action)?.riftInput
-const bubbleAction=(row:any)=>row.kind==='action'&&actionsFor(row).find((a:any)=>a.id===row.action)?.bubbleInput
+const parametersFor=(row:any)=>row.kind==='action'?(actionsFor(row).find((a:any)=>a.id===row.action)?.parameters||[]):[]
 function createDraft(){newMembers.value=[];characterSearch.value='';selectingMembers.value=true}
 function confirmMembers(){editingKey.value=null;draft.value=createActionAxis('action-axis-'+library.value.nextId,newMembers.value);managing.value=true;selectingMembers.value=false;editorTab.value='timeline';savedDraft='';error.value=''}
 function addAction(){let id=1;const ids=new Set(draft.value.timeline.map((a:any)=>a.id));while(ids.has('action-'+id))id++;const row={id:'action-'+id,kind:'action',actor:draft.value.initialActiveSlot,action:'',timeMs:0};row.action=actionsFor(row)[0].id;draft.value.timeline.push(row)}
 function changeActor(row:any){if(row.kind==='action')row.action=actionsFor(row)[0].id;delete row.params}
 function changeKind(row:any){delete row.params;if(row.kind==='switch')delete row.action;else row.action=actionsFor(row)[0].id}
 function changeAction(row:any){delete row.params}
-function setRifts(row:any,value:number|null){if(value===null||value===undefined)delete row.params;else row.params={...row.params,absorbedRifts:value}}
-function setBubbleDelay(row:any,value:number|null){if(value===null||value===undefined)delete row.params;else row.params={...row.params,bubbleDelayMs:value*1000}}
+function setActionParameter(row:any,field:any,value:number|null){if(value===null||value===undefined){if(row.params)delete row.params[field.key]}else row.params={...row.params,[field.key]:value*(field.scale||1)}}
 function moveAction(index:number,offset:number){const [row]=draft.value.timeline.splice(index,1);draft.value.timeline.splice(index+offset,0,row)}
 function openTimelineJson(){timelineText.value=JSON.stringify(draft.value.timeline,null,2);error.value='';jsonDialog.value=true}
 function applyTimelineJson(){try{const timeline=JSON.parse(timelineText.value);validateTeamDpsConfiguration({...draft.value,timeline});draft.value.timeline=timeline;jsonDialog.value=false;error.value=''}catch(e){fail(e)}}
@@ -111,12 +112,13 @@ const actionSupport=[
 const tasksKey=(accountId:number)=>'mona_account_team_dps_tasks_'+accountId
 let taskWrites=Promise.resolve()
 function saveTask({key,accountId,uid,state}:any){
+ if(key<0)return;
  if(accountId!==account.currentAccountId.value)return;
- (tasks.value[key]??={})[uid]=state;
- const storageKey=tasksKey(accountId),snapshot=JSON.parse(JSON.stringify(tasks.value));
+ tasks.value={...tasks.value,[key]:{...tasks.value[key],[uid]:state}};
+ const storageKey=tasksKey(accountId),snapshot=tasks.value;
  taskWrites=taskWrites.then(()=>backend.setItem(storageKey,snapshot)).catch(fail);
 }
-const selected=computed(()=>library.value.entries.find((entry:any)=>entry.key===library.value.selectedId))
+const selected=computed(()=>historyDetail.value?{key:-historyId.value,axis:historyDetail.value.input.team_dps.axis,sourceFileName:historyDetail.value.view.axisFileName}:library.value.entries.find((entry:any)=>entry.key===library.value.selectedId))
 let sequence=0
 let savedDraft=''
 const fail=(e:any)=>{console.error(e);error.value=e.message}
@@ -128,21 +130,30 @@ function persist(){return saveTeamDpsLibrary(backend,account.currentAccountId.va
 async function importFile(event:Event){
  const input=event.target as HTMLInputElement,file=input.files?.[0];input.value='';if(!file)return;
  const task=sequence;saving.value=true;error.value='';
- try{const text=await file.text();if(task!==sequence)return;const entry=importTeamDpsConfiguration(library.value,text);generation.value++;edit(entry);await persist();if(task===sequence)ElMessage.success('计算配置已导入')}
+ try{const text=await file.text();if(task!==sequence)return;const entry=importTeamDpsConfiguration(library.value,text);entry.sourceFileName=file.name;historyDetail.value=null;generation.value++;edit(entry);await persist();if(task===sequence)ElMessage.success('计算配置已导入')}
  catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}
 }
-async function choose(key:number){library.value.selectedId=key;generation.value++;saving.value=true;const task=sequence;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
+async function choose(key:number){historyDetail.value=null;library.value.selectedId=key;generation.value++;saving.value=true;const task=sequence;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
 async function saveDraft(use:boolean,automatic=false){const task=sequence;saving.value=true;error.value='';try{const axis=JSON.parse(JSON.stringify(currentDraft()));if(editingKey.value===null){const selectedId=library.value.selectedId;editingKey.value=importTeamDpsConfiguration(library.value,exportTeamDpsConfiguration(axis)).key;if(!use)library.value.selectedId=selectedId}else updateTeamDpsConfiguration(library.value,editingKey.value,axis);if(use)library.value.selectedId=editingKey.value;generation.value++;await persist();if(task===sequence){edit(library.value.entries.find((e:any)=>e.key===editingKey.value));if(use)managing.value=false;if(!automatic)ElMessage({message:'保存成功',type:'success',customClass:'team-dps-save-success'})}}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
 async function autoSaveDraft(){if(!managing.value||!draft.value||loading.value||saving.value||jsonDialog.value||selectingMembers.value)return;try{if(JSON.stringify(currentDraft())!==savedDraft)await saveDraft(false,true)}catch(e){fail(e)}}
 const autosaveTimer=setInterval(autoSaveDraft,15000)
 async function exportDraft(){try{const axis=currentDraft();await downloadString(exportTeamDpsConfiguration(axis),'application/json',axis.id+'.mona-axis.json')}catch(e){fail(e)}}
-async function removeDraft(){if(editingKey.value===null){draft.value=null;return}const task=sequence;saving.value=true;delete tasks.value[editingKey.value];const storageKey=tasksKey(account.currentAccountId.value),snapshot=JSON.parse(JSON.stringify(tasks.value));taskWrites=taskWrites.then(()=>backend.setItem(storageKey,snapshot)).catch(fail);deleteTeamDpsConfiguration(library.value,editingKey.value);draft.value=null;editingKey.value=null;generation.value++;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
+async function removeDraft(){if(editingKey.value===null){draft.value=null;return}const task=sequence;saving.value=true;const snapshot={...tasks.value};delete snapshot[editingKey.value];tasks.value=snapshot;const storageKey=tasksKey(account.currentAccountId.value);taskWrites=taskWrites.then(()=>backend.setItem(storageKey,snapshot)).catch(fail);deleteTeamDpsConfiguration(library.value,editingKey.value);draft.value=null;editingKey.value=null;generation.value++;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
 watch(()=>account.currentAccountId.value,async id=>{
  const task=++sequence;loading.value=true;saving.value=false;library.value=emptyTeamDpsLibrary();tasks.value={};draft.value=null;editingKey.value=null;selectingMembers.value=false;multiplierPreview.value=null;savedDraft='';error.value='';generation.value++;
  try{await taskWrites;const [saved,personal]=await Promise.all([loadTeamDpsLibrary(backend,id),backend.getItem(tasksKey(id))]);if(task===sequence){library.value=saved??emptyTeamDpsLibrary();tasks.value=personal??{}}}
  catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)loading.value=false}
 },{immediate:true})
 onBeforeUnmount(()=>{sequence++;clearInterval(autosaveTimer)})
+async function openHistory(){
+ const id=String(route.query.history||''),accountId=account.currentAccountId.value;
+ if(route.path!=='/team-optimization')return;
+ if(!id){historyDetail.value=null;return;}
+ try{const detail=await calculationHistory.read(accountId,Number(id));if(accountId===account.currentAccountId.value&&route.path==='/team-optimization'&&String(route.query.history)===id&&detail){historyId.value=Number(id);historyDetail.value=detail;managing.value=false;generation.value++}}catch(e){fail(e)}
+}
+watch(()=>route.query.history,openHistory)
+watch(()=>account.currentAccountId.value,()=>{historyDetail.value=null;openHistory()})
+onActivated(openHistory)
 </script>
 <style scoped>
 .toolbar-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px}.technical-credit{font-size:14px;color:#718096;white-space:nowrap}.technical-credit a{color:#568de0;text-decoration:none}.technical-credit a:hover{text-decoration:underline}

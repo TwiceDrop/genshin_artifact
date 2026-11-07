@@ -1,7 +1,7 @@
 <template>
     <div
         class="artifact"
-        :class="{ selectable: props.selectable, omit: props.item.omit }"
+        :class="{ selectable: props.selectable, omit: isLocked }"
         :tabindex="props.selectable ? 0 : undefined"
         :aria-label="props.selectable ? displayedTitle : undefined"
         @keydown.enter.self.prevent="handleClick"
@@ -22,13 +22,13 @@
             <div class="buttons" v-if="props.buttons">
                 <el-button
                     v-if="props.lockButton"
-                    :icon="props.item.omit ? IconEpLock : IconEpUnlock"
+                    :icon="isLocked ? IconEpLock : IconEpUnlock"
                     circle
                     size="small"
-                    :type="props.item.omit ? 'primary' : undefined"
-                    :text="!props.item.omit"
-                    :aria-pressed="props.item.omit"
-                    :title="props.item.omit ? t('misc.unlock') : t('misc.lock')"
+                    :type="isLocked ? 'primary' : undefined"
+                    :text="!isLocked"
+                    :aria-pressed="isLocked"
+                    :title="isLocked ? t('misc.unlock') : t('misc.lock')"
                     class="mybutton"
                     @click.stop="emits('toggle')"
                 ></el-button>
@@ -105,6 +105,7 @@ interface Props {
     buttons?: boolean,
     deleteButton?: boolean,
     lockButton?: boolean,
+    locked?: boolean,
     editButton?: boolean,
 
     showBack?: boolean,
@@ -125,12 +126,14 @@ const props = withDefaults(defineProps<Props>(), {
     buttons: false,
     deleteButton: false,
     lockButton: true,
+    locked: undefined,
     editButton: false,
     showBack: false,
     backValue: 1
 })
 
 const emits = defineEmits<Emits>()
+const isLocked = computed(() => props.locked ?? props.item.omit)
 
 const displayedTitle = computed(() => {
     let item = artifactsData[props.item.setName];

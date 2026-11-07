@@ -1,6 +1,23 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core'
 export const isNative = Capacitor.isNativePlatform()
 export const MonaLocal = registerPlugin('MonaLocal')
+let browserCalculationSession
+export async function calculationSession() {
+    if (isNative) return (await MonaLocal.calculationSession()).id
+    if (['127.0.0.1','localhost'].includes(location.hostname)) {
+        const response = await fetch('/api/calculation/session', {headers:{'x-mona-local':'1'},cache:'no-store'})
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error)
+        return data.id
+    }
+    if (!browserCalculationSession) {
+        const key = 'mona_browser_calculation_session'
+        browserCalculationSession = performance.getEntriesByType('navigation')[0]?.type === 'reload' ? sessionStorage.getItem(key) : null
+        browserCalculationSession ||= crypto.randomUUID()
+        sessionStorage.setItem(key,browserCalculationSession)
+    }
+    return browserCalculationSession
+}
 const hosts = new Set(['passport-api.mihoyo.com','api-takumi.mihoyo.com','api-takumi-record.mihoyo.com','public-data-api.mihoyo.com','api-os-takumi.mihoyo.com','sg-public-api.hoyolab.com'])
 export async function nativeFetch(url, options = {}) {
     const parsed = new URL(url)

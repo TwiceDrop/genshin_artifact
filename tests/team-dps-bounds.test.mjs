@@ -8,11 +8,11 @@ import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
 import {createTeamConstraintBounds} from '../beta-data/team-dps-constraint-bounds.mjs';
 import {optimizeTeamDps} from '../beta-data/team-dps-optimizer.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
-import {compareTeamResults} from './helpers/team-dps-result-comparison.mjs';
+import {compareNativeTeamResults} from './helpers/team-dps-result-comparison.mjs';
 const fields=[['recharge','recharge_min'],['critical','crit_min'],['critical_damage','crit_damage_min'],['elemental_mastery','em_min']];
 const slots=['Flower','Feather','Sand','Goblet','Head'];
 const poolsOf=x=>x.single_interfaces.map(p=>slots.map((slot,k)=>builds(x).flat().filter(a=>a.slot===slot&&(k<2||p.filter[['sand_main_stat','goblet_main_stat','head_main_stat'][k-2]].includes(a.main_stat[0])))));
-const save=(name,value)=>fs.writeFileSync('.build-target/team-dps-gpu-kernel-20261027/'+name+'.json',JSON.stringify(value,null,2));
+const save=(name,value)=>{const directory=process.env.TEAM_DPS_TEST_OUTPUT_DIR||'.build-target/team-dps-tests';fs.mkdirSync(directory,{recursive:true});fs.writeFileSync(directory+'/'+name+'.json',JSON.stringify(value,null,2));};
 
 export function constrainedSample(){
  const x=sample(),mains=[['ATKPercentage','HPPercentage','Recharge','ElementalMastery'],['CryoBonus','HydroBonus','ATKPercentage','HPPercentage'],['CriticalRate','CriticalDamage','HealingBonus','HPPercentage']];
@@ -50,7 +50,7 @@ test('bounds: complete assignments, exact thresholds, conversion and top K match
   for(let i=0;i<5;i++)assert.ok(Math.abs(out.results[i][metric]-expected[i][metric])<1e-7);
   outputs.push({metric,evaluated:out.evaluated_teams,...out.search_stats});
  }
- const serial=optimizeTeamDps(api,x,inventory),parallel=await nodeTeamDps(x,inventory,{threads:4});compareTeamResults(parallel,serial);
+ const serial=optimizeTeamDps(api,x,inventory),parallel=await nodeTeamDps(x,inventory,{threads:4});compareNativeTeamResults(parallel,serial);
  const exact=structuredClone(x),exactTeam=builds(exact),exactPanels=exactTeam.map((_,r)=>createTeamDpsEvaluator(api,exact).constraints(r,exactTeam));
  exact.single_interfaces.forEach((p,r)=>{p.constraint.set_mode='Any';for(const [key,field]of fields)p.constraint[field]=sum(exactPanels[r][key]);});
  assert.ok(createTeamConstraintBounds(api,exact,poolsOf(exact)).feasible(exactTeam.map(b=>b.map(a=>[a]))));

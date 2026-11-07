@@ -49,6 +49,8 @@ export interface IPreset {
     dslSource?: string,
     useDSL?: boolean,
     targetMode?: 'normal' | 'dsl' | 'generator',
+    optimizationMode?: 'damage' | 'panel',
+    panelSearch?: {metric:string, direction:'asc'|'desc', resultLimit:number, minArtifactLevel:number, bounds:Record<string,{min?:number,max?:number}>},
     dslGenerator?: {character: string, entries: any[]},
     filter?: IPresetArtifactFilter,
     character: ICharacter,

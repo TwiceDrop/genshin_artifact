@@ -145,11 +145,7 @@
 .mona-mobile .hidden-sm-and-down,.mona-mobile .hidden-md-and-up {display:initial}
 .mona-mobile .hidden-sm-and-down {display:none!important}
 .mona-mobile .hidden-md-and-up {display:block!important}
-.mona-mobile .calculator-page .calc-mobile-tabs {position:sticky;top:calc(72px + env(safe-area-inset-top));z-index:100;display:flex;background:#f5f6fa;padding:4px 0 12px;gap:5px}
-.mona-mobile .calculator-page .calc-mobile-tabs button {border:1px solid #d5dceb;border-radius:11px;background:#fff;color:#48536b;font-size:13px;min-height:48px;line-height:1.4;flex:1;padding:7px 4px}
-.mona-mobile .calculator-page .calc-mobile-tabs button.active {background:hsl(var(--primary));border-color:hsl(var(--primary));color:#fff}
-.mona-mobile .calculator-page .big-container>.left-container,.mona-mobile .calculator-page .big-container>.middle-container,.mona-mobile .calculator-page .big-container>.right-container {display:none}
-.mona-mobile .calculator-page.mobile-section-character .big-container>.left-container,.mona-mobile .calculator-page.mobile-section-equipment .big-container>.middle-container,.mona-mobile .calculator-page.mobile-section-panel .big-container>.right-container {display:block}
+.mona-mobile .calculator-page .calc-action-bar {top:calc(72px + env(safe-area-inset-top))}
 .mona-mobile .common-title {font-size:18px;line-height:1.5;margin:22px 0 12px}
 .mona-mobile .common-title2 {font-size:15px;line-height:1.5;margin:18px 0 10px}
 .mona-mobile .character-splash {max-height:240px;object-fit:contain}

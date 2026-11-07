@@ -1,13 +1,44 @@
-import {teamTalentUnlocked} from '../../team-dps-character-rules.mjs';
 import {effect,actionTime} from '../rule-utils.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
+import {createAlyoshaRuntime} from './alyosha-runtime.mjs';
+import {defineActionRecipes} from '../action-recipes.mjs';
 
 const precision=[.1166,.1272,.1378,.1484,.159,.1696,.1802,.1908,.2014,.212,.2247,.2374,.2502,.2629,.2756];
+// These physical attacks have the same native and event shape. Keep their
+// indices in one declaration; skill/burst mechanics remain explicit below.
+const basicDefinitions=[
+ ['normal.1','普通攻击·第1段','normal',[0],0],
+ ['normal.2','普通攻击·第2段','normal',[1],0],
+ ['normal.3','普通攻击·第3段','normal',[2,3],50],
+ ['normal.4','普通攻击·第4段','normal',[4],0],
+ ['charged','重击','charged',[5]],
+ ['plunge','高空下落攻击','plunge',[8]],
+ ['plunge.low','低空下落攻击','plunge',[7]],
+ ['plunge.collision','下落期间伤害','plunge',[6]],
+].map(([id,label,category,indices,endOffsetMs])=>({id,label,...(endOffsetMs===undefined?{}:{endOffsetMs}),
+ events:indices.map((index,part)=>({kind:'hit',key:id+'/'+part,delay:part/20,index,category,element:'Physical',application:null,
+  alyoshaMark:index===4?'apply':null,label:category==='plunge'?'下落攻击':label})),
+}));
+const basicActions=defineActionRecipes(basicDefinitions);
 export const alyosha={
- id:'Alyosha',element:'Electro',weaponType:'Polearm',panelIndex:9,
+ id:'Alyosha',element:'Electro',weaponType:'Polearm',panelIndex:9,reactionStatIndex:0,usesElementalApplications:true,
+ nativeBackend:'legacy',constellationTalents:{3:'skill2',5:'skill3'},defaultWeapon:'FavoniusLance',previewWeapon:'BeginnersProtector',
+ capabilities:{energy:70,shield:false,nightsoul:false,arkhe:false},
+ isBlunt:e=>[7,8].includes(e.index),
+ nativeDamage:{
+  ...Object.fromEntries(basicDefinitions.flatMap(({events})=>events.map(({index,category,element})=>[index,{category,element,...(category==='plunge'?{plungeImpact:index!==6}:{})}]))),
+  ...Object.fromEntries([9,10].map(index=>[index,{category:'skill',element:'Electro'}])),
+  ...Object.fromEntries([11,12].map(index=>[index,{category:'burst',element:'Electro'}])),13:{kind:'healing'},14:{kind:'healing'},
+ },
+ actions:[
+  {id:'skill',label:'伏袭霆击·点按',endOffsetMs:300},{id:'skill.hold',label:'伏袭霆击·长按',endOffsetMs:113/60*1000},
+  {id:'burst',label:'守猎进踞',endOffsetMs:118/60*1000},
+  ...basicActions.actions,
+ ],
  modeled:['AlyoshaHunterPrecision'],
  normalize:p=>{p.character.params={Alyosha:{hunter_precision_stacks:0,stellar_conduct_state:false}};},
- expand({actions,profile,hit,periodic}){
+ expand(context){
+  const {actions,profile,hit,periodic}=context;
   for(const a of actions){
    if(a.action==='skill'){
     const hold=a.actionId==='skill.hold',offset=(hold?113:18)/60;
@@ -20,40 +51,23 @@ export const alyosha={
      if(actionTime(a.time+offset+39/60)<end)hit(a,{index:12,category:'burst',application:application(1,'alyosha.burst',2,1.6),alyoshaDog:true,persistent:true,label:'图加林'},offset+39/60,'tugarin/'+offset);
     });
    }else{
-    const indices={'normal.1':[0],'normal.2':[1],'normal.3':[2,3],'normal.4':[4],charged:[5],'plunge.collision':[6],'plunge.low':[7],plunge:[8]}[a.action];
-    indices.forEach((index,i)=>hit(a,{index,category:a.action.startsWith('normal')?'normal':a.action.startsWith('plunge')?'plunge':'charged',element:'Physical',application:null,alyoshaMark:index===4?'apply':null,label:a.action.startsWith('normal')?'普通攻击·第'+a.action.at(-1)+'段':a.action==='charged'?'重击':'下落攻击'},i/20,a.action+'/'+i));
+    basicActions.expand({...context,actions:[a]});
    }
   }
  },
- createCombat({role,profile,profiles,settings,reactions,schedule,addHeal,activeRole}){
-  const c=profile.character,s={marks:Array(settings.enemy_count??1).fill(-Infinity),stacks:0,precisionUntil:-Infinity};
-  function activate(time,targets,canApply){
-   if(time>=s.precisionUntil)s.stacks=0;
-   for(const target of targets){
-    if(time<s.marks[target]){s.marks[target]=-Infinity;s.stacks=Math.min(c.constellation>=6?2:1,s.stacks+1);s.precisionUntil=actionTime(time+15);}
-    else if(canApply)s.marks[target]=actionTime(time+15);
-   }
-  }
-  return {state:s,afterHit(e){
-   if(e.role!==role)return;
-   const targets=reactions.targetIds(e);
-   // gcsim's documented in-game observation places C2's non-activating mark
-   // on the hunting-field hit, before the following Tugarin bite.
-   if(e.alyoshaField&&c.constellation>=2&&targets.length)s.marks[targets[0]]=actionTime(e.time+15);
-   if(e.alyoshaMark||e.alyoshaDog)schedule({time:actionTime(e.time+.1),rootOrder:e.rootOrder,role,combatKind:'state',run:()=>activate(actionTime(e.time+.1),targets,!!e.alyoshaMark)});
-   if(e.alyoshaDog){
-    if(teamTalentUnlocked(c,1))addHeal(e,{role,recipients:[activeRole(e.time,e.rootOrder)],healing:'alyosha.a1',label:'阿罗夏·图加林治疗'});
-    if(c.constellation>=4)addHeal(e,{role,recipients:profiles.map((_,i)=>i),lowestOnly:true,healing:'alyosha.c4',label:'阿罗夏·四命治疗'});
-   }
-  }};
- },
- create({role,profiles,rotation}){
+ createTimeline:createAlyoshaRuntime,
+ createCombat:createAlyoshaRuntime,
+ create({role,profiles,rotation,math:m}){
   const c=profiles[role].character;
   return {attackBuffs(r,e){
-   const rot=rotation(),combat=rot.combatAt(e),s=combat.states[role];
-   if(e.time>=s.precisionUntil||rot.activeRole(e.time,e.rootOrder)!==r)return [];
-   const count=s.stacks??0;
-   return count?[effect('阿罗夏·猎者之准',{ATKPercentage:precision[c.skill2]*count,ElementalMastery:c.constellation>=6&&count===2?100:0,EnhanceStellarSuperconduct:combat.reaction.radiance?.2*count:0})]:[];
+   const rot=rotation(),s=rot.characterState?.(role,e);
+   if(!s||rot.activeRole(e.time,e.rootOrder)!==r)return [];
+   const count=s.stacks;
+   return typeof count==='object'||count?[effect('阿罗夏·猎者之准',{ATKPercentage:m.mul(precision[c.skill2],count),ElementalMastery:c.constellation>=6?m.choose(m.eq(count,2),100,0):0})]:[];
+  },damageBuffs(r,e){
+   const rot=rotation();if(e.damageModel!=='reaction.stellarConduct'||rot.activeRole(e.time,e.rootOrder)!==r)return [];
+   const count=rot.characterState(role,e).stacks,radiance=rot.reactionAt(e).radiance;
+   return [effect('阿罗夏·猎者之准·星伤',{EnhanceStellarSuperconduct:m.choose(radiance,m.mul(.2,count),0)})];
   },healingBase:(h,p,native)=>native(h.healing==='alyosha.c4'?14:13)};
  },
 };

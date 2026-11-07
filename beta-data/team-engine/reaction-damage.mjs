@@ -1,50 +1,65 @@
-import {createTeamNumericRules} from '../team-dps-numeric-rules.mjs';
-import {normalizeEnemy} from '../enemy-interface.mjs';
-import {numericSum} from './rule-utils.mjs';
+import {STELLAR_DAMAGE_FIELDS} from './native-damage-fields.mjs';
+import {numericSum,scaleTalentPart} from './rule-utils.mjs';
+import {transformativeReactions} from './transformative-reactions.mjs';
+export {STELLAR_DAMAGE_FIELDS};
 
-export const STELLAR_DAMAGE_FIELDS=[
- 'direct_stellarconduct_ratio','direct_stellarconduct_compose','direct_stellarconduct_base_compose',
- 'direct_stellarconduct_extra_damage','direct_stellarconduct_extra_fixed',
- 'critical_stellarconduct','critical_damage_stellarconduct','elevate_stellarconduct_compose',
- 'elevate_stellar_glimmer_reaction_compose','stellar_glimmer_reaction_damage_multiplier',
-];
+export const transformativeModels=Object.values(transformativeReactions).map(reaction=>({id:reaction.id,evaluate(e,{math:m,numeric,enemy,trace,nativeReactionAt,reactionLevelBase,resolveContacts}){
+ const sum=numericSum(m),base=reactionLevelBase(e.role);
+ return resolveContacts(e,(ids,_advance,diagnose)=>{
+  const native=nativeReactionAt(e,ids),d=native.damage,em=sum(d.em),bonus=sum(d[reaction.bonus]),res=numeric.resistance(m.sub(enemy[reaction.element.toLowerCase()+'_res'],sum(d.res_minus)));
+  const damage=numeric.transformative(reaction.coefficient,base,em,bonus,res,m.mul(ids.length,e.enabled??1));let row;
+  if(trace&&diagnose){
+   const detail=native.describe(d),normal={...damage};
+   row={...e,...damage,damageKind:reaction.kind,atk:sum(d.atk),hp:sum(d.hp),em,crit:0,crit_damage:0,bonus,flat:0,def:1,res,
+    fanfare:native.health.fanfare,furina_overflow:native.health.overflow,hp_ratios:native.health.ratios,
+    analysis:{team_hit:true,damage_kind:reaction.kind,ignore_defense:true,target_count:ids.length,element:reaction.element,is_heal:false,is_shield:false,
+     atk:detail.atk,hp:detail.hp,def:detail.def,em:detail.em,res_minus:detail.res_minus,[reaction.bonus]:detail[reaction.bonus],
+     atk_ratio:{},hp_ratio:{},def_ratio:{},em_ratio:{},atk_additive_ratio:{},extra_damage:{},independent_damage_multiplier:{},bonus:{},critical:{},critical_damage:{},def_minus:{},def_penetration:{},
+     reaction_level_base:base,reaction_coefficient:reaction.coefficient,reaction_bonus:bonus,[reaction.native]:normal,normal}};
+  }
+  return {damage,critical:0,row};
+ },{critical:false});
+}}));
+export const superconductModel=transformativeModels.find(model=>model.id==='reaction.superconduct');
 
-// A reaction is a damage type, independent of the skill/attack which caused it.
-// Neither branch reads ordinary DMG Bonus or the enemy's defense multiplier.
-export function createReactionDamageRules(api,math){
- const m=math,numeric=createTeamNumericRules(m),sum=numericSum(m),levels=new Map();
- function levelBase(level){
-  if(!levels.has(level)){
-   // Read the running kernel's level table through Bloom's stable 2x factor.
-   // Superconduct itself still uses the obsolete 0.5x factor in this kernel.
-   const x={character:{name:'Qiqi',level,ascend:false,constellation:0,skill1:0,skill2:0,skill3:0,params:{Qiqi:{stellar_conduct_state:false}}},weapon:{name:'DullBlade',level:1,ascend:false,refine:1,params:'NoConfig'},skill:{index:12,config:'NoConfig'},artifacts:[],artifact_config:{},buffs:[],enemy:normalizeEnemy({level:90,dendro_res:0})};
-   levels.set(level,api.CalculatorInterface.get_transformative_damage(x).bloom/2);
+// Direct stellar damage is independent of skill category. Its lifecycle,
+// snapshots, finite effects and critical observations use the same services as
+// native skill damage. The field coefficient is supplied by the reaction state
+// at impact; it is not inferred from party elements here.
+export const stellarConductModel={id:'reaction.stellarConduct',evaluate(e,context){
+ const {math:m,numeric,enemy,trace,nativeDamageAt,createCriticalResolver,resolveContacts}=context;
+ const sum=numericSum(m),criticalFor=createCriticalResolver(e);
+ return resolveContacts(e,(ids,advance,diagnose)=>{
+  const native=nativeDamageAt(e,ids),resolved=criticalFor(native.damage,advance,sum(native.damage.critical_stellarconduct)),d=resolved.damage;
+  const em=sum(d.em),ratio=scaleTalentPart(m,e,e.stellarRatio??sum(d.direct_stellarconduct_ratio)),coefficient=e.stellarCoefficient??1;
+  const cr=resolved.critical,cd=m.add(sum(d.critical_damage),sum(d.critical_damage_stellarconduct));
+  const flat=sum(d.direct_stellarconduct_extra_fixed),bonus=m.sub(sum(d.direct_stellarconduct_compose),m.div(m.mul(6,em),m.add(2000,em)));
+  const res=numeric.resistance(m.sub(enemy[e.element.toLowerCase()+'_res'],sum(d.res_minus)));
+  const damage=numeric.stellarConduct({base:m.mul(e.stellarIndependent??1,m.add(m.mul(e.stellarScaling==='em'?em:sum(d.atk),ratio),sum(d.direct_stellarconduct_extra_damage))),coefficient,
+   baseBonus:sum(d.direct_stellarconduct_base_compose),em,bonus,independent:sum(d.stellar_glimmer_reaction_damage_multiplier),flat,
+   elevation:m.add(sum(d.elevate_stellarconduct_compose),sum(d.elevate_stellar_glimmer_reaction_compose)),resistance:res,
+   targets:m.mul(ids.length,e.enabled??1),critical:cr,criticalDamage:cd});
+  let row;
+  if(trace&&diagnose){
+   const detail=native.describe(d),normal={...damage},analysis={team_hit:true,damage_kind:'stellarConduct',ignore_defense:true,target_count:ids.length,element:e.element,is_heal:false,is_shield:false,
+    ...Object.fromEntries(['atk','hp','def','em','res_minus',...STELLAR_DAMAGE_FIELDS].map(k=>[k,{...detail[k]}])),
+    atk_ratio:{},hp_ratio:{},def_ratio:{},em_ratio:{},atk_additive_ratio:{},extra_damage:{},independent_damage_multiplier:{},bonus:{},def_minus:{},def_penetration:{},
+    critical:{...detail.critical},critical_damage:{...detail.critical_damage},direct_stellarconduct_base_multiplier:coefficient,
+    direct_stellarconduct_ratio:e.stellarRatio===undefined?Object.fromEntries(Object.entries(detail.direct_stellarconduct_ratio).map(([k,v])=>[k,scaleTalentPart(m,e,v)])):{'事件倍率':ratio},
+    direct_stellarconduct:normal,normal};
+   row={...e,...damage,damageKind:'stellarConduct',analysis,atk:sum(d.atk),hp:sum(d.hp),em,crit:cr,crit_damage:cd,bonus,flat,def:1,res,
+    fanfare:native.health.fanfare,furina_overflow:native.health.overflow,hp_ratios:native.health.ratios};
   }
-  return levels.get(level);
- }
- return {score(event,d,{level,enemy,rotation,targets,superconductBonus=0}){
-  if(!['stellarConduct','superconduct'].includes(event.damageKind))return null;
-  const res=numeric.resistance(m.sub(enemy[event.element.toLowerCase()+'_res'],sum(d.res_minus))),em=sum(d.em);
-  const analysis={team_hit:true,damage_kind:event.damageKind,ignore_defense:true,target_count:targets,element:event.element,is_heal:false,is_shield:false,
-   atk:d.atk,hp:d.hp,def:d.def,em:d.em,atk_ratio:{},hp_ratio:{},def_ratio:{},em_ratio:{},atk_additive_ratio:{},extra_damage:{},independent_damage_multiplier:{},bonus:{},def_minus:{},def_penetration:{},res_minus:d.res_minus};
-  let damage,cr=0,cd=0,flat=0,bonus=superconductBonus;
-  if(event.damageKind==='superconduct'){
-   const base=levelBase(level);
-   damage=numeric.superconduct(base,em,superconductBonus,res,targets);
-   Object.assign(analysis,{reaction_level_base:base,reaction_coefficient:1.5,reaction_bonus:superconductBonus,critical:{},critical_damage:{}});
-  }else{
-   const coefficient=rotation.combatAt(event).reaction.coefficient,ratio=m.div(sum(d.direct_stellarconduct_ratio),event.parts||1);
-   cr=m.min(1,m.max(0,m.add(sum(d.critical),sum(d.critical_stellarconduct))));cd=m.add(sum(d.critical_damage),sum(d.critical_damage_stellarconduct));
-   flat=sum(d.direct_stellarconduct_extra_fixed);
-   // Native compose already contains EM; keep EM visible in the damage trace
-   // while supplying it exactly once to the shared CPU/GPU arithmetic.
-   bonus=m.sub(sum(d.direct_stellarconduct_compose),m.div(m.mul(6,em),m.add(2000,em)));
-   damage=numeric.stellarConduct({base:m.add(m.mul(sum(d.atk),ratio),sum(d.direct_stellarconduct_extra_damage)),coefficient,baseBonus:sum(d.direct_stellarconduct_base_compose),em,bonus,
-    independent:sum(d.stellar_glimmer_reaction_damage_multiplier),flat,elevation:m.add(sum(d.elevate_stellarconduct_compose),sum(d.elevate_stellar_glimmer_reaction_compose)),resistance:res,targets,critical:cr,criticalDamage:cd});
-   Object.assign(analysis,Object.fromEntries(STELLAR_DAMAGE_FIELDS.map(k=>[k,d[k]??{}])),{direct_stellarconduct_base_multiplier:coefficient,
-    direct_stellarconduct_ratio:Object.fromEntries(Object.entries(d.direct_stellarconduct_ratio).map(([k,v])=>[k,m.div(v,event.parts||1)])),critical:d.critical,critical_damage:d.critical_damage,direct_stellarconduct:damage});
-  }
-  analysis.normal=damage;
-  return {damage,analysis,stats:{atk:sum(d.atk),hp:sum(d.hp),em,crit:cr,crit_damage:cd,bonus,flat,def:1,res}};
- }};
-}
+  return {damage,critical:cr,row};
+ });
+}};
+
+// Both direct stellar families use the existing numerical rule. Their native
+// fields and field multiplier differ; natural swirl uses its own contributor model.
+export const directStellarSwirlModel={id:'direct.stellarSwirl',evaluate(e,context){
+ const rename=name=>name.replaceAll('stellarconduct','stellarswirl');
+ const adapt=d=>({...d,...Object.fromEntries(STELLAR_DAMAGE_FIELDS.map(name=>[name,d[rename(name)]]))});
+ const result=stellarConductModel.evaluate({...e,stellarCoefficient:1},{...context,nativeDamageAt(event,ids){const n=context.nativeDamageAt(event,ids);return {...n,damage:adapt(n.damage),describe:d=>adapt(n.describe(d))};}});
+ for(const row of Array.isArray(result.row)?result.row:result.row?[result.row]:[]){row.damageKind='stellarSwirl';row.analysis=Object.fromEntries(Object.entries(row.analysis).map(([name,value])=>[rename(name),value]));row.analysis.damage_kind='stellarSwirl';}
+ return result;
+}};

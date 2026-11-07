@@ -2,9 +2,11 @@
 // The instrumented copies expose graph reads; calculation binaries stay intact.
 let nativeMemory,extensionMemory,revision=0,lastRevision=-1,depth=0;
 let nativeSnapshot,extensionSnapshot;
+let lastBackend;
 export const bindNativeGraphMemory=get=>{nativeMemory=get;};
 export const bindExtensionGraphMemory=get=>{extensionMemory=get;};
 export const capturedTeamGraph=extension=>extension?extensionSnapshot:nativeSnapshot;
+export const capturedNativeBackend=()=>lastBackend;
 function snapshot(memory,ptr,nodeCount){
  const view=new DataView(memory.buffer),u=a=>view.getUint32(a,true),decoder=new TextDecoder();
  const string=(p,n)=>decoder.decode(new Uint8Array(memory.buffer,p,n)),nodes=[],edges=[],offset=nodeCount*80;
@@ -21,9 +23,9 @@ function snapshot(memory,ptr,nodeCount){
 }
 export const nativeGraphImports={
  write(){revision++;},edge(){revision++;},
- read(ptr){if(lastRevision===revision)return;lastRevision=revision;nativeSnapshot=snapshot(nativeMemory(),ptr,300);},
+ read(ptr){lastBackend='legacy';if(lastRevision===revision)return;lastRevision=revision;nativeSnapshot=snapshot(nativeMemory(),ptr,300);},
 };
 export const extensionGraphImports={
- read(ptr){if(depth++===0)extensionSnapshot=snapshot(extensionMemory(),ptr,215);},
+ read(ptr){if(depth++===0){lastBackend='extension';extensionSnapshot=snapshot(extensionMemory(),ptr,215);}},
  leave(){depth--;},
 };

@@ -70,7 +70,8 @@ test('V3 conditions: no UI parameters, refreshed stacks, cast windows and candid
  const spear=structuredClone(p[0]);spear.weapon=weapon('PrimordialJadeWingedSpear');const team=p.map((v,i)=>i===0?spear:v);
  const stack=createEquipmentAxisRules(team,synthetic).prepare(spear,0,{time:7.1,rootOrder:99,order:99}).weapon.params.PrimordialJadeWingedSpear;
  assert.equal(stack.stack,3); // The hit at 6.5 refreshes the whole stack, not just one stack.
- const cfg=rules.prepare(structuredClone(p[0]),0,{time:8,rootOrder:Infinity,order:Infinity}).artifact_config;
+ const crimson=p[0].artifacts.map(a=>({...a,set_name:'CrimsonWitchOfFlames'}));
+ const cfg=rules.prepare(structuredClone(p[0]),0,{time:8,rootOrder:Infinity,order:Infinity},crimson).artifact_config;
  assert.ok(Object.hasOwn(cfg,'config_crimson_witch_of_flames'));
  const c=sample();c.single_interfaces[3].weapon=weapon('ClashOfKings');c.single_interfaces[3].weapon.params='NoConfig';
  const co=run(c);near(co.hits.find(h=>h.role===3&&h.time===6.5).em,200);assert.ok(co.hits.filter(h=>h.role===3&&h.time>=12.5).every(h=>h.em===100));
@@ -90,7 +91,7 @@ test('V3 conditions: no UI parameters, refreshed stacks, cast windows and candid
 });
 
 test('V4 production Worker: reaction equipment completes with the common theory rules',async()=>{
- const messages=[],self={postMessage:m=>messages.push(m)},source=fs.readFileSync(new URL('../src/workers/team_dps.js',import.meta.url),'utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
+ const messages=[],self={postMessage:m=>messages.push(m)},source=fs.readFileSync('src/workers/team_dps.js','utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
  vm.runInNewContext(source,{self,api,optimizeTeamDps,evaluateTeamDps,Promise});await Promise.resolve();
  assert.equal(messages[0].type,'ready');const x=sample();x.single_interfaces[3].weapon=weapon('HymnOfTheMaelstrom');
  const before=JSON.stringify(x);self.onmessage({data:{input:x,artifacts:builds(x).flat(),mode:'optimize'}});

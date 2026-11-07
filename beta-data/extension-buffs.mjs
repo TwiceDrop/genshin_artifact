@@ -1,6 +1,6 @@
 import {CHARACTER_EFFECT_RULES} from './character-effect-rules.mjs';
 import {LUNAR_EQUIPMENT_RULES,prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
-import {REACTION_PARAMETER_RULES} from './reaction-parameter-rules.mjs';
+import {REACTION_PARAMETER_RULES,CUSTOM_REACTION_BASE_BUFFS} from './reaction-parameter-rules.mjs';
 import {createBuffRuleRegistry,normalizeBuffParameters} from './buff-rule-registry.mjs';
 import {BUFF_RULE_SCHEMA} from './buff-rule-schema.mjs';
 import {SHARED_BUFF_RULES} from './shared-buff-rules.mjs';
@@ -50,7 +50,7 @@ export function normalizeVodyanitsaBuffParameters(name,raw){
 export function prepareExtensionBuffs(input){
  if(!['Vodyanitsa','Vesna'].includes(input?.character?.name))return input;
  const out={...input,buffs:[]},state={flat:0,base:0,bonus:0,crit_damage:0,elevation:0,anemo_res:0};
- const seen=new Set(),repeatable=new Set(['CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
+ const seen=new Set(),repeatable=new Set([...CUSTOM_REACTION_BASE_BUFFS,'CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
  let hasStar=false;
  for(const b of prepareLunarEquipmentBuffs(input.buffs||[],input)){
   if(b.lock===true)continue;

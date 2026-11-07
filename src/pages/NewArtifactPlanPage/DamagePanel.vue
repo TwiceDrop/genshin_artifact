@@ -5,18 +5,24 @@
         >
             <el-table-column
                 prop="name"
-                min-width="90"
+                min-width="72"
                 :label="t('misc.type1')"
             >
                 <template #default="{ row }">
                     <span>{{ row.name }}</span>
                 </template>
             </el-table-column>
-            <el-table-column v-for="column in damageColumns" :key="column.key" :label="t(column.label)" min-width="120">
+            <el-table-column v-for="column in damageColumns" :key="column.key" :label="t(column.label)" :min-width="baseline ? 142 : 80">
                 <template #default="{ row }">
-                    <span class="damage-values">
-                        <span v-if="row[column.key].before !== null" class="before-value">{{ row[column.key].before }} → </span>
-                        <span :class="row[column.key].direction"><span class="damage-number">{{ row[column.key].current }}</span><span v-if="row[column.key].before !== null">（<span class="damage-number">{{ row[column.key].delta }}</span>，<span class="damage-number">{{ row[column.key].percent }}</span>）</span></span>
+                    <span class="damage-values" :class="{ expected: column.key === 'expectation' && row[column.key].before === null }">
+                        <span class="value-line">
+                            <span v-if="row[column.key].before !== null" class="before-value">{{ row[column.key].before }} →</span>
+                            <span class="damage-number" :class="row[column.key].direction">{{ row[column.key].current }}</span>
+                        </span>
+                        <span v-if="row[column.key].before !== null" class="change-line" :class="row[column.key].direction">
+                            <span class="damage-number">{{ row[column.key].delta }}</span>
+                            <span class="damage-number">（{{ row[column.key].percent }}）</span>
+                        </span>
                     </span>
                 </template>
             </el-table-column>
@@ -25,6 +31,7 @@
 </template>
 
 <script>
+import {sameHitBaseline} from '@/algorithms/single-result-comparison.mjs'
 import { damageComparison } from '@/algorithms/damage-comparison.mjs'
 import { visibleDamageReactionKeys, damageReactionLabel } from '@/algorithms/reaction-labels.mjs'
 import {useI18n} from "@/i18n/i18n";
@@ -67,12 +74,15 @@ export default {
         },
 
         tableData() {
-            return this.visibleKeys.map(key => ({
-                expectation: damageComparison(this.analysisFromWasm[key].expectation, this.baseline?.[key]?.expectation),
-                critical: damageComparison(this.analysisFromWasm[key].critical, this.baseline?.[key]?.critical),
-                nonCritical: damageComparison(this.analysisFromWasm[key].non_critical, this.baseline?.[key]?.non_critical),
-                name: (key === 'normal' ? this.normalDamageTitle : damageReactionLabel(key)),
-            }))
+            return this.visibleKeys.map(key => {
+                const old = sameHitBaseline(this.analysisFromWasm, this.baseline, key) == null ? null : this.baseline[key]
+                return {
+                    expectation: damageComparison(this.analysisFromWasm[key].expectation, old?.expectation),
+                    critical: damageComparison(this.analysisFromWasm[key].critical, old?.critical),
+                    nonCritical: damageComparison(this.analysisFromWasm[key].non_critical, old?.non_critical),
+                    name: key === 'normal' ? this.normalDamageTitle : damageReactionLabel(key),
+                }
+            })
         }
     },
     setup() {
@@ -86,10 +96,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.damage-values { color: #000; white-space: normal; }
-.damage-values > span { display: inline-block; }
+.damage-values { display: inline-flex; flex-direction: column; max-width: 100%; color: #000; font-variant-numeric: tabular-nums; }
+.damage-values.expected { font-weight: 650; color: #396ba9; }
+.value-line, .change-line { display: flex; flex-wrap: wrap; gap: 0 4px; align-items: baseline; }
 .damage-number { white-space: nowrap; word-break: normal; }
-.before-value { color: #000; }
+.before-value { color: #000; white-space: nowrap; }
 .increase { color: #d93025; }
 .decrease { color: #188038; }
 .item {

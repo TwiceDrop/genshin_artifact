@@ -349,7 +349,7 @@ export function displayedTag(name: ArtifactStatName, value: number) {
         let s = (value * 100).toFixed(1);
         return left + "+" + s + "%";
     } else {
-        return left + "+" + value;
+        return left + "+" + Number(value.toFixed(1));
     }
 }
 

@@ -58,6 +58,7 @@
                     <el-icon><i-ep-cpu /></el-icon>
                     {{ t("nav.teamOptimize") }}
                 </el-menu-item>
+                <el-menu-item index="/calculation-history"><el-icon><i-ep-clock /></el-icon>历史记录</el-menu-item>
             </el-menu-item-group>
 
             <el-menu-item-group>

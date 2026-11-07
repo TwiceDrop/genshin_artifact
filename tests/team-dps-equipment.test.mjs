@@ -5,7 +5,8 @@ import {fixture,weapon} from '../beta-tools/interface-audit-7108.mjs';
 import {TEAM_DPS_ROLES} from '../beta-data/team-dps-config.mjs';
 import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
 import {optimizeTeamDps} from '../beta-data/team-dps-optimizer.mjs';
-import {cinderElements} from '../beta-data/equipment-axis-rules.mjs';
+import {cinderElements,createEquipmentAxisRules} from '../beta-data/equipment-axis-rules.mjs';
+import {compileTeamDpsAxis} from '../beta-data/team-dps-rotation.mjs';
 import {importedAxis} from './helpers/team-dps-configuration.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 function sample(){const p=TEAM_DPS_ROLES.map((name,r)=>{const x=fixture(name);x.artifacts=x.artifacts.map(a=>({...a,id:100*r+a.id}));return x;}),axis=importedAxis();axis.timeline=axis.timeline.filter(e=>e.kind!=='reaction');return {single_interfaces:p,team_dps:{axis,enemy:{level:100,hydro_res:.1,cryo_res:.1,physical_res:.1},fanfare:300,result_count:2,max_evaluations:40,initial_ids:p.map(p=>p.artifacts.map(a=>a.id))}};}
@@ -29,8 +30,12 @@ test('V1 public WASM: candidate conversions and same-source replacement',()=>{
  for(const timeMs of [300,600])fact(k,{kind:'hit',timeMs,actor:'hydro',action:'furina.skill'});
  const ko=run(k);assert.ok(hit(ko,0,7.75).em>100);
  const f=sample();f.single_interfaces[1].weapon=weapon('FreedomSworn');
- const automaticFreedom=run(f);for(const timeMs of [1000,2000])fact(f,{kind:'reaction',timeMs,actor:'hydro',reaction:'Frozen'});
- near(run(f).expectation,automaticFreedom.expectation);
+ const freedomAt=time=>createEquipmentAxisRules(f.single_interfaces,compileTeamDpsAxis(f.team_dps.axis,f.single_interfaces)).baseBuffs(builds(f),0,{time,rootOrder:Infinity,order:Infinity}).some(b=>b.config.ExtensionEffect?.label==='苍古自由之誓');
+ // The inferred second reaction is at 1.7s. Explicit facts are additional real
+ // triggers: the reaction at 1s advances activation and its 12s expiry.
+ assert.equal(freedomAt(1.1),false);assert.equal(freedomAt(13.5),true);
+ for(const timeMs of [1000,2000])fact(f,{kind:'reaction',timeMs,actor:'hydro',reaction:'Frozen'});
+ assert.equal(freedomAt(1.1),true);assert.equal(freedomAt(13),false);
 });
 
 test('V2 event rules: cinder eligibility, cooldowns, conditional defaults and healing sets',()=>{
@@ -40,8 +45,10 @@ test('V2 event rules: cinder eligibility, cooldowns, conditional defaults and he
  const book=sample();book.single_interfaces[3].weapon=weapon('ThrillingTalesOfDragonSlayers');const once=run(book);
  fact(book,{kind:'switch',timeMs:12000,actor:'support'});fact(book,{kind:'switch',timeMs:12500,actor:'carry'});near(hit(run(book),0,18.5).atk,hit(once,0,18.5).atk);
  const defaults=sample();equip(defaults,0,'DesertPavilionChronicle');const zero=run(defaults);defaults.single_interfaces[0].artifact_config={config_desert_pavilion_chronicle:{rate:0}};near(run(defaults).expectation,zero.expectation);
- const conditions=sample();equip(conditions,0,'MarechausseeHunter');equip(conditions,1,'RealmMirrorNight');conditions.single_interfaces[2].weapon=weapon('CalamityQueller');conditions.single_interfaces[3].weapon=weapon('StarcallersWatch');const modeled=run(conditions);
- near(hit(modeled,0,7.75).crit,.56);near(hit(modeled,2,8).atk-hit(modeled,2,3).atk,1088*.32);
+ const conditions=sample();equip(conditions,0,'MarechausseeHunter');equip(conditions,1,'RealmMirrorNight');conditions.single_interfaces[2].weapon=weapon('CalamityQueller');conditions.single_interfaces[3].weapon=weapon('StarcallersWatch');let history;
+ const modeled=createTeamDpsEvaluator(api,conditions,{captureRotation:r=>history=r}).evaluate(builds(conditions),true);
+ const changes=history.hpEvents.filter(h=>h.role===0&&history.activeRole(h.time,h.rootOrder)===0&&h.time>2.75&&h.time<7.75);assert.equal(changes.length,2);
+ near(hit(modeled,0,7.75).crit,sum(modeled.panels[0].critical)+.15+2*.12);near(hit(modeled,2,8).atk-hit(modeled,2,3).atk,1088*.32);
  conditions.single_interfaces[1].artifact_config={config_realm_mirror_night:{moon_state:2,moon_reaction_bonus:4}};conditions.single_interfaces[3].weapon.params.StarcallersWatch.use_buff=false;near(run(conditions).expectation,modeled.expectation);
  const song=sample();equip(song,2,'SongOfDaysPast');const so=run(song),affected=so.hits.filter(h=>h.flat>0);
  assert.equal(affected.length,10);assert.ok(affected.every(h=>h.onField&&h.time>=11.5));assert.ok(affected.every(h=>h.flat<=1200));

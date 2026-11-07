@@ -111,7 +111,8 @@ export function createNativeGraphCompiler(builder,library){
    const self=snapshot.nodes[index].filter(r=>r.label===label).map(r=>r.value),edges=snapshot.edges.filter(e=>e.to===index&&e.label===label).map(e=>math.mul(compile(e,get(e.from1),get(e.from2)),e.scale??1));
    return sums([...self,...edges]);
   };
-  return {get,named,math};
+  const sources=index=>Object.fromEntries([...new Set([...snapshot.nodes[index].map(row=>row.label),...snapshot.edges.filter(e=>e.to===index).map(e=>e.label)])].map(label=>[label,named(index,label)]));
+  return {get,named,sources,math};
  }
  return {compile,graph,math};
 }

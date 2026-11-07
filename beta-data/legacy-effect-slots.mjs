@@ -122,6 +122,10 @@ export const LEGACY_EFFECT_SLOTS={
   "StellarSwirlCritRate": 223,
   "StellarSwirlCritDamage": 224,
   "EnhanceMoonelectro": 98,
+  // Verified by native damage-analysis base compositions on Flins, Zibai and Nefer.
+  "EnhanceMoonelectroBase": 99,
+  "EnhanceMoonCrystallizeBase": 101,
+  "EnhanceMoonbloomBase": 103,
   "EnhanceMoonReaction": 105,
   "ElevateMoonelectro": 106,
   "ElevateMoonbloom": 107,

@@ -4,7 +4,8 @@ import backend from "../backend"
 import { useArtifactStore, watchContent as artifactWatchContent } from "./artifact"
 import { useKumiStore, watchContent as kumiWatchContent } from "./kumi"
 import { usePresetStore, watchContent as presetWatchContent } from "./preset"
-import { useMiyousheStore, watchContent as miyousheWatchContent } from "./miyoushe"
+import { useMiyousheStore, watchContent as miyousheWatchContent, watchComparisonSettings } from "./miyoushe"
+import { statGainCache } from '../stat-gain-cache'
 
 interface Account {
     id: number;
@@ -138,11 +139,12 @@ async function loadAccountData() {
     const id = accountStore.currentAccountId.value
     const artKey = `mona_account_artifacts_${id}`
     artifactStore.init(await backend.getItem(artKey))
+    statGainCache.setInventory(id, toRaw(artifactStore.artifacts.value).values())
     const presetKey = `mona_account_presets_${id}`
     presetStore.init(await backend.getItem(presetKey))
     const kumiKey = `mona_account_kumi_${id}`
     kumiStore.init(await backend.getItem(kumiKey))
-    useMiyousheStore().init(await backend.getItem(`mona_account_miyoushe_${id}`))
+    useMiyousheStore().init(await backend.getItem(`mona_account_miyoushe_${id}`), await backend.getItem(`mona_account_comparison_settings_${id}`))
     await nextTick()
     loadingAccountData = false
     // console.log('loaded')
@@ -167,6 +169,8 @@ export async function deleteAccount(id: number) {
     const kumiKey = `mona_account_kumi_${id}`
     await backend.removeItem(kumiKey)
     await backend.removeItem(`mona_account_miyoushe_${id}`)
+    await backend.removeItem(`mona_account_comparison_settings_${id}`)
+    statGainCache.remove(id)
 }
 
 export async function reload() {
@@ -229,10 +233,14 @@ function updateCurrentAccount(type: string, value: any) {
     }
 }
 
-watch(artifactWatchContent, value => updateCurrentAccount('artifacts', value), { deep: true })
+watch(artifactWatchContent, value => {
+    if (!loadingAccountData) statGainCache.setInventory(accountStore.currentAccountId.value, toRaw(artifactStore.artifacts.value).values())
+    updateCurrentAccount('artifacts', value)
+}, { deep: true })
 watch(kumiWatchContent, value => updateCurrentAccount('kumi', value), { deep: true })
 watch(presetWatchContent, value => updateCurrentAccount('presets', value), { deep: true })
 watch(miyousheWatchContent, value => updateCurrentAccount('miyoushe', value), { deep: true })
+watch(watchComparisonSettings, value => updateCurrentAccount('comparison_settings', value), { deep: true })
 
 function accountWatchContent() {
     return {

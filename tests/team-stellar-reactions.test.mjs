@@ -49,8 +49,8 @@ test('multi-target field count deduplicates; ordinary reaction AoE retains 2/.5s
  s.advance(13);assert.equal(s.view().targets[0].superconduct,false);
 });
 test('independent damage expectations: modern superconduct and all thirteen SSC coefficients',()=>{
- close(numeric.superconduct(1446.8535,0,0,.9,1).expectation,1953.252225);
- close(numeric.superconduct(1446.8535,500,.8,.9,2).expectation,1446.8535*1.5*(1+3.2+.8)*.9*2);
+ close(numeric.transformative(1.5,1446.8535,0,0,.9,1).expectation,1953.252225);
+ close(numeric.transformative(1.5,1446.8535,500,.8,.9,2).expectation,1446.8535*1.5*(1+3.2+.8)*.9*2);
  const p={base:2000*1.615,baseBonus:.28,em:500,bonus:.5,independent:.3,flat:12000,elevation:.2,resistance:.9,targets:1,critical:.5,criticalDamage:1};
  for(let i=0;i<13;i++){
   const coefficient=i===0?1:1.4+.05*i,result=numeric.stellarConduct({...p,coefficient:STELLAR_CONDUCT_COEFFICIENTS[i]});

@@ -17,6 +17,10 @@ import javax.crypto.spec.GCMParameterSpec;
 
 @CapacitorPlugin(name = "MonaLocal")
 public class MonaLocalPlugin extends Plugin {
+    private final String calculationSessionId = java.util.UUID.randomUUID().toString();
+    @PluginMethod public void calculationSession(PluginCall call) {
+        call.resolve(new JSObject().put("id", calculationSessionId));
+    }
     private HoyolabLoginDialog hoyolabDialog;
     @PluginMethod public void loginHoyolab(PluginCall call) {
         getActivity().runOnUiThread(() -> {

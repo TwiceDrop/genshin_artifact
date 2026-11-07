@@ -11,11 +11,9 @@
       <el-table-column label="时间（秒）" width="100"><template #default="{row:hit}">{{ number(hit.time) }}</template></el-table-column>
       <el-table-column prop="label" label="动作" min-width="180"/>
       <el-table-column label="状态" width="110"><template #default="{row:hit}">{{ elements[hit.element] }} · {{ hit.onField?'前台':'后台' }}</template></el-table-column>
-      <el-table-column v-if="hasReactions" label="伤害类型" width="115"><template #default="{row:hit}">{{ hit.damageKind==='stellarConduct'?'直接星超导':hit.damageKind==='superconduct'?'超导反应':'普通伤害' }}</template></el-table-column>
-      <el-table-column label="基础倍率" min-width="150"><template #default="{row:hit}">{{ hit.damageKind==='superconduct'?'反应系数 1.5':ratios(hit.base) }}</template></el-table-column>
-      <el-table-column v-if="hasReactions" label="极星系数" width="90"><template #default="{row:hit}">{{ hit.stellarCoefficient===undefined?'—':number(hit.stellarCoefficient) }}</template></el-table-column>
+      <el-table-column label="基础倍率" min-width="150"><template #default="{row:hit}">{{ hit.damageModel==='reaction.superconduct'?'—':ratios(hit.base) }}</template></el-table-column>
       <el-table-column label="角色倍率修正" min-width="200"><template #default="{row:hit}"><div v-for="(m,i) in hit.modifiers" :key="i">{{ m.label }} +{{ number(m.value*100) }}%{{ stats[m.stat] }}</div><span v-if="!hit.modifiers.length">—</span></template></el-table-column>
-      <el-table-column label="合计倍率" min-width="150"><template #default="{row:hit}">{{ ratios(hit.effective) }}</template></el-table-column>
+      <el-table-column label="合计倍率" min-width="150"><template #default="{row:hit}">{{ hit.damageModel==='reaction.superconduct'?'—':ratios(hit.effective) }}</template></el-table-column>
      </el-table>
     </template></el-table-column>
     <el-table-column label="角色" min-width="230"><template #default="{row}"><div class="preview-character"><img :src="characterData[row.character.name].avatar" alt=""/><div><strong>{{ locale[characterData[row.character.name].nameLocale] }}</strong><small>Lv.{{ row.character.level }} · C{{ row.character.constellation }} · 天赋 {{ row.character.skill1+1 }}/{{ row.character.skill2+1 }}/{{ row.character.skill3+1 }}</small></div></div></template></el-table-column>
@@ -29,15 +27,14 @@
  </el-dialog>
 </template>
 <script setup lang="ts">
-import {ref,computed,onMounted,onBeforeUnmount} from 'vue'
+import {ref,onMounted,onBeforeUnmount} from 'vue'
 import SimpleLoading from '@/components/loading/SimpleLoading.vue'
 import {characterData} from '@/assets/character'
 import locale from '@/i18n/generated/zh-cn.json'
 const props=defineProps<{axis:any,characters?:any[]}>()
 defineEmits(['close'])
 const preview=ref<any>(null),error=ref('')
-const hasReactions=computed(()=>preview.value?.roles.some((role:any)=>role.hits.some((hit:any)=>hit.damageKind==='stellarConduct'||hit.damageKind==='superconduct')))
-const stats:Record<string,string>={atk:'攻击力',hp:'生命值上限',def:'防御力',em:'元素精通',stellar_atk:'攻击力（星超导）'}
+const stats:Record<string,string>={atk:'攻击力',hp:'生命值上限',def:'防御力',em:'元素精通'}
 const elements:Record<string,string>={Physical:'物理',Cryo:'冰',Hydro:'水',Pyro:'火',Electro:'雷',Anemo:'风',Geo:'岩',Dendro:'草'}
 const number=(n:number)=>n.toLocaleString('zh-CN',{maximumFractionDigits:2})
 const ratios=(values:Record<string,number>)=>Object.entries(values).filter(([,v])=>v!==0).map(([key,v])=>`${number(v*100)}%${stats[key]}`).join(' + ')||'0'

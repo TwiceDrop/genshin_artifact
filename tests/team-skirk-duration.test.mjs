@@ -1,6 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {api} from '../beta-tools/runtime-7106.mjs';import {sample,builds} from '../beta-tools/team-dps-full-audit.mjs';
 import {createActionAxis,actionAxisDurationMs} from '../beta-data/team-engine/action-config.mjs';import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';import {createSkillMultiplierPreview} from '../beta-data/team-engine/multiplier-preview.mjs';
+import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
+import {nativeEventTrace,compareEventValues} from './helpers/team-dps-result-comparison.mjs';
 const a=(id,action,timeMs,rifts)=>({id,kind:'action',actor:'member1',action,timeMs,...(rifts===undefined?{}:{params:{absorbedRifts:rifts}})}),sw=(id,actor,timeMs)=>({id,kind:'switch',actor:'member'+actor,timeMs}),near=(x,y)=>assert.ok(Math.abs(x-y)<1e-9*Math.max(1,Math.abs(y)),`${x} != ${y}`);
 function input(timeline,c=0){const x=sample();x.single_interfaces.forEach(p=>p.character.constellation=0);x.single_interfaces[0].character.constellation=c;x.team_dps.axis={...createActionAxis('synthetic-skirk-duration',['Skirk','Furina','Escoffier','Vodyanitsa']),timeline};return x;}
 const compile=x=>compileActionAxis(x.team_dps.axis,x.single_interfaces,x.team_dps),evaluate=x=>createTeamDpsEvaluator(api,x).evaluate(builds(x),true);
@@ -46,4 +48,22 @@ test('Native WASM and preview use physical attacks / ordinary Q after depletion,
  assert.equal(out.hits.find(h=>h.eventId==='ice/normal.1').analysis.element,'Cryo');assert.equal(out.hits.find(h=>h.eventId==='physical/normal.1').analysis.element,'Physical');assert.equal(preview.roles[0].hits.find(h=>h.eventId==='physical/normal.1').element,'Physical');
  const burst=out.hits.filter(h=>h.skirkBurst);assert.equal(burst.length,6);for(const h of burst){const native=api.CalculatorInterface.get_damage_analysis({...out.profiles[0],artifacts:builds(x)[0],skill:{index:h.index,config:{Skirk:{cunning_stacks:0,seven_phase_mode:false,death_crossing_stacks:0,void_rift_count:0}}}},null);near(h.analysis.atk_ratio['技能倍率'],sum(native.atk_ratio));}
  const permutation=[2,0,3,1],moved=structuredClone(x);moved.single_interfaces=permutation.map(i=>x.single_interfaces[i]);moved.team_dps.axis.members=permutation.map(i=>x.team_dps.axis.members[i]);moved.team_dps.weapon_conditions=permutation.map(i=>x.team_dps.weapon_conditions[i]);near(evaluate(moved).expectation,out.expectation);assert.equal(JSON.stringify(x),saved);
+});
+
+test('Skirk resource details report actual deltas, including caps, paused drains and exit, through the Worker trace',async()=>{
+ const x=input([a('e','skill',0),a('q','burst',1000,3),a('ca','charged',1100,3),sw('away',2,2000),a('hold','skill.hold',3000,3),a('q2','burst',4000)]);
+ const rows=compile(x).resources;
+ let previous=0;
+ for(const row of rows){near(row.before,previous);near(row.after,row.value);near(row.amount,row.after-row.before);previous=row.after;}
+ assert.equal(previous,0);
+ const gained=rows.find(r=>r.eventId==='q'&&r.label==='吸收裂隙');assert.deepEqual([gained.before,gained.after,gained.amount],[38,62,24]);
+ const paused=rows.find(r=>r.label==='吸收暂停消耗');assert.equal(paused.amount,0);assert.equal(paused.before,paused.after);
+ const exit=rows.find(r=>r.label==='离开七相一闪');assert.ok(exit.before>0);assert.equal(exit.after,0);assert.equal(exit.amount,-exit.before);
+ const capped=compile(input([a('h1','skill.hold',0,3),a('h2','skill.hold',1000,3),a('q','burst',2000)],6)).resources;
+ const skill=capped.find(r=>r.eventId==='h2'&&r.label==='施放元素战技'),absorb=capped.find(r=>r.eventId==='h2'&&r.label==='吸收裂隙');
+ assert.deepEqual([skill.before,skill.after,skill.amount],[79,100,21]);assert.deepEqual([absorb.before,absorb.after,absorb.amount],[100,100,0]);
+ const native=evaluate(x),compiled=(await nodeTeamDps(x,builds(x).flat(),{mode:'evaluate'})).results[0];
+ near(compiled.expectation,native.expectation);compareEventValues(compiled.eventTrace,nativeEventTrace(native));
+ const resource=compiled.eventTrace.events.filter(e=>e.channel==='resources').flatMap(e=>e.states.map(s=>s.value));
+ assert.equal(resource.length,rows.length);resource.forEach((row,i)=>{near(row.before,rows[i].before);near(row.after,rows[i].after);near(row.amount,rows[i].amount);});
 });

@@ -10,7 +10,8 @@ export const MANUAL_WEAPON_OPTIONS={
  TalkingStick:[rate('rate1','火附着加攻覆盖率 %'),rate('rate2','水冰雷草附着增伤覆盖率 %')],
  UltimateOverlordsMegaMagicSword:[rate('rate','美露莘任务完成比例 %')],
  Deathmatch:[rate('ge2_rate','附近至少两名敌人覆盖率 %')],
- BlackcliffLongsword:[stacks],BlackcliffPole:[stacks],BlackcliffAgate:[stacks],
+ BlackcliffLongsword:[stacks],BlackcliffPole:[stacks],BlackcliffAgate:[stacks],BlackcliffSlasher:[stacks],
+ WolfsGravestone:[rate('rate','狼的末路团队增益覆盖率 %')],
  TwinNephrite:[rate('rate','击杀增益覆盖率 %')],ToukabouShigure:[rate('rate','纸伞作祟覆盖率 %')],
 };
 export function defaultWeaponOptions(){return Object.fromEntries(Object.entries(MANUAL_WEAPON_OPTIONS).map(([n,rows])=>[n,Object.fromEntries(rows.map(f=>[f.key,f.initial/f.scale]))]));}

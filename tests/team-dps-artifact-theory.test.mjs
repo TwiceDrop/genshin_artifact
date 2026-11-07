@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {api} from '../beta-tools/runtime-7106.mjs';
 import {fixture} from '../beta-tools/interface-audit-7108.mjs';
-import {TEAM_DPS_ROLES} from '../beta-data/team-dps-config.mjs';
+import {TEAM_DPS_ROLES,TEAM_DPS_CHARACTER_CAPABILITIES} from '../beta-data/team-dps-config.mjs';
 import {compileTeamDpsAxis} from '../beta-data/team-dps-rotation.mjs';
 import {createEquipmentAxisRules} from '../beta-data/equipment-axis-rules.mjs';
 import {echoesProbabilities} from '../beta-data/equipment-damage-events.mjs';
@@ -26,12 +27,15 @@ test('artifact theory 1: six user decisions reach actual WASM parameters and dam
   const copy=structuredClone(team);setGear(copy[r],name);copy[r].artifact_config={[snake(name)]:config};copy[r].skill={index,config:'NoConfig'};
   return createEquipmentAxisRules(copy,rotation,options).prepare(copy[r],r,{time:t,rootOrder:Infinity,order:Infinity});
  };
- for(const [name,field,source,value,index]of [['Berserker','critical','战狂4',.24,9],['BraveHeart','bonus','勇士之心4',.3,9],['BloodstainedChivalry','bonus','染血的骑士道4',.5,14]]){
+ for(const [name,field,source,value,index]of [['BraveHeart','bonus','勇士之心4',.3,9],['BloodstainedChivalry','bonus','染血的骑士道4',.5,14]]){
   for(const rate of [0,.37,1]){
    const q=prepared(0,name,8,{}, {rate},index),saved=JSON.stringify(q),d=api.CalculatorInterface.get_damage_analysis(q,null);
    near(d[field][source],value*rate);assert.equal(JSON.stringify(q),saved);
   }
  }
+ const healthAt=rotation.healthAt;
+ for(const [ratio,value]of [[.69,.24],[.7,0],[1,0]]){rotation.healthAt=e=>({...healthAt(e),ratios:[ratio,1,1,1]});near(api.CalculatorInterface.get_damage_analysis(prepared(0,'Berserker',8),null).critical['战狂4'],value);}
+ rotation.healthAt=healthAt;
  // Full Shimenawa includes Skirk's zero-energy profile and axis tail.
  for(const t of [0,8,20.5])for(const index of [9,14]){
   const q=prepared(0,'ShimenawasReminiscence',t,{}, {rate:0},index),d=api.CalculatorInterface.get_damage_analysis(q,null);
@@ -40,10 +44,14 @@ test('artifact theory 1: six user decisions reach actual WASM parameters and dam
  for(const [t,bonus]of [[0,.5],[5.999,.5],[6,.4],[7,.3],[8,.2],[9,.1],[10,0],[20.5,0]]){
   const d=api.CalculatorInterface.get_damage_analysis(prepared(0,'UnfinishedReverie',t),null);near(d.bonus['未竟的遐思4'],bonus);
  }
+ // These two synthetic legacy-theory providers are not installed TeamDPS packages.
+ Object.assign(TEAM_DPS_CHARACTER_CAPABILITIES,{Nahida:{energy:50},Diluc:{energy:40}});
+ try{
  const burning=structuredClone(p);burning[1]=fixture('Nahida');burning[2]=fixture('Diluc');
  near(api.CalculatorInterface.get_damage_analysis(prepared(0,'UnfinishedReverie',20,{}, {},9,burning),null).bonus['未竟的遐思4'],.5);
  const dendroOnly=structuredClone(p);dendroOnly[1]=fixture('Nahida');
  near(api.CalculatorInterface.get_damage_analysis(prepared(0,'UnfinishedReverie',20,{}, {},9,dendroOnly),null).bonus['未竟的遐思4'],0);
+ }finally{delete TEAM_DPS_CHARACTER_CAPABILITIES.Nahida;delete TEAM_DPS_CHARACTER_CAPABILITIES.Diluc;}
  for(const [frozen,bonus]of [[true,.4],[false,.2]])for(const t of [0,20.5])near(api.CalculatorInterface.get_damage_analysis(prepared(0,'BlizzardStrayer',t,{frozen}),null).critical['冰风迷途的勇士4'],bonus);
  const hydro=p.map(()=>fixture('Furina'));assert.equal(prepared(0,'BlizzardStrayer',8,{}, {},9,hydro).artifact_config.config_blizzard_strayer.critical_bonus,0);
  for(const r of [0,1,2,3])assert.equal(prepared(r,'HuskOfOpulentDreams',0).artifact_config.config_husk_of_opulent_dreams.level,0);
@@ -102,10 +110,8 @@ test('artifact theory 3: current-candidate Echoes ATK, joint search, constraints
  const next=ev.evaluate(changed,true),a=original.hits.find(h=>h.echoes_probability>0),b=next.hits.find(h=>h.order===a.order);
  assert.ok(b.atk>a.atk);near(next.expectation,createTeamDpsEvaluator(api,x).evaluate(changed).expectation);near(ev.evaluate(builds(x)).expectation,original.expectation);
  near(sum(b.analysis.atk_additive_ratio),sum(a.analysis.atk_additive_ratio));
- const messages=[],self={postMessage:m=>messages.push(m)},code=fs.readFileSync(new URL('../src/workers/team_dps.js',import.meta.url),'utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
- vm.runInNewContext(code,{self,api,optimizeTeamDps,evaluateTeamDps,Promise});await Promise.resolve();
- const inventory=[...builds(x).flat(),changed[3][0]],saved=JSON.stringify(x);self.onmessage({data:{input:x,artifacts:inventory,mode:'optimize'}});
- assert.equal(messages.at(-1).type,'result');const result=messages.at(-1).data;assert.equal(result.evaluated_teams,80);assert.equal(result.results.length,3);assert.equal(result.search_complete,false);
+ const inventory=[...builds(x).flat(),changed[3][0]],saved=JSON.stringify(x),result=await nodeTeamDps(x,inventory,{mode:'optimize'});
+ assert.equal(result.evaluated_teams,80);assert.equal(result.results.length,3);assert.equal(result.search_complete,false);
  const byId=new Map(inventory.map(a=>[a.id,a]));
  for(const row of result.results){
   const team=row.artifacts.map(b=>Object.values(b).map(id=>byId.get(id)));assert.equal(new Set(team.flat().map(a=>a.id)).size,20);

@@ -1,0 +1,146 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/55",
+  "id": "mitya-c6-full-rotation-7203",
+  "title": "米提亚六命·18.3秒完整轴",
+  "endHit": "include",
+  "initialActiveSlot": "member1",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Mitya"
+    },
+    {
+      "slot": "member2",
+      "character": "Valeriy"
+    },
+    {
+      "slot": "member3",
+      "character": "Odette"
+    },
+    {
+      "slot": "member4",
+      "character": "YaeMiko"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "yae-e1",
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 0
+    },
+    {
+      "id": "yae-e2",
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 700
+    },
+    {
+      "id": "yae-e3",
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 1400
+    },
+    {
+      "id": "odette-e1",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 2000
+    },
+    {
+      "id": "odette-e2",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 2700
+    },
+    {
+      "id": "valeriy-e",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 3600
+    },
+    {
+      "id": "valeriy-q",
+      "kind": "action",
+      "actor": "member2",
+      "action": "burst",
+      "timeMs": 4200
+    },
+    {
+      "id": "valeriy-ca",
+      "kind": "action",
+      "actor": "member2",
+      "action": "charged",
+      "timeMs": 5600
+    },
+    {
+      "id": "mitya-hold-e",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill.hold",
+      "timeMs": 6400
+    },
+    {
+      "id": "mitya-ca1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 7100,
+      "params": {
+        "holdMs": 2800
+      }
+    },
+    {
+      "id": "mitya-q",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 10500
+    },
+    {
+      "id": "mitya-ca2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 12600,
+      "params": {
+        "holdMs": 2800
+      }
+    },
+    {
+      "id": "mitya-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 15700
+    },
+    {
+      "id": "mitya-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 16200
+    },
+    {
+      "id": "mitya-n3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 16800
+    },
+    {
+      "id": "end",
+      "kind": "switch",
+      "actor": "member1",
+      "timeMs": 18300
+    }
+  ]
+}

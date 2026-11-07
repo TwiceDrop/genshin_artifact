@@ -16,7 +16,8 @@ test('comparison detects replacements, removals and same-ID edits while snapshot
 })
 test('switch game/session/history baselines, disable comparison, retain history by UID through reload', () => {
     const storage = ref({}), key = ref('111111111:21:Pyro'), items = ref([artifact(1)]), gameBaseline = ref({ items: snapshotEquipment(items.value), description: '游戏内穿戴' })
-    const c = useArtifactComparison({ storage, key, items, gameBaseline })
+    const settings = ref({ enabled: true, mode: 'session' })
+    const c = useArtifactComparison({ storage, settings, key, items, gameBaseline })
     c.begin(items.value)
     items.value = [artifact(2)]
     c.record('计算结果 1')
@@ -33,7 +34,7 @@ test('switch game/session/history baselines, disable comparison, retain history 
     c.record('手动保存')
     key.value = '111111111:21:Pyro'
     assert.equal(c.history.value.length, 2)
-    const reloaded = useArtifactComparison({ storage: ref(JSON.parse(JSON.stringify(storage.value))), key, items, gameBaseline })
+    const reloaded = useArtifactComparison({ storage: ref(JSON.parse(JSON.stringify(storage.value))), settings: ref(JSON.parse(JSON.stringify(settings.value))), key, items, gameBaseline })
     assert.equal(reloaded.history.value.length, 2)
     assert.equal(reloaded.mode.value, 'history')
     assert.equal(c.record('计算结果 1'), c.history.value.find(r => r.label === '计算结果 1').id)

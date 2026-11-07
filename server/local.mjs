@@ -12,6 +12,7 @@ import { CredentialStore, normalizeCookie, publicAccount } from './credentials.m
 export function createLocalServer({ clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
     updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     const sessions = new Map()
+    const calculationSession = randomBytes(16).toString('hex')
     const cleanup = s => { s.cancelled = true; s.webLogin?.cancel(); s.client.clear() }
     const timer = setInterval(() => { for (const [id, s] of sessions) if (Date.now() > s.expires) { cleanup(s); sessions.delete(id) } }, 60000).unref()
     const server = http.createServer(async (req, res) => {
@@ -22,6 +23,7 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
         try { url = new URL(req.url, `http://${req.headers.host}`) } catch { return json({ error: '地址无效' }, 400) }
         if (url.pathname.startsWith('/api/')) {
             if (req.headers['x-mona-local'] !== '1' || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}`)) return json({ error: '请求来源无效' }, 403)
+            if (url.pathname === '/api/calculation/session' && req.method === 'GET') return json({id:calculationSession})
             const sid = req.headers.cookie?.split(';').map(x => x.trim()).find(x => x.startsWith('mona_mys='))?.slice(9)
             let session = sessions.get(sid)
             if (session && Date.now() > session.expires) { cleanup(session); sessions.delete(sid); session = null }

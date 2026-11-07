@@ -1,0 +1,205 @@
+/* Hallmark · v2.0.0 · shape: app screen · theme: custom, 雾蓝工作台 · genre: modern-minimal · scope: app · signature: five equipment slots beside a live character sheet. */
+/* Critique: compare five pieces against a live stat sheet in the first viewport; keep numerical comparisons and the weapon's full passive legible. */
+[data-theme="mist"] {
+    --canvas: #f5f7fa; --surface: #ffffff; --surface-inset: #f6f8fb;
+    --ink: #243141; --ink-secondary: #425469; --quiet: #536579;
+    --rule: #d4dce5; --hairline: #e2e7ed; --field-edge: #8794a3;
+    --accent: #32649b; --action: #2c609b; --accent-hover: #214e82; --tint: #eaf2fb;
+    --profile: #f0f5fa; --on-action: #ffffff; --portrait-bg: #dfebf6;
+    --focus: #2b67a1;
+    --sans: system-ui, "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+    --radius-control: 6px; --radius-sheet: 10px;
+    --primary: 212 55% 39%; --primary-foreground: 0 0% 100%;
+    --el-color-primary: var(--accent); --el-color-primary-light-3: #507fb0;
+    --el-color-primary-light-5: #7b9fc2; --el-color-primary-light-7: #becfe1;
+    --el-color-primary-light-8: #d4e2ee; --el-color-primary-light-9: var(--tint);
+    --el-color-primary-dark-2: var(--accent-hover); --el-text-color-primary: var(--ink);
+    --el-text-color-regular: var(--ink-secondary); --el-border-color: var(--rule);
+    --el-border-color-light: var(--hairline); --el-border-color-lighter: var(--hairline);
+    --el-fill-color-light: var(--surface-inset); --el-bg-color: var(--surface);
+    --el-fill-color-blank: var(--surface);
+}
+.calc-content {
+    box-sizing: border-box; max-width: 2150px; margin-inline: auto; border-radius: 0;
+    background: var(--canvas); color: var(--ink); font-family: var(--sans); line-height: 1.45;
+}
+.calc-content :deep(:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.calc-command { position: sticky; top: 0; z-index: 6; display: grid; align-items: center;
+    grid-template-columns: auto minmax(0,1fr) auto auto auto; grid-template-areas: "title jumps preset target run";
+    gap: 12px; background: var(--canvas); border-bottom: 1px solid var(--rule); padding: 8px 0; margin-bottom: 12px; }
+.calc-toolbar, .calc-action-bar { display: contents; }
+.calc-action-bar { position: static; }
+.calc-toolbar h2 { grid-area: title; min-width: 0; font: 650 25px/1.2 var(--sans); letter-spacing: 0; gap: 8px; color: var(--ink); }
+.calc-toolbar h2 svg { padding: 8px; border-radius: var(--radius-control); background: var(--tint); color: var(--accent); height: 20px; width: 20px; box-sizing: content-box; }
+.preset-actions { grid-area: preset; max-width: clamp(110px,18cqi,280px); }
+.calc-jumps { grid-area: jumps; padding-inline: 8px; border-inline-start: 1px solid var(--rule); gap: 0px; flex-wrap: wrap; }
+.calc-jumps button { font-size: 14px; color: var(--quiet); padding: 8px 8px; border-radius: var(--radius-control); }
+.calc-jumps button:hover { color: var(--accent); border-color: transparent; background: var(--tint); }
+.calc-run { grid-area: run; }
+.calc-content .calc-run, .calc-content .el-button--primary { --el-button-bg-color: var(--accent); --el-button-border-color: var(--accent); --el-button-hover-bg-color: var(--accent-hover); --el-button-hover-border-color: var(--accent-hover); --el-button-text-color: var(--on-action); }
+.calc-content .calc-run { border-radius: var(--radius-control); padding-inline: 16px; min-height: 36px; }
+.calc-card { --sheet-pad: clamp(12px,1cqi,18px); padding: var(--sheet-pad); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-sheet); box-shadow: none; }
+.card-heading { padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--hairline); gap: 8px; }
+.card-heading h3 { min-width: 0; overflow-wrap: break-word; font: 650 19px/1.3 var(--sans); letter-spacing: 0; gap: 8px; color: var(--ink); }
+.card-heading h3 svg { color: var(--accent); width: 17px; height: 17px; }
+.calc-field > span, .constellation-line > span, .talent-fields legend, .common-title2 { color: var(--ink-secondary); font-size: 14px; }
+.calc-card .el-button, .calc-card :deep(.el-input__wrapper), .calc-card :deep(.el-select__wrapper) { border-radius: var(--radius-control); }
+.card-actions .el-button { padding-inline: 8px; }
+.talent-fields { margin-top: 12px; }
+.talent-row { padding: 4px 0; }
+.talent-row + .talent-row, .constellation-line { border-color: var(--hairline); }
+.talent-row > span { color: var(--ink); }
+.talent-row :deep(.el-input-number__increase), .talent-row :deep(.el-input-number__decrease) { color: var(--accent); background: var(--surface-inset); }
+.constellation-line button { background: var(--surface); color: var(--ink-secondary); border: 1px solid var(--rule); border-radius: var(--radius-control); }
+.constellation-line button:hover { border-color: var(--accent); }
+.constellation-line button[aria-pressed=true] { background: var(--tint); color: var(--accent-hover); border-color: var(--accent); }
+.calc-content .artifacts-card { border-top: 1px solid var(--rule); }
+.artifacts-card .card-heading { border: 0; padding-bottom: 0; }
+.artifact-grade-summary { padding: 0; border-radius: 0; background: transparent; color: var(--quiet); }
+.artifact-grade-summary > div { gap: 8px; font-size: 12px; }
+.artifact-grade-summary strong { font: 650 20px/1 var(--sans); font-variant-numeric: tabular-nums; color: var(--ink); }
+.artifact-grade-summary b { color: var(--quiet); font-size: 15px; }
+.artifacts { gap: 8px; }
+.artifact-item-or-button { min-width: 0; gap: 0; border: 1px solid var(--rule); border-radius: var(--radius-control); background: var(--surface); }
+.slot-name { display: flex; align-items: center; gap: 8px; padding: 4px 8px; color: var(--accent); background: var(--surface-inset); border-bottom: 1px solid var(--hairline); border-radius: 4px 4px 0 0; font-size: 13px; font-weight: 650; }
+.slot-name img { height: 16px; width: 16px; object-fit: contain; filter: brightness(.45); }
+.artifacts .add-button { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px; padding: 12px 4px;
+    cursor: pointer; color: var(--quiet); border: 0; border-radius: 0 0 4px 4px; background: transparent; font: 500 13px/1.45 var(--sans); min-height: 48px; }
+.artifacts .add-button:hover { color: var(--accent); background: var(--tint); }
+.artifacts .add-button svg { width: 15px; height: 15px; }
+.artifacts :deep(.artifact) { border: 0; border-radius: 0 0 4px 4px; flex: 1; background: transparent; }
+.artifacts :deep(.artifact.omit) { background: var(--surface-inset); }
+.artifacts :deep(.artifact.selectable:hover) { background: var(--tint); }
+.artifacts :deep(.artifact .up) { min-height: 29px; height: auto; padding: 4px 8px; align-items: center; gap: 4px; border-color: var(--hairline); }
+.artifacts :deep(.artifact .name) { min-width: 0; height: auto; white-space: normal; overflow-wrap: anywhere; line-height: 1.45; color: var(--ink); }
+.artifacts :deep(.artifact .buttons) { flex-shrink: 0; }
+.artifacts :deep(.artifact .down) { padding: 8px; }
+.artifacts :deep(.artifact .down .myimage) { width: 36px; height: 36px; margin-right: 8px; border-radius: var(--radius-control); }
+.artifacts :deep(.artifact .down .sec-tag) { color: var(--quiet); font-size: 12px; line-height: 1.5; }
+.artifacts :deep(.artifact .down .main-tag) { color: var(--ink); font-size: 13px; }
+.artifact-piece-score { color: var(--quiet); padding: 4px 8px; border-top: 1px solid var(--hairline); }
+@container single-gear (min-width: 460px) { .artifacts.gear-empty { grid-template-columns: repeat(5,minmax(0,1fr)); } }
+@container single-gear (min-width: 810px) { .artifacts { grid-template-columns: repeat(5,minmax(0,1fr)); } }
+.artifact-tool { margin: 12px 0; }
+.artifacts-card :deep(.artifact-comparison-controls) { padding: 12px 0 0; border: 0; border-top: 1px solid var(--hairline); border-radius: 0; }
+.calc-content .panel-card { scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+.panel-cover { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--ink); background: var(--profile); border-bottom: 1px solid var(--hairline);
+    border-radius: 9px 9px 0 0; padding: 12px var(--sheet-pad); margin: calc(0px - var(--sheet-pad)) calc(0px - var(--sheet-pad)) 12px; }
+.panel-identity { min-width: 0; margin: 0; gap: 12px; }
+.panel-identity .panel-portrait { width: 54px; height: 54px; flex-shrink: 0; object-fit: cover; object-position: center; border-radius: 50%; border: 0; background: var(--portrait-bg); }
+.panel-name { min-width: 0; }
+.panel-name h3 { margin: 0; color: var(--quiet); font: 500 13px/1.25 var(--sans); }
+.panel-name strong { display: block; color: var(--ink); font: 650 22px/1.35 var(--sans); overflow-wrap: anywhere; }
+.panel-badges { margin-top: 0px; gap: 0; }
+.panel-badges span { color: var(--quiet); font-size: 12px; line-height: 1.25; padding: 0; border-radius: 0; background: none; }
+.panel-badges span + span { margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--rule); }
+.panel-seal { width: 43px; height: 43px; flex-shrink: 0; object-fit: contain; opacity: .62; }
+.panel-card :deep(.class) { display: flex; align-items: center; gap: 8px; color: var(--accent); font-size: 14px; margin: 8px 0 4px; }
+.panel-card :deep(.class)::after { content: ""; flex: 1; border-top: 1px solid var(--rule); }
+.panel-card :deep(.attribute-item) { border: 0; padding: 4px 0; }
+.panel-card :deep(.attribute-item .title) { color: var(--quiet); }
+.panel-card :deep(.attribute-item .value) { font-variant-numeric: tabular-nums; }
+.panel-actions { border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 12px; }
+.calc-card :deep(.config-root), .team-context-control, .team-source-card, .polestar-field-control, .artifact-borrowing-control {
+    background: var(--surface-inset); border-color: var(--hairline); border-radius: var(--radius-control); }
+.calc-card :deep(.el-table) { --el-table-header-bg-color: var(--surface-inset); --el-table-header-text-color: var(--ink-secondary); --el-table-row-hover-bg-color: var(--tint); }
+.damage-card :deep(.damage-values.expected .damage-number:not(.increase):not(.decrease)) { color: var(--accent); }
+.config-weapon :deep(.description) { color: var(--ink-secondary); }
+@container single-calculator (max-width: 820px) {
+    .calc-command { display: contents; }
+    .calc-toolbar { display: flex; padding: 0 0 8px; border-bottom: 1px solid var(--rule); }
+    .calc-toolbar h2 { font-size: 23px; }
+    .preset-actions { max-width: 50%; }
+    .calc-action-bar { display: flex; position: sticky; background: var(--canvas); }
+    .calc-mobile-tabs { gap: 4px; }
+    .calc-mobile-tabs button { background: var(--surface); color: var(--quiet); border-color: var(--rule); border-radius: var(--radius-control); }
+    .calc-mobile-tabs button[aria-pressed=true] { background: var(--tint); color: var(--accent); border-color: var(--accent); }
+    .calc-card { --sheet-pad: 14px; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .artifacts .add-button, .calc-run { transition: transform 120ms ease-out; }
+    .artifacts .add-button:hover svg { transform: translateY(-1px); }
+    .calc-run:active { transform: translateY(1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .calc-content :deep(button), .calc-content :deep(.artifact) { animation: none; transition: none; }
+}
+
+.calc-toolbar h2, .card-heading h3 { text-wrap: balance; }
+.calc-mobile-tabs .tab-tail { font: inherit; }
+.calc-content .calc-run { background-color: var(--action); border-color: var(--action); color: var(--on-action); }
+.calc-content .calc-run:hover:not(:disabled) { background-color: var(--accent-hover); border-color: var(--accent-hover); }
+.calc-content .el-button--primary.is-plain, .panel-actions .el-button--primary { background: var(--tint); border-color: var(--rule); color: var(--accent); }
+.buff-empty { margin: 12px 0 0; padding: 8px 0; color: var(--quiet); font-size: 14px; }
+.calc-card :deep(.config-root[style]) { background-color: var(--surface-inset) !important; }
+.calc-content :deep(span[style*="#409EFF" i]) { color: var(--accent) !important; }
+.calc-content :deep(.el-input__wrapper), .calc-content :deep(.el-select__wrapper) { --el-input-border-color: var(--field-edge); --el-border-color: var(--field-edge); }
+.calc-content :deep(.el-select__input) { min-height: 32px; }
+@container single-calculator (max-width: 340px) {
+    .calc-mobile-tabs .tab-tail { display: none; }
+    .calc-mobile-tabs button { white-space: nowrap; }
+    .calc-content .calc-run { padding-inline: 8px; }
+}
+/* Keep the surrounding navigation readable when this light workspace is open. */
+:global(body:has(.calculator-page) .el-menu-item-group__title) { color: var(--el-text-color-regular); }
+:global(body:has(.calculator-page) .el-menu-item.is-active) { color: var(--el-text-color-primary); }
+.calc-workspace { isolation: isolate; }
+.talent-fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.talent-row { display: flex; flex-direction: column; align-items: stretch; gap: 6px; border: 0; }
+.talent-row + .talent-row { border-top: 0; }
+.talent-row > span { font-size: 14px; }
+.talent-row .el-input-number { width: 100%; max-width: none; }
+.talent-row :deep(.el-input__wrapper) { padding-inline: 26px; }
+.talent-row :deep(.el-input-number__increase), .talent-row :deep(.el-input-number__decrease) { width: 24px; }
+.config-weapon :deep(.detail) { display: flow-root; }
+.config-weapon :deep(.detail .image) { float: left; width: 48px; height: 48px; margin: 0 10px 4px 0; }
+.config-weapon :deep(.detail-body) { padding-left: 0; }
+.config-weapon :deep(.detail .description) { font-size: 12px; line-height: 1.7; }
+@container single-weapon (min-width: 420px) {
+    .weapon-extra-config :deep(.config-root) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+    .weapon-extra-config :deep(.config) { min-width: 0; margin-bottom: 0; }
+    .weapon-extra-config :deep(.el-slider__input) { width: 64px; }
+    .weapon-extra-config :deep(.el-slider__runway.show-input) { margin-right: 80px; }
+}
+.buffs .team-context-control { padding: 10px; margin-bottom: 12px; }
+.buffs .common-title2 { margin-top: 0; }
+.buffs .team-source-card { padding: 8px; }
+.buffs .team-trigger-grid { grid-template-columns: minmax(0,1fr); }
+.buffs .team-source-id { flex-wrap: wrap; }
+.buffs .team-source-id :deep(.el-input) { flex-basis: 100%; }
+.buffs .manual-buff-source { display: grid; grid-template-columns: minmax(0,1fr); padding-inline: 0; }
+.buffs .manual-buff-source :deep(.el-select) { min-width: 0; width: 100%; }
+.target-trigger, .target-menu-head button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1px solid var(--rule); border-radius: var(--radius-control);
+    background: var(--surface); color: var(--ink-secondary); cursor: pointer; font: inherit;
+}
+.target-trigger { grid-area: target; white-space: nowrap; min-height: 36px; padding: 0 12px; font-size: 14px; font-weight: 600; }
+.target-trigger:hover, .target-trigger[aria-expanded=true] { border-color: var(--accent); background: var(--tint); color: var(--accent-hover); }
+.target-trigger svg { width: 13px; height: 13px; }
+.target-trigger[aria-expanded=true] svg { transform: rotate(180deg); }
+.target-compact { display: none; }
+.target-menu {
+    position: absolute; z-index: 1; top: calc(100% + 4px); right: 0;
+    box-sizing: border-box; width: min(560px, 100%); max-height: min(680px, calc(100dvh - var(--target-top, 88px) - var(--target-bottom, 16px)));
+    overflow: auto; overscroll-behavior: contain; padding-top: 0; scrollbar-width: thin;
+    box-shadow: 0 6px 22px rgb(27 49 76 / 12%);
+}
+.target-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0; margin-bottom: 12px; border-bottom: 1px solid var(--hairline); }
+.target-menu-head h3 { margin: 0; font-size: 17px; color: var(--ink); }
+.target-menu-head button { width: 32px; height: 32px; }
+.target-menu :deep(.el-tab-pane > .el-select), .target-menu :deep(.m-tab-content > .el-select) { width: 100%; }
+.target-menu :deep(.el-tabs__item) { padding-inline: 12px; }
+@container single-calculator (max-width: 820px) {
+    .target-trigger { flex: none; min-height: 42px; }
+    .target-menu { --target-bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+@container single-calculator (max-width: 520px) {
+    .calc-action-bar { gap: 4px; }
+    .calc-mobile-tabs .tab-tail, .target-label { display: none; }
+    .target-compact { display: inline; }
+    .target-trigger { padding-inline: 8px; }
+    .target-menu :deep(.panel-search-config > label) { display: grid; grid-template-columns: minmax(0,1fr) minmax(0, 53%); }
+    .target-menu :deep(.panel-search-config > label > .el-select), .target-menu :deep(.panel-search-config > label > .el-input-number) { width: 100%; min-width: 0; }
+    .target-menu :deep(.panel-bounds) { grid-template-columns: minmax(0,1fr) repeat(2,minmax(0,1fr)); }
+}

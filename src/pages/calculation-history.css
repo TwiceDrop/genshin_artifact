@@ -1,0 +1,115 @@
+.calculation-history {
+  --ink: #192b43; --muted: #586b82; --line: #dfe6ef; --accent: #306ec4;
+  box-sizing: border-box; min-height: 100%; padding: clamp(12px, 1.5vw, 26px);
+  background: #f5f7fb; color: var(--ink); container: history / inline-size;
+}
+.history-frame { max-width: 1760px; margin: 0 auto; }
+.page-head, .detail-head, .detail-title, .member-head, .member-meta, .weapon, .timestamp, .axis-file, .buffs { display: flex; align-items: center; }
+.page-head { justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; }
+.page-head h2, .list-head h3, .detail-title h3, .member-head h4 { color: var(--ink); margin: 0; }
+.page-head h2 { display: flex; align-items: center; gap: 10px; font-size: 24px; line-height: 1.4; }
+.page-head h2 svg { color: var(--accent); width: 24px; height: 24px; }
+.history-layout { display: grid; grid-template-columns: clamp(260px, 24%, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.card { min-width: 0; background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+.record-list { overflow: hidden; }
+.list-head { padding: 16px; display: grid; gap: 13px; }
+.list-head h3, .detail-title h3 { font-size: 17px; line-height: 1.45; }
+.count { margin-left: 4px; font-size: 12px; font-weight: 600; background: #edf2f8; color: #506680; border-radius: 6px; padding: 2px 7px; vertical-align: middle; }
+.record-rows { border-top: 1px solid var(--line); }
+.record-row { position: relative; display: flex; align-items: flex-start; gap: 8px; justify-content: space-between; width: 100%; min-width: 0; padding: 11px 15px; border: 0; border-bottom: 1px solid #edf1f6; background: transparent; color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+.record-row:last-child { border-bottom: 0; }
+.record-row:hover { background: #f6f8fc; }
+.record-row.chosen { background: #eef5ff; box-shadow: inset 3px 0 var(--accent); }
+.record-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.row-info { min-width: 0; display: grid; gap: 3px; }
+.row-title { font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.row-sub, .row-info time { color: var(--muted); font-size: 12px; }
+.row-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-info time, .timestamp, .metrics dd { font-variant-numeric: tabular-nums; }
+.status { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; border-radius: 20px; padding: 3px 8px; font-size: 12px; line-height: 1.25; font-weight: 600; color: #526478; background: #edf1f5; }
+.status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.status.completed { color: #237052; background: #e9f5ee; }
+.status.running { color: #255fb5; background: #e2edff; }
+.status.failed { color: #aa3941; background: #fbecee; }
+.status.interrupted { color: #8d631b; background: #faf1de; }
+.history-pagination { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.history-pagination button, .history-pagination select, .back-button { font: inherit; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; background: #fff; cursor: pointer; }
+.history-pagination button { display: grid; place-items: center; width: 32px; height: 30px; }
+.history-pagination select { padding: 3px; }
+.history-pagination button:disabled { opacity: .38; cursor: default; }
+.detail { padding: clamp(14px, 1.4vw, 24px); display: grid; gap: 16px; container: history-detail / inline-size; }
+.detail-head { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.detail-title { gap: 9px; }
+.detail-title .status { align-self: center; }
+.detail-head .el-button svg { margin-left: 6px; }
+.timestamp { flex-wrap: wrap; gap: 3px 14px; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.progress-block p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.team-summary { display: grid; gap: 10px; }
+.axis-file { gap: 6px; align-items: baseline; font-size: 13px; color: var(--muted); }
+.axis-file svg, .axis-file b { flex-shrink: 0; }
+.axis-file span { overflow-wrap: anywhere; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; padding: 13px 0; border: 1px solid #e1eaf5; border-radius: 10px; background: #f5f8fd; }
+.metrics > div { min-width: 0; padding: 0 14px; }
+.metrics > div + div { border-left: 1px solid #dce5f0; }
+.metrics dt { font-size: 12px; color: var(--muted); }
+.metrics dd { margin: 3px 0 0; font-size: clamp(17px, 1.4vw, 23px); font-weight: 700; overflow-wrap: anywhere; }
+.metrics > div:first-child dd { color: var(--accent); }
+.metrics small { font-size: 12px; }
+.history-member { min-width: 0; border-top: 1px solid var(--line); padding-top: 15px; }
+.member-head { gap: 10px; flex-wrap: wrap; }
+.portrait { width: 44px; height: 44px; border-radius: 11px; object-fit: cover; background: #eaf0f8; }
+.member-head h4 { font-size: 17px; }
+.member-meta, .weapon { color: var(--muted); font-size: 13px; flex-wrap: wrap; gap: 5px 9px; }
+.member-meta { margin-top: 3px; }
+.member-meta b { background: #edf3fc; color: #38658d; border-radius: 4px; padding: 1px 5px; font-size: 12px; }
+.weapon { margin-left: auto; }
+.weapon b { color: var(--ink); }
+.buffs { flex-wrap: wrap; gap: 4px 7px; color: var(--muted); font-size: 12px; margin-top: 10px; }
+.buffs b { letter-spacing: .04em; }
+.buffs span { background: #f1f4f8; padding: 2px 7px; border-radius: 5px; overflow-wrap: anywhere; }
+.history-artifacts { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(174px,100%),1fr)); gap: 9px; margin-top: 13px; }
+.gear-slot { min-width: 0; background: #fafbfd; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.slot-name { padding: 6px 8px 3px; font-size: 12px; font-weight: 600; color: #536a86; }
+.gear-slot :deep(.artifact) { display: block; border: 0; background: transparent; }
+.gear-slot :deep(.artifact.omit) { background: #edf0f4; }
+.gear-slot :deep(.artifact .up) { border-color: var(--line); }
+.gear-slot :deep(.artifact .name) { white-space: normal; height: auto; line-height: 1.5; overflow-wrap: anywhere; }
+.gear-slot :deep(.artifact .up) { height: auto; min-height: 24px; padding-bottom: 4px; }
+.gear-slot :deep(.artifact .sec-tag) { color: #65778d; }
+.empty-artifact { display: grid; min-height: 88px; place-items: center; color: var(--muted); font-size: 13px; }
+.empty-state, .list-empty { padding: 24px 16px; font-size: 14px; color: var(--muted); margin: 0; text-align: center; }
+.list-empty { border-top: 1px solid var(--line); }
+.back-button { display: none; align-items: center; gap: 4px; padding: 6px 8px; justify-self: start; }
+@container history (min-width: 781px) {
+  .record-list { position: sticky; top: 12px; display: flex; flex-direction: column; max-height: calc(100vh - 100px); }
+  .record-rows { overflow-y: auto; scrollbar-width: thin; }
+  .list-head, .history-pagination { flex-shrink: 0; }
+}
+@container history (max-width: 780px) {
+  .history-layout { display: block; }
+  .history-frame:not(.show-detail) .detail, .show-detail .record-list { display: none; }
+  .back-button { display: inline-flex; }
+  .record-row { padding: 12px 15px; }
+}
+@container history-detail (min-width: 790px) {
+  .history-artifacts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@container history-detail (min-width: 541px) and (max-width: 789px) {
+  .history-artifacts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container history-detail (min-width: 790px) and (max-width: 910px) {
+  .gear-slot :deep(.myimage) { width: 34px; height: 34px; margin-right: 5px; }
+}
+@container history-detail (max-width: 540px) {
+  .weapon { width: 100%; margin-left: 0; }
+  .history-artifacts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gear-slot :deep(.myimage) { width: 31px; height: 31px; margin-right: 5px; }
+  .gear-slot :deep(.artifact .down) { padding: 6px; }
+  .metrics { grid-template-columns: 1fr; gap: 5px; }
+  .metrics > div { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+  .metrics > div + div { border: 0; }
+  .metrics dd { margin: 0; }
+}
+@container history-detail (max-width: 295px) {
+  .history-artifacts { grid-template-columns: 1fr; }
+}

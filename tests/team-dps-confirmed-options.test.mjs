@@ -17,7 +17,7 @@ const event=(time,role=0,extra={})=>({time,role,rootOrder:time*100,order:time*10
 function rotation(roots=[],events=[],initial=0){
  const switches=roots.filter(h=>h.kind==='switch');let prev=initial;for(const h of switches){h.from=prev;prev=h.role;}
  const occurred=(h,t,order=Infinity)=>h.time<t||(h.time===t&&h.rootOrder<=order);
- return {roots,events,switches,heals:[],bonds:[],hpChanges:[],slots:['a','b','c','d'],duration:60,endHit:'include',
+ return {roots,events,switches,heals:[],bonds:[],hpChanges:[],hpEvents:[],healthAt:()=>({ratios:[1,1,1,1]}),slots:['a','b','c','d'],duration:60,endHit:'include',
   activeRole:(t,order)=>switches.filter(h=>occurred(h,t,order)).at(-1)?.role??initial,
   lastCast:(r,kind,t,order)=>Math.max(-Infinity,...roots.filter(h=>h.role===r&&h.kind==='cast'&&h.action===kind&&occurred(h,t,order)).map(h=>h.time)),
   entered:(t,order)=>switches.filter(h=>occurred(h,t,order)).at(-1)?.time??0};

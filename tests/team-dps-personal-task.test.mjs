@@ -8,11 +8,13 @@ import {chars,weapons,sets,fixture} from '../beta-tools/interface-audit-7108.mjs
 import {TEAM_DPS_ROLES} from '../beta-data/team-dps-config.mjs';
 import {importedAxis} from './helpers/team-dps-configuration.mjs';
 import {actionInput} from './helpers/team-action-configuration.mjs';
+import {characterPackages} from '../beta-data/team-engine/character-packages.mjs';
 import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../beta-data/team-engine/action-config.mjs';
 import {AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS} from '../beta-data/equipment-axis-rules.mjs';
 import * as equipment from '../beta-data/team-dps-equipment-support.mjs';
 import * as options from '../beta-data/team-dps-weapon-options.mjs';
 import {changeTeamConstellation} from '../beta-data/team-dps-character-rules.mjs';
+import {teamDpsObjectiveValue} from '../beta-data/team-dps-numeric-rules.mjs';
 
 test('personal task survives remount and UID changes, preserves snapshots and rebases changed axes',async()=>{
  const profiles=TEAM_DPS_ROLES.map(fixture),records={};
@@ -21,9 +23,9 @@ test('personal task survives remount and UID changes, preserves snapshots and re
  const inventory={artifacts:ref(new Map(profiles[0].artifacts.map(a=>[a.id,a])))},mys={selectedUid:ref('a'),data:ref({entries:Object.keys(records).map(name=>({uid:name[0],presetName:name}))})};
  const account={currentAccountId:ref(1)},tasks={},saved=JSON.stringify(records);
  let script=fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/TeamDpsPage.vue',import.meta.url),'utf8').match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'');
- script+='\nglobalThis.ui={members,names,initialHp,budget,count,selectedIndex,output,resultContext,weaponConditions,sortMetric,saveTask,changeTeamConstellation};';
+ script+='\nglobalThis.ui={members,names,initialHp,budget,count,selectedIndex,output,resultContext,weaponConditions,sortMetric,objective,sortedResults,saveTask,changeTeamConstellation};';
  function mount(axis=importedAxis()){
-  const close=[],scope=effectScope(),env={...equipment,...options,changeTeamConstellation,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,ref,shallowRef,computed,watch,nextTick,
+  const close=[],scope=effectScope(),env={characterPackages,...equipment,...options,changeTeamConstellation,teamDpsObjectiveValue,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,ref,shallowRef,computed,watch,nextTick,
    defineProps:()=>({configuration:axis,taskKey:7,tasks}),defineEmits:()=>((_,e)=>{assert.equal(e.key,7);assert.equal(e.accountId,1);tasks[e.uid]=structuredClone(e.state);}),
    onBeforeUnmount:f=>close.push(f),onDeactivated:()=>{},usePresetStore:()=>presets,useArtifactStore:()=>inventory,useMiyousheStore:()=>mys,useAccountStore:()=>account,useEnemy:()=>({enemyConfig:ref({level:90})}),
    characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],weaponByType:{Sword:[],Polearm:[],Catalyst:[]},upgradeArtifactConfig:x=>x,convertArtifactName:x=>x,
@@ -32,6 +34,13 @@ test('personal task survives remount and UID changes, preserves snapshots and re
   return {u:env.ui,close:()=>{close.forEach(f=>f());scope.stop();}};
  }
  let page=mount();await nextTick();const u=page.u;
+ u.output.value={objective:'dps',results:[{expectation:100,critical:160,non_critical:80,duration:10},{expectation:90,critical:100,non_critical:30,duration:5}]};
+ assert.deepEqual(Array.from(u.sortedResults.value,row=>row.index),[1,0]);
+ u.objective.value='damage';assert.deepEqual(Array.from(u.sortedResults.value,row=>row.index),[1,0]);
+ u.sortMetric.value='non_critical';assert.deepEqual(Array.from(u.sortedResults.value,row=>row.index),[0,1]);
+ delete u.output.value.objective;u.resultContext.value={input:{team_dps:{objective:'dps'}}};u.sortMetric.value='expectation';
+ assert.deepEqual(Array.from(u.sortedResults.value,row=>row.index),[1,0]);
+ u.resultContext.value=null;assert.deepEqual(Array.from(u.sortedResults.value,row=>row.index),[0,1]);u.output.value=null;
  u.changeTeamConstellation(u.members.value[0].character,3);u.members.value[0].constraint.minRecharge=1.8;u.initialHp.value[0]=64;u.budget.value=4321;u.count.value=7;
  u.output.value={results:[{expectation:111,hits:[{time:1}]}]};u.resultContext.value={input:{single_interfaces:structuredClone(profiles)},artifacts:[],items:new Map([[12,{id:12,level:20}]])};
  await nextTick();page.close();assert.equal(tasks.a.fields.members[0].character.skill3,12);

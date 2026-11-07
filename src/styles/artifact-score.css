@@ -1,0 +1,10 @@
+.miao-score[data-grade="B"],
+.miao-score[data-grade="C"],
+.miao-score[data-grade="D"],
+.miao-score[data-grade="未齐装"],
+.miao-score[data-grade="待适配"] { color: #8a929e; }
+.miao-score[data-grade="A"] { color: #9b7bd3; }
+.miao-score[data-grade="S"],
+.miao-score[data-grade="SS"],
+.miao-score[data-grade="SSS"] { color: #b6872d; }
+.miao-score[data-grade="ACE"] { color: #d64f56; }

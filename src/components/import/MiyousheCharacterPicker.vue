@@ -47,16 +47,10 @@ import weapons from '@/assets/_gen_weapon'
 import artifacts from '@/assets/_gen_artifact'
 import locale from '@/i18n/generated/zh-cn.json'
 import { characterSummary, ELEMENT_NAMES } from '@/import/character-summary.mjs'
-import pyro from '@/images/misc/pyro.png'
-import hydro from '@/images/misc/hydro.png'
-import anemo from '@/images/misc/anemo.png'
-import electro from '@/images/misc/electro.png'
-import dendro from '@/images/misc/dendro.png'
-import cryo from '@/images/misc/cryo.png'
-import geo from '@/images/misc/geo.png'
+import elementIcons from "@/assets/element-icons"
 defineProps({ disabled: Boolean })
 const emit = defineEmits(['apply'])
-const element = ref('all'), elementIcons = { Pyro: pyro, Hydro: hydro, Anemo: anemo, Electro: electro, Dendro: dendro, Cryo: cryo, Geo: geo }
+const element = ref('all')
 const store = useMiyousheStore(), presets = usePresetStore(), inventory = useArtifactStore()
 const { uidGroups, selectedUid } = store
 function selectUid(uid) { selectedUid.value = uid; element.value = 'all' }

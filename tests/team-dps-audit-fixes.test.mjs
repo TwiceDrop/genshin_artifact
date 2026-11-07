@@ -6,23 +6,27 @@ import {sample,gear,builds,run,sum,inspect} from '../beta-tools/team-dps-full-au
 import {weapon} from '../beta-tools/interface-audit-7108.mjs';
 import {api} from '../beta-tools/runtime-7106.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
-import {optimizeTeamDps,evaluateTeamDps} from '../beta-data/team-dps-optimizer.mjs';
+import {optimizeTeamDps} from '../beta-data/team-dps-optimizer.mjs';
+import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
+import {compareEventValues,nativeEventTrace} from './helpers/team-dps-result-comparison.mjs';
 import * as stellar from '../src/algorithms/stellar-detail.mjs';
 import {damageReactionOptions,defaultDamageReaction} from '../src/algorithms/reaction-labels.mjs';
+import {eventBefore} from '../beta-data/team-engine/event-order.mjs';
 
 const eq=(a,b)=>assert.ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 const hit=(o,r,t)=>o.hits.find(h=>h.role===r&&h.time===t&&h.category!=='equipment');
-const directory='.build-target/team-dps-audit-fixes-20261027';
+const incomingAt=(out,h)=>out.health.findLast(row=>eventBefore(row,h)).fanfare*(out.profiles.find(p=>p.character.name==='Furina').character.skill3+1)*.0001;
+const directory=process.env.TEAM_DPS_TEST_OUTPUT_DIR||'.build-target/team-dps-tests/audit-fixes';
 const record=(name,data)=>{fs.mkdirSync(directory,{recursive:true});fs.writeFileSync(directory+'/'+name+'.json',JSON.stringify(data,null,2));};
 
 export async function workerCheck(){
  const x=sample();x.single_interfaces[2].weapon=weapon('CrescentPike');x.single_interfaces[1].weapon=weapon('XiphosMoonlight');x.single_interfaces[3].artifacts=gear(3,'SongOfDaysPast');
  x.team_dps.initial_ids=builds(x).map(b=>b.map(a=>a.id));x.team_dps.max_evaluations=4;x.team_dps.result_count=2;
- const saved=JSON.stringify(x),native=api.CalculatorInterface.get_damage_analysis(x.single_interfaces[2],null),messages=[],self={postMessage:m=>messages.push(m)};
- const code=fs.readFileSync(new URL('../src/workers/team_dps.js',import.meta.url),'utf8').replace(/^import .*$/mg,'').replace("import('mona')",'Promise.resolve(api)');
- vm.runInNewContext(code,{self,api,optimizeTeamDps,evaluateTeamDps,Promise});await Promise.resolve();assert.equal(messages[0].type,'ready');
- self.onmessage({data:{input:x,artifacts:builds(x).flat(),mode:'optimize'}});assert.equal(messages.at(-1).type,'result');assert.equal(messages.at(-1).data.evaluated_teams,4);assert.ok(messages.some(m=>m.type==='progress'));
- self.onmessage({data:{input:x,artifacts:builds(x).flat(),mode:'evaluate'}});assert.equal(messages.at(-1).type,'result');eq(messages.at(-1).data.results[0].expectation,run(x).expectation);
+ const saved=JSON.stringify(x),native=api.CalculatorInterface.get_damage_analysis(x.single_interfaces[2],null),updates=[];
+ const optimized=await nodeTeamDps(x,builds(x).flat(),{threads:4,onProgress:p=>updates.push(p)});assert.equal(optimized.evaluated_teams,4);assert.equal(optimized.results.length,2);assert.ok(updates.length>0);
+ const direct=await nodeTeamDps(x,builds(x).flat(),{mode:'evaluate'}),reference=run(x);
+ for(const metric of ['expectation','critical','non_critical'])eq(direct.results[0][metric],reference[metric]);
+ compareEventValues(direct.results[0].eventTrace,nativeEventTrace(reference));
  assert.equal(JSON.stringify(x),saved);
  const after=api.CalculatorInterface.get_damage_analysis(x.single_interfaces[2],null);
  for(const metric of ['expectation','critical','non_critical'])eq(after.normal[metric],native.normal[metric]);
@@ -35,18 +39,19 @@ test('V1 healing: additive bonuses, recipient two-piece, and pre-Bond Clam/Song 
  for(const set of ['GladiatorsFinale','MaidenBeloved','OceanHuedClam','SongOfDaysPast']){
   const x=sample();x.single_interfaces[2].artifacts=gear(2,set);const calls=[];
   const wrapped={...api,CalculatorInterface:{get_damage_analysis(input,...args){const d=api.CalculatorInterface.get_damage_analysis(input,...args);if(d.is_heal)calls.push({input,d});return d;}}};
-  const out=createTeamDpsEvaluator(wrapped,x).evaluate(builds(x),true),h=out.heals.find(h=>h.role===2&&h.time===6.5),outgoing=sum(out.panels[2].healing_bonus),incoming=.3+(set==='MaidenBeloved'?.2:0);
-  eq(h.amount,1.3824*sum(out.panels[2].atk)*(1+outgoing+incoming));
+  const out=createTeamDpsEvaluator(wrapped,x).evaluate(builds(x),true),h=out.heals.find(h=>h.role===2&&h.time===6.5),outgoing=sum(out.panels[2].healing_bonus),incoming=incomingAt(out,h)+(set==='MaidenBeloved'?.2:0);
+  eq(h.rawAmounts[0],1.3824*sum(out.panels[2].atk)*(1+outgoing+incoming));assert.ok(h.amount<=h.rawAmounts[0]);
   const d=calls.find(c=>c.input.character.name==='Escoffier').d,base=sum(d.atk)*sum(d.atk_ratio)+sum(d.extra_damage);
-  for(const amount of out.heals.find(h=>h.role===2&&h.time===5.5).rawAmounts)eq(amount,base*(1+sum(d.healing_bonus)+incoming));
-  rows.push({set,hot:h.amount,burstPerRecipient:base*(1+sum(d.healing_bonus)+incoming)});
+  const burst=out.heals.find(h=>h.role===2&&h.time===5.5),burstIncoming=incomingAt(out,burst)+(set==='MaidenBeloved'?.2:0);
+  for(const amount of burst.rawAmounts)eq(amount,base*(1+sum(d.healing_bonus)+burstIncoming));
+  rows.push({set,hotRaw:h.rawAmounts[0],hotEffective:h.amount,burstPerRecipient:base*(1+sum(d.healing_bonus)+burstIncoming)});
  }
  const x=sample(),plain=run(x),original=builds(x)[0],base=1.3824*sum(plain.panels[2].atk);
  for(const count of [1,2,4]){
   x.single_interfaces[0].artifacts=structuredClone(original);x.single_interfaces[0].artifacts.slice(0,count).forEach(a=>a.set_name='TravelingDoctor');
   const out=run(x),h=out.heals.find(h=>h.role===2&&h.time===8.5);
-  eq(h.amount,base*(1+sum(plain.panels[2].healing_bonus)+.3+(count>=2?.2:0)));
-  rows.push({doctorPieces:count,heal:h.amount});
+  eq(h.rawAmounts[0],base*(1+sum(plain.panels[2].healing_bonus)+incomingAt(out,h)+(count>=2?.2:0)));
+  rows.push({doctorPieces:count,healRaw:h.rawAmounts[0],healEffective:h.amount});
  }
  for(const set of ['OceanHuedClam','SongOfDaysPast']){
   const y=sample();y.single_interfaces[3].artifacts=gear(3,set);y.single_interfaces[3].weapon=weapon('FlowingPurity');const o=run(y),heals=o.heals.filter(h=>h.role===3),first=heals[0];
@@ -132,7 +137,7 @@ test('V4 joint search: converted ER eligibility, top K and selected-hit dialog c
  assert.ok(oracle.length>=5);const outputs=[];
  for(const metric of ['expectation','critical','non_critical']){
   x.team_dps.metric=metric;const out=optimizeTeamDps(api,x,inventory),expected=oracle.slice().sort((a,b)=>b[metric]-a[metric]).slice(0,5);
-  assert.equal(out.search_complete,true);assert.equal(out.evaluated_teams,576);assert.equal(out.results.length,5);
+  assert.equal(out.search_complete,true);assert.equal(out.legal_teams,oracle.length);assert.ok(out.evaluated_teams>=oracle.length&&out.evaluated_teams<=576);assert.ok(out.search_stats.pruned_nodes>0);assert.equal(out.results.length,5);
   out.results.forEach((r,i)=>{eq(r[metric],expected[i][metric]);assert.equal(new Set(r.artifacts.flatMap(Object.values)).size,20);assert.ok(oracle.some(o=>o.key===r.artifacts.flatMap(b=>['flower','feather','sand','goblet','head'].map(k=>b[k])).join(',')&&Math.abs(o[metric]-r[metric])<1e-6));});
   outputs.push(out);
  }
@@ -143,5 +148,5 @@ test('V4 joint search: converted ER eligibility, top K and selected-hit dialog c
  for(const out of outputs){const best=out.results[0];assert.deepEqual(inspect(best),[]);
   for(const h of best.hits){const state={...env.component.data(),enemyConfig:best.enemy,characterLevel:best.profiles[h.role].character.level,characterName:best.profiles[h.role].character.name};for(const [k,f]of Object.entries(env.component.methods))state[k]=f.bind(state);for(const [k,f]of Object.entries(env.component.computed))Object.defineProperty(state,k,{get:()=>f.call(state)});state.setValue(h.analysis);for(const metric of ['expectation','critical','non_critical'])eq(state.selectedActualResult[metric],h[metric]);details++;}
  }
- record('V4',{evaluatedPerMetric:576,legal:oracle.length,retainedPerMetric:5,dialogHits:details,best:outputs.map(o=>({metric:o.metric,value:o.results[0][o.metric]})),...await workerCheck()});
+ record('V4',{enumeratedPerMetric:576,evaluatedPerMetric:outputs.map(o=>({metric:o.metric,count:o.evaluated_teams})),legal:oracle.length,retainedPerMetric:5,dialogHits:details,best:outputs.map(o=>({metric:o.metric,value:o.results[0][o.metric]})),...await workerCheck()});
 });

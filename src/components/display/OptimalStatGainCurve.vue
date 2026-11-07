@@ -79,9 +79,10 @@ import { GridComponent, TooltipComponent, MarkPointComponent } from 'echarts/com
 import { CanvasRenderer } from 'echarts/renderers'
 import { STATS, combinationCount, rollValue } from '@/algorithms/stat-gain/curve.mjs'
 import { damageReactionOptions, defaultDamageReaction } from '@/algorithms/reaction-labels.mjs'
+import { statGainCache } from '@/store/stat-gain-cache'
 
 use([LineChart, BarChart, GridComponent, TooltipComponent, MarkPointComponent, CanvasRenderer])
-const props = defineProps({ input: { type: Object, required: true }, analysis: { type: Object, required: true }, fumo: { type: String, default: 'None' } })
+const props = defineProps({ input: { type: Object, required: true }, analysis: { type: Object, required: true }, fumo: { type: String, default: 'None' }, accountId: { type: Number, required: true } })
 const reactions = computed(() => damageReactionOptions(props.analysis))
 const reaction = ref('')
 function chooseReaction() {
@@ -92,7 +93,7 @@ const tier = ref('average')
 const selectedStats = ref(['CriticalRate', 'CriticalDamage', 'ATKPercentage', 'ElementalMastery'])
 const points = ref([]), evaluations = ref(0), running = ref(false), complete = ref(false), error = ref(''), status = ref('准备计算')
 const activeBudget = ref(0), metric = ref('gain')
-let worker = null, snapshot = null
+let worker = null, snapshot = null, generation = 0
 const combinations = computed(() => combinationCount(20, selectedStats.value.length))
 const tooMany = computed(() => combinations.value > 1000000)
 const activePoint = computed(() => points.value[Math.min(activeBudget.value, points.value.length - 1)])
@@ -102,18 +103,31 @@ const signed = value => `${value > 0 ? '+' : ''}${number(value)}`
 const percent = value => value === null || !Number.isFinite(value) ? '—' : `${value > 0 ? '+' : ''}${(value * 100).toFixed(2)}%`
 const formatRoll = (stat, count = 1) => `${number(rollValue(stat, tier.value) * count * (stat.percent ? 100 : 1))}${stat.percent ? '%' : ''}`
 const allocationText = point => STATS.filter(s => point.allocation[s.key]).map(s => `${s.label} × ${point.allocation[s.key]}`).join('、') || '当前配装'
-function stopWorker() { worker?.terminate(); worker = null; running.value = false }
+function stopWorker() { generation++; worker?.terminate(); worker = null; running.value = false }
 function cancel() { stopWorker(); complete.value = false; status.value = `已停止 · 已完成 ${Math.max(0, points.value.length - 1)}/20 条预算` }
 function invalidate() {
     stopWorker(); points.value = []; evaluations.value = 0; activeBudget.value = 0; complete.value = false; error.value = ''; status.value = '配置已变更，请重新计算'
 }
 watch([selectedStats, tier, reaction], invalidate, { deep: true, flush: 'sync' })
-watch(() => [props.input, props.fumo], () => { invalidate(); chooseReaction() }, { deep: true })
-function start() {
+watch(() => [props.input, props.fumo, props.accountId], () => { invalidate(); chooseReaction() }, { deep: true })
+async function start() {
     invalidate()
     if (!selectedStats.value.length || !reaction.value || tooMany.value) return
     snapshot = JSON.parse(JSON.stringify({ input: props.input, reaction: reaction.value, fumo: props.fumo, options: { stats: selectedStats.value, tier: tier.value, maxRolls: 20 } }))
+    const key = JSON.stringify(snapshot)
+    const request = generation
     running.value = true; status.value = '正在载入计算核心…'
+    let cache
+    try { cache = await statGainCache.open(props.accountId) }
+    catch (e) { if (request === generation) { error.value = e.message || String(e); status.value = '计算失败'; stopWorker() }; return }
+    if (request !== generation) return
+    const cached = cache.get(key)
+    if (cached) {
+        points.value = JSON.parse(JSON.stringify(cached.points)); evaluations.value = cached.evaluations; activeBudget.value = 20
+        complete.value = true; status.value = '计算完成 · 0～20 条均已完整枚举'
+        stopWorker()
+        return
+    }
     const currentWorker = new Worker(new URL('../../workers/stat_gain.worker.js', import.meta.url))
     worker = currentWorker
     currentWorker.onmessage = ({ data }) => {
@@ -123,6 +137,8 @@ function start() {
             status.value = `正在计算 · 已完成 ${data.point.rolls}/20 条预算`
         } else if (data.type === 'done') {
             evaluations.value = data.evaluations; complete.value = true; status.value = '计算完成 · 0～20 条均已完整枚举'; stopWorker()
+            try { cache.set(key, { points: JSON.parse(JSON.stringify(points.value)), evaluations: data.evaluations }) }
+            catch (e) { error.value = e.message || String(e) }
         } else if (data.type === 'error') {
             error.value = data.message; status.value = '计算失败，结果不完整'; stopWorker()
         }

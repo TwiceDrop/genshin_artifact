@@ -1,28 +1,38 @@
+import {equipmentNativeParameters} from './equipment-native-parameters.mjs';
 import {createNativeGraphCompiler} from './team-dps-native-compiler.mjs';
 import {LEGACY_EFFECT_SLOTS} from './legacy-effect-slots.mjs';
-import {STELLAR_DAMAGE_FIELDS} from './team-engine/reaction-damage.mjs';
-import {characterRules} from './team-engine/registry.mjs';
+import {characterPackages} from './team-engine/character-packages.mjs';
+import {nativeBackends,normalizeNativeDamage,prepareNativeDamageEffects} from './team-engine/native-bindings.mjs';
+import {createNativeDamageProjector} from './team-engine/native-projection.mjs';
+import {isStellarConduct,isStellarSwirl,nativeDamageFields} from './team-engine/native-damage-fields.mjs';
+import {transformativeReaction} from './team-engine/transformative-reactions.mjs';
+import {attachTeamSources,describeTeamBuffSources} from './team-dps-source-detail.mjs';
 const statSlots={HPFixed:24,ATKFixed:28,DEFFixed:32,HPPercentage:25,ATKPercentage:29,DEFPercentage:33,ElementalMastery:4,Recharge:8,CriticalRate:37,CriticalDamage:52,HealingBonus:2};
 for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])statSlots[element+'Bonus']=LEGACY_EFFECT_SLOTS['Bonus'+element];
 const isRef=v=>v&&typeof v==='object'&&Number.isInteger(v.index)&&Object.keys(v).length===1;
 const keyEdge=e=>JSON.stringify([e.from1,e.from2,e.to,e.label,e.fn,e.data]);
 const slotKey=n=>'config_'+n.replace(/([A-Z])/g,'_$1').slice(1).toLowerCase();
-export function createPortableNativeQuery({api,capture,libraries,projections,extensionSlots,builder,stats,setCount,sets,onProgress}){
+export function createPortableNativeQuery({api,capture,libraries,extensionSlots,builder,stats,setCount,sets,onProgress,sourceDetails=false,nativeBinding=input=>characterPackages[input.character.name]}){
+ extensionSlots={...extensionSlots,...nativeBackends.extension.effectSlots};
  const compilers=libraries.map(lib=>createNativeGraphCompiler(builder,lib)),m=compilers[0].math;
- const templates=new Map(),setTemplates=new Map();
+ const templates=new Map(),setTemplates=new Map(),projectDamage=createNativeDamageProjector(extensionSlots);
  function native(input,damage=false,nativeElement=null){
   const config=input.artifact_config;
   input={...input,artifact_config:config?Object.fromEntries([...new Set(input.artifacts.map(a=>a.set_name))].map(name=>[slotKey(name),config[slotKey(name)]])):null};
   const key=JSON.stringify([input,damage,nativeElement]);if(templates.has(key))return templates.get(key);
-  const result=damage?api.CalculatorInterface.get_damage_analysis(input,nativeElement):api.CommonInterface.get_attribute(input);
-  const snapshot=structuredClone(capture(input.character.name==='Vodyanitsa'));
+  const binding=nativeBinding(input);
+  let result=damage?(binding.nativeAnalysis?.(api,input,nativeElement)??api.CalculatorInterface.get_damage_analysis(input,nativeElement)):api.CommonInterface.get_attribute(input);
+   const snapshot=structuredClone(capture(nativeBackends[nativeBinding(input).nativeBackend].extension));
+  if(result.stellar_detail)result=normalizeNativeDamage(result,api.CommonInterface.get_attribute(input));
   const value={result,snapshot};templates.set(key,value);return value;
  }
  function query(input,role,event,damage=false){
   onProgress?.({templates:templates.size});
-  const ext=input.character.name==='Vodyanitsa',compiler=compilers[+ext],slot=i=>ext?i+(i>=70?24:23):i;
+   const binding=nativeBinding(input),backend=nativeBackends[binding.nativeBackend],ext=backend.extension,compiler=compilers[backend.library],slot=backend.slot;
+   const prepared=prepareNativeDamageEffects(input,binding);input=prepared.input;
+  const parameterBindings={...equipmentNativeParameters,...binding.nativeParameters},outputConstants=[];
   const dynamic=[],clone=(value,path=[])=>{
-   if(isRef(value)){dynamic.push({path,value});return 0;}
+   if(isRef(value)){dynamic.push({path,value});return parameterBindings[path.join('.')]?.zero??0;}
    if(Array.isArray(value))return value.map((v,i)=>clone(v,[...path,i]));
    if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,clone(v,[...path,k])]));
    return value;
@@ -53,9 +63,21 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
    merge(setTemplates.get(key),scale);
   }
   const setPath=(target,path,value)=>{let x=target;for(const k of path.slice(0,-1))x=x[k];x[path.at(-1)]=value;};
-  for(const p of parameters){
-   const variant=structuredClone(fixed);setPath(variant,p.path,1);
-   delta(native(variant,damage,event.nativeElement??null).snapshot,base.snapshot,p.value);
+  // Equal references describe one correlated native choice (for example an
+  // activation boolean and its coverage). Sampling them separately loses products.
+  const groups=new Map();
+  for(const p of parameters){const group=groups.get(p.value.index)??[];group.push(p);groups.set(p.value.index,group);}
+  for(const group of groups.values()){
+   const p=group[0],values=group.map(entry=>parameterBindings[entry.path.join('.')]?.values).find(Boolean);
+   for(const value of values?.filter(value=>value!==0)??[1]){
+    const variant=structuredClone(fixed),scale=values?m.eq(p.value,value):p.value;
+    for(const entry of group)setPath(variant,entry.path,parameterBindings[entry.path.join('.')]?.unit??value);
+    const sampled=native(variant,damage,event.nativeElement??null);
+    delta(sampled.snapshot,base.snapshot,scale);
+    const fields=[...new Set(group.flatMap(entry=>parameterBindings[entry.path.join('.')]?.constantFields??[]))];
+    const terms=Object.fromEntries(fields.map(field=>[field,[...new Set(group.flatMap(entry=>parameterBindings[entry.path.join('.')]?.constantTerms?.[field]??[]))]]));
+    if(damage&&fields.length)outputConstants.push({sampled,fields,terms,value:scale});
+   }
   }
   for(const name of sets){
    let previous=fixed;
@@ -70,42 +92,92 @@ export function createPortableNativeQuery({api,capture,libraries,projections,ext
     previous=variant;
    }
   }
-  const overrides=new Map(),graph=compiler.graph(snapshot,overrides),add=(i,v)=>overrides.set(i,m.add(overrides.get(i)||0,v));
+  const overrides=new Map(),overrideSources=new Map(),graph=compiler.graph(snapshot,overrides),add=(i,v,label)=>{
+   overrides.set(i,m.add(overrides.get(i)||0,v));
+   if(sourceDetails){const parts=overrideSources.get(i)||{};parts[label]=m.add(parts[label]||0,v);overrideSources.set(i,parts);}
+  };
   for(const [name,i]of Object.entries(statSlots))if(stats(role,name)!==0){
    const value=stats(role,name),baseSlot={HPPercentage:23,ATKPercentage:27,DEFPercentage:31}[name];
-   add(slot(i),baseSlot?m.mul(graph.get(slot(baseSlot)),value):value);
+   add(slot(i),baseSlot?m.mul(graph.get(slot(baseSlot)),value):value,baseSlot?'圣遗物百分比词条':'圣遗物词条');
   }
   for(const p of buffDynamic){
    const attribute=p.path.at(-1),baseSlot={HPPercentage:23,ATKPercentage:27,DEFPercentage:31}[attribute];
-   add(ext?extensionSlots[attribute]:LEGACY_EFFECT_SLOTS[attribute],baseSlot?m.mul(graph.get(slot(baseSlot)),p.value):p.value);
+   add(ext?extensionSlots[attribute]:LEGACY_EFFECT_SLOTS[attribute],baseSlot?m.mul(graph.get(slot(baseSlot)),p.value):p.value,input.buffs[p.path[1]].config.ExtensionEffect.label);
   }
-  const panelMap={atk:[27,29,28,6],hp:[23,25,24],def:[31,33,32],elemental_mastery:[4,5],recharge:[8],critical:[37],critical_damage:[52],healing_bonus:[2],shield_strength:[9]};
+  const panelMap={atk:[27,29,28,6],base_atk:[27],hp:[23,25,24],def:[31,33,32],elemental_mastery:[4,5],elemental_mastery_convertible:[4],recharge:[8],critical:[37],critical_damage:[52],healing_bonus:[2],shield_strength:[9]};
   for(const element of ['Hydro','Cryo','Pyro','Electro','Anemo','Geo','Dendro','Physical'])panelMap['bonus_'+element.toLowerCase()]=[LEGACY_EFFECT_SLOTS['Bonus'+element]];
-  if(!damage)return Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,{compiled:slots.reduce((n,i)=>m.add(n,graph.get(slot(i))),0)}]));
-  const projection=projections.find(p=>p.character===input.character.name&&p.index===event.index&&(p.nativeElement??null)===(event.nativeElement??null)&&!!p.furinaC6===!!input.skill.config?.Furina?.c6_after_e).fields;
+  const graphParts=(reader,slots)=>{
+   const out={};for(const i of slots)for(const [label,value]of Object.entries(reader.sources(i)))out[label]=m.add(out[label]||0,value);return out;
+  };
+  const currentParts=slots=>{
+   const out=graphParts(graph,slots);for(const i of slots)for(const [label,value]of Object.entries(overrideSources.get(i)||{}))out[label]=m.add(out[label]||0,value);return out;
+  };
+  const splitPercent=parts=>describeTeamBuffSources(fixed,{atk:{},hp:{},def:{},...parts},m);
+  if(!damage){
+   const result=Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,{compiled:slots.reduce((n,i)=>m.add(n,graph.get(slot(i))),0)}]));
+   if(sourceDetails){let detail;for(const [field,values]of Object.entries(result))attachTeamSources(values,()=>{
+    detail??=splitPercent(Object.fromEntries(Object.entries(panelMap).map(([key,slots])=>[key,currentParts(slots.map(slot))])));return detail[field];
+   });}return result;
+  }
+  const character=binding,projection=projectDamage(character,input,event);
   const originalGraph=compiler.graph(base.snapshot),result={};
-  for(const field of ['atk','hp','def','em','atk_ratio','hp_ratio','def_ratio','em_ratio','extra_damage','bonus','critical','critical_damage','independent_damage_multiplier','def_minus','def_penetration','res_minus','healing_bonus',...STELLAR_DAMAGE_FIELDS]){
-   const slots=projection[field]||[],constant=Object.values(base.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+originalGraph.get(i),0);
-   result[field]={compiled:slots.reduce((n,i)=>m.add(n,graph.get(i)),constant)};
+  const constants=outputConstants.map(entry=>({...entry,graph:compiler.graph(entry.sampled.snapshot)}));
+  // Category-specific crit in native skill results is not a stellar constant.
+  const graphOnly=new Set(isStellarConduct(event)||isStellarSwirl(event)?['critical','critical_damage']:transformativeReaction(event)?[transformativeReaction(event).bonus]:[]);
+  for(const field of nativeDamageFields(event)){
+   const slots=projection[field]||[],constant=graphOnly.has(field)?0:Object.values(base.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+originalGraph.get(i),0);
+   let output=slots.reduce((n,i)=>m.add(n,graph.get(i)),constant);
+   for(const entry of constants)if(entry.fields.includes(field)&&!graphOnly.has(field)){
+    const other=Object.values(entry.sampled.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+entry.graph.get(i),0);
+    output=m.add(output,m.mul(other-constant,entry.value));
+   }
+   result[field]={compiled:output};
   }
-  if(event.damageKind==='stellarConduct'){
-   // Direct reaction damage does not inherit Normal/Charged/Skill/Burst CRIT.
-   result.critical={compiled:graph.get(slot(37))};result.critical_damage={compiled:graph.get(slot(52))};
-   // The kernel adds the EM reaction curve after reading its attribute graph.
-   // Recompute that curve from this candidate's compiled EM, not the template.
-   const em=result.em.compiled;
-   result.direct_stellarconduct_compose.compiled=m.add(m.sub(result.direct_stellarconduct_compose.compiled,base.result.direct_stellarconduct_compose['精通']??0),m.div(m.mul(6,em),m.add(2000,em)));
+  const sourceAdjustments=[];
+  if(isStellarConduct(event)||isStellarSwirl(event)){
+   const field=isStellarSwirl(event)?'direct_stellarswirl_compose':'direct_stellarconduct_compose';
+   const em=Object.values(result.em).reduce((n,v)=>m.add(n,v),0),value=m.div(m.mul(6,em),m.add(2000,em));
+   result[field].compiled=m.add(m.sub(result[field].compiled,base.result[field]?.['精通']??0),value);
+   sourceAdjustments.push({field,label:'精通',value,replace:true});
   }
-  // Some native talent conversions are applied after the exported attribute
-  // graph. Their owning module restores the candidate-dependent expression.
-  characterRules[input.character.name].compileNativeDamage?.({result,base:base.result,input,fixed,event,math:m});
+  character.adjustNativeDamage?.({input,event,fixed,native:base.result,result,math:m,adjustSource:sourceDetails?(field,label,value,replace=false)=>sourceAdjustments.push({field,label,value,replace}):undefined});
+  for(const [field,entries]of Object.entries(prepared.fields))for(const [label,value]of entries){result[field]??={};result[field][label]=m.add(result[field][label]??0,value);sourceAdjustments.push({field,label,value});}
   for(const [field,names]of [['atk_ratio',['技能倍率',...(event.talentRatioFields||[])]],['hp_ratio',['技能倍率']]])for(const name of names){
-   result[field][name]=base.result[field][name]||0;
+   // Preserve named talent terms so their dynamic part receives the same
+   // talent multiplier as their scalar native counterpart.
+   let value=base.result[field]?.[name]||0;
+   for(const entry of constants)if(entry.terms[field]?.includes(name))value=m.add(value,m.mul((entry.sampled.result[field][name]||0)-(base.result[field][name]||0),entry.value));
+   result[field][name]=value;
    result[field].compiled=m.sub(result[field].compiled,result[field][name]);
   }
   if(['RoyalLongsword','RoyalSpear','RoyalGrimoire'].includes(input.weapon.name)){
    const royal=(projection.critical||[]).reduce((n,i)=>m.add(n,graph.named(i,'宗室被动等效')),0);
    result.critical.compiled=m.sub(result.critical.compiled,royal);result.critical['宗室被动等效']=royal;
+  }
+  if(sourceDetails){
+   let detail;
+   const read=()=>{
+    if(detail)return detail;
+    const parts={};
+    for(const field of Object.keys(result)){
+     const slots=projection[field]||[],original=graphParts(originalGraph,slots),values=currentParts(slots);
+     for(const name of graphOnly.has(field)?[]:new Set([...Object.keys(base.result[field]||{}),...Object.keys(original)])){
+      const constant=(base.result[field]?.[name]||0)-(original[name]||0);
+      values[name]=m.add(values[name]||0,constant);
+     }
+     for(const entry of constants)if(entry.fields.includes(field)&&!graphOnly.has(field)){
+      const sampled=graphParts(entry.graph,slots);
+      for(const name of new Set([...Object.keys(values),...Object.keys(entry.sampled.result[field]||{}),...Object.keys(sampled)])){
+       const before=(base.result[field]?.[name]||0)-(original[name]||0),after=(entry.sampled.result[field]?.[name]||0)-(sampled[name]||0);
+       values[name]=m.add(values[name]||0,m.mul(after-before,entry.value));
+      }
+     }
+     parts[field]=values;
+    }
+    for(const {field,label,value,replace}of sourceAdjustments)parts[field][label]=replace?value:m.add(parts[field][label]||0,value);
+    detail=splitPercent(parts);return detail;
+   };
+   for(const [field,values]of Object.entries(result))attachTeamSources(values,()=>read()[field]);
   }
   return result;
  }

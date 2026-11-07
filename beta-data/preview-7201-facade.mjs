@@ -5,6 +5,7 @@ import {previewDefaults} from './preview-7201-config.mjs';
 import {PREVIEW_BUFFS,previewBuffValues,previewRecipientOnField,expandMityaBuffs} from './preview-7201-buffs.mjs';
 import {EXTENSION_BUFF_REGISTRY} from './extension-buffs.mjs';
 import {normalizeBuffParameters} from './buff-rule-registry.mjs';
+import {CUSTOM_REACTION_BASE_BUFFS} from './reaction-parameter-rules.mjs';
 import {normalizeLimitedWeapon,isLimitedWeapon} from './limited-weapons.mjs';
 import {normalizeSignatureWeapon,isSignatureWeapon} from './weapon-effects.mjs';
 import {markReactionAvailability} from './reaction-availability.mjs';
@@ -44,9 +45,19 @@ export function compilePreviewBuff(b,input){
 export function preparePreviewInput(input){
  const name=input.character.name,p={...previewDefaults[name],...input.character.params?.[name]};
  const x={...input,character:{...input.character,params:{[name]:p}},buffs:[]};
+ // The shipped native default always selects GradientStellar, which is zero
+ // outside overload. Route the default through the selected mode's native hit.
+ if(name==='Mitya')for(const key of ['target_function','tf']){
+  const target=input[key];
+  if(target?.name==='MityaDefault'&&!target.use_dsl){
+   const skill=['Charged','OverflowStellar','GradientStellar'][p.core_mode];
+   const reaction=p.core_mode===0?'normal':'direct_stellarconduct';
+   x[key]={...target,use_dsl:true,dsl_source:`dmg hit = Mitya.${skill}\nresult = hit.${reaction}.e`};
+  }
+ }
  if(isLimitedWeapon(input.weapon))x.weapon=normalizeLimitedWeapon(input.weapon);
  if(isSignatureWeapon(input.weapon))x.weapon=normalizeSignatureWeapon(input.weapon);
- const source=expandMityaBuffs(prepareLunarEquipmentBuffs(input.buffs||[],input)),seen=new Set(),repeat=new Set(['ExtensionEffect','CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
+ const source=expandMityaBuffs(prepareLunarEquipmentBuffs(input.buffs||[],input)),seen=new Set(),repeat=new Set([...CUSTOM_REACTION_BASE_BUFFS,'ExtensionEffect','CustomElementalBonus','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction','EnhanceMoonReaction']);
  // A selected shared Polestar buff owns the field count, preventing duplicate application.
  const field=source.find(b=>b.name==='ResonancePolestarField'&&!b.lock&&b.config?.ResonancePolestarField?.active!==false);
  if(name==='Mitya'&&field){p.polestar=true;p.field_hits=normalizeBuffParameters(field.name,field.config?.[field.name]||{}).stacks;}

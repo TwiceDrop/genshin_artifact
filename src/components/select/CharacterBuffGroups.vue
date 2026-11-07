@@ -26,7 +26,7 @@
                     </div>
                     <article v-for="buff in g.buffs" :key="buff.name" class="group-buff-row" :class="{ unavailable: !availability(buff,g).allowed }">
                         <div class="group-buff-heading"><strong>{{ buff.title }}</strong><el-tag :type="availability(buff,g).allowed ? 'info' : 'warning'" size="small">{{ availability(buff,g).label }}</el-tag>
-                            <el-button size="small" type="primary" :disabled="!availability(buff,g).allowed || selectedNames.includes(buff.name)" :aria-label="`${selectedNames.includes(buff.name) ? '已添加' : '添加'}${buff.title}`" @click="add(buff,g)">{{ selectedNames.includes(buff.name) ? '已添加' : '添加此 BUFF' }}</el-button>
+                            <el-button size="small" type="primary" :disabled="!availability(buff,g).allowed" :aria-label="`${selectedNames.includes(buff.name) ? '再次添加' : '添加'}${buff.title}`" @click="add(buff,g)">{{ selectedNames.includes(buff.name) ? '再次添加' : '添加此 BUFF' }}</el-button>
                         </div>
                         <p v-if="buff.description" v-html="buff.description" />
                         <details v-if="manualFields(buff,g).length && availability(buff,g).allowed" class="group-buff-params"><summary>调整 BUFF 参数</summary>

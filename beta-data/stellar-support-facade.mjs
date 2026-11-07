@@ -246,12 +246,15 @@ export function createStellarSupportFacade(base, original) {
     }
     function sandroneDamage(input, fumo) {
         const descriptor=SANDRONE_SKILLS.find(s=>s.index===input.skill?.index);
+        // The cold level lookup queries a neutral character. Do it before the
+        // skill reads so graph capture retains this attack's attribute graph.
+        const reactionBase=anemoReactionBase(input.character.level);
         const referenceInput=clone(input); referenceInput.skill.index=descriptor.original;
         const result=base.CalculatorInterface.get_damage_analysis(prepare(referenceInput),fumo);
         const cleanInput=withoutReactionFlat(referenceInput);
         const reference=base.CalculatorInterface.get_damage_analysis(prepare(cleanInput),fumo);
         const ratio=sandroneRatio(input,descriptor.index), state=stellarSupportState(input);
-        const rawReaction=anemoReactionBase(input.character.level) / .75 * reference.stellarswirl_reaction_cryo_base_multiplier * reference.stellarswirl_vortex_coefficient;
+        const rawReaction=reactionBase / .75 * reference.stellarswirl_reaction_cryo_base_multiplier * reference.stellarswirl_vortex_coefficient;
         const unit=reference.stellarswirl_cryo?.non_critical / rawReaction;
         if(!Number.isFinite(unit) || rawReaction<=0)throw Error('桑多涅星扩散反应乘区无效');
         const coreFlat=sum(reference.direct_stellarswirl_extra_fixed)+sum(reference.direct_stellarswirl_extra_damage);

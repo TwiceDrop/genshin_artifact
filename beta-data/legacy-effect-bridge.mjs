@@ -4,6 +4,7 @@ import {LEGACY_EFFECT_SLOTS as scalarSlots} from './legacy-effect-slots.mjs';
 // Pinned native scalar slots. Percentage conversions use the native dependency API.
 import {EXTENSION_BUFF_REGISTRY} from './extension-buffs.mjs';
 import {CHARACTER_EFFECT_RULES} from './character-effect-rules.mjs';
+import {CUSTOM_REACTION_BASE_BUFFS} from './reaction-parameter-rules.mjs';
 
 const conversion={ATKPercentage:'ATKPercentage',HPPercentage:'HPPercentage',DEFPercentage:'DEFPercentage'};
 const marker=1099511627776;
@@ -23,8 +24,9 @@ export function withLegacyEffectBridge(api,wasm){
    let independentDelta=0;
    for(const buff of prepareLunarEquipmentBuffs(input.buffs,input)){
     const direct=buff.name==='ExtensionEffect';
-    if(!direct&&buff.name!=='StellarSwirlDamageMultiplier'&&(LEGACY_NATIVE_SCOPE.has(buff.name)||(buff.name==='AlbedoWitchEve'&&buff.config?.AlbedoWitchEve?.def===0)||!Object.hasOwn(CHARACTER_EFFECT_RULES,buff.name))){buffs.push(buff);continue;}
-    if(buff.lock===true||buff.config?.[buff.name]?.active===false||(!direct&&seen.has(buff.name)))continue;
+    const customBase=CUSTOM_REACTION_BASE_BUFFS.includes(buff.name);
+    if(!direct&&!customBase&&buff.name!=='StellarSwirlDamageMultiplier'&&(LEGACY_NATIVE_SCOPE.has(buff.name)||(buff.name==='AlbedoWitchEve'&&buff.config?.AlbedoWitchEve?.def===0)||!Object.hasOwn(CHARACTER_EFFECT_RULES,buff.name))){buffs.push(buff);continue;}
+    if(buff.lock===true||buff.config?.[buff.name]?.active===false||(!direct&&!customBase&&seen.has(buff.name)))continue;
     seen.add(direct?buff:buff.name);
     for(const compiled of (direct?[buff]:EXTENSION_BUFF_REGISTRY.compile(buff,input))||[]){
      const {label,values}=compiled.config.ExtensionEffect;

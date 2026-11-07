@@ -42,8 +42,8 @@ export const ElAlert=defineComponent({
     ]):null
   },
 })
-export const ElProgress=defineComponent({name:'ElProgress',props:{percentage:Number,showText:{default:true},status:String},setup:(p,{attrs})=>()=>h('div',{...attrs,class:cn('m-progress el-progress',attrs.class)},[
-  h('progress',{max:100,value:p.percentage,'aria-label':'进度'}),p.showText?h('span',{},`${p.percentage}%`):null,
+export const ElProgress=defineComponent({name:'ElProgress',props:{percentage:Number,showText:{default:true},status:String,indeterminate:Boolean},setup:(p,{attrs})=>()=>h('div',{...attrs,class:cn('m-progress el-progress',attrs.class)},[
+  h('progress',{max:100,value:p.indeterminate?undefined:p.percentage,'aria-label':'进度'}),p.showText&&!p.indeterminate?h('span',{},`${p.percentage}%`):null,
 ])})
 export const ElTabPane=defineComponent({name:'ElTabPane',props:{name:{},label:String},setup:()=>()=>null})
 export const ElTabs=defineComponent({

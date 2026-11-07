@@ -1,20 +1,16 @@
 import {validateActionAxis} from './team-engine/action-config.mjs';
+import {characterPackages} from './team-engine/character-packages.mjs';
 // Mechanics metadata only: no default rotation is installed or loaded here.
 export const TEAM_DPS_ROLES=['Skirk','Furina','Escoffier','Vodyanitsa'];
 export const TEAM_DPS_SLOTS=['Flower','Feather','Sand','Goblet','Head'];
 export const TEAM_DPS_MECHANICS='skirk-hydro-cryo/1';
 export const TEAM_DPS_CHARACTER_CAPABILITIES={
- Skirk:{energy:0,shield:false,nightsoul:false,arkhe:false},Furina:{energy:60,shield:false,nightsoul:false,arkhe:true},
- Escoffier:{energy:70,shield:false,nightsoul:false,arkhe:true},Vodyanitsa:{energy:60,shield:false,nightsoul:false,arkhe:false},
- Mona:{energy:60,shield:false,nightsoul:false,arkhe:false},
- YaeMiko:{energy:90,shield:false,nightsoul:false,arkhe:false},
- Sandrone:{energy:60,shield:false,nightsoul:false,arkhe:false},Odette:{energy:60,shield:false,nightsoul:false,arkhe:false},
- Alyosha:{energy:70,shield:false,nightsoul:false,arkhe:false},Qiqi:{energy:80,shield:false,nightsoul:false,arkhe:false},
+ ...Object.fromEntries(Object.values(characterPackages).map(character=>[character.id,character.capabilities])),
  Mavuika:{energy:0,shield:false,nightsoul:true,arkhe:false},
  Amber:{energy:40,shield:false,nightsoul:false,arkhe:false},Noelle:{energy:60,shield:true,nightsoul:false,arkhe:false},
  Kirara:{energy:60,shield:true,nightsoul:false,arkhe:false},
 };
-export const TEAM_DPS_REACTIONS={Frozen:['Cryo','Hydro'],Melt:['Cryo','Pyro'],Vaporize:['Hydro','Pyro'],Superconduct:['Cryo','Electro'],StellarConduct:['Cryo','Electro'],ElectroCharged:['Hydro','Electro'],Overloaded:['Pyro','Electro'],Bloom:['Hydro','Dendro'],Quicken:['Dendro','Electro'],Aggravate:['Dendro','Electro'],Spread:['Dendro'],Hyperbloom:['Dendro','Electro'],Burgeon:['Dendro','Pyro'],Burning:['Dendro','Pyro']};
+export const TEAM_DPS_REACTIONS={Frozen:['Cryo','Hydro'],Melt:['Cryo','Pyro'],Vaporize:['Hydro','Pyro'],Superconduct:['Cryo','Electro'],ElectroCharged:['Hydro','Electro'],Overloaded:['Pyro','Electro'],Bloom:['Hydro','Dendro'],Quicken:['Dendro','Electro'],Aggravate:['Dendro','Electro'],Spread:['Dendro'],Hyperbloom:['Dendro','Electro'],Burgeon:['Dendro','Pyro'],Burning:['Dendro','Pyro']};
 export const TEAM_DPS_ACTIONS={
  'furina.skill':{role:1,index:9,category:'skill',parts:1},
  'furina.burst':{role:1,index:14,category:'burst',parts:1},

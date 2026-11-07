@@ -2,12 +2,12 @@ import {EXTENSION_BUFF_REGISTRY} from './extension-buffs.mjs';
 import {prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
 import {normalizeBuffParameters} from './buff-rule-registry.mjs';
 import {NATIVE_EFFECT_ATTRIBUTES} from './buff-rule-schema.mjs';
-import {reactionResistance} from './reaction-parameter-rules.mjs';
+import {reactionResistance,CUSTOM_REACTION_BASE_BUFFS} from './reaction-parameter-rules.mjs';
 import {calculateDirectLunarDamage} from './lunar-damage.mjs';
 import {calculateDirectStellarConduct} from './direct-stellar-conduct.mjs';
 import {calculateBloomFamilyDamage} from './bloom-damage.mjs';
 const num=(v,k,min=0)=>{if(typeof v!=='number'||!Number.isFinite(v)||v<min)throw Error('单次面板参数无效：'+k);return v;};
-const native=new Set(NATIVE_EFFECT_ATTRIBUTES),repeatable=new Set(['CustomElementalBonus','EnhanceMoonReaction','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction']);
+const native=new Set(NATIVE_EFFECT_ATTRIBUTES),repeatable=new Set([...CUSTOM_REACTION_BASE_BUFFS,'CustomElementalBonus','EnhanceMoonReaction','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction']);
 // No character talent or weapon effects are injected automatically into this explicit panel.
 export function singleHitBuffs(buffs,character,recipientOnField){
  const context={character,team_effects:{recipient_on_field:recipientOnField}};

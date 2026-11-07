@@ -21,6 +21,7 @@ const KumiPage = () => import (/* webpackChunkName: "kumi-page" */ "@page/KumiPa
 const webName = process.env.MONA_TITLE;
 
 const routes = [
+    { path: '/calculation-history', component: () => import('@page/CalculationHistoryPage.vue'), meta: { title: '历史记录' } },
     { path: '/uid-data', component: () => import('@page/UidDataPage.vue'), meta: { title: 'UID 数据' } },
     {
         path: "/setup",

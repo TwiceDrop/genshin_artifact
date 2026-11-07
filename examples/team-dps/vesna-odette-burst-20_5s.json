@@ -1,0 +1,175 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/56",
+  "id": "vesna-odette-burst-20_5s",
+  "title": "薇斯纳队·奥黛塔开大·20.5秒",
+  "endHit": "include",
+  "initialActiveSlot": "member1",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Vesna"
+    },
+    {
+      "slot": "member2",
+      "character": "Vodyanitsa"
+    },
+    {
+      "slot": "member3",
+      "character": "Odette"
+    },
+    {
+      "slot": "member4",
+      "character": "Faruzan"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "odette-q",
+      "kind": "action",
+      "actor": "member3",
+      "action": "burst",
+      "timeMs": 0
+    },
+    {
+      "id": "odette-e1",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 2450
+    },
+    {
+      "id": "odette-e2",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 2850
+    },
+    {
+      "id": "faruzan-q",
+      "kind": "action",
+      "actor": "member4",
+      "action": "burst",
+      "timeMs": 3950
+    },
+    {
+      "id": "vody-e",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 5000
+    },
+    {
+      "id": "vesna-e",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 6500
+    },
+    {
+      "id": "vesna-e1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 7150
+    },
+    {
+      "id": "vesna-e2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 7600
+    },
+    {
+      "id": "vesna-q",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 8300
+    },
+    {
+      "id": "vesna-e3a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 10450
+    },
+    {
+      "id": "vesna-n1a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 11800
+    },
+    {
+      "id": "vesna-n2a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 12150
+    },
+    {
+      "id": "vesna-n3a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 12650
+    },
+    {
+      "id": "vesna-ca",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 13350
+    },
+    {
+      "id": "vesna-e3b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 14750
+    },
+    {
+      "id": "vesna-n1b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 16100.000000000002
+    },
+    {
+      "id": "vesna-n2b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 16450
+    },
+    {
+      "id": "vesna-n3b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 16950
+    },
+    {
+      "id": "vesna-cb",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 17650
+    },
+    {
+      "id": "vesna-e3c",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 19050
+    },
+    {
+      "id": "end",
+      "kind": "switch",
+      "actor": "member1",
+      "timeMs": 20500
+    }
+  ]
+}

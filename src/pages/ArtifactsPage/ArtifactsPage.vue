@@ -198,7 +198,7 @@
                             <template v-if="score !== null" #footer>
                                 <div class="artifact-score">
                                     <span>喵喵评分</span>
-                                    <strong>{{ score.toFixed(1) }} {{ getMarkClass(score) }}</strong>
+                                    <strong class="miao-score" :data-grade="getMarkClass(score)">{{ score.toFixed(1) }} {{ getMarkClass(score) }}</strong>
                                 </div>
                             </template>
                         </artifact-display>
@@ -700,3 +700,5 @@ function handleOutputCommand(command: string) {
     float: right;
 }
 </style>
+
+<style scoped src="../../styles/artifact-score.css"></style>

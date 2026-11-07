@@ -9,8 +9,8 @@
                         <div><h2>{{ locale[piece?.text] || item.setName }}</h2><p>{{ locale[set?.nameLocale] }} · {{ positionLabel }} · {{ item.star }}星 · +{{ item.level }}</p></div>
                     </div>
                     <div class="score-overview">
-                        <div><span>普通评分</span><strong>{{ ranking.score.toFixed(1) }} <small>{{ getMarkClass(ranking.score) }}</small></strong></div>
-                        <div v-if="details"><span>{{ inspection.label || inspection.name }}</span><strong>{{ details.score.toFixed(1) }} <small>{{ details.grade }}</small></strong></div>
+                        <div><span>普通评分</span><strong class="miao-score" :data-grade="getMarkClass(ranking.score)">{{ ranking.score.toFixed(1) }} <small>{{ getMarkClass(ranking.score) }}</small></strong></div>
+                        <div v-if="details"><span>{{ inspection.label || inspection.name }}</span><strong class="miao-score" :data-grade="details.grade">{{ details.score.toFixed(1) }} <small>{{ details.grade }}</small></strong></div>
                     </div>
                     <el-button v-if="context" size="small" @click="rankName = ''">查看当前角色：{{ context.label || context.name }}</el-button>
                     <table class="stat-table">
@@ -24,7 +24,7 @@
                     </table>
                     <div v-if="build" class="build-summary">
                         <span>{{ context.label || context.name }} · 圣遗物总分</span>
-                        <strong>{{ build.total === null ? '—' : build.total.toFixed(1) }} <small>{{ build.grade }}</small></strong>
+                        <strong class="miao-score" :data-grade="build.grade">{{ build.total === null ? '—' : build.total.toFixed(1) }} <small>{{ build.grade }}</small></strong>
                     </div>
                 </section>
                 <section class="rankings">
@@ -36,7 +36,7 @@
                             :aria-label="`查看${entry.name}评分`" @click="rankName = entry.name">
                             <span class="rank-number">{{ entry.rank }}</span>
                             <img v-if="portraits[entry.name]" :src="portraits[entry.name]" alt="" loading="lazy" />
-                            <span class="rank-name">{{ entry.name }}</span><strong>{{ entry.score.toFixed(1) }}</strong><span class="rank-grade">{{ getMarkClass(entry.score) }}</span>
+                            <span class="rank-name">{{ entry.name }}</span><strong class="miao-score" :data-grade="getMarkClass(entry.score)">{{ entry.score.toFixed(1) }}</strong><span class="rank-grade miao-score" :data-grade="getMarkClass(entry.score)">{{ getMarkClass(entry.score) }}</span>
                         </button>
                     </div>
                 </section>
@@ -79,3 +79,5 @@ const portraits = Object.fromEntries(Object.values(characters).map(c => [locale[
 @media(max-width:700px){.score-layout{grid-template-columns:1fr;gap:20px}.ranking-list{max-height:300px}.score-overview{gap:24px}}
 @media(max-height:800px){.piece-heading img{width:60px;height:60px}.score-overview{padding:12px;margin:14px 0 10px}.score-overview strong{font-size:26px}.stat-table th,.stat-table td{padding:8px}.ranking-list{max-height:calc(88vh - 280px)}}
 </style>
+
+<style scoped src="../../styles/artifact-score.css"></style>

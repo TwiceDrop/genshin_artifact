@@ -22,7 +22,10 @@ export function polestarField(p){
  const coefficient=stacks===0?1:1.4+.05*stacks;
  return {coefficient,bonus:stacks===0?.2:.28+.01*stacks,physicalShred:.4};
 }
+export const CUSTOM_REACTION_BASE_BUFFS=Object.freeze(['CustomMoonReactionBase','CustomStellarReactionBase']);
 export const REACTION_PARAMETER_RULES=Object.freeze({
+ CustomMoonReactionBase:p=>({[['EnhanceMoonelectroBase','EnhanceMoonCrystallizeBase','EnhanceMoonbloomBase'][p.reaction]]:p.p/100}),
+ CustomStellarReactionBase:p=>({[['StellarConductBaseBonus','StellarSwirlBaseBonus'][p.reaction]]:p.p/100}),
  EnhanceStellarGlimmerReaction:p=>({EnhanceStellarGlimmerReaction:numeric(p,'p',0,-100)/100}),
  ElevateStellarGlimmerReaction:p=>({ElevateStellarGlimmerReaction:numeric(p,'p',0,-100)/100}),
  ResonanceMoonOmen:p=>({EnhanceMoonReaction:moonOmenBonus(p)}),
@@ -46,7 +49,7 @@ export function collectReactionParameters(buffs=[],input={}){
   if(!buff||typeof buff!=='object')throw Error('反应 BUFF 条目无效');
   if(buff.lock===true)continue;
   if(buff.name==='ExtensionEffect'){
-   if(names.has(buff.source_buff)){if(seen.has(buff.source_buff))continue;seen.add(buff.source_buff);}
+   if(names.has(buff.source_buff)&&!CUSTOM_REACTION_BASE_BUFFS.includes(buff.source_buff)){if(seen.has(buff.source_buff))continue;seen.add(buff.source_buff);}
    // Compiled effects already have named-source deduplication applied.
    for(const [nativeKey,value]of Object.entries(buff.config?.ExtensionEffect?.values||{})){
     const key=buff.source_buff==='EnhanceStellarGlimmerReaction'&&nativeKey==='StellarSwirlBonus'?'EnhanceStellarGlimmerReaction':buff.source_buff==='ElevateStellarGlimmerReaction'&&nativeKey==='StellarSwirlElevation'?'ElevateStellarGlimmerReaction':nativeKey;
@@ -59,7 +62,7 @@ export function collectReactionParameters(buffs=[],input={}){
   if(!names.has(buff.name))continue;
   const raw=buff.config==='NoConfig'||buff.config===undefined?{}:buff.config?.[buff.name];
   if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('反应 BUFF 配置无效：'+buff.name);
-  if(raw.active===false||seen.has(buff.name))continue;
+  if(raw.active===false||(!CUSTOM_REACTION_BASE_BUFFS.includes(buff.name)&&seen.has(buff.name)))continue;
   seen.add(buff.name);
   const rule=CHARACTER_EFFECT_RULES[buff.name]||REMAINING_CHARACTER_RULES[buff.name]||LUNAR_CHARACTER_RULES[buff.name]||REACTION_PARAMETER_RULES[buff.name];
   const p=normalizeBuffParameters(buff.name,raw);

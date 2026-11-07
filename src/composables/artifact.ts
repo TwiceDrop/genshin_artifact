@@ -12,6 +12,8 @@ export function use5Artifacts() {
     const artifactStore = useArtifactStore()
 
     const artifactIds = ref([-1, -1, -1, -1, -1])
+    const artifactSnapshot = ref<Record<number,IArtifact>|null>(null)
+    const readArtifact = (id:number) => artifactSnapshot.value ? artifactSnapshot.value[id] : artifactStore.artifacts.value.get(id)
     // artifact set 2/4 config
     // Keep each set's controls independently. Clearing the two-piece selection
     // must not erase the new four-piece set's configuration during a gear swap.
@@ -26,7 +28,7 @@ export function use5Artifacts() {
         let temp: (IArtifact | null)[] = []
         for (let id of artifactIds.value) {
             if (id >= 0) {
-                const a = artifactStore.artifacts.value.get(id)
+                const a = readArtifact(id)
                 if (a) {
                     temp.push(a)
                 } else {
@@ -131,7 +133,7 @@ export function use5Artifacts() {
         let temp: IArtifactWasm[] = []
         for (let id of artifactIds.value) {
             if (id >= 0) {
-                const a = artifactStore.artifacts.value.get(id)
+                const a = readArtifact(id)
                 if (a) {
                     const artifactWasm = convertArtifact(a)
                     temp.push(artifactWasm)
@@ -164,10 +166,12 @@ export function use5Artifacts() {
     })
 
     function setArtifact(index: number, id: number) {
+        artifactSnapshot.value = null
         artifactIds.value[index] = id
     }
 
     function removeArtifact(index: number) {
+        artifactSnapshot.value = null
         artifactIds.value[index] = -1
     }
 
@@ -181,6 +185,7 @@ export function use5Artifacts() {
 
     return {
         artifactIds,
+        artifactSnapshot,
         artifactCount,
         artifactSingleConfig,
         artifactWasmFormat,
