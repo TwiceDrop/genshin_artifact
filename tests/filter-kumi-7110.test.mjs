@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import vm from 'node:vm'
 import { createRequire } from 'node:module'
+import {artifactGroupCharacterNames} from '../src/algorithms/artifact-ownership.mjs'
 import TreeStore from 'element-plus/es/components/tree/src/model/tree-store.mjs'
 
 const require = createRequire(import.meta.url)
@@ -27,7 +28,7 @@ test('filter group avatars require five existing artifact IDs and react to wareh
     const artifacts = vue.ref(new Map([1, 2, 3, 4, 5].map(id => [id, { id }])))
     const page = {}
     vm.runInNewContext(code, {
-        exports: page, computed: vue.computed, artifactStore: { artifacts },
+        exports: page, computed: vue.computed, artifactGroupCharacterNames, artifactStore: { artifacts },
         kumiTreeDataForElementUI: vue.ref([{ id: 100, label: '合成收藏夹', children: groups.map(group => ({ id: group.id, label: String(group.id) })) }]),
         kumiStore: { kumiById: vue.ref(new Map(groups.map(group => [group.id, group]))) },
         presetStore: { allFlat: vue.ref([
@@ -80,7 +81,7 @@ test('filter tree search retains checks, sorts names, identifies exact preset ge
             mainTag: { name: 'lifePercentage' } }]
     }))) }
     const globals = {
-        ...vue, artifactStore,
+        ...vue, artifactStore, artifactGroupCharacterNames, characterName: vue.ref('Mona'),
         kumiStore: { dirs: vue.ref(kumis.filter(item => item.dir)), kumiById: vue.ref(new Map(kumis.map(item => [item.id, item]))) },
         presetStore: { allFlat: vue.ref([preset('Mona', gear(1)), preset('Zhongli', gear(6)), preset('Amber', gear(11)),
             preset('Amber', gear(21)), preset('Mona', gear(21))]) },
@@ -131,10 +132,10 @@ test('filter tree search retains checks, sorts names, identifies exact preset ge
     assert.deepEqual(tree.getCheckedKeys(true), checked)
 
     const candidateIds = () => plain(page.getAllArtifactsFiltered().map(artifact => artifact.id))
-    assert.deepEqual(candidateIds(), [...gear(1), ...gear(21), ...gear(26)])
+    assert.deepEqual(candidateIds(), [2, 3, 4, 5, ...gear(21), ...gear(26)])
     globals.allowBorrowEquipped.value = true
     // Group exclusion still applies to other characters even when borrowing is enabled.
-    assert.deepEqual(candidateIds(), [...gear(1), ...gear(21), ...gear(26)])
+    assert.deepEqual(candidateIds(), [2, 3, 4, 5, ...gear(21), ...gear(26)])
     globals.allowBorrowEquipped.value = false
     globals.selectedTeamArtifactIds.value = [1]
     globals.reservedArtifactIds.value.push(2)
@@ -142,6 +143,7 @@ test('filter tree search retains checks, sorts names, identifies exact preset ge
     globals.constraintSandMainStats.value = ['attackPercentage']
     // Current IDs are preserved only from group exclusion: occupation, locks and main stats retain priority.
     assert.deepEqual(candidateIds(), [5, 21, 22, 24, 25, 26, 27, 29, 30])
+    globals.characterName.value = 'Amber'
     globals.artifactIds.value = gear(11)
     globals.constraintSandMainStats.value = []
     assert.deepEqual(candidateIds(), [...gear(11), ...gear(21), ...gear(26)])

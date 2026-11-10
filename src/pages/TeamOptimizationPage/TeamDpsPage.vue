@@ -225,7 +225,7 @@ const clone=(value:any)=>JSON.parse(JSON.stringify(value))
 const taskDefaults=clone(Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])))
 const packResult=createTeamDpsResultPacker()
 function saveTask(){
- if(restoringTask||loadedUid===null||accountStore.currentAccountId.value!==taskAccount)return;
+ if(accountStore.applyingCloud.value||restoringTask||loadedUid===null||accountStore.currentAccountId.value!==taskAccount)return;
  const context=resultContext.value;
  const state=clone({axis:props.configuration,engineRulesVersion,resultVersion:TEAM_DPS_RESULT_VERSION,fields:Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])),context:context?{...context,items:[...context.items]}:null,lastInput});
  state.output=packResult(output.value);

@@ -40,15 +40,16 @@ public class MonaLocalPlugin extends Plugin {
         super.handleOnDestroy();
     }
     private static final String KEY = "mona-cookie-v1";
-    private SecretKey key() throws Exception {
+    private SecretKey key() throws Exception { return key(KEY); }
+    private SecretKey key(String alias) throws Exception {
         KeyStore store = KeyStore.getInstance("AndroidKeyStore"); store.load(null);
-        if (!store.containsAlias(KEY)) {
+        if (!store.containsAlias(alias)) {
             KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-            generator.init(new KeyGenParameterSpec.Builder(KEY, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+            generator.init(new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());
             generator.generateKey();
         }
-        return (SecretKey) store.getKey(KEY, null);
+        return (SecretKey) store.getKey(alias, null);
     }
     @PluginMethod public void readVault(PluginCall call) {
         try {
@@ -70,6 +71,27 @@ public class MonaLocalPlugin extends Plugin {
             if (!getContext().getSharedPreferences("mona-vault", 0).edit().putString("value", value).commit()) throw new IOException();
             call.resolve();
         } catch (Exception e) { call.reject("Cookie 保存失败，请检查设备存储空间"); }
+    }
+    @PluginMethod public void readCloudVault(PluginCall call) {
+        try {
+            String stored = getContext().getSharedPreferences("mona-cloud-vault", 0).getString("value", null);
+            if (stored == null) { call.resolve(new JSObject().put("text", "{}")); return; }
+            String[] parts = stored.split(":", 2);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, key("mona-cloud-session-v1"), new GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)));
+            call.resolve(new JSObject().put("text", new String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), StandardCharsets.UTF_8)));
+        } catch (Exception e) { call.reject("无法读取在线登录凭据：" + e.getMessage(), "CLOUD_VAULT_READ", e); }
+    }
+    @PluginMethod public void writeCloudVault(PluginCall call) {
+        try {
+            String text = call.getString("text");
+            if (text == null) throw new IOException("在线登录凭据为空");
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, key("mona-cloud-session-v1"));
+            String value = Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + ":" + Base64.encodeToString(cipher.doFinal(text.getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
+            if (!getContext().getSharedPreferences("mona-cloud-vault", 0).edit().putString("value", value).commit()) throw new IOException("设备存储不可写");
+            call.resolve();
+        } catch (Exception e) { call.reject("在线登录凭据保存失败：" + e.getMessage(), "CLOUD_VAULT_WRITE", e); }
     }
     private static final String EXPORT_TOKEN = "_monaExport";
     private volatile String pendingExport;

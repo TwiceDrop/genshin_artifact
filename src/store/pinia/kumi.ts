@@ -207,14 +207,15 @@ function store() {
         }
     }
 
-    function createKumi(dirId: number, name: string): number | null {
+    function createKumi(dirId: number, name: string, sourceCharacter?: KumiItem["sourceCharacter"]): number | null {
         let dir = kumiById.value.get(dirId)
         if (dir) {
             let item: KumiItem = {
                 id: idGenerator.generateId(),
                 title: name,
                 dir: false,
-                artifactIds: [null, null, null, null, null]
+                artifactIds: [null, null, null, null, null],
+                sourceCharacter,
             }
 
             kumi.value.push(item)

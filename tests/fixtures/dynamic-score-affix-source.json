@@ -1,0 +1,206 @@
+{
+  "source": "https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/affixes.json",
+  "checkedAt": "2026-11-09",
+  "affixes": {
+    "501021": {
+      "propType": "FIGHT_PROP_HP",
+      "efficiency": 0.7000167364016736,
+      "position": 1
+    },
+    "501022": {
+      "propType": "FIGHT_PROP_HP",
+      "efficiency": 0.8,
+      "position": 2
+    },
+    "501023": {
+      "propType": "FIGHT_PROP_HP",
+      "efficiency": 0.9000167364016737,
+      "position": 3
+    },
+    "501024": {
+      "propType": "FIGHT_PROP_HP",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501031": {
+      "propType": "FIGHT_PROP_HP_PERCENT",
+      "efficiency": 0.6998284734133792,
+      "position": 1
+    },
+    "501032": {
+      "propType": "FIGHT_PROP_HP_PERCENT",
+      "efficiency": 0.7993138936535163,
+      "position": 2
+    },
+    "501033": {
+      "propType": "FIGHT_PROP_HP_PERCENT",
+      "efficiency": 0.9005145797598628,
+      "position": 3
+    },
+    "501034": {
+      "propType": "FIGHT_PROP_HP_PERCENT",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501051": {
+      "propType": "FIGHT_PROP_ATTACK",
+      "efficiency": 0.7002570694087403,
+      "position": 1
+    },
+    "501052": {
+      "propType": "FIGHT_PROP_ATTACK",
+      "efficiency": 0.8,
+      "position": 2
+    },
+    "501053": {
+      "propType": "FIGHT_PROP_ATTACK",
+      "efficiency": 0.9002570694087405,
+      "position": 3
+    },
+    "501054": {
+      "propType": "FIGHT_PROP_ATTACK",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501061": {
+      "propType": "FIGHT_PROP_ATTACK_PERCENT",
+      "efficiency": 0.6998284734133792,
+      "position": 1
+    },
+    "501062": {
+      "propType": "FIGHT_PROP_ATTACK_PERCENT",
+      "efficiency": 0.7993138936535163,
+      "position": 2
+    },
+    "501063": {
+      "propType": "FIGHT_PROP_ATTACK_PERCENT",
+      "efficiency": 0.9005145797598628,
+      "position": 3
+    },
+    "501064": {
+      "propType": "FIGHT_PROP_ATTACK_PERCENT",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501081": {
+      "propType": "FIGHT_PROP_DEFENSE",
+      "efficiency": 0.6997840172786177,
+      "position": 1
+    },
+    "501082": {
+      "propType": "FIGHT_PROP_DEFENSE",
+      "efficiency": 0.8,
+      "position": 2
+    },
+    "501083": {
+      "propType": "FIGHT_PROP_DEFENSE",
+      "efficiency": 0.8997840172786177,
+      "position": 3
+    },
+    "501084": {
+      "propType": "FIGHT_PROP_DEFENSE",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501091": {
+      "propType": "FIGHT_PROP_DEFENSE_PERCENT",
+      "efficiency": 0.6995884773662551,
+      "position": 1
+    },
+    "501092": {
+      "propType": "FIGHT_PROP_DEFENSE_PERCENT",
+      "efficiency": 0.7997256515775033,
+      "position": 2
+    },
+    "501093": {
+      "propType": "FIGHT_PROP_DEFENSE_PERCENT",
+      "efficiency": 0.8998628257887518,
+      "position": 3
+    },
+    "501094": {
+      "propType": "FIGHT_PROP_DEFENSE_PERCENT",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501201": {
+      "propType": "FIGHT_PROP_CRITICAL",
+      "efficiency": 0.699228791773779,
+      "position": 1
+    },
+    "501202": {
+      "propType": "FIGHT_PROP_CRITICAL",
+      "efficiency": 0.7994858611825193,
+      "position": 2
+    },
+    "501203": {
+      "propType": "FIGHT_PROP_CRITICAL",
+      "efficiency": 0.8997429305912598,
+      "position": 3
+    },
+    "501204": {
+      "propType": "FIGHT_PROP_CRITICAL",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501221": {
+      "propType": "FIGHT_PROP_CRITICAL_HURT",
+      "efficiency": 0.7001287001287,
+      "position": 1
+    },
+    "501222": {
+      "propType": "FIGHT_PROP_CRITICAL_HURT",
+      "efficiency": 0.8005148005148004,
+      "position": 2
+    },
+    "501223": {
+      "propType": "FIGHT_PROP_CRITICAL_HURT",
+      "efficiency": 0.8996138996138996,
+      "position": 3
+    },
+    "501224": {
+      "propType": "FIGHT_PROP_CRITICAL_HURT",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501231": {
+      "propType": "FIGHT_PROP_CHARGE_EFFICIENCY",
+      "efficiency": 0.6990740740740741,
+      "position": 1
+    },
+    "501232": {
+      "propType": "FIGHT_PROP_CHARGE_EFFICIENCY",
+      "efficiency": 0.7993827160493827,
+      "position": 2
+    },
+    "501233": {
+      "propType": "FIGHT_PROP_CHARGE_EFFICIENCY",
+      "efficiency": 0.8996913580246914,
+      "position": 3
+    },
+    "501234": {
+      "propType": "FIGHT_PROP_CHARGE_EFFICIENCY",
+      "efficiency": 1,
+      "position": 4
+    },
+    "501241": {
+      "propType": "FIGHT_PROP_ELEMENT_MASTERY",
+      "efficiency": 0.7001287001287002,
+      "position": 1
+    },
+    "501242": {
+      "propType": "FIGHT_PROP_ELEMENT_MASTERY",
+      "efficiency": 0.8000858000858001,
+      "position": 2
+    },
+    "501243": {
+      "propType": "FIGHT_PROP_ELEMENT_MASTERY",
+      "efficiency": 0.9000429000429001,
+      "position": 3
+    },
+    "501244": {
+      "propType": "FIGHT_PROP_ELEMENT_MASTERY",
+      "efficiency": 1,
+      "position": 4
+    }
+  }
+}

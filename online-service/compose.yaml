@@ -1,0 +1,152 @@
+name: mona-online
+
+x-app: &app
+  image: mona-online-service:7.2.04
+  build:
+    context: ..
+    dockerfile: online-service/Dockerfile
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:size=16m,mode=1777
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  environment: &app-env
+    NODE_ENV: production
+    HOST: 0.0.0.0
+    PORT: 8080
+    TRUST_PROXY: "true"
+    DATABASE_URL_FILE: /run/secrets/database_url
+    VAULT_KEY_FILE: /run/secrets/vault_key
+    SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST in .env}
+    SMTP_PORT: ${SMTP_PORT:-587}
+    SMTP_SECURE: ${SMTP_SECURE:-false}
+    SMTP_REQUIRE_TLS: ${SMTP_REQUIRE_TLS:-true}
+    SMTP_TIMEOUT_MS: ${SMTP_TIMEOUT_MS:-15000}
+    SMTP_USER: ${SMTP_USER:?Set SMTP_USER in .env}
+    SMTP_PASSWORD_FILE: /run/secrets/smtp_password
+    MAIL_FROM: ${MAIL_FROM:?Set MAIL_FROM in .env}
+    CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+    OTP_TTL_SECONDS: ${OTP_TTL_SECONDS:-600}
+    OTP_RESEND_SECONDS: ${OTP_RESEND_SECONDS:-60}
+    SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+    SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-360}
+    WORKER_POLL_MS: ${WORKER_POLL_MS:-2000}
+    JOB_LEASE_SECONDS: ${JOB_LEASE_SECONDS:-120}
+  secrets:
+    - database_url
+    - vault_key
+    - smtp_password
+  networks:
+    - service
+    - database
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mona
+      POSTGRES_USER: mona
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mona -d mona"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  migrate:
+    <<: *app
+    command: ["node", "src/migrate.mjs"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    command: ["node", "src/main.mjs"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${LOCAL_API_PORT:-18080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "--input-type=module", "-e", "const r = await fetch('http://127.0.0.1:8080/healthz'); process.exit(r.ok ? 0 : 1)"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  worker:
+    <<: *app
+    command: ["node", "src/worker-main.mjs"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SERVICE_DOMAIN: ${SERVICE_DOMAIN:?Set SERVICE_DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - service
+    depends_on:
+      api:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  service:
+  database:
+    internal: true
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
+  database_url:
+    file: ./secrets/database_url
+  vault_key:
+    file: ./secrets/vault_key
+  smtp_password:
+    file: ./secrets/smtp_password

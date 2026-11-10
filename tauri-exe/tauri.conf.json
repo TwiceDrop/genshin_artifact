@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "莫娜占卜铺 7.2.04",
+  "version": "../package.json",
+  "identifier": "com.mona.artifact.tauri7204",
+  "build": {
+    "frontendDist": "bootstrap",
+    "windows": { "staticVCRuntime": true }
+  },
+  "app": {
+    "windows": [],
+    "security": { "csp": null },
+    "withGlobalTauri": false
+  },
+  "bundle": {
+    "active": false,
+    "icon": ["../public/favicon.ico"]
+  }
+}

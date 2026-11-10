@@ -29,3 +29,15 @@ export function deleteTeamDpsConfiguration(library,key){
  if(library.selectedId===key)library.selectedId=null;
 }
 export const exportTeamDpsConfiguration=axis=>JSON.stringify(validateTeamDpsConfiguration(axis),null,2)+'\n';
+
+export const teamDpsTasksKey=accountId=>'mona_account_team_dps_tasks_'+accountId;
+export function saveTeamDpsTasks(backend,accountId,tasks){
+ const snapshot=JSON.parse(JSON.stringify(tasks));
+ const write=(libraryWrites.get(accountId)||Promise.resolve()).then(()=>backend.setItem(teamDpsTasksKey(accountId),snapshot));
+ const settled=write.then(()=>undefined,()=>undefined);libraryWrites.set(accountId,settled);
+ settled.then(()=>{if(libraryWrites.get(accountId)===settled)libraryWrites.delete(accountId);});
+ return write;
+}
+export async function flushTeamDpsWrites(accountId){
+ let pending;do{pending=libraryWrites.get(accountId);await pending;}while(pending!==libraryWrites.get(accountId)&&libraryWrites.has(accountId));
+}

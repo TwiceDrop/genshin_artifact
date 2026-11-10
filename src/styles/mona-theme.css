@@ -1,0 +1,70 @@
+/* Colour layer only: all dimensions, layouts and interactions stay in their owners. */
+html[data-color-mode="dark"] {
+  color-scheme: dark;
+  --mona-canvas:#121922; --mona-surface:#1b2430; --mona-inset:#202c3a;
+  --mona-text:#e4ebf5; --mona-muted:#afbed0; --mona-quiet:#94a6bc;
+  --mona-border:#344457; --mona-line:#2b394a; --mona-accent:#87b7ed;
+  --mona-action:#356da8; --mona-tint:#223a55;
+  --el-color-primary:#87b7ed; --el-color-primary-dark-2:#a8cafa;
+  --el-color-primary-light-3:#7199ca; --el-color-primary-light-5:#44678e;
+  --el-color-primary-light-7:#2d4868; --el-color-primary-light-8:#253d58; --el-color-primary-light-9:#202f41;
+  --el-color-success:#83c7a3; --el-color-success-light-9:#20392f; --el-color-success-light-8:#2d4a3c;
+  --el-color-warning:#dbb674; --el-color-warning-light-9:#3c3324; --el-color-warning-light-8:#514431;
+  --el-color-danger:#ee8c91; --el-color-danger-light-9:#402a32; --el-color-danger-light-8:#52343e;
+  --el-color-error:#ee8c91; --el-color-error-light-9:#402a32;
+  --el-color-info:#afbed0; --el-color-info-light-9:#253140; --el-color-info-light-8:#334253;
+  --el-bg-color-page:#121922; --el-bg-color:#1b2430; --el-bg-color-overlay:#222e3d;
+  --el-text-color-primary:#e4ebf5; --el-text-color-regular:#c5d1e0; --el-text-color-secondary:#afbed0;
+  --el-text-color-placeholder:#94a6bc; --el-text-color-disabled:#77879b;
+  --el-border-color:#344457; --el-border-color-light:#2b394a; --el-border-color-lighter:#293646; --el-border-color-extra-light:#253241;
+  --el-fill-color:#293647; --el-fill-color-light:#202c3a; --el-fill-color-lighter:#253241;
+  --el-fill-color-extra-light:#202b38; --el-fill-color-dark:#344457; --el-fill-color-darker:#45566a; --el-fill-color-blank:#1b2430;
+  --el-mask-color:rgba(10,16,24,.85); --el-mask-color-extra-light:rgba(10,16,24,.35);
+  --el-overlay-color:rgba(0,0,0,.7); --el-overlay-color-light:rgba(0,0,0,.6); --el-overlay-color-lighter:rgba(0,0,0,.5);
+  --el-box-shadow:0 12px 32px #00000040; --el-box-shadow-light:0 0 12px #00000030;
+  --background:215 27% 15%; --foreground:215 46% 92%; --primary:211 52% 43%; --primary-foreground:0 0% 100%;
+  --secondary:215 28% 20%; --secondary-foreground:215 46% 92%; --accent:212 35% 23%; --input:213 25% 32%;
+  --destructive:354 44% 42%; --destructive-foreground:0 0% 100%;
+  background:var(--mona-canvas); color:var(--mona-text);
+}
+html[data-color-mode="dark"] body {background:var(--mona-canvas);color:var(--mona-text)}
+html[data-color-mode="dark"] [data-theme="mist"] {
+  --canvas:var(--mona-canvas); --surface:var(--mona-surface); --surface-inset:var(--mona-inset);
+  --ink:var(--mona-text); --ink-secondary:#c5d1e0; --quiet:var(--mona-muted);
+  --rule:var(--mona-border); --hairline:var(--mona-line); --field-edge:#52667d;
+  --accent:#87b7ed; --action:#356da8; --accent-hover:#4c83bc; --tint:var(--mona-tint);
+  --profile:#1c2b3c; --on-action:#f2f6fc; --portrait-bg:#2b4058; --focus:#87b7ed;
+  --primary:211 52% 43%; --primary-foreground:0 0% 100%;
+}
+html[data-color-mode="dark"] .el-button--primary,
+html[data-color-mode="dark"] .calc-content .calc-run,
+html[data-color-mode="dark"] .calc-content .el-button--primary {
+  --el-button-bg-color:#356da8; --el-button-border-color:#477daf; --el-button-text-color:#f2f6fc;
+  --el-button-hover-bg-color:#3c74af; --el-button-hover-border-color:#6395cb; --el-button-hover-text-color:#fff;
+  --el-button-active-bg-color:#2c5f95; --el-button-active-border-color:#477daf;
+  --el-button-disabled-bg-color:#2d435e; --el-button-disabled-border-color:#344a63; --el-button-disabled-text-color:#94a6bc;
+}
+html[data-color-mode="dark"] .el-button--primary.is-plain {--el-button-bg-color:#223a55;--el-button-text-color:#a9cdf7}
+html[data-color-mode="dark"] .el-radio-button {--el-radio-button-checked-bg-color:#356da8;--el-radio-button-checked-border-color:#477daf;--el-radio-button-checked-text-color:#f2f6fc}
+html[data-color-mode="dark"] .el-switch {--el-switch-on-color:#447fbf;--el-switch-off-color:#47566b}
+html[data-color-mode="dark"] .nav-bar,
+html[data-color-mode="dark"] .mobile-bottom-nav {background:#17212d}
+html[data-color-mode="dark"] .config-root {background:var(--mona-inset)!important}
+html[data-color-mode="dark"] .header-row .big-title {background:#233e5b!important;color:#d9e8f8}
+html[data-color-mode="dark"] .mona-scroll::-webkit-scrollbar-track {background:#16202b}
+html[data-color-mode="dark"] .mona-scroll::-webkit-scrollbar-thumb {background:#42546b}
+html[data-color-mode="dark"] ::selection {background:#365e8d;color:#fff}
+html[data-color-mode="dark"] .el-button--danger {
+  --el-button-bg-color:#a93f4b; --el-button-border-color:#bd5260; --el-button-text-color:#fff;
+  --el-button-hover-bg-color:#b24754; --el-button-hover-border-color:#cb6571; --el-button-hover-text-color:#fff;
+  --el-button-active-bg-color:#913744; --el-button-active-border-color:#a94b59;
+}
+html[data-color-mode="dark"] .el-button--danger.is-plain {--el-button-bg-color:#402a32;--el-button-text-color:#ee8c91}
+html[data-color-mode="dark"] .constellation-line button[aria-pressed=true],
+html[data-color-mode="dark"] .target-trigger:hover,
+html[data-color-mode="dark"] .target-trigger[aria-expanded=true] {color:#a9cdf7}
+html.mona-mobile[data-color-mode="dark"] .m-tab[data-state=active],
+html.mona-mobile[data-color-mode="dark"] .m-option-selected,
+html.mona-mobile[data-color-mode="dark"] .mobile-slot-label {color:#87b7ed}
+html.mona-mobile[data-color-mode="dark"] .m-button.m-text-foreground:not(.m-bg-background) {background-color:transparent}
+

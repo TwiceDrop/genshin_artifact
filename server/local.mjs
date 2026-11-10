@@ -4,13 +4,15 @@ import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LocalUpdater } from './updates.mjs'
+import { CloudGateway } from './cloud.mjs'
 import { communityClient } from './hoyolab.mjs'
 import { communityAccount } from './cookie.mjs'
 import { startHoyolabWebLogin } from './hoyolab-web-login.mjs'
 import { CredentialStore, normalizeCookie, publicAccount } from './credentials.mjs'
 
 export function createLocalServer({ clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
-    updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
+    cloudGateway, updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
+    let cloud = cloudGateway
     const sessions = new Map()
     const calculationSession = randomBytes(16).toString('hex')
     const cleanup = s => { s.cancelled = true; s.webLogin?.cancel(); s.client.clear() }
@@ -27,10 +29,10 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
             const sid = req.headers.cookie?.split(';').map(x => x.trim()).find(x => x.startsWith('mona_mys='))?.slice(9)
             let session = sessions.get(sid)
             if (session && Date.now() > session.expires) { cleanup(session); sessions.delete(sid); session = null }
-            const input = async () => {
-                let body = ''
-                for await (const chunk of req) { body += chunk; if (body.length > 20000) throw new Error('请求过大') }
-                return JSON.parse(body || '{}')
+            const input = async (limit = 20000) => {
+                const chunks = []; let size = 0
+                for await (const chunk of req) { size += chunk.length; if (size > limit) throw new Error('请求过大'); chunks.push(chunk) }
+                return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
             }
             const activate = (client, accountId = null) => {
                 if (session) { cleanup(session); sessions.delete(sid) }
@@ -56,6 +58,14 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
                 })
             }
             try {
+                if (url.pathname.startsWith('/api/cloud/')) {
+                    cloud ||= new CloudGateway({ file: path.join(path.dirname(credentialStore.file), 'cloud-session.dpapi'), credentialStore })
+                    const expectedContext = req.headers['x-mona-cloud-url'] || req.headers['x-mona-cloud-user']
+                        ? { url: decodeURIComponent(req.headers['x-mona-cloud-url'] || ''), userId: req.headers['x-mona-cloud-user'] } : undefined
+                    const result = await cloud.handle(url.pathname.slice('/api/cloud'.length) + url.search, req.method,
+                        ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : 20000), expectedContext)
+                    return json(result.data, result.status)
+                }
                 if (url.pathname.startsWith('/api/update/')) {
                     if (url.pathname === '/api/update/info' && req.method === 'GET') return json(updater.info())
                     if (url.pathname === '/api/update/status' && req.method === 'GET') return json(updater.status())

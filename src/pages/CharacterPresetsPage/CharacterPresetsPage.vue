@@ -63,7 +63,7 @@
         <template v-else>
             <el-empty>
                 <p
-                    style="font-size: 0.9em; color: #606266"
+                    style="font-size: 0.9em; color: var(--el-text-color-regular, #606266)"
                 >
                     {{ t("presetPage.go") }}<span class="route-item" @click="$router.replace('/calculate')">{{ t("misc.calculator") }}</span>{{ t("presetPage.toCalc") }}
                 </p>

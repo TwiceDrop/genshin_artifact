@@ -308,6 +308,10 @@ export default {
         count: "Rolls",
     },
     setupPage: {
+        appearance: "Appearance",
+        light: "Light",
+        dark: "Dark",
+        system: "System",
         storage: "Storage",
         clear: "Clear local storage",
         confirmClear: "Confirm clear local storage?",

@@ -1,0 +1,23 @@
+{
+  "name": "mona-online-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/main.mjs",
+    "worker": "node src/worker-main.mjs",
+    "migrate": "node src/migrate.mjs",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "test:profiles": "node --test --test-concurrency=1 tests/profiles.test.mjs"
+  },
+  "dependencies": {
+    "nodemailer": "10.3.1",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.15"
+  }
+}

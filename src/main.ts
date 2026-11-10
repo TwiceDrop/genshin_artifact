@@ -1,3 +1,5 @@
+import "./styles/color-mode.mjs";
+import "./styles/mona-theme.css";
 import "./styles/global.scss";
 import "./styles/select.css";
 import './styles/mobile.scss'
@@ -11,6 +13,7 @@ if (process.env.MONA_MOBILE) {
 import router from "./router/router"
 
 import { createApp, h } from 'vue'
+import {chartTheme} from './styles/color-mode.mjs'
 
 import App from './App.vue'
 import {initI18n} from "@/i18n/i18n"
@@ -37,6 +40,7 @@ async function mount() {
     await initI18n()
 
     // vue router
+    monaApp.provide('ecTheme', chartTheme)
     monaApp.use(router)
 
     monaApp.mount("#app")

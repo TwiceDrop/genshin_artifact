@@ -11,3 +11,14 @@ export function otherCharacterArtifactIds(entries, uid, currentKey, inventory) {
     }
     return reserved
 }
+
+// A saved group's source is distinct from imported game equipment ownership.
+// Older groups can identify a source only through a complete, exact preset match.
+export function artifactGroupCharacterNames(group, presets, inventory) {
+    if (group.sourceCharacter) return [group.sourceCharacter]
+    const ids = group.artifactIds
+    if (!ids || ids.length !== 5 || !ids.every(id => id !== null && id >= 0 && inventory.has(id))) return []
+    return [...new Set(presets.filter(entry => entry.item.artifactIds?.length === 5
+        && ids.every((id, index) => id === entry.item.artifactIds[index]))
+        .map(entry => entry.item.character.name))]
+}

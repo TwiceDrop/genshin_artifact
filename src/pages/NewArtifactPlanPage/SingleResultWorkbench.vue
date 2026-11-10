@@ -24,10 +24,11 @@
   </div>
   <div class="gear-sheet">
     <header><h3>圣遗物</h3><span>已穿戴 {{ items.filter(Boolean).length }} 件</span>
-      <button class="link push" @click="$emit('analysis')">词条分析</button>
+      <div class="push"><slot name="scoring"><button class="link" @click="$emit('dynamic')">动态伤害评分</button></slot></div>
+      <button class="link" @click="$emit('analysis')">词条分析</button>
       <button class="link" @click="$emit('equipment')">套装操作 ›</button></header>
     <div class="gear-narrow-tabs"><button v-for="(slot,i) in slots" :key="slot" :aria-pressed="selected===i" @click="selected=i">{{ slot }}</button></div>
-    <div class="gear-head gear-grid"><span>装备</span><span>主词条</span><span>副词条</span><span>喵喵评分</span><span></span></div>
+    <div class="gear-head gear-grid"><span>装备</span><span>主词条</span><span>副词条</span><span>{{ scoreLabel }}</span><span></span></div>
     <div v-for="(item,i) in items" :key="i" class="gear-block" :class="{'is-changed':!!changes[i],'is-slot':selected===i}" :data-slot="i">
       <div class="gear-row gear-grid">
         <div class="gear-id"><img v-if="item" :src="itemImage(item)" alt=""><div><b>{{ item ? ta(meta(item).text) : '未装备' }}</b>
@@ -45,7 +46,7 @@
           <tr v-if="!changedAffixes(baseline?.[i],item).length"><td colspan="3">装备不同，主副词条一致</td></tr></tbody></table>
       </section>
     </div>
-    <footer>圣遗物总分 <b class="miao-score" :data-grade="total.split(' ').pop()">{{ total }}</b></footer>
+    <footer><span>{{ totalLabel }} <b class="miao-score" :data-grade="total.split(' ').pop()">{{ total }}</b></span><slot name="score-basis" /></footer>
   </div>
   <nav class="further"><button class="link" @click="$emit('details')">详细伤害表 ›</button><button class="link" @click="$emit('curve')">最优收益曲线 ›</button><button class="link" @click="$emit('equipment')">装备设置 ›</button></nav>
 </section>
@@ -57,8 +58,8 @@ import {displayedTag} from '@/utils/artifacts'
 import {useI18n} from '@/i18n/i18n'
 import {defaultDamageReaction,damageReactionLabel} from '@/algorithms/reaction-labels.mjs'
 import {changedAffixes,displayScore,percentChange,sameHitBaseline} from '@/algorithms/single-result-comparison.mjs'
-const props=defineProps({character:String,skill:String,analysis:Object,previous:Object,items:Array,baseline:Array,changes:Array,baselineLabel:String,panelData:Object,score:Function,total:String,count:Number,index:Number,rechargeMin:Number,dsl:Object,metricError:String})
-defineEmits(['details','panel','equipment','analysis','score','replace','curve','candidates'])
+const props=defineProps({character:String,skill:String,analysis:Object,previous:Object,items:Array,baseline:Array,changes:Array,baselineLabel:String,panelData:Object,score:Function,total:String,count:Number,index:Number,rechargeMin:Number,dsl:Object,metricError:String,scoreLabel:{type:String,default:'喵喵评分'},totalLabel:{type:String,default:'喵喵总分'}})
+defineEmits(['details','panel','equipment','analysis','score','replace','curve','candidates','dynamic'])
 const {ta,t}=useI18n(),slots=['生之花','死之羽','时之沙','空之杯','理之冠'],stats=[['critical','暴击率'],['critical_damage','暴击伤害'],['recharge','充能效率']]
 const changed=computed(()=>props.changes.flatMap((s,i)=>s?[i]:[])),selected=ref(0),baseOpen=ref(false)
 watch(changed, v=>{if(v.length)selected.value=v[0]},{immediate:true})
@@ -85,5 +86,6 @@ const meta=a=>artifactsData[a.setName][a.position]
 const tag=s=>{const str=displayedTag(s.name,s.value),i=str.indexOf('+');return [str.slice(0,i),str.slice(i)]}
 </script>
 <style scoped src="./single-result-workbench.css"></style>
+<style scoped>.gear-sheet footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}</style>
 
 <style scoped src="../../styles/artifact-score.css"></style>

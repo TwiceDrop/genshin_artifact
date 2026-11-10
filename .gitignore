@@ -64,3 +64,10 @@ inspect.js
 mona-debug-*.json
 
 /mobile/shadcn.css
+
+# Source-only snapshots: keep generated wrapper payloads local.
+/tauri-exe/payload.tar.gz
+/tauri-exe/payload-manifest.json
+/tauri-exe/gen/
+# This is the deployment script, not a backup data file.
+!/online-service/scripts/backup.sh

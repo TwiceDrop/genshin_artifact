@@ -1,0 +1,29 @@
+[package]
+name = "mona-tauri7204"
+version = "7.2.4"
+edition = "2021"
+description = "莫娜占卜铺 7.2.04 Tauri 2"
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "=2.7.3", features = [] }
+serde_json = "1"
+
+[dependencies]
+tauri = { version = "=2.12.4", features = [] }
+tauri-plugin-single-instance = "=2.5.4"
+serde_json = "1"
+flate2 = "=1.1.10"
+tar = "0.4"
+rfd = "=0.15.4"
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+opt-level = "s"
+strip = true
+lto = "thin"
+codegen-units = 1

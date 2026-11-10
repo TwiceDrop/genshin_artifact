@@ -1,7 +1,11 @@
 <template>
     <el-dialog :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)"
-        title="圣遗物详情 · 喵喵评分" width="min(1020px, 95vw)" top="6vh" destroy-on-close>
+        :title="dynamicResult ? '圣遗物详情 · 动态伤害 / 喵喵评分' : '圣遗物详情 · 喵喵评分'" width="min(1020px, 95vw)" top="6vh" destroy-on-close>
         <div v-if="item" class="score-dialog">
+            <section v-if="context" class="dynamic-detail"><h3>{{ context.label || context.name }} · 动态伤害评分</h3>
+                <el-button @click="emit('dynamic')">{{ dynamicResult ? '查看动态评分条件与参照' : '启用动态伤害评分' }}</el-button>
+                <dl v-if="dynamicRow"><dt>动态替换效率 / 70</dt><dd>{{ dynamicRow.score?.toFixed(2) ?? '不可定义' }}</dd><dt>单件替换伤害提升</dt><dd>{{ dynamicRow.replacementPercent===null?'不可定义':(dynamicRow.replacementPercent*100).toFixed(2)+'%' }}</dd><dt>Shapley 增量伤害</dt><dd>{{ dynamicRow.shapleyDamage.toFixed(2) }}</dd><dt>整套参照增伤分 / 350</dt><dd>{{ dynamicResult.score?.toFixed(2) ?? '不可定义' }} · 基准 {{ dynamicResult.basis }} · 未证明全局最优</dd></dl>
+            </section>
             <div class="score-layout">
                 <section class="piece-details">
                     <div class="piece-heading">
@@ -9,8 +13,8 @@
                         <div><h2>{{ locale[piece?.text] || item.setName }}</h2><p>{{ locale[set?.nameLocale] }} · {{ positionLabel }} · {{ item.star }}星 · +{{ item.level }}</p></div>
                     </div>
                     <div class="score-overview">
-                        <div><span>普通评分</span><strong class="miao-score" :data-grade="getMarkClass(ranking.score)">{{ ranking.score.toFixed(1) }} <small>{{ getMarkClass(ranking.score) }}</small></strong></div>
-                        <div v-if="details"><span>{{ inspection.label || inspection.name }}</span><strong class="miao-score" :data-grade="details.grade">{{ details.score.toFixed(1) }} <small>{{ details.grade }}</small></strong></div>
+                        <div><span>喵喵普通评分</span><strong class="miao-score" :data-grade="getMarkClass(ranking.score)">{{ ranking.score.toFixed(1) }} <small>{{ getMarkClass(ranking.score) }}</small></strong></div>
+                        <div v-if="details"><span>{{ inspection.label || inspection.name }} · 喵喵评分</span><strong class="miao-score" :data-grade="details.grade">{{ details.score.toFixed(1) }} <small>{{ details.grade }}</small></strong></div>
                     </div>
                     <el-button v-if="context" size="small" @click="rankName = ''">查看当前角色：{{ context.label || context.name }}</el-button>
                     <table class="stat-table">
@@ -23,7 +27,7 @@
                         </tbody>
                     </table>
                     <div v-if="build" class="build-summary">
-                        <span>{{ context.label || context.name }} · 圣遗物总分</span>
+                        <span>{{ context.label || context.name }} · 喵喵总分</span>
                         <strong class="miao-score" :data-grade="build.grade">{{ build.total === null ? '—' : build.total.toFixed(1) }} <small>{{ build.grade }}</small></strong>
                     </div>
                 </section>
@@ -54,10 +58,11 @@ import characters from '@/assets/_gen_character'
 import locale from '@/i18n/generated/zh-cn.json'
 import { scoreRanking, scoreDetails, scoreBuild, rankingContext, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 
-const props = defineProps({ modelValue: Boolean, item: Object, context: Object, initialCharacter: { type: String, default: '' }, equipped: { type: Array, default: () => [] } })
-const emit = defineEmits(['update:modelValue', 'replace'])
+const props = defineProps({ modelValue: Boolean, item: Object, context: Object, dynamicResult: Object, initialCharacter: { type: String, default: '' }, equipped: { type: Array, default: () => [] } })
+const emit = defineEmits(['update:modelValue', 'replace', 'dynamic'])
 const rankName = ref(props.initialCharacter), search = ref('')
 watch(() => [props.modelValue, props.item?.id, props.initialCharacter], () => { rankName.value = props.initialCharacter; search.value = '' })
+const dynamicRow=computed(()=>props.dynamicResult?.rows[['flower','feather','sand','cup','head'].indexOf(props.item?.position)])
 const set = computed(() => sets[props.item?.setName])
 const piece = computed(() => set.value?.[props.item?.position])
 const positionLabel = computed(() => ({ flower: '生之花', feather: '死之羽', sand: '时之沙', cup: '空之杯', head: '理之冠' }[props.item?.position]))
@@ -70,6 +75,8 @@ const portraits = Object.fromEntries(Object.values(characters).map(c => [locale[
 </script>
 
 <style scoped>
+.dynamic-detail{margin-bottom:20px}.dynamic-detail dl{display:grid;grid-template-columns:180px 1fr;gap:8px;font-size:13px}.dynamic-detail dd{margin:0}.dynamic-detail dt{color:var(--el-text-color-secondary)}
+
 .score-dialog{color:var(--el-text-color-primary);max-height:calc(88vh - 160px);overflow:auto;padding-right:8px}.score-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px}
 .piece-heading{display:flex;align-items:center;gap:16px}.piece-heading img{width:76px;height:76px;object-fit:contain;background:#d5a34f;border-radius:12px}.piece-heading h2{font-size:19px;margin:0 0 8px}.piece-heading p{font-size:12px;color:var(--el-text-color-secondary);margin:0;line-height:1.6}
 .score-overview{display:flex;gap:32px;background:var(--el-color-primary-light-9);padding:16px;margin:20px 0 12px;border-radius:8px}.score-overview span,.build-summary>span{display:block;font-size:13px}.score-overview strong,.build-summary strong{display:block;font-size:29px;margin-top:6px;color:var(--el-color-primary)}.score-overview small,.build-summary small{font-size:17px;margin-left:5px}

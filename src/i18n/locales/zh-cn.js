@@ -310,6 +310,10 @@ export default {
         count: "词条数",
     },
     setupPage: {
+        appearance: "外观",
+        light: "浅色",
+        dark: "深色",
+        system: "跟随系统",
         storage: "存储",
         clear: "清空本地存储",
         confirmClear: "确定清空本地存储吗？",

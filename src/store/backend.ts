@@ -46,6 +46,29 @@ class LocalBackend {
         await localforage.setItem(BACKEND_META_KEY, meta)
     }
 
+    async batch(entries: [string, any][], removals: string[], meta: BackendMeta, beforeWrite: () => void = () => {}) {
+        await localforage.ready()
+        if (localforage.driver() !== localforage.INDEXEDDB) throw new Error('云档案恢复需要 IndexedDB 存储')
+        const name = (localforage as any).config('name') as string, storeName = (localforage as any).config('storeName') as string
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+            const request = indexedDB.open(name)
+            request.onsuccess = () => resolve(request.result)
+            request.onerror = () => reject(request.error)
+        })
+        try {
+            beforeWrite()
+            await new Promise<void>((resolve, reject) => {
+                const transaction = db.transaction(storeName, 'readwrite'), store = transaction.objectStore(storeName)
+                transaction.oncomplete = () => resolve()
+                transaction.onabort = () => reject(transaction.error || new Error('云档案写入已中止'))
+                transaction.onerror = () => reject(transaction.error)
+                for (const key of removals) store.delete(key)
+                for (const [key, value] of entries) store.put(value, key)
+                store.put(meta, BACKEND_META_KEY)
+            })
+        } finally { db.close() }
+    }
+
     async getMeta(): Promise<BackendMeta | null> {
         return await localforage.getItem(BACKEND_META_KEY)
     }
@@ -290,6 +313,23 @@ function isWindowActive() {
 }
 
 class MixedBackend {
+    private writeQueue: Promise<void> = Promise.resolve()
+    private writeErrors = new Map<string, any>()
+    private mutationListeners = new Set<(event: any) => void>()
+
+    subscribeMutations(callback: (event: any) => void) {
+        this.mutationListeners.add(callback)
+        return () => this.mutationListeners.delete(callback)
+    }
+
+    private enqueue(keys: string[], action: () => Promise<void>, event: any) {
+        const task = this.writeQueue.then(action)
+        this.writeQueue = task.then(() => { for (const key of keys) this.writeErrors.delete(key) }, error => {
+            for (const key of keys) this.writeErrors.set(key, error)
+        })
+        for (const callback of this.mutationListeners) callback(event)
+        return task
+    }
     constructor(
         private fileBackend = new FileBackend(),
         private localBackend = new LocalBackend(),
@@ -324,9 +364,10 @@ class MixedBackend {
     }
 
     async allReady() {
-        if (this.fileBackend.connected()) {
-            await this.fileBackend.allWritten()
-        }
+        let pending: Promise<void>
+        do { pending = this.writeQueue; await pending } while (pending !== this.writeQueue)
+        if (this.writeErrors.size) throw this.writeErrors.values().next().value
+        if (this.fileBackend.connected()) await this.fileBackend.allWritten()
     }
 
     // startConsistencyCheck() {
@@ -364,39 +405,49 @@ class MixedBackend {
         return await this.localBackend.getItem(key)
     }
 
-    async setItem(key: string, value: any) {
-        await this.checkConsistency()
-        const meta = genMeta()
-        await this.localBackend.setItem(key, value, meta)
+    setItem(key: string, value: any, options: { source?: string } = {}) {
+        const snapshot = JSON.parse(JSON.stringify(value))
+        return this.enqueue([key], async () => {
+            await this.checkConsistency()
+            const meta = genMeta()
+            await this.localBackend.setItem(key, snapshot, meta)
+            await this.mirror([[key, snapshot]], [], meta)
+        }, { keys: [key], entries: [[key, snapshot]], source: options.source || 'local' })
+    }
+
+    removeItem(key: string, options: { source?: string } = {}) {
+        return this.enqueue([key], async () => {
+            await this.checkConsistency()
+            const meta = genMeta()
+            await this.localBackend.removeItem(key, meta)
+            await this.mirror([], [key], meta)
+        }, { keys: [key], entries: [], source: options.source || 'local' })
+    }
+
+    batch(entries: [string, any][], removals: string[] = [], options: { source?: string, beforeWrite?: () => void } = {}) {
+        const snapshot = JSON.parse(JSON.stringify(entries)) as [string, any][], keys = [...snapshot.map(([key]) => key), ...removals]
+        return this.enqueue(keys, async () => {
+            await this.checkConsistency()
+            options.beforeWrite?.()
+            const meta = genMeta()
+            await this.localBackend.batch(snapshot, removals, meta, options.beforeWrite)
+            await this.mirror(snapshot, removals, meta)
+        }, { keys, entries: snapshot, source: options.source || 'local' })
+    }
+
+    private async mirror(entries: [string, any][], removals: string[], meta: BackendMeta) {
+        if (!this.fileBackend.connected()) return
         try {
-            if (this.fileBackend.connected()) {
-                await this.fileBackend.setItem(key, value, meta)
+            for (const key of removals) await this.fileBackend.removeItem(key, meta)
+            for (const [key, value] of entries) await this.fileBackend.setItem(key, value, meta)
+        } catch (error) {
+            if (error instanceof ModifiedExternallyError) {
+                this.disconnectFileBackend()
             }
-        } catch (err) {
-            if (err instanceof ModifiedExternallyError) {
-                alert('本地目录已被外部程序修改，已停止与本地目录同步。\n你可以手动重新同步。')
-                this.fileBackend.disconnect()
-                this.callbacks['cancelFileBackend']?.apply(undefined)
-            }
+            throw error
         }
     }
 
-    async removeItem(key: string) {
-        await this.checkConsistency()
-        const meta = genMeta()
-        await this.localBackend.removeItem(key, meta)
-        try {
-            if (this.fileBackend.connected()) {
-                await this.fileBackend.removeItem(key, meta)
-            }
-        } catch (err) {
-            if (err instanceof ModifiedExternallyError) {
-                alert('本地目录已被外部程序修改，已停止与本地目录同步。\n你可以手动重新同步。')
-                this.fileBackend.disconnect()
-                this.callbacks['cancelFileBackend']?.apply(undefined)
-            }
-        }
-    }
 }
 
 export default new MixedBackend()

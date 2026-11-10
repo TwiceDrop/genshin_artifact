@@ -11,7 +11,14 @@
 
 
 
+    <script>
+      const mode = new URLSearchParams(location.search).get('theme') || localStorage.getItem('mona_color_mode') || 'auto';
+      const dark = mode === 'dark' || mode !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.colorMode = dark ? 'dark' : 'light';
+      document.documentElement.classList.toggle('dark', dark);
+    </script>
     <style>
+        html[data-color-mode="dark"], html[data-color-mode="dark"] body { background: #121922; color: #e4ebf5; color-scheme: dark; }
         .loading {
             height: 100vh;
             width: 100vw;

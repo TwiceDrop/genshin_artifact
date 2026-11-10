@@ -15,6 +15,7 @@
                 <el-icon><i-ep-setting></i-ep-setting></el-icon>
                 <span>{{ t("nav.setup") }}</span>
             </el-menu-item>
+
             <el-menu-item index="/account">
                 <el-icon><i-ep-user /></el-icon>
                 <span>{{ t("nav.account") }} / {{ currentAccountName }}</span>

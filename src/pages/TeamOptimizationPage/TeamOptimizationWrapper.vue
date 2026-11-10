@@ -76,7 +76,7 @@ import backend from '@/store/backend'
 import {downloadString} from '@/utils/common'
 import {characterData} from '@/assets/character'
 import locale from '@/i18n/generated/zh-cn.json'
-import {loadTeamDpsLibrary,saveTeamDpsLibrary,emptyTeamDpsLibrary,importTeamDpsConfiguration,updateTeamDpsConfiguration,deleteTeamDpsConfiguration,exportTeamDpsConfiguration} from '../../../beta-data/team-dps-library.mjs'
+import {saveTeamDpsTasks,loadTeamDpsLibrary,saveTeamDpsLibrary,emptyTeamDpsLibrary,importTeamDpsConfiguration,updateTeamDpsConfiguration,deleteTeamDpsConfiguration,exportTeamDpsConfiguration} from '../../../beta-data/team-dps-library.mjs'
 import {TEAM_ACTION_CATALOG,createActionAxis,actionAxisDurationMs} from '../../../beta-data/team-engine/action-config.mjs'
 import {validateTeamDpsConfiguration} from '../../../beta-data/team-dps-config.mjs'
 import {legacyActionAxis} from '../../../beta-data/team-engine/legacy-conversion.mjs'
@@ -112,11 +112,11 @@ const actionSupport=[
 const tasksKey=(accountId:number)=>'mona_account_team_dps_tasks_'+accountId
 let taskWrites=Promise.resolve()
 function saveTask({key,accountId,uid,state}:any){
- if(key<0)return;
+ if(key<0||account.applyingCloud.value)return;
  if(accountId!==account.currentAccountId.value)return;
  tasks.value={...tasks.value,[key]:{...tasks.value[key],[uid]:state}};
  const storageKey=tasksKey(accountId),snapshot=tasks.value;
- taskWrites=taskWrites.then(()=>backend.setItem(storageKey,snapshot)).catch(fail);
+ taskWrites=saveTeamDpsTasks(backend,accountId,snapshot).catch(fail);
 }
 const selected=computed(()=>historyDetail.value?{key:-historyId.value,axis:historyDetail.value.input.team_dps.axis,sourceFileName:historyDetail.value.view.axisFileName}:library.value.entries.find((entry:any)=>entry.key===library.value.selectedId))
 let sequence=0
@@ -135,11 +135,11 @@ async function importFile(event:Event){
 }
 async function choose(key:number){historyDetail.value=null;library.value.selectedId=key;generation.value++;saving.value=true;const task=sequence;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
 async function saveDraft(use:boolean,automatic=false){const task=sequence;saving.value=true;error.value='';try{const axis=JSON.parse(JSON.stringify(currentDraft()));if(editingKey.value===null){const selectedId=library.value.selectedId;editingKey.value=importTeamDpsConfiguration(library.value,exportTeamDpsConfiguration(axis)).key;if(!use)library.value.selectedId=selectedId}else updateTeamDpsConfiguration(library.value,editingKey.value,axis);if(use)library.value.selectedId=editingKey.value;generation.value++;await persist();if(task===sequence){edit(library.value.entries.find((e:any)=>e.key===editingKey.value));if(use)managing.value=false;if(!automatic)ElMessage({message:'保存成功',type:'success',customClass:'team-dps-save-success'})}}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
-async function autoSaveDraft(){if(!managing.value||!draft.value||loading.value||saving.value||jsonDialog.value||selectingMembers.value)return;try{if(JSON.stringify(currentDraft())!==savedDraft)await saveDraft(false,true)}catch(e){fail(e)}}
+async function autoSaveDraft(){if(account.applyingCloud.value||!managing.value||!draft.value||loading.value||saving.value||jsonDialog.value||selectingMembers.value)return;try{if(JSON.stringify(currentDraft())!==savedDraft)await saveDraft(false,true)}catch(e){fail(e)}}
 const autosaveTimer=setInterval(autoSaveDraft,15000)
 async function exportDraft(){try{const axis=currentDraft();await downloadString(exportTeamDpsConfiguration(axis),'application/json',axis.id+'.mona-axis.json')}catch(e){fail(e)}}
-async function removeDraft(){if(editingKey.value===null){draft.value=null;return}const task=sequence;saving.value=true;const snapshot={...tasks.value};delete snapshot[editingKey.value];tasks.value=snapshot;const storageKey=tasksKey(account.currentAccountId.value);taskWrites=taskWrites.then(()=>backend.setItem(storageKey,snapshot)).catch(fail);deleteTeamDpsConfiguration(library.value,editingKey.value);draft.value=null;editingKey.value=null;generation.value++;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
-watch(()=>account.currentAccountId.value,async id=>{
+async function removeDraft(){if(editingKey.value===null){draft.value=null;return}const task=sequence;saving.value=true;const snapshot={...tasks.value};delete snapshot[editingKey.value];tasks.value=snapshot;const storageKey=tasksKey(account.currentAccountId.value);taskWrites=saveTeamDpsTasks(backend,account.currentAccountId.value,snapshot).catch(fail);deleteTeamDpsConfiguration(library.value,editingKey.value);draft.value=null;editingKey.value=null;generation.value++;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
+watch(()=>[account.currentAccountId.value,account.reloadGeneration.value],async ([id])=>{
  const task=++sequence;loading.value=true;saving.value=false;library.value=emptyTeamDpsLibrary();tasks.value={};draft.value=null;editingKey.value=null;selectingMembers.value=false;multiplierPreview.value=null;savedDraft='';error.value='';generation.value++;
  try{await taskWrites;const [saved,personal]=await Promise.all([loadTeamDpsLibrary(backend,id),backend.getItem(tasksKey(id))]);if(task===sequence){library.value=saved??emptyTeamDpsLibrary();tasks.value=personal??{}}}
  catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)loading.value=false}

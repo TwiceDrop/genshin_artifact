@@ -41,6 +41,7 @@ interface MonaMeta {
 
 function createAccountStore() {
     const syncStatus = ref<'no sync' | 'syncing' | 'synced'>('no sync')
+    const reloadGeneration = ref(0), applyingCloud = ref(false)
 
     const currentAccountId = ref<number>(1)
     const allAccounts = reactive<Account[]>([{
@@ -71,11 +72,11 @@ function createAccountStore() {
         }
     }
 
+    function reserveAccountId() { return nextId++ }
     function addAccount(name: string) {
-        allAccounts.push({
-            id: nextId++,
-            name,
-        })
+        const id = reserveAccountId()
+        allAccounts.push({ id, name })
+        return id
     }
 
     function deleteAccount(id: number) {
@@ -101,7 +102,7 @@ function createAccountStore() {
     })
 
     return {
-        syncStatus,
+        syncStatus, reloadGeneration, applyingCloud, reserveAccountId,
 
         currentAccountId,
         allAccounts,
@@ -145,6 +146,7 @@ async function loadAccountData() {
     const kumiKey = `mona_account_kumi_${id}`
     kumiStore.init(await backend.getItem(kumiKey))
     useMiyousheStore().init(await backend.getItem(`mona_account_miyoushe_${id}`), await backend.getItem(`mona_account_comparison_settings_${id}`))
+    accountStore.reloadGeneration.value++
     await nextTick()
     loadingAccountData = false
     // console.log('loaded')
@@ -214,7 +216,7 @@ async function init_store() {
     }
 }
 
-init_store()
+export const accountReady = init_store()
 
 backend.on('cancelFileBackend', () => {
     accountStore.syncStatus.value = 'no sync'
@@ -250,8 +252,26 @@ function accountWatchContent() {
 }
 
 watch(accountWatchContent, value => {
-    // if (loadingAccountData) {
-    //     return
-    // }
+    if (loadingAccountData) return
     backend.setItem('mona_accounts', deepCopy(value))
 }, { deep: true })
+
+// Publish a downloaded profile only after its complete local transaction succeeds.
+export async function applyCloudAccount(id: number, name: string, entries: [string, any][], isNew = false, beforeWrite: () => void = () => {}) {
+    await accountReady
+    await backend.allReady()
+    const allAccounts = deepCopy(accountStore.allAccounts)
+    const existing = allAccounts.find((account: Account) => account.id === id)
+    if (isNew) allAccounts.push({ id, name })
+    else if (existing) existing.name = name
+    else throw new Error('本地账号不存在')
+    const currentAccountId = isNew ? id : accountStore.currentAccountId.value
+    accountStore.applyingCloud.value = true
+    loadingAccountData = true
+    try {
+        await backend.batch([...entries, ['mona_accounts', { currentAccountId, allAccounts }]], [], { source: 'cloud-profile', beforeWrite })
+        accountStore.init({ currentAccountId, allAccounts })
+        if (currentAccountId === id) await loadAccountData()
+        else await nextTick()
+    } finally { loadingAccountData = false; accountStore.applyingCloud.value = false }
+}

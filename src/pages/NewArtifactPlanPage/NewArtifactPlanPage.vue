@@ -3,6 +3,8 @@
         <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog">
             <el-progress :percentage="Math.round((optimizationProgress.percent ?? 0) * 10) / 10" :indeterminate="optimizationProgress.percent === null" :status="optimizationRunning ? undefined : optimizationCancelled ? 'warning' : 'success'" />
             <div class="optimization-progress-stats">
+                <p v-if="useNewScore && dynamicScoreState.running" role="status">评分 <b>{{ dynamicScoreState.status }}</b></p>
+                <p v-if="useNewScore && dynamicScoreState.error" class="score-error" role="alert">评分失败：{{ dynamicScoreState.error }}</p>
                 <p>候选搭配空间上限 <b>{{ numberOfGroups(optimizationProgress.candidateSpace) }} 组</b></p>
                 <p>已计算 <b>{{ numberOfGroups(optimizationProgress.evaluated) }} 次</b></p>
                 <p>剩余搜索分组上限 <b>{{ numberOfGroups(optimizationProgress.remainingGroups) }} 组</b></p>
@@ -27,7 +29,7 @@
             :baseline-analysis="comparisonDamage.value" :baseline-label="reviewBaselineLabel" :skill-label="reviewSkill" @select="applyReviewCandidate" />
         <panel-results-dialog v-if="showOptimizationResults && panelResultSnapshot" v-model="showOptimizationResults" :results="optimizationResults" :snapshot="panelResultSnapshot" :selected-index="optimizationResultIndex" @select="applyReviewCandidate" />
         <artifact-score-dialog v-if="showArtifactScore" v-model="showArtifactScore"
-            :item="artifactItems[scoreArtifactIndex]" :context="artifactScoreContext" :equipped="artifactItems"
+            :item="artifactItems[scoreArtifactIndex]" :context="artifactScoreContext" :equipped="artifactItems" :dynamic-result="useNewScore ? dynamicScore : null" @dynamic="showArtifactScore=false;openDynamicScore()"
             @replace="replaceScoredArtifact" />
         <el-dialog
             :title="t('calcPage.selectArt')"
@@ -476,8 +478,8 @@
                         </el-button-group>
                     </div>
                 </section>
-                <el-button class="calc-run" type="primary" :icon="IconEpCaretRight" :loading="optimizationRunning"
-                    @click="closeTargetMenu(); handleOptimizeArtifact()">{{ optimizationRunning ? '计算中' : t('calcPage.start') }}</el-button>
+                <el-button class="calc-run" type="primary" :icon="IconEpCaretRight" :loading="optimizationRunning || dynamicScoreState.running"
+                    @click="closeTargetMenu(); handleOptimizeArtifact()">{{ optimizationRunning || dynamicScoreState.running ? '计算中' : t('calcPage.start') }}</el-button>
             </div>
             </div>
             <single-result-workbench v-if="!editorOpen" :character="characterLocale" :skill="reviewSkill"
@@ -485,15 +487,20 @@
                 :analysis="characterDamageAnalysis" :previous="comparisonDamage.value" :panel-data="attributeFromWasm"
                 :count="optimizationResults.length" :index="reviewIndex" :dsl="reviewDsl" :metric-error="comparisonDamage.error"
                 :recharge-min="optimizationMode==='damage'?constraintMinRecharge:0" @candidates="showOptimizationResults=true"
-                :score="artifactPieceScore" :total="(artifactBuildScore.total?.toFixed(1) ?? '—')+' '+artifactBuildScore.grade"
+                :score="displayedPieceScore" :score-label="displayedScoreLabel" :total-label="displayedTotalLabel" :total="displayedScoreTotal"
                 @replace="handleGotoSelectArtifact" @score="i=>{scoreArtifactIndex=i;showArtifactScore=true}"
                 @analysis="handleClickArtifactAnalysis" @panel="jumpToSection('panel-card')" @details="jumpToSection('damage-card')"
                 @equipment="jumpToSection('artifacts-card')" @curve="showOptimalGainCurve=true">
+                <template #scoring><artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" /></template>
+                <template v-if="useNewScore" #score-basis><el-button v-if="dynamicScore" size="small" @click="openScoreBasis">评分依据</el-button><span v-else-if="dynamicScoreState.running" role="status">{{ dynamicScoreState.status }}</span><span v-else-if="dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span></template>
                 <template #baseline><artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
                     v-model:history-id="comparisonHistoryId" :history="comparisonHistory" @save="saveComparisonHistory" />
                     <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
                 </template>
             </single-result-workbench>
+            <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
+                :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
+                @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
             <el-button v-if="editorOpen && optimizationResults.length" class="return-to-result" @click="showResult">返回配装结果</el-button>
             <div v-show="editorOpen" ref="workspace" class="calc-workspace">
                 <div class="calc-editor">
@@ -544,8 +551,10 @@
                     </section>
                         <section class="calc-card artifacts-card equipment-section">
                             <header class="card-heading"><h3><i-ep-collection aria-hidden="true"/>{{ t("misc.artifact") }}</h3>
+                                <artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" />
                                 <div class="artifact-grade-summary" aria-label="角色圣遗物评分">
-                                    <div><span>{{ artifactScoreContext.label }} · 圣遗物总分</span><strong class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.total === null ? '—' : artifactBuildScore.total.toFixed(1) }}</strong><b class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.grade }}</b></div>
+                                    <div v-if="useNewScore"><span>{{ artifactScoreContext.label }} · 新评分 · 单件合计</span><strong class="miao-score" :data-grade="dynamicTotalGrade">{{ displayedScoreTotal }}</strong></div>
+                                    <div v-else><span>{{ artifactScoreContext.label }} · 喵喵总分</span><strong class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.total === null ? '—' : artifactBuildScore.total.toFixed(1) }}</strong><b class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.grade }}</b></div>
                                 </div>
                             </header>
                             <div class="artifacts" :class="{ 'gear-empty': !artifactCount }">
@@ -568,7 +577,7 @@
                                         @click="scoreArtifactIndex = index; showArtifactScore = true"
                                         class="artifact-display"
                                     >
-                                        <template #footer><div class="artifact-piece-score"><span>喵喵评分：<span class="miao-score" :data-grade="artifactPieceScore(index).split(' ').pop()">{{ artifactPieceScore(index) }}</span></span><span v-if="artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span></div></template>
+                                        <template #footer><div class="artifact-piece-score"><span v-if="useNewScore">新评分：<span class="miao-score" :data-grade="dynamicPieceGrade(index)">{{ displayedPieceScore(index) }}</span></span><span v-else>喵喵评分：<span class="miao-score" :data-grade="artifactPieceScore(index).split(' ').pop()">{{ artifactPieceScore(index) }}</span></span><span v-if="artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span></div></template>
                                     </artifact-display>
                                     <button v-else type="button" class="add-button"
                                         :aria-label="'选择圣遗物：' + t('misc', positions[index])"
@@ -597,7 +606,11 @@
                                         :icon="isAllLocked ? IconEpUnlock : IconEpLock"
                                         @click="() => { isAllLocked ? handleUnlockAll() : handleLockAll() }"
                                     >{{ isAllLocked ? t("calcPage.unlockAll") : t("calcPage.lockAll") }}</el-button>
+                                    <el-button :disabled="artifactCount === 0" @click="clearArtifacts">清空已选</el-button>
                                 </el-button-group>
+                                <el-button v-if="useNewScore && dynamicScore" class="score-basis-button" size="small" @click="openScoreBasis">评分依据</el-button>
+                                <span v-else-if="useNewScore && dynamicScoreState.running" class="score-status" role="status">{{ dynamicScoreState.status }}</span>
+                                <span v-else-if="useNewScore && dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span>
                             </div>
                             <artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
                                 v-model:history-id="comparisonHistoryId" :history="comparisonHistory"
@@ -814,6 +827,8 @@
 <script setup lang="ts">
 import targets from '@/assets/_gen_tf'
 import {dslObjective} from '@/algorithms/single-result-comparison.mjs'
+import DynamicArtifactScore from '@/components/display/DynamicArtifactScore.vue'
+import ArtifactScoreMode from '@/components/display/ArtifactScoreMode.vue'
 import SingleResultWorkbench from './SingleResultWorkbench.vue'
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import ArtifactComparisonControls from '@/components/display/ArtifactComparisonControls.vue'
@@ -824,7 +839,7 @@ import scoreCharacters from '@/assets/_gen_character'
 import {characterByElement} from '@/assets/character'
 import scoreWeapons from '@/assets/_gen_weapon'
 import scoreLocale from '@/i18n/generated/zh-cn.json'
-import { scoreBuild, scoreSetNames, panelScoreAttributes } from '@/algorithms/artifact-score/score.mjs'
+import { scoreBuild, scoreSetNames, panelScoreAttributes, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 import {convertArtifact} from "@util/converter"
 import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
 import {deepCopy, downloadString} from "@/utils/common"
@@ -853,7 +868,7 @@ import AttributePanel from "@c/display/AttributePanel"
 import ItemConfig from "@c/config/ItemConfig"
 import BuffItem from "./BuffItem"
 import SelectedBuffGroups from '@/components/display/SelectedBuffGroups.vue'
-import { otherCharacterArtifactIds } from '@/algorithms/artifact-ownership.mjs'
+import { otherCharacterArtifactIds, artifactGroupCharacterNames } from '@/algorithms/artifact-ownership.mjs'
 import { createTeamContextSource, deriveSingleTeamContext } from '@/algorithms/single-team-context.mjs'
 import WeaponDisplay from "@/components/display/WeaponDisplay.vue"
 import SaveAsKumi from "./SaveAsKumi.vue"
@@ -1134,6 +1149,7 @@ const {
 
     setArtifact,
     removeArtifact,
+    clearArtifacts,
 } = use5Artifacts()
 
 const showSelectArtifactDialog = ref(false)
@@ -1622,6 +1638,21 @@ const artifactScoreContext = computed(() => {
         artisSets: scoreSetNames(artifactItems.value, artifactsData, scoreLocale)
     } }
 })
+const dynamicScoreEnabled=ref(false),dynamicScore=shallowRef<any>(null)
+const dynamicScoreController=ref<any>(null)
+const dynamicScoreState=ref({running:false,status:'准备计算',error:''})
+const useNewScore=computed(()=>dynamicScoreEnabled.value)
+const displayedPieceScore=(i:number)=>useNewScore.value?(dynamicScore.value?dynamicPieceScore(i):dynamicScoreState.value.running?'计算中':'待计算'):artifactPieceScore(i)
+const displayedScoreLabel=computed(()=>useNewScore.value?'新评分':'喵喵评分')
+const displayedTotalLabel=computed(()=>useNewScore.value?'新评分 · 单件合计':'喵喵总分')
+const displayedScoreTotal=computed(()=>useNewScore.value?(dynamicScore.value?(dynamicScore.value.qualityTotal?.toFixed(1)??'不可定义')+' / 350 '+dynamicTotalGrade.value:dynamicScoreState.value.running?'计算中':'待计算'):(artifactBuildScore.value.total?.toFixed(1)??'—')+' '+artifactBuildScore.value.grade)
+const dynamicTotalGrade=computed(()=>dynamicScore.value?.qualityTotal==null?'':getMarkClass(dynamicScore.value.qualityTotal/5))
+function dynamicPieceGrade(index:number){const score=dynamicScore.value?.rows[index]?.score;return score==null?'':getMarkClass(score)}
+function openScoreSettings(){dynamicScoreController.value?.openSettings()}
+function openScoreBasis(){dynamicScoreController.value?.openBasis()}
+function openDynamicScore(){dynamicScoreEnabled.value=true;nextTick(()=>{dynamicScore.value?openScoreBasis():openScoreSettings()})}
+const dynamicScoreInput=computed(()=>({...damageAnalysisWasmInterface.value,target_function:targetFunctionInterface.value}))
+function dynamicPieceScore(index:number){const row=dynamicScore.value?.rows[index];return row?.score==null?'不可定义':row.score.toFixed(1)+' '+getMarkClass(row.score)}
 const artifactBuildScore = computed(() => scoreBuild(artifactItems.value, artifactScoreContext.value))
 function artifactPieceScore(index: number) {
     const score = artifactBuildScore.value.artifacts.find(a => a.pos === index)
@@ -1726,13 +1757,8 @@ const filterKumiTreeData = computed((): FilterKumiNode[] => {
         ...dir,
         characters: [],
         children: dir.children!.map(node => {
-            const ids = kumiStore.kumiById.value.get(node.id)!.artifactIds!
-            const names = ids.length === 5
-                && ids.every(id => id !== null && id >= 0 && artifactStore.artifacts.value.has(id))
-                ? [...new Set(presetStore.allFlat.value.filter(entry =>
-                    entry.item.artifactIds?.length === 5
-                    && ids.every((id, i) => id === entry.item.artifactIds![i]))
-                    .map(entry => entry.item.character.name))] : []
+            const group = kumiStore.kumiById.value.get(node.id)!
+            const names = artifactGroupCharacterNames(group, presetStore.allFlat.value, artifactStore.artifacts.value)
             return { id: node.id, label: node.label, characters: names.map(name => ({
                 name, label: ta(scoreCharacters[name].nameLocale), avatar: scoreCharacters[name].avatar,
             })) }
@@ -1763,7 +1789,7 @@ function handleSaveAsKumi({ dirIds, name }: { dirIds: number[], name: string }) 
     showSaveKumiDialog.value = false
 
     for (const dirId of dirIds) {
-        let kumiId = kumiStore.createKumi(dirId, name)
+        let kumiId = kumiStore.createKumi(dirId, name, characterName.value)
         if (kumiId) {
             for (const artifactId of artifactIds.value) {
                 if (artifactId >= 0) {
@@ -1937,9 +1963,10 @@ function resetArtifactComparison() {
 }
 watch(characterName, resetArtifactComparison)
 
-function applyReviewCandidate(n: number) { handleUseNthOptimizationResult(n);showResult() }
+async function applyReviewCandidate(n: number) { await handleUseNthOptimizationResult(n);showCalculatedEquipment() }
+function showCalculatedEquipment(){if(useNewScore.value)jumpToSection('artifacts-card');else showResult()}
 
-function handleUseNthOptimizationResult(n: number) {
+async function handleUseNthOptimizationResult(n: number) {
     const result = optimizationResults.value[n - 1]
     if (!result) return
     const m = (x: null | number) => {
@@ -1962,6 +1989,8 @@ function handleUseNthOptimizationResult(n: number) {
     recordComparisonHistory(`计算结果 ${n}`)
 
     optimizationResultIndex.value = n
+    await nextTick()
+    if (useNewScore.value) await dynamicScoreController.value?.start()
 }
 
 function getOptimizeArtifactWasmInterface() {
@@ -2008,8 +2037,10 @@ function getAllArtifactsFiltered(): IArtifact[] {
     for (const kumiId of filteredKumiIds.value) {
         const kumiItem = kumiStore.kumiById.value.get(kumiId)
         if (kumiItem && kumiItem.artifactIds) {
+            const sources = artifactGroupCharacterNames(kumiItem, presetStore.allFlat.value, artifactStore.artifacts.value)
+            const ownGroup = sources.length === 1 && sources[0] === characterName.value
             for (const artifactId of kumiItem.artifactIds) {
-                if (!currentArtifactIds.has(artifactId as number)) {
+                if (!ownGroup || !currentArtifactIds.has(artifactId as number)) {
                     s.add(artifactId)
                 }
             }
@@ -2078,7 +2109,7 @@ function backgroundOptimization() { optimizationInBackground=true;showOptimizati
 onDeactivated(()=>{calculationPageActive=false;if(optimizationRunning.value)backgroundOptimization()})
 onActivated(()=>{calculationPageActive=true})
 let optimizationAbortController: AbortController | undefined
-const cancelOptimization = () => optimizationAbortController?.abort()
+const cancelOptimization = () => { optimizationAbortController?.abort();if(useNewScore.value)dynamicScoreController.value?.cancel() }
 const optimizationElapsed = ref(0)
 const optimizationProgress = ref<any>({percent:null,candidateSpace:null,evaluated:0,remainingGroups:null,etaMs:null})
 const optimizationProgressReceivedElapsed = ref(0)
@@ -2097,6 +2128,7 @@ async function exportOptimizationDebug() {
     catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
 }
 function handleOptimizeArtifact() {
+    if (optimizationRunning.value || dynamicScoreState.value.running) return
     if (calculationState.active) { ElMessage.info('当前有计算线程正在进行'); return }
     optimizationError.value = ''
     const debug = optimizationDebugEnabled.value ? createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}}) : null
@@ -2148,7 +2180,7 @@ function handleOptimizeArtifact() {
     })
     const controller=job.controller
     optimizationAbortController=controller
-    job.promise.then(({detail}:any) => {
+    job.promise.then(async ({detail}:any) => {
         const results=detail.results
         if (controller.signal.aborted) return
         debug?.complete(results); triggerRef(optimizationDebugRecord)
@@ -2171,8 +2203,10 @@ function handleOptimizeArtifact() {
         artifactSnapshot.value = null
         panelResultSnapshot.value = panelMode ? panelSnapshot : null
         beginArtifactComparison(originalEquipment)
-        handleUseNthOptimizationResult(1)
-        showResult()
+        await handleUseNthOptimizationResult(1)
+        if (controller.signal.aborted) { optimizationCancelled.value=true; return }
+        if (optimizationInBackground || !calculationPageActive) return
+        showCalculatedEquipment()
 
         // report best result to server, only report player whose 20 artifacts count is above 100
         if (!panelMode && !debug && !process.env.MONA_MOBILE && artifactStore.artifacts20Count.value >= 100 && process.env.NODE_ENV === 'production') {
@@ -2238,7 +2272,7 @@ watch(()=>artifactStore.artifacts.value,()=>{if(!artifactSnapshot.value)invalida
 watch(panelSettingsKey,invalidatePanelResults)
 watch(() => artifactStore.artifacts.value,invalidatePanelResults,{deep:true})
 
-watch(() => accountStore.currentAccountId.value, () => {
+watch(() => [accountStore.currentAccountId.value, accountStore.reloadGeneration.value], () => {
     backgroundOptimization()
     resetComparisonBaseline()
     optimizationResults.value = []
@@ -2415,7 +2449,8 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 @container single-gear (min-width: 910px) { .artifacts { grid-template-columns: repeat(5,minmax(0,1fr)); } }
 .artifact-item-or-button { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .slot-name { color: #526985; font-size: 14px; font-weight: 600; }
-.artifact-tool { margin: 14px 0 10px; }
+.artifact-tool { margin: 14px 0 10px; display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+.score-basis-button,.score-status{margin-left:auto}.score-error{color:var(--el-color-danger);overflow-wrap:anywhere}
 .artifacts-card .artifact-comparison-controls { margin: 0; }
 .artifacts :deep(.artifact .up .buttons button) { margin-left: 3px; }
 .artifacts :deep(.artifact .down .sec-tag) { font-size: 13px; color: #637187; }

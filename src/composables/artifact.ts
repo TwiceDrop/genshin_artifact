@@ -175,6 +175,11 @@ export function use5Artifacts() {
         artifactIds.value[index] = -1
     }
 
+    function clearArtifacts() {
+        artifactSnapshot.value = null
+        artifactIds.value = [-1, -1, -1, -1, -1]
+    }
+
     function toggleArtifact(index: number) {
         const a = artifactItems.value[index]
         if (a) {
@@ -203,6 +208,7 @@ export function use5Artifacts() {
 
         setArtifact,
         removeArtifact,
+        clearArtifacts,
         toggleArtifact,
     }
 }
