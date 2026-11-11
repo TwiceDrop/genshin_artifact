@@ -1,3 +1,0 @@
-[submodule "sub/yas"]
-	path = sub/yas
-	url = https://github.com/wormtql/yas
