@@ -6,6 +6,7 @@ export default {
         opensource: "Open source",
         opensourceMonaDescription: "- Frontend<br>- Mona DSL<br>- DSL Book",
         opensourceYasDescription: "- Yas scanner",
+        contributors: "Contributors",
 
         useCase1: "Reactive damage calculator/Single Character Artifact Optimization",
         useCase1Description: "- Using advanced algorithm to optimize artifacts, to get maximum damage and more<br>- reactive calculator",
