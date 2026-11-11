@@ -50,7 +50,6 @@
 | `online-service/` | 在线账号服务源码，尚未部署 |
 | `android/`、`mobile/` | Android（Capacitor）与新移动 UI |
 | `tauri-exe/`、`installer/` | Windows 的 Tauri 2 封装、Inno 安装器和托盘启动器 |
-| `src-tauri/` | 旧 Tauri 1 封装，依赖的 `sub/yas` 不存在，无法构建 |
 | `tests/` | `node --test` 测试；`tests/helpers/` 放合成夹具 |
 | `beta-tools/` | 测试依赖的 Node 运行入口、冒烟脚本、证据生成脚本和数据提取脚本 |
 | `docs/` | 发布说明与核对记录；`docs/dev/` 是开发文档，`docs/specs/` 是规格与任务，`docs/adr/` 是架构决策，`docs/agents/` 是 skill 配置 |
