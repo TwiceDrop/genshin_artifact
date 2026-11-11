@@ -2,11 +2,11 @@
 
 原神圣遗物配装与伤害计算工具。Vue 3 前端；计算由原始发布内核、效果桥接内核、扩展内核和 `beta-data/` 下的 JS 适配层组合完成，四人轴在 `beta-data/team-engine/`。术语以 `GLOSSARY.md` 为准，当前版本号与已实现范围见 `docs/dev/current-state.md`。
 
-本文件是多人共用、Claude Code 与 Codex 共读的正本（`CLAUDE.md` 只引用它）。个人偏好写进 `CLAUDE.local.md` 或 `.claude/settings.local.json`，这两个文件不提交。事项状态记在 GitHub Issue 或 `docs/dev/current-state.md`，本文件只放跨版本都成立的规则。
+本文件是多人共用、Claude Code 与 Codex 共读的正本（`CLAUDE.md` 只引用它）。个人偏好写进 `CLAUDE.local.md` 或 `.claude/settings.local.json`，这两个文件不提交。需求与任务状态记在 `docs/specs/`，版本状态记在 `docs/dev/current-state.md`，本文件只放跨版本都成立的规则。
 
 ## 远端与发布
 
-- 提交与合并只在本地。推送、建 PR、推标签、发 Release，以及新建或修改 GitHub Issue／评论／标签，都只在当前对话的开发者明确要求时执行，一次要求只做那一次。原因：账号曾因一小时内连发多个版本被暂停。
+- 提交与合并只在本地。推送、建 PR、推标签、发 Release，以及其他改动 GitHub 上内容的操作，都只在当前对话的开发者明确要求时执行，一次要求只做那一次。原因：账号曾因一小时内连发多个版本被暂停。
 - 正式发布需要开发者明确授权。未公开的游戏版本内容，要等官方授权创作体验服视频正式解禁并公开后才能发布，也不能夹带其他未解禁内容。发版步骤见 `docs/dev/release-checklist.md`。
 - README 只在开发者明确要求时修改。
 
@@ -53,7 +53,7 @@
 | `src-tauri/` | 旧 Tauri 1 封装，依赖的 `sub/yas` 不存在，无法构建 |
 | `tests/` | `node --test` 测试；`tests/helpers/` 放合成夹具 |
 | `beta-tools/` | 测试依赖的 Node 运行入口、冒烟脚本、证据生成脚本和数据提取脚本 |
-| `docs/` | 发布说明与核对记录；`docs/dev/` 是开发文档，`docs/adr/` 是架构决策，`docs/agents/` 是 skill 配置 |
+| `docs/` | 发布说明与核对记录；`docs/dev/` 是开发文档，`docs/specs/` 是规格与任务，`docs/adr/` 是架构决策，`docs/agents/` 是 skill 配置 |
 
 ## 开发流程
 
@@ -63,9 +63,8 @@
 | --- | --- |
 | 动手前对齐需求，沉淀术语和决策 | `grill-with-docs` |
 | 把对齐结果写成规格 | `to-spec` |
-| 把规格拆成 issue | `to-tickets` |
-| 给 issue 分类 | `triage` |
-| 实现一个 issue 或规格 | `implement` |
+| 把规格拆成任务文件 | `to-tickets` |
+| 实现一个任务或规格 | `implement` |
 | 测试先行 | `tdd` |
 | 排查 bug | `diagnosing-bugs` |
 | 代码审查 | Claude 用自带的 `/code-review`；Codex 用 `code-review` |
@@ -78,11 +77,11 @@
 
 ### Issue tracker
 
-GitHub Issues（`TwiceDrop/genshin_artifact`，用 `gh`），写操作需要开发者明确要求。见 `docs/agents/issue-tracker.md`。
+仓库内的 markdown 文件：规格与任务放在 `docs/specs/<功能名>/`，不使用 GitHub Issues。见 `docs/agents/issue-tracker.md`。
 
 ### Triage labels
 
-默认的五个标签：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。见 `docs/agents/triage-labels.md`。
+写成文件开头的 `Status:` 行（`ready-for-agent`、`ready-for-human`、`done` 等），不是 GitHub 标签。见 `docs/agents/triage-labels.md`。
 
 ### Domain docs
 
