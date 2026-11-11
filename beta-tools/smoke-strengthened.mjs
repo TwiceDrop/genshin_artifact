@@ -274,6 +274,6 @@ for(const index of [14,15]){
  observations.push({id:'explicit-stellar-skill-'+index,status:'review',finding:'Explicitly selecting a stellar-only skill still evaluates its damage with enhanced_state=false. This may be intentional standalone-skill evaluation, so it is not classified as a formula failure.',damage:damage(x).direct_stellarswirl});
 }
 const report={checkedAt:new Date().toISOString(),scope:'Published WASM formula audit and the full composed API for the new Yumemizuki Mizuki Stellar Swirl optimization target; no product code is patched by this script.',source:{url:'https://gi.gachabase.net/characters/10000109/yumemizuki-mizuki/release?lang=chs',version:'7.0.0',designRevision:47194594},passed:tests.filter(t=>t.pass).length,total:tests.length,tests,observations};
-fs.writeFileSync(file('beta-data/strengthened-tests.json'),JSON.stringify(report,null,2)+'\n');
+fs.writeFileSync((fs.mkdirSync(new URL('../.build-target/smoke/',import.meta.url),{recursive:true}),new URL('../.build-target/smoke/strengthened-tests.json',import.meta.url)),JSON.stringify(report,null,2)+'\n');
 console.log(report.passed+'/'+report.total+' passed; '+observations.filter(o=>o.status==='gap').length+' functional gap(s) recorded');
 if(report.passed!==report.total)process.exitCode=1;

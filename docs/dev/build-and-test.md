@@ -25,7 +25,7 @@ npm ci --legacy-peer-deps
 | 桌面网页 | `npm run build:local` |
 | 新移动 UI | `npm run build:mobile` |
 | Android | `script/build-android.ps1 -Ui elementplus` 或 `-Ui mobiletest`，显式传 `-SigningDirectory <原签名目录>` |
-| Rust 扩展内核 | `npm run build:beta-kernel`，需要先把 `compiler-source.json` 里的 MinGW 解到 `beta-tools/mingw64/` |
+| Rust 扩展内核 | `npm run build:beta-kernel`，需要先把 `compiler-source.json` 里的 MinGW 解到 `beta-tools/mingw64/`；它只编译和生成绑定，构建后的检查见下文「测试」 |
 | 效果桥接内核 | `npm run build:effect-bridge`（Python） |
 
 签名、密码不进入源码。`npm start` 默认端口是 4183，Windows 启动器（`installer/Launcher.cs`）固定用 `MONA_PORT=4174`。改端口或在 localhost 与 127.0.0.1 之间切换，会进入另一份浏览器存储。
@@ -37,6 +37,8 @@ npm ci --legacy-peer-deps
 - `tests/evidence/` 下的测试需要本机预先存在、不提交的文件，用 `npm run test:evidence` 单独跑，`test:local` 不包含它们。需要的文件有两类：
   - `.build-target/` 下的证据，由对应脚本在本机生成，例如 `beta-tools/full-audit-contracts-7201.mjs` 生成 `linkage-fix-7201` 读取的 `contracts.json`。
   - 真实账号夹具 `beta-data/skirk-fixture.json`、`beta-data/mizuki-fixture.json`，被 `.gitignore` 排除，只在持有者本机存在。
+- 重新构建扩展内核后，先跑这三份确认扩展内核能加载、走公共入口能算出结果，它们不需要私有夹具：`node --test tests/release-7106.test.mjs tests/unified-kernel.test.mjs tests/stellar-swirl-multiplier-7108.test.mjs`。
+- `npm run smoke:fixtures` 依次跑 `beta-tools/smoke*.mjs` 六个冒烟脚本，它们全部要读上面两份私有夹具，只能在持有夹具的机器上跑，适合发版前。结果写到 `.build-target/smoke/`。2026-11-11 已知有三项失败与夹具无关、尚未处理：`smoke-limited-71` 的公开快照校验（`beta-data/sources-limited-71/` 在 V7.2.01 已删除）和「MONA-DSL 第二参数」一项（预期的异常没有抛出），`smoke-strengthened` 的「新星扩散目标位于瑞希目录首位」一项。
 - `tests/` 下的测试会把报告写到 `.build-target/`，目录不存在时自己创建。
 - 依赖缺失（`Cannot find package`）时先确认已经执行过 `npm ci`。
 

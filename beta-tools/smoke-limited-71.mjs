@@ -470,5 +470,5 @@ test('金律旧角色跨乐章双覆盖率接入真实蒸发、配装、收益�
 });
 
 const report={checkedAt:new Date().toISOString(),passed:tests.filter(t=>t.pass).length,total:tests.length,tests};
-fs.writeFileSync(url('beta-data/limited-71-tests.json'),JSON.stringify(report,null,2)+'\n');
+fs.writeFileSync((fs.mkdirSync(new URL('../.build-target/smoke/',import.meta.url),{recursive:true}),new URL('../.build-target/smoke/limited-71-tests.json',import.meta.url)),JSON.stringify(report,null,2)+'\n');
 console.log(report.passed+'/'+report.total+' passed');if(report.passed!==report.total)process.exitCode=1;

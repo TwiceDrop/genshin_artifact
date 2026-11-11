@@ -31,7 +31,7 @@
 - [ ] Windows 安装器、便携包、两个 APK（`elementplus`、`mobiletest`）分别核对实际内容与版本。
 - [ ] Android 用原签名目录构建，应用 ID、端口、主机名保持不变，保证能覆盖升级、保留用户存档。
 - [ ] 发布包里没有账号、UID、库存、预设、Debug 导出、浏览器存储、密钥或签名资料。
-- [ ] 在持有私有夹具和证据文件的机器上跑一次 `npm run test:evidence`，失败项逐个核对是否与本版改动有关。
+- [ ] 在持有私有夹具和证据文件的机器上跑一次 `npm run test:evidence` 和 `npm run smoke:fixtures`，失败项逐个核对是否与本版改动有关。
 
 ## 4. 发布源码
 

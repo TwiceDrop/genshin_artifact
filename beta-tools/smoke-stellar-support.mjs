@@ -263,5 +263,5 @@ test('薇斯纳本人已有固有天赋，不重复叠加自己的可选队友�
     close(damage(x,full).direct_stellarswirl.expectation,own.direct_stellarswirl.expectation);
 });
 if(process.env.UPDATE_STELLAR_SNAPSHOT)
-    fs.writeFileSync(new URL('../beta-data/stellar-support-tests.json', import.meta.url), JSON.stringify({tests}, null, 2) + '\n');
+    fs.writeFileSync((fs.mkdirSync(new URL('../.build-target/smoke/',import.meta.url),{recursive:true}),new URL('../.build-target/smoke/stellar-support-tests.json',import.meta.url)), JSON.stringify({tests}, null, 2) + '\n');
 if(tests.some(t => !t.pass)) process.exitCode = 1;

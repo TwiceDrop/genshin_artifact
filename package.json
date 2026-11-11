@@ -6,6 +6,7 @@
     "start": "node server/local.mjs",
     "test:local": "node --test tests/*.test.mjs",
     "test:evidence": "node --test tests/evidence/*.test.mjs",
+    "smoke:fixtures": "node beta-tools/smoke.mjs && node beta-tools/smoke-beta2.mjs && node beta-tools/smoke-beta3.mjs && node beta-tools/smoke-limited-71.mjs && node beta-tools/smoke-strengthened.mjs && node beta-tools/smoke-stellar-support.mjs",
     "setup:release": "node script/prepare-release.cjs",
     "test:curve": "node --test tests/stat-gain.test.mjs",
     "build:local": "cross-env ENV_FILE=.env.development.yaml vue-cli-service build",
@@ -15,10 +16,7 @@
     "build:mobile": "node script/build-mobile.cjs",
     "android:sync": "cap sync android",
     "android:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File script/build-android.ps1",
-    "test:beta": "node beta-tools/smoke.mjs",
     "build:beta-kernel": "powershell -NoProfile -ExecutionPolicy Bypass -File beta-tools/build-extension.ps1",
-    "test:strengthened": "node beta-tools/smoke-strengthened.mjs",
-    "test:stellar-support": "node beta-tools/smoke-stellar-support.mjs",
     "build:effect-bridge": "python script/build-effect-bridge.py",
     "preview:mobile": "node script/preview-mobile.mjs",
     "test:mobile-ui": "node --test tests/mobile-ui-7110.test.cjs"

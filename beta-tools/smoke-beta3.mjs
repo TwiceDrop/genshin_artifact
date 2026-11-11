@@ -97,5 +97,5 @@ test('无新武器的旧角色仍返回原发布内核完全相同的结果',()=
  const x=read('beta-data/skirk-fixture.json').input;assert.deepEqual(attr(x),original.CommonInterface.get_attribute(x));assert.deepEqual(damage(x),original.CalculatorInterface.get_damage_analysis(x,null));
 });
 const report={passed:tests.filter(t=>t.pass).length,total:tests.length,tests};
-fs.writeFileSync(new URL('../beta-data/beta3-tests.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
+fs.writeFileSync((fs.mkdirSync(new URL('../.build-target/smoke/',import.meta.url),{recursive:true}),new URL('../.build-target/smoke/beta3-tests.json',import.meta.url)),JSON.stringify(report,null,2)+'\n');
 console.log(`${report.passed}/${report.total} passed`);if(report.passed!==report.total)process.exitCode=1;
