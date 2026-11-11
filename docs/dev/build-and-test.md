@@ -4,11 +4,16 @@
 
 ```powershell
 npm ci --legacy-peer-deps
-npm run setup:release
 ```
 
-- 需要 Node.js 20 或更高版本、Git 和 7-Zip（默认路径 `C:/Program Files/7-Zip/7z.exe`，可以用 `SEVEN_ZIP` 指定）。
-- `setup:release` 会下载上游 v5.33.58 发布包，按 `THIRD_PARTY_NOTICES.md` 记录的 SHA-256 校验后解出原始内核和元数据。它会改写 `public/release-assets/`、`mona_wasm/pkg/` 和 `src/assets/_gen_*.js`，运行后用 `git diff` 确认没有覆盖本地补充的数据。
+- 需要 Node.js 20 或更高版本和 Git。
+- 原始发布内核、浏览器入口和生成的元数据都已提交，新克隆的仓库不需要再提取。
+
+## 重新提取原始发布内核
+
+只在需要从上游发布包恢复原始文件时运行 `npm run setup:release`。它需要 7-Zip（默认路径 `C:/Program Files/7-Zip/7z.exe`，可以用 `SEVEN_ZIP` 指定），会下载上游 v5.33.58 发布包，按 `THIRD_PARTY_NOTICES.md` 记录的 SHA-256 校验后，改写 `public/release-assets/`、`mona_wasm/pkg/`、`src/assets/_gen_*.js` 和 `src/i18n/generated/`。
+
+其中 `mona_wasm/pkg/index.js` 会被换成上游的简化入口，丢掉本项目的适配层包装。运行后用 `git diff` 检查，除了确实要更新的文件，其余用 `git checkout -- <文件>` 还原，`index.js` 一定要还原。
 
 ## 运行与构建
 

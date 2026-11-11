@@ -37,7 +37,8 @@
 
 | 做什么 | 需要 |
 | --- | --- |
-| 前端开发、跑测试 | Node.js 20 以上、Git、7-Zip |
+| 前端开发、跑测试 | Node.js 20 以上、Git |
+| 重新提取原始发布内核 | 7-Zip |
 | 编译扩展内核 | Rust nightly-2024-10-10（`x86_64-pc-windows-gnu`）、`compiler-source.json` 指定的 MinGW、wasm-bindgen 0.2.92 |
 | 生成效果桥接内核 | Python 3、WABT（`wasm2wat`、`wat2wasm`） |
 | 打 Windows 包 | Inno Setup 6、.NET Framework 4、Node.js 运行时目录、WebView2 SDK |
