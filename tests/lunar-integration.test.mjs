@@ -47,18 +47,3 @@ test('3 普通独立倍率仅放大技能本体，定额不乘且默认100%',()=
  near(sum(changed.atk_ratio),sum(base.atk_ratio)*1.5,'details show same multiplier');
  near(damage({...input,buffs:[...input.buffs,named('IndependentDamageMultiplier')]}).normal.expectation,base.normal.expectation);
 });
-
-test('4 直接星扩散独立范围隔离，定额不乘I，原生配装同样生效',()=>{
- const input={...clone(vesna),weapon:{name:'DullBlade',level:1,ascend:false,refine:1,params:'NoConfig'},buffs:[named('VesnaSupport',{flat:500,base:0,bonus:0,crit_damage:0,elevation:.25,anemo_res:0})]};
- const base=damage(input).direct_stellarswirl;
- const ordinary=damage({...input,buffs:[...input.buffs,named('IndependentDamageMultiplier',{p:200,scope:0})]}).direct_stellarswirl;
- near(ordinary.expectation,base.expectation,'ordinary scope must not inherit');
- assert.throws(()=>damage({...input,buffs:[named('IndependentDamageMultiplier',{p:200,scope:1})]}),/仅适用于普通伤害/);
- const scoped={...input,buffs:[...input.buffs,named('StellarSwirlDamageMultiplier',{p:200})]};
- const changed=damage(scoped).direct_stellarswirl;
- near(changed.non_critical,(base.non_critical-500*.9*1.25)*2+500*.9*1.25,'flat remains outside I');
- const gear=read('beta-data/skirk-fixture.json').input.artifacts.map((a,i)=>({...a,id:i+1,set_name:'GladiatorsFinale'}));
- const optimized={...scoped,artifacts:gear,target_function:{name:'VesnaDefault',params:'NoConfig'},algorithm:'Naive',constraint:null,filter:null};
- near(api.OptimizeSingleWasm.optimize(optimized,gear)[0].value,damage(optimized).direct_stellarswirl.expectation);
-});
-

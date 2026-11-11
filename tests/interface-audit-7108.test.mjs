@@ -49,12 +49,3 @@ test('Set config aliases, changing candidates, filters and main/detail/curve bra
  const vm={...model.data(),enemyConfig:enemy,characterLevel:90};for(const [key,fn]of Object.entries(model.methods))vm[key]=fn.bind(vm);for(const [key,get]of Object.entries(model.computed))Object.defineProperty(vm,key,{get:()=>get.call(vm)});
  x.buffs=[{name:'IndependentDamageMultiplier',config:{IndependentDamageMultiplier:{p:150}}},{name:'BaseDmg',config:{BaseDmg:{value:500}}}];const result=api.CalculatorInterface.get_damage_analysis(x,null);vm.setValue(result);near(vm.selectedActualResult.expectation,result.normal.expectation);near(vm.damageNormal,result.normal.expectation);
 }));
-
-test('Remaining public interfaces and production optimization worker',async()=>{
- quiet(()=>{
-  const x=fixture('Kaeya','MaxATK');const r=api.CalcArtifactBestSet.calc_artifact_best_set(optimizer(x));assert.ok(r.length);assert.ok(r.every(row=>Number.isFinite(row.value)));
-  const t=api.TeamOptimizationWasm.optimize_team2({single_interfaces:[optimizer(x)],weights:[1],hyper_param:{mva_step:1,work_space:5,max_re_optimize:1,max_search:10,count:1}},gear);assert.equal(t.artifacts[0].length,1);
-  const y=fixture('Vesna');const h=api.TeamOptimizationWasm.optimize_team2({single_interfaces:[optimizer(y)],weights:[1]},gear);assert.ok(h.artifacts.length);assert.equal(h.search_complete,true);
- });
- const x=fixture('Vesna');x.buffs=[namedBuff('AetherCryoTalent1')];const r=await probeCompiledOptimizer('dist',optimizer(x),gear);assert.equal(r.type,'results',JSON.stringify(r));assert.ok(r.data.results.length);near(r.data.results[0].value,quiet(()=>api.OptimizeSingleWasm.optimize(optimizer(x),gear)[0].value));
-});

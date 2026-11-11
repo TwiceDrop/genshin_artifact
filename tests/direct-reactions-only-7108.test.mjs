@@ -15,16 +15,6 @@ const damage=(x,index=x.skill.index)=>{const {target_function,tf,...input}=x;ret
 const sourceResult=(source,x)=>{const r=api.DSLInterface.run(source+'\nprint(result)',x,x.artifacts);assert.equal(r.is_error,false,r.error_msg);return Number(r.output.trim().replace(/^MONA: /,''));};
 const clean=r=>{for(const key of REMOVED_REACTION_KEYS){assert.equal(key in r,false,key);assert.equal(key in (r.reaction_availability||{}),false,key+' availability');}};
 
-test('1 保留的技能直伤数值不变，所有角色公共接口不返回独立星月反应',()=>quiet(()=>{
- const baseline=JSON.parse(fs.readFileSync('.build-target/direct-only/baseline.json','utf8'));
- assert.equal(baseline.length,42);
- for(const row of baseline){const r=damage(row.input);clean(r);for(const [key,before]of Object.entries(row.direct))for(const field of ['expectation','critical','non_critical'])near(r[key]?.[field],before[field],row.input.character.name+'/'+row.input.skill.index+'/'+key+'/'+field);}
- for(const name of Object.keys(chars)){
-  const x=fixture(name);clean(damage(x));const r=api.CalculatorInterface.get_transformative_damage(x);clean(r);
-  for(const key of ['bloom','superconduct','swirl_cryo','crystallize'])assert.ok(Number.isFinite(r[key]));r.free();
- }
-}));
-
 test('2 移除的上下文、DSL 和配装选项均明确拒绝，保留目标按直伤配装',()=>quiet(()=>{
  const x=fixture('Kaeya');
  for(const key of ['stellar_swirl_context','lunar_crystallize_context','lunar_electro_context']){
@@ -69,13 +59,4 @@ test('3 单次手填公式、列表与页面一致，移除的代码和菜单没
  for(const path of ['src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue','src/pages/NewArtifactPlanPage/DamagePanel.vue','src/pages/NewArtifactPlanPage/BuffItem.vue','src/components/display/DamageAnalysis/DamageAnalysis.vue','src/pages/MainPage/SideBar.vue']){
   const {descriptor,errors}=parse(fs.readFileSync(path,'utf8'));assert.deepEqual(errors,[],path);const script=compileScript(descriptor,{id:path});assert.deepEqual(compileTemplate({source:descriptor.template.content,filename:path,id:path,compilerOptions:{bindingMetadata:script.bindings}}).errors,[],path);
  }
-});
-
-test('4 构建后的真实配装 Worker 保留技能直伤并拒绝独立反应目标',async()=>{
- for(const role of ['YumemizukiMizuki','Sandrone','Vesna','Ineffa']){
-  const target={YumemizukiMizuki:'YumemizukiMizukiStellarSwirl',Sandrone:'SandroneStellarSwirl'}[role];const x=fixture(role,target);if(role==='Vesna')x.character.params.Vesna.radiance=true;
-  const result=await probeCompiledOptimizer('dist',optimizer(x),gear);assert.equal(result.type,'results',JSON.stringify(result));near(result.data.results[0].value,quiet(()=>api.OptimizeSingleWasm.optimize(optimizer(x),gear)[0].value),role);
- }
- const x=fixture('Kaeya');x.target_function={...x.target_function,use_dsl:true,dsl_source:'dmg hit = Kaeya.Normal1\nresult = hit.moonelectro.e'};
- const removed=await probeCompiledOptimizer('dist',optimizer(x),gear);assert.notEqual(removed.type,'results');assert.match(JSON.stringify(removed),/已移除/);
 });

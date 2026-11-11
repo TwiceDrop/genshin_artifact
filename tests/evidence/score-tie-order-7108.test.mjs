@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as score from '../src/algorithms/artifact-score/score.mjs';
-import {createScoreEvaluator} from '../src/algorithms/artifact-score/vendor/miao.mjs';
-import facts from '../src/algorithms/artifact-score/vendor/character-facts.mjs';
-import {sourceScore} from '../.build-target/character-score-20261002/oracle.mjs';
+import * as score from '../../src/algorithms/artifact-score/score.mjs';
+import {createScoreEvaluator} from '../../src/algorithms/artifact-score/vendor/miao.mjs';
+import facts from '../../src/algorithms/artifact-score/vendor/character-facts.mjs';
+import {sourceScore} from '../../.build-target/character-score-20261002/oracle.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} != ${b}`);
 const cup={id:1,position:'cup',star:5,level:20,setName:'GladiatorsFinale',mainTag:{name:'windBonus',value:.466},normalTags:[{name:'critical',value:.07},{name:'elementalMastery',value:23},{name:'recharge',value:.117},{name:'lifeStatic',value:209}]};
 

@@ -32,8 +32,11 @@ npm ci --legacy-peer-deps
 ## 测试
 
 - 单个文件：`node --test tests/<文件>.test.mjs`。按改动挑选，每轮不超过五项验证。
-- `npm run test:local` 会跑全部 200 多个测试文件，耗时很长。全量跑过一次时，有进程长时间无输出、占用约 4 GB 内存，所以默认不跑全量。
-- 一部分测试读取 `.build-target/` 下的证据文件（例如 `tests/progress-results-7112.test.mjs`）。这些文件由 `beta-tools/` 里对应的脚本在本机生成，并不提交，新克隆的仓库里这类测试会因为文件缺失而失败，属于预期情况。
+- `npm run test:local` 会跑 `tests/` 下全部 200 多个测试文件，耗时很长。全量跑过一次时，有进程长时间无输出、占用约 4 GB 内存，所以默认不跑全量。
+- `tests/evidence/` 下的测试需要本机预先存在、不提交的文件，用 `npm run test:evidence` 单独跑，`test:local` 不包含它们。需要的文件有两类：
+  - `.build-target/` 下的证据，由对应脚本在本机生成，例如 `beta-tools/full-audit-contracts-7201.mjs` 生成 `linkage-fix-7201` 读取的 `contracts.json`。
+  - 真实账号夹具 `beta-data/skirk-fixture.json`、`beta-data/mizuki-fixture.json`，被 `.gitignore` 排除，只在持有者本机存在。
+- `tests/` 下的测试会把报告写到 `.build-target/`，目录不存在时自己创建。
 - 依赖缺失（`Cannot find package`）时先确认已经执行过 `npm ci`。
 
 ## 临时文件

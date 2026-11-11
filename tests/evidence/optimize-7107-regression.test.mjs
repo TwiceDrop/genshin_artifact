@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,vesna,vody,read,sum} from '../beta-tools/runtime-7106.mjs';
-import {runSingleOptimizeWorker} from '../src/wasm/single-optimize-task.mjs';
-import {initializeSingleOptimizeWorker} from '../src/workers/single-optimize-handler.mjs';
-import {probeCompiledOptimizer} from '../beta-tools/compiled-worker-probe.mjs';
+import {api,vesna,vody,read,sum} from '../../beta-tools/runtime-7106.mjs';
+import {runSingleOptimizeWorker} from '../../src/wasm/single-optimize-task.mjs';
+import {initializeSingleOptimizeWorker} from '../../src/workers/single-optimize-handler.mjs';
+import {probeCompiledOptimizer} from '../../beta-tools/compiled-worker-probe.mjs';
 const sets=['AubadeOfMorningstarAndMoon','HeavensGift','DisenchantmentInDeepShadow'];
 const gear=read('beta-data/skirk-fixture.json').input.artifacts.map((a,i)=>({...a,id:i+1,set_name:'GladiatorsFinale'}));
 const named=(name,p)=>({name,config:{[name]:p}});

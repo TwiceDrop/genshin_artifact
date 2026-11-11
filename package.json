@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node server/local.mjs",
     "test:local": "node --test tests/*.test.mjs",
+    "test:evidence": "node --test tests/evidence/*.test.mjs",
     "setup:release": "node script/prepare-release.cjs",
     "test:curve": "node --test tests/stat-gain.test.mjs",
     "build:local": "cross-env ENV_FILE=.env.development.yaml vue-cli-service build",
