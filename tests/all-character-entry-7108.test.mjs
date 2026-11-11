@@ -30,7 +30,7 @@ test('All catalog single-hit skills use each character default skill config, C0/
  for(const [name,c] of Object.entries(chars))for(const constellation of [0,6]){
   const {target_function,constraint,algorithm,...base}=input(name);base.character.constellation=constellation;
   for(const index of new Set([...(c.skillMap1||[]),...(c.skillMap2||[]),...(c.skillMap3||[])].map(s=>s.index))){
-   try{const r=api.CalculatorInterface.get_damage_analysis({...base,artifacts:gear,skill:{index,config:config(name,c.configSkill)}},null);assert.ok(r.normal);for(const v of Object.values(r))if(v&&typeof v==='object'&&'expectation' in v)assert.ok(Number.isFinite(v.expectation));count++;}
+   try{const r=api.CalculatorInterface.get_damage_analysis({...base,artifacts:gear,skill:{index,config:config(name,c.configSkill)}},null);const branches=Object.values(r).filter(v=>v&&typeof v==='object'&&'expectation' in v);assert.ok(branches.length);for(const v of branches)assert.ok(Number.isFinite(v.expectation));count++;}
    catch(e){failures.push(`${name}/C${constellation}/skill${index}: ${e.message}`);}
   }
  }
@@ -47,7 +47,7 @@ test('Synthetic Stellar targets score changing candidates identically to single-
   assert.notEqual(scores[0],scores[1]);near(rows[0].value,Math.max(...scores));
  }
  const x=input('Lisa');x.weapon={name:'HymnOfTheMaelstrom',level:90,ascend:false,refine:1,params:{HymnOfTheMaelstrom:{stacks:3,on_field:true,hp:0}}};
- assert.throws(()=>api.OptimizeSingleWasm.optimize(x,gear),/每套候选/);
+ assert.ok(api.OptimizeSingleWasm.optimize(x,gear).length); // hp 0: ATK bonus is converted from each candidate set's HP
  x.weapon.params.HymnOfTheMaelstrom.hp=60000;
  assert.ok(api.OptimizeSingleWasm.optimize(x,gear).length);
 }));
@@ -80,13 +80,12 @@ test('Published character reaction branches survive support buffs; unsupported S
  near(enabled.direct_stellarconduct.expectation/noBuff.direct_stellarconduct.expectation,1.1/.9);
  const unsupported=api.CalculatorInterface.get_damage_analysis({...x,buffs:[buff('VodyanitsaA4')]},null);
  assert.ok(unsupported.direct_stellarconduct);assert.equal(unsupported.direct_stellarswirl,noBuff.direct_stellarswirl);
- assert.ok(Number.isFinite(unsupported.stellarswirl_anemo.expectation));
- assert.equal(unsupported.reaction_availability.direct_stellarswirl.status,'uncalibrated');
+ assert.ok(!visibleDamageReactionKeys(unsupported).includes('direct_stellarswirl')); // Sandrone has no Stellar Swirl; it must not show as a result
  const preview=markReactionAvailability({direct_stellarconduct:{expectation:123},direct_stellarswirl:{expectation:0}});
  assert.equal(preview.direct_stellarconduct.expectation,123);assert.equal(preview.direct_stellarswirl.expectation,0);
  assert.deepEqual(visibleDamageReactionKeys(preview),['direct_stellarconduct','direct_stellarswirl']);
  assert.deepEqual(visibleDamageReactionKeys({normal:{expectation:0},direct_moonbloom:undefined}),['normal']);
  assert.equal(damageReactionOptions(preview).length,0);assert.equal(stellarDamageResults(preview).length,2);
- assert.ok(stellarDamageResults(preview).every(x=>x.label.includes('未校准')));
+ assert.ok(stellarDamageResults(preview).every(x=>preview.reaction_availability[x.key].status==='uncalibrated')); // the detail view shows reaction_availability.reason, not a label suffix
  process.stdout.write(`support branch preservation: ${count} skill configurations\n`);
 }));

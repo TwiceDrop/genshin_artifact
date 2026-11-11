@@ -57,6 +57,6 @@ test('3 单次手填公式、列表与页面一致，移除的代码和菜单没
  for(const path of ['src/pages/NewArtifactPlanPage/SingleHitPanel.vue','src/pages/ReactionCalculatorPage.vue','src/pages/NewArtifactPlanPage/LunarDamagePanel.vue','src/store/reaction-panel-context.js','beta-data/stellar-swirl-reaction.mjs','beta-data/moon-electro-team.mjs'])assert.equal(fs.existsSync(path),false,path);
  for(const path of ['src/router/router.js','src/pages/MainPage/SideBar.vue'])assert.doesNotMatch(fs.readFileSync(path,'utf8'),/reaction-calculator/);
  for(const path of ['src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue','src/pages/NewArtifactPlanPage/DamagePanel.vue','src/pages/NewArtifactPlanPage/BuffItem.vue','src/components/display/DamageAnalysis/DamageAnalysis.vue','src/pages/MainPage/SideBar.vue']){
-  const {descriptor,errors}=parse(fs.readFileSync(path,'utf8'));assert.deepEqual(errors,[],path);const script=compileScript(descriptor,{id:path});assert.deepEqual(compileTemplate({source:descriptor.template.content,filename:path,id:path,compilerOptions:{bindingMetadata:script.bindings}}).errors,[],path);
+  const {descriptor,errors}=parse(fs.readFileSync(path,'utf8'));assert.deepEqual(errors,[],path);const script=compileScript(descriptor,{id:path});assert.deepEqual(compileTemplate({source:descriptor.template.content,filename:path,id:path,compilerOptions:{bindingMetadata:script.bindings,expressionPlugins:(descriptor.scriptSetup||descriptor.script)?.lang==='ts'?['typescript']:[]}}).errors,[],path);
  }
 });

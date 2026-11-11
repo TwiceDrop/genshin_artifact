@@ -34,3 +34,7 @@
   - 4 个 worker-probe 测试自己用 webpack 构建到 `.build-target/`，不依赖已有文件，留在原位。
 - 干净检出（`git worktree`，没有 `.build-target/` 和私有夹具）的实测：前 9 个文件里，`linkage-fix-7201`、`lunar-integration`、`release-7106`、`unified-kernel`、`progress-results-7112`、`progress-results-7201` 拆分后通过；`direct-reactions-only`、`interface-parameters`、`stellar-swirl-multiplier` 暴露出静态检查漏掉的依赖（`dist/` 和另两个证据文件），已补拆，并对这几个文件在干净检出里复跑。`team-dps-*` 等 18 个只写报告的测试单个耗时很长，没有在干净检出里跑完；它们写文件前都会建目录，没有发现读取已有文件的代码。
 - 仍会失败、但不是缺文件的问题：`direct-reactions-only-7108` 用例 3 解析 `NewArtifactPlanPage.vue` 模板时报语法错误（主工作区同样失败），`interface-audit-7108` 有用例报 `StellarDamageDetail is not defined`，`all-character-entry-7108` 有 3 个断言失败。都是测试本身失效，需要单独排查。
+- 2026-11-11（后续修复）：上面三份失效测试已按开发者同意修好，全部通过。原因都是测试跟不上后来的实现：
+  - `direct-reactions-only-7108` 用例 3：页面模板加了 TypeScript 表达式，测试编译模板时按脚本语言打开 TS 解析。
+  - `interface-audit-7108`：审计脚本写报告前补建目录；目录数量按 7.2 后的目录更新为 2167／810／257；组件求值补上新引入的 `StellarDamageDetail` 和星烁辅助函数。
+  - `all-character-entry-7108`：米提亚的星导直伤技能没有普通伤害，改为要求至少一个有限伤害分支；沧海生命填 0 时已按每套候选的生命换算加攻，改为断言能出结果；去掉已删除的独立星扩散 `stellarswirl_anemo`；桑多涅改为断言不显示星扩散；未校准的提示由明细组件读取 `reaction_availability` 的原因显示，断言改查状态而不是标签文字。
