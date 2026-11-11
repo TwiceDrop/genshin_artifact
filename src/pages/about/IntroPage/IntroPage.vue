@@ -55,15 +55,6 @@
             </el-col>
         </el-row>
 
-        <h2>{{ t("intro.contributors") }}</h2>
-        <el-row :gutter="16">
-            <el-col :xs="24" :sm="8" class="mb16">
-                <use-case-item text="素帕蜗牛" :icon="IconFa6BrandsGithub"
-                               @click="newPage('https://github.com/SuperWoNiu12138')"
-                ></use-case-item>
-            </el-col>
-        </el-row>
-
     </div>
 </template>
 

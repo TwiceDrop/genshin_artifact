@@ -6,7 +6,6 @@ export default {
         opensource: "开源地址",
         opensourceMonaDescription: "- 前端<br>- 莫娜DSL<br>- DSL Book等",
         opensourceYasDescription: "- YAS导出器",
-        contributors: "贡献者",
 
         useCase1: "伤害计算器/单人配装",
         useCase1Description: "- 通过计算机进行单人圣遗物自动搭配，以得到最高输出等内容。<br>- 响应式计算器，所见即所得。",
