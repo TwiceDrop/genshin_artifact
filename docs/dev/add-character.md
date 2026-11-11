@@ -25,7 +25,7 @@
 3. **写清数据合同。** 来源、受益者、伤害类型、触发／退出条件、参数单位／默认值／边界、是否叠加、各乘区位置。
 4. **改共享规则。** 在现有 rule book 中表达新效果，让公共引擎编译到实际消费的属性；必要时扩展属性或桥接。用真实实现代替名称白名单。
 5. **接完整调用链。** 核对 `CalculatorInterface.get_damage_analysis`、`CommonInterface.get_attribute`、`OptimizeSingleWasm.optimize`、`BonusPerStat.bonus_per_stat`；支持 DSL 的路径再核对 `DSLInterface.run`。套装参数别名、敌人、停用 BUFF、默认参数在共用入口处理。
-6. **同步两个入口。** `mona_wasm/pkg/index.js`（浏览器）和 `beta-tools/runtime-7106.mjs`（Node）的包装顺序保持一致，再核对 `src/workers/optimize_artifact.js`。
+6. **注册包装。** 新的包装层加在 `beta-data/compose-kernel-api.mjs`，浏览器入口和 Node 入口都从这里取，不在入口里另写。
 7. **同步界面。** 更新目录、参数、翻译和可见伤害分支，只显示与当前技能相关的结果。新增界面文案先给开发者确认。
 
 ## 完成标准

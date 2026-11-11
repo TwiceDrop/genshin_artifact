@@ -25,7 +25,7 @@
 ## 计算内核
 
 - 原始发布内核 `mona_wasm/pkg/mona_wasm_bg.wasm` 保留原样，以实际运行的 WASM 为准，Rust 源码只用于扩展内核。目的：仓库里的 Rust 源码比这个二进制少一部分角色和公式，重编译会把它们丢掉（`docs/adr/0001-keep-original-release-kernel.md`）。
-- 浏览器入口 `mona_wasm/pkg/index.js` 与 Node 入口 `beta-tools/runtime-7106.mjs`（名字含 7106，仍是当前入口）的包装顺序保持一致；改注册或包装顺序时两处同改，并核对 `src/workers/optimize_artifact.js`。目的：测试走 Node 入口，页面走浏览器入口，两处不一致时测试通过而页面算错。
+- 适配层的包装顺序只写在 `beta-data/compose-kernel-api.mjs`。浏览器入口 `mona_wasm/pkg/index.js` 和 Node 入口 `beta-tools/runtime-7106.mjs`（名字含 7106，仍是当前入口）只负责加载内核和数据。目的：测试走 Node 入口、页面走浏览器入口，包装链只有一份，测试才覆盖页面实际运行的计算；`tests/kernel-entry-composition.test.mjs` 会检查这一点。
 - 关键倍率和时序要有独立预期值。目的：CPU 与 GPU 共用同一套规则，规则错了两边结果仍然一致。
 - 改公式、乘区、BUFF 作用域或反应系数前，先读 `docs/dev/formula-scope.md`。目的：乘区和作用域里有多处与直觉相反、已由开发者确认的语义。
 - 接入新角色或新效果，按 `docs/dev/add-character.md` 走。目的：一个角色要同时接进注册表、五条公共入口和界面，漏一处就会出现某条路径算不出来。
