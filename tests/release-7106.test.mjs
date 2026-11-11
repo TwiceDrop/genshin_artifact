@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,original,vody,vesna,read,named,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,original,vody,vesna,read,named,sum} from '../beta-tools/runtime.mjs';
 import {prepareExtensionBuffs} from '../beta-data/extension-buffs.mjs';
 import {deriveTeamBuffs} from '../beta-data/hybrid-team-optimizer.mjs';
 import {createTeamContextSource,deriveSingleTeamContext} from '../src/algorithms/single-team-context.mjs';

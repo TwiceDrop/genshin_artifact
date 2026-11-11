@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,sum,read} from '../beta-tools/runtime-7106.mjs';
+import {api,sum,read} from '../beta-tools/runtime.mjs';
 import {input} from '../beta-tools/preview-7201-fixtures.mjs';
 import {fixture,chars} from '../beta-tools/interface-audit-7108.mjs';
 import {groupCharacterBuffs,availableCharacterBuffs,bindBuffConfig} from '../src/algorithms/buff-groups/index.mjs';

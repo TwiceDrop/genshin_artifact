@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {equipmentFactsInput,equipmentFactCases,equipmentFactsAxis,equipmentFactsTeams} from './helpers/team-equipment-facts-input.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-10*Math.max(1,Math.abs(b)),`${a} != ${b}`);

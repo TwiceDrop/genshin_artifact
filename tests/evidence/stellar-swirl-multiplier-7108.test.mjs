@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import webpack from 'webpack';
-import {api,named,sum,vesna} from '../../beta-tools/runtime-7106.mjs';
+import {api,named,sum,vesna} from '../../beta-tools/runtime.mjs';
 import {fixture} from '../../beta-tools/interface-audit-7108.mjs';
 import {probeCompiledOptimizer} from '../../beta-tools/compiled-worker-probe.mjs';
 const work='.build-target/stellar-swirl-multiplier-20261002';

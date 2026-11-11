@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {api,read} from './runtime-7106.mjs';
+import {api,read} from './runtime.mjs';
 import {defaultDamageReaction,visibleDamageReactionKeys} from '../src/algorithms/reaction-labels.mjs';
 import {createDamageEvaluator} from '../src/algorithms/stat-gain/curve.mjs';
 export const chars=read('src/assets/_gen_character.js'),targets=read('src/assets/_gen_tf.js'),weapons=read('src/assets/_gen_weapon.js'),buffs=read('src/assets/_gen_buff.js'),sets=read('src/assets/_gen_artifact.js');

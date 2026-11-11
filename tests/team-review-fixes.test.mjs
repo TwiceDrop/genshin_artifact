@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import fs from 'node:fs';import vm from 'node:vm';
 import * as stellar from '../src/algorithms/stellar-detail.mjs';
 import {damageReactionOptions,defaultDamageReaction} from '../src/algorithms/reaction-labels.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {createEquipmentAxisRules} from '../beta-data/equipment-axis-rules.mjs';
 import {normalizeTeamProfiles} from '../beta-data/team-engine/registry.mjs';

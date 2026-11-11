@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,original,vody,vesna,read,named,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,original,vody,vesna,read,named,sum} from '../beta-tools/runtime.mjs';
 import {deriveTeamBuffs} from '../beta-data/hybrid-team-optimizer.mjs';
 const clone=structuredClone;
 const near=(actual,expected,label='')=>assert.ok(Number.isFinite(actual)&&Math.abs(actual-expected)<=Math.max(1e-6,Math.abs(expected)*1e-9),`${label}: ${actual} != ${expected}`);

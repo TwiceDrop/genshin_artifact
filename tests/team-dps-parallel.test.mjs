@@ -5,7 +5,7 @@ import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {sample,builds,gear} from '../beta-tools/team-dps-full-audit.mjs';
 import {compareTeamResults} from './helpers/team-dps-result-comparison.mjs';
 import {weapon} from '../beta-tools/interface-audit-7108.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
 import {createTeamDpsScorePool} from '../src/workers/team-dps-score-pool.mjs';
 import {FakeTeamWorker as Worker,simpleTeamModel} from './helpers/team-dps-fake-worker.mjs';

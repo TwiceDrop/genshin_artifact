@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {TEAM_DPS_ROLES,TEAM_DPS_CHARACTER_CAPABILITIES} from '../beta-data/team-dps-config.mjs';
 import {compileTeamDpsAxis} from '../beta-data/team-dps-rotation.mjs';

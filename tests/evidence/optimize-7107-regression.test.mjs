@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,vesna,vody,read,sum} from '../../beta-tools/runtime-7106.mjs';
+import {api,vesna,vody,read,sum} from '../../beta-tools/runtime.mjs';
 import {runSingleOptimizeWorker} from '../../src/wasm/single-optimize-task.mjs';
 import {initializeSingleOptimizeWorker} from '../../src/workers/single-optimize-handler.mjs';
 import {probeCompiledOptimizer} from '../../beta-tools/compiled-worker-probe.mjs';

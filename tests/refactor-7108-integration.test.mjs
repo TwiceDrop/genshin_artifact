@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {original,rawOriginal,vody,sum,named} from '../beta-tools/runtime-7106.mjs';
+import {original,rawOriginal,vody,sum,named} from '../beta-tools/runtime.mjs';
 import {calculateSingleHit} from '../beta-data/single-hit-damage.mjs';
 import {normalizeBuffParameters} from '../beta-data/buff-rule-registry.mjs';
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} != ${b}`);

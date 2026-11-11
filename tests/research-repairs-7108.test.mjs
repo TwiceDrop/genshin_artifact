@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,original,rawOriginal,vody,vesna,named,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,original,rawOriginal,vody,vesna,named,sum} from '../beta-tools/runtime.mjs';
 import {expandedWeaponStats,knownOverlap} from '../beta-data/expanded-weapons.mjs';
 import {bindReactionBuffs} from '../beta-data/reaction-parameter-rules.mjs';
 import {calculateSingleHit} from '../beta-data/single-hit-damage.mjs';

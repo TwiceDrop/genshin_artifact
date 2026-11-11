@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';import {sample,builds} from '../beta-tools/team-dps-full-audit.mjs';
+import {api} from '../beta-tools/runtime.mjs';import {sample,builds} from '../beta-tools/team-dps-full-audit.mjs';
 import {createActionAxis,actionAxisDurationMs} from '../beta-data/team-engine/action-config.mjs';import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';import {createSkillMultiplierPreview} from '../beta-data/team-engine/multiplier-preview.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {nativeEventTrace,compareEventValues} from './helpers/team-dps-result-comparison.mjs';

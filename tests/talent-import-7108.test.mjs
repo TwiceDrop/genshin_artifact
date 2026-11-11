@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import * as vue from 'vue';
-import {read,api} from '../beta-tools/runtime-7106.mjs';
+import {read,api} from '../beta-tools/runtime.mjs';
 import {createMysConverter,mergeEquipped} from '../src/import/miyoushe.mjs';
 import {characterSummary} from '../src/import/character-summary.mjs';
 import {normalizeTalentName} from '../src/import/character-talents.mjs';

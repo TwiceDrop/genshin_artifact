@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {compileEffectPlan} from '../beta-data/team-engine/effect-plan.mjs';
 import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';
 import {createEffectState} from '../beta-data/team-engine/effect-state.mjs';

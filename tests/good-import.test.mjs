@@ -145,7 +145,7 @@ test('imported equipment crosses the actual public WASM calculator and scoring b
         artifact(slot, ['hp', 'atk', 'atk_', 'pyro_dmg_', 'critDMG_'][i], { setKey: 'GladiatorsFinale', location: 'Klee' })))
     importMonaJson(input, false, false)
     const equipped = kumi.kumisByDirId.value[1][0].artifactIds.map(id => store.getArtifact(id))
-    const { api } = await import('../beta-tools/runtime-7106.mjs')
+    const { api } = await import('../beta-tools/runtime.mjs')
     const config = {
         character: { name: 'Klee', level: 90, ascend: false, constellation: 0, skill1: 9, skill2: 9, skill3: 9, params: 'NoConfig' },
         weapon: { name: 'MagicGuide', level: 90, ascend: false, refine: 1, params: 'NoConfig' },

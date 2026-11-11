@@ -8,7 +8,7 @@
 flowchart TD
     UI[前端页面<br/>src/pages、src/components、src/mobile]
     Worker[配装与四人轴 Worker<br/>src/workers、src/wasm]
-    Entry[浏览器入口 mona_wasm/pkg/index.js<br/>Node 入口 beta-tools/runtime-7106.mjs]
+    Entry[浏览器入口 mona_wasm/pkg/index.js<br/>Node 入口 beta-tools/runtime.mjs]
     Adapter[适配层 beta-data/*.mjs]
     Team[四人轴引擎 beta-data/team-engine]
     Original[原始发布内核]
@@ -61,6 +61,6 @@ flowchart TD
 这些是现状，不是规则。处理计划见 `docs/specs/repo-cleanup/`，桌面封装的决策见 `docs/adr/0002-tauri-shell-stays-experimental.md`。
 
 - **`beta-data/` 和 `beta-tools/` 的名字已经不符合内容。** 前者是正式的适配层，根目录平铺了一百多个文件，规则、数据 JSON、校验清单和笔记混在一起；后者同时放着 Node 运行入口、冒烟脚本和一次性数据提取脚本。
-- **版本号写进了文件名。** 测试、脚本、适配层模块里有几十个带 `7106`、`7108`、`7201` 的文件名，其中一部分仍是当前入口（例如 `runtime-7106.mjs`、`preview-7201-facade.mjs`）。
+- **版本号写进了文件名。** 测试、脚本、适配层模块里有几十个带 `7106`、`7108`、`7201` 的文件名，其中一部分仍在使用（例如 `preview-7201-facade.mjs`）。新文件不再带版本号，已有的不改名。
 - **Tauri 封装没有接进构建和发版流程。** 它依赖仓库外的 `../launcher/runtime` 和构建时才生成的 `runtime/hoyolab-login`，目前只是保留的源码。
 - **上游遗留的配置仍在。** 备案、CDN、`www.mona-uranai.com` 代理这些开关服务于上游的线上站点，本项目只做本地发行。

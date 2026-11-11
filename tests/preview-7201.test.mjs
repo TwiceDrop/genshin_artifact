@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {api,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,sum} from '../beta-tools/runtime.mjs';
 import {previewDefaults} from '../beta-data/preview-7201-config.mjs';
 import {createDamageEvaluator} from '../src/algorithms/stat-gain/curve.mjs';
 import {named,input,gear} from '../beta-tools/preview-7201-fixtures.mjs';

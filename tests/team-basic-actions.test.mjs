@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';
 import {validateActionAxis,TEAM_ACTION_CATALOG} from '../beta-data/team-engine/action-config.mjs';

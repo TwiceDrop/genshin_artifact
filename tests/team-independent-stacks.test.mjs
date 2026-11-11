@@ -7,7 +7,7 @@ import {equipmentEffects} from '../beta-data/team-engine/equipment-effects.mjs';
 import {afterEvent} from '../beta-data/team-engine/event-order.mjs';
 import {scalarMath} from '../beta-data/team-dps-numeric-rules.mjs';
 import {createNumericProgram,executeNumericProgram} from '../beta-data/team-dps-numeric-program.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {compareEventValues,nativeEventTrace} from './helpers/team-dps-result-comparison.mjs';

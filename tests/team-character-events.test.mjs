@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {characterPackages} from '../beta-data/team-engine/character-packages.mjs';
 import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';
 import {eventKey} from '../beta-data/team-engine/event-order.mjs';

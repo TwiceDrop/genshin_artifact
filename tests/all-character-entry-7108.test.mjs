@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {markReactionAvailability} from '../beta-data/reaction-availability.mjs';
 import {damageReactionOptions,stellarDamageResults,visibleDamageReactionKeys} from '../src/algorithms/reaction-labels.mjs';
-import {api,read} from '../beta-tools/runtime-7106.mjs';
+import {api,read} from '../beta-tools/runtime.mjs';
 const chars=read('src/assets/_gen_character.js'),targets=read('src/assets/_gen_tf.js');
 const weapons={Sword:'DullBlade',Claymore:'WasterGreatsword',Polearm:'BeginnersProtector',Bow:'HuntersBow',Catalyst:'ApprenticesNotes'};
 const config=(name,rows)=>rows?.length?{[name]:Object.fromEntries(rows.map(c=>[c.name,c.default]))}:'NoConfig';

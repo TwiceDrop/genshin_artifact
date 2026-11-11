@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
-import {api,vody,vesna,read,named,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,vody,vesna,read,named,sum} from '../beta-tools/runtime.mjs';
 import {createDamageEvaluator} from '../src/algorithms/stat-gain/curve.mjs';
 const clone=structuredClone;
 const near=(a,b,message='')=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<Math.max(1e-7,Math.abs(b)*1e-9),`${message}: ${a} != ${b}`);

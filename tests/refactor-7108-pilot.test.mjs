@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,vesna,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,vesna,sum} from '../beta-tools/runtime.mjs';
 import {calculateSingleHit} from '../beta-data/single-hit-damage.mjs';
 import {EXTENSION_BUFF_REGISTRY} from '../beta-data/extension-buffs.mjs';
 const named=(p={})=>({name:'AlyoshaHunterPrecision',config:{AlyoshaHunterPrecision:p}});

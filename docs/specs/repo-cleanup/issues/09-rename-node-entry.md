@@ -4,7 +4,7 @@
 
 **Blocked by:** 08
 
-**Status:** ready-for-agent
+**Status:** done
 
 开发者已决定的范围：
 
@@ -15,7 +15,12 @@
 
 被 103 个文件引用，按「先加新名、分批迁移、最后删旧名」做，每一步单独提交：
 
-- [ ] 第一步：新建 `beta-tools/runtime.mjs` 承载现有内容，`beta-tools/runtime-7106.mjs` 改成只转发新文件的全部导出；挑三份测试跑通
-- [ ] 第二步：按目录分批把引用改到新名字（`tests/`、`tests/helpers/`、`beta-tools/`、`script/`、文档各一批），每批改完挑三份涉及的测试跑通
-- [ ] 第三步：全仓搜索确认没有对旧名的引用后，删除 `beta-tools/runtime-7106.mjs`
-- [ ] 更新 `AGENTS.md`、`docs/dev/add-character.md`、`docs/dev/architecture.md`、`docs/dev/build-and-test.md` 里的文件名
+- [x] 第一步：新建 `beta-tools/runtime.mjs` 承载现有内容，`beta-tools/runtime-7106.mjs` 改成只转发新文件的全部导出；挑三份测试跑通
+- [x] 第二步：按目录分批把引用改到新名字（`tests/`、`tests/helpers/`、`beta-tools/`、`script/`、文档各一批），每批改完挑三份涉及的测试跑通
+- [x] 第三步：全仓搜索确认没有对旧名的引用后，删除 `beta-tools/runtime-7106.mjs`
+- [x] 更新 `AGENTS.md`、`docs/dev/add-character.md`、`docs/dev/architecture.md`、`docs/dev/build-and-test.md` 里的文件名
+
+## Comments
+
+- 2026-11-11：三步合并在一次提交里完成。先建了只做转发的旧名文件，确认新旧名字导出同一个 `api` 对象后，一次把 `tests/`、`tests/evidence/`、`tests/helpers/`、`beta-tools/`、`beta-data/` 里的 102 处引用改成 `beta-tools/runtime.mjs`，再删掉转发文件。其他分支都是旧备份，没有在途分支需要旧名字过渡。`docs/history/` 和本规格的任务文件保留原名，属于历史记录。
+- 验证：`kernel-entry-composition`、`refactor-7108-pilot`、`dsl-generator-7201`、`illuga-index-7201` 全部通过。

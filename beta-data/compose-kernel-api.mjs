@@ -1,5 +1,5 @@
 // The one place that wraps the three kernels in the adapter layers.
-// The browser entry (mona_wasm/pkg/index.js) and the Node entry (beta-tools/runtime-7106.mjs)
+// The browser entry (mona_wasm/pkg/index.js) and the Node entry (beta-tools/runtime.mjs)
 // only load the kernels and data, then call composeKernelApi; change wrapping order here only.
 import {withLegacyEnemyBridge} from './enemy-interface.mjs';
 import {withLegacyEffectBridge} from './legacy-effect-bridge.mjs';

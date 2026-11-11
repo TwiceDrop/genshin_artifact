@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {constrainedActionInput} from './helpers/team-action-configuration.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {compareNativeTeamResults} from './helpers/team-dps-result-comparison.mjs';

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api, read, sum} from '../beta-tools/runtime-7106.mjs';
+import {api, read, sum} from '../beta-tools/runtime.mjs';
 import {input, named, gear} from '../beta-tools/preview-7201-fixtures.mjs';
 import {fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {compilePreviewBuff} from '../beta-data/preview-7201-facade.mjs';

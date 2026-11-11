@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {parse,compileScript,compileTemplate} from '@vue/compiler-sfc';
-import {api,named} from '../beta-tools/runtime-7106.mjs';
+import {api,named} from '../beta-tools/runtime.mjs';
 import {fixture,optimizer,gear,chars,targets,buffs} from '../beta-tools/interface-audit-7108.mjs';
 import {REMOVED_REACTION_KEYS,assertDirectReactionDsl} from '../beta-data/direct-reaction-scope.mjs';
 import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';

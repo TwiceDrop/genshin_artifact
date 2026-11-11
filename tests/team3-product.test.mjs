@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {chars,weapons,fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {createSkillMultiplierPreview} from '../beta-data/team-engine/multiplier-preview.mjs';
 import {changeTeamConstellation} from '../beta-data/team-dps-character-rules.mjs';
