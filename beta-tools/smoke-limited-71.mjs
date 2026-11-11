@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {bindings} from '../mona_wasm/pkg/bindings.js';
@@ -47,11 +46,10 @@ function test(name,fn){try{fn();tests.push({name,pass:true});console.log('PASS',
 const byName=name=>data.weapons.find(w=>w.name===name);
 const sumStar=result=>sum(result.direct_stellarswirl_compose);
 
-test('公开快照SHA256、1248等级行及65档中英文特效数值一致',()=>{
+test('1248等级行及65档中英文特效数值一致',()=>{
  const offsets={11435:[2,3],11436:[0,2],11437:[3,5,4,6],12435:[0,1,2],12436:[0,2],13435:[0,2],13436:[0,1],14435:[0,1],14436:[0,1],14437:[0,1,2,3],15435:[1,0],15436:[0]};
  assert.equal(data.weapons.length,13);
  for(const w of data.weapons){
-  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(url(w.snapshot))).digest('hex'),w.sha256);
   assert.equal(w.levels.length,96);assert.equal(new Set(w.levels.map(r=>r.level+':'+r.ascend)).size,96);assert.equal(w.refinements.length,5);
   for(const r of w.refinementDetails)for(const field of ['description','descriptionEnglish']){
    const expected=w.id===15437?[r.recharge,r.parameters[0]]:offsets[w.id].map(i=>r.parameters[i]);

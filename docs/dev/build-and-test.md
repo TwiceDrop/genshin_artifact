@@ -38,7 +38,7 @@ npm ci --legacy-peer-deps
   - `.build-target/` 下的证据，由对应脚本在本机生成，例如 `beta-tools/full-audit-contracts-7201.mjs` 生成 `linkage-fix-7201` 读取的 `contracts.json`。
   - 真实账号夹具 `beta-data/skirk-fixture.json`、`beta-data/mizuki-fixture.json`，被 `.gitignore` 排除，只在持有者本机存在。
 - 重新构建扩展内核后，先跑这三份确认扩展内核能加载、走公共入口能算出结果，它们不需要私有夹具：`node --test tests/release-7106.test.mjs tests/unified-kernel.test.mjs tests/stellar-swirl-multiplier-7108.test.mjs`。
-- `npm run smoke:fixtures` 依次跑 `beta-tools/smoke*.mjs` 六个冒烟脚本，它们全部要读上面两份私有夹具，只能在持有夹具的机器上跑，适合发版前。结果写到 `.build-target/smoke/`。已知 `smoke-limited-71` 的「公开快照 SHA256」一项必然失败：它校验的 `beta-data/sources-limited-71/` 在 V7.2.01 已删除。
+- `npm run smoke:fixtures` 依次跑 `beta-tools/smoke*.mjs` 六个冒烟脚本，它们全部要读上面两份私有夹具，只能在持有夹具的机器上跑，适合发版前。结果写到 `.build-target/smoke/`。
 - `tests/` 下的测试会把报告写到 `.build-target/`，目录不存在时自己创建。
 - 依赖缺失（`Cannot find package`）时先确认已经执行过 `npm ci`。
 
