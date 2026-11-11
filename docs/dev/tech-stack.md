@@ -7,7 +7,7 @@
 | 部分 | 技术 | 版本锁定位置 |
 | --- | --- | --- |
 | 前端框架 | Vue 3、Vue Router 4、Pinia 2、vue-i18n 9，TypeScript 4.5 与 JS 混写 | `package.json`、`package-lock.json` |
-| 前端构建 | Vue CLI 5（webpack 5）、Babel、Sass、ifdef-loader | `package.json`、`vue.config.js` |
+| 前端构建 | Vue CLI 5（webpack 5）、Babel、Sass | `package.json`、`vue.config.js` |
 | 桌面 UI | Element Plus 2、unplugin 自动导入、ECharts 5、Monaco Editor | `package.json` |
 | 新移动 UI | radix-vue、Tailwind CSS 3、class-variance-authority | `mobile/package.json` |
 | 浏览器存储 | localforage（IndexedDB）与 localStorage | `package.json` |
@@ -52,7 +52,7 @@
 
 升级前先评估影响，升级本身按规格和任务走。
 
-- Vue CLI 5 已停止功能开发，TypeScript 4.5、ESLint 7、axios 0.21 都落后多个主版本。
+- Vue CLI 5 已停止功能开发，TypeScript 4.5、ESLint 7、axios 0.21 都落后多个主版本。评估和分步方案见 `docs/specs/dependency-upgrades/spec.md`。
 - `.eslintrc.js` 的 `ignorePatterns` 排除了 `src/`，`npm run lint` 实际不检查前端源码。
 - Rust 工具链固定在 2024 年 10 月的 nightly；`rust-toolchain.toml` 里列的 `x86_64-unknown-linux-gnu` 目标在 Windows 构建中用不到。
 - 根目录服务要求 Node.js 20，在线服务要求 Node.js 24，`THIRD_PARTY_NOTICES.md` 记录的随包运行时是 Node.js 22，三处不一致。
