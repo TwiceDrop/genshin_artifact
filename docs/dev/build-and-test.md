@@ -7,6 +7,7 @@ npm ci --legacy-peer-deps
 ```
 
 - 需要 Node.js 20 或更高版本和 Git。
+- 要构建新移动 UI，再在 `mobile/` 下执行 `npm ci --legacy-peer-deps`。`radix-vue` 声明了 `vue` 为对等依赖，但构建时 `vue.config.js` 把 `vue` 指到根目录那一份，所以 `mobile/` 不另装 `vue`；不加这个参数，`npm ci` 会因为锁文件里没有 `vue` 而报错。
 - 原始发布内核、浏览器入口和生成的元数据都已提交，新克隆的仓库不需要再提取。
 
 ## 重新提取原始发布内核

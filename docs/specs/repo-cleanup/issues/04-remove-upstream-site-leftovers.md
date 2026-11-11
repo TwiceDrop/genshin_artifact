@@ -31,4 +31,4 @@
 
 - 2026-11-11：上面的删除项全部完成，`ifdef-loader` 只为 `USE_CDN` 服务，已一起卸载；DSL 编辑器的包装去掉了从 CDN 加载 Monaco 的分支。用户指南里的 DSL 语法链接改为指向上游仓库 `wormtql/genshin_artifact` 的同名文件（已确认两份文件在上游 main 分支存在）。
 - 验证：桌面网页和新移动 UI 都构建成功（输出到 `.cache/test/`）；用本机服务托管桌面构建，词条收益曲线的折线图和饼图正常显示，Playground 的 Monaco 编辑器正常加载，控制台无报错。
-- 新发现：`mobile/package-lock.json` 与 `mobile/package.json` 不同步（缺 radix-vue 需要的 vue），`npm ci` 在 `mobile/` 下会直接失败。本次用不写锁文件的 `npm install` 装依赖完成构建，没有改锁文件，需要单独处理。
+- 新发现（2026-11-11 已查清）：`mobile/` 下直接 `npm ci` 会因锁文件里没有 `vue` 而失败。锁文件本身没问题，它是按 `--legacy-peer-deps` 生成的，`vue` 由 `vue.config.js` 指到根目录那一份。用 `npm ci --legacy-peer-deps` 可以按原锁文件装好并构建成功，安装说明已补进 `docs/dev/build-and-test.md`。
