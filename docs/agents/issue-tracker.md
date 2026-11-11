@@ -2,6 +2,8 @@
 
 本仓库不用 GitHub Issues。规格和任务写成 `docs/specs/` 下的 markdown 文件，随 git 提交，协作者 pull 后即可看到。
 
+目的：告诉 skill「发布到 issue tracker」在本仓库是写文件，不调用 GitHub，避免改动远端。
+
 ## Conventions
 
 - One feature per directory: `docs/specs/<feature-slug>/`

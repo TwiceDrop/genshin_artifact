@@ -2,6 +2,8 @@
 
 How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
+目的：让 skill 在读代码前先读 `GLOSSARY.md` 和 `docs/adr/`，产出里用同一套术语。本仓库是单一上下文；下面多上下文的部分来自上游模板，用不到。
+
 ## Before exploring, read these
 
 - **`GLOSSARY.md`** at the repo root, or

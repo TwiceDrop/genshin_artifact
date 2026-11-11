@@ -2,6 +2,8 @@
 
 The skills speak in terms of canonical triage roles. In this repo a role is written as the `Status:` line of a file under `docs/specs/`, not as a GitHub label.
 
+目的：把 skill 里说的分类标签对应到 `Status:` 行，agent 靠它判断任务能不能直接做。
+
 | Role in mattpocock/skills | `Status:` value | Meaning |
 | ------------------------- | --------------- | ------- |
 | `needs-triage`            | `needs-triage`    | A developer still needs to evaluate it |
