@@ -38,7 +38,7 @@
 
 ## 数据及计算范围
 
-已对照正式版 **7.1.0 D48145775 / R48145775**。来源URL、原始描述、65档精炼、13×96组等级/突破数据、原始曲线和页面SHA256保存在 [weapons-release-71.json](weapons-release-71.json)，页面快照保存在 `sources-release-71/`。13把武器的属性、突破、成长曲线和全部精炼参数与此前录入数值一致。
+已对照正式版 **7.1.0 D48145775 / R48145775**。来源URL、原始描述、65档精炼、13×96组等级/突破数据、原始曲线和页面SHA256保存在 [weapons-release-71.json](../../beta-data/weapons-release-71.json)，页面快照保存在 `sources-release-71/`。13把武器的属性、突破、成长曲线和全部精炼参数与此前录入数值一致。
 
 - [新枝](https://gi.gachabase.net/weapons/11437/new-bough/release?lang=chs)
 - [凝雪沉心](https://gi.gachabase.net/weapons/14437/winters-heavy-heart/release?lang=chs)

@@ -26,7 +26,7 @@
 - Android 系统保存回调、目标 URI 实际写入、完整回读及重新导入已验证；7.1.07 圣遗物／角色 UID 导出兼容已完成。
 - 已完成角色／武器图片补齐、角色喵喵评分及并列主词条归一化、七七六命 DSL、沃雅妮莎旧角色星扩散支援、薇斯纳普通模式 C2、编译通用星烁 BUFF 的旧原生消费。
 - 原独立星／月反应、多人贡献、主C手填面板入口和自行添加的说明已按用户要求移除。
-- 完整记录：[44 项更新说明](docs/release-7.1.08-final.md)、[发布与跨版本导入验证](docs/release-validation-7.1.08.md)。
+- 完整记录：[44 项更新说明](docs/release-7.1.08-final.md)、[发布与跨版本导入验证](docs/history/release-validation-7.1.08.md)。
 
 ### 7.1.09 正式基线（2026-10-06 已发布）
 
@@ -38,7 +38,7 @@
 6. 喵喵评分三类遗留偏差已修复：具名流派共用专武／绝缘／西风修正，玛薇卡复用上游精通分支，绝缘按原充能 +75 后截取最高权重。固定评分模板和库存推荐没有改变。
 7. 已正式构建发布 Windows EXE／ZIP 和 Android APK，README 与本版 15 条更新说明已同步；五项评分验证含实际桌面／手机编译入口，包内网页回读、版本和 APK 签名核对完成。
 
-[7.1.09 更新说明](docs/release-7.1.09-final.md) · [评分修复](docs/artifact-score-fix-7109.md) · [Astra 修复](docs/astra-review-fixes-7109.md) · [发布核对与边界](docs/release-validation-7.1.09.md)
+[7.1.09 更新说明](docs/release-7.1.09-final.md) · [评分修复](docs/history/artifact-score-fix-7109.md) · [Astra 修复](docs/history/astra-review-fixes-7109.md) · [发布核对与边界](docs/history/release-validation-7.1.09.md)
 
 ## 当前版本 7.1.10 待办及完成状态
 
@@ -48,20 +48,20 @@
 
 | 编号 | 事项 | 调研／排查状态 | 实现状态 | 验证状态与下一步 |
 | --- | --- | --- | --- | --- |
-| 7.1.10-01 | HoYoLAB 海外角色 UID、天赋、武器及已穿戴圣遗物同步 | **调研完成**：已有海外角色列表／详情消费者，字段结构可参考现有共享转换 | **未实现** | 未进行真实海外同步／导入验证。下一步接海外路由、请求头、游戏区域、平台账号身份及两端导入链路；范围为已穿戴装备。详见 [HoYoLAB 调研](docs/hoyolab-research-7110.md) |
-| 7.1.10-02 | HoYoLAB 登录便利性与海外扫码获取 Cookie | **调研完成，扫码协议仍未确认**：已有邮箱／密码和验证码登录参考；所读扫码实现限定国服 | **未实现** | 未进行海外认证或扫码验证。海外扫码仍需确认 app_id、创建／轮询端点、扫描应用、确认响应及 Cookie 获取方式；不能猜接口或仅换域名。详见 [登录调研](docs/hoyolab-research-7110.md) |
-| 7.1.10-05 | 库存原生静态推荐权重缺项 | **已定位，用户要求暂缓** | **未实现，继续暂缓** | 部分角色／目标仍缺原生权重；原生静态接口也不接收 BUFF，需属性补偿的武器（含银釭）沿用已有接口限制。2026-10-04 用户要求“先暂时不管”。喵喵评分与实际伤害优化不替代库存推荐，不自动重启此项。依据：[暂未完成事项](docs/pending-items-20261004.md) |
+| 7.1.10-01 | HoYoLAB 海外角色 UID、天赋、武器及已穿戴圣遗物同步 | **调研完成**：已有海外角色列表／详情消费者，字段结构可参考现有共享转换 | **未实现** | 未进行真实海外同步／导入验证。下一步接海外路由、请求头、游戏区域、平台账号身份及两端导入链路；范围为已穿戴装备。详见 [HoYoLAB 调研](docs/history/hoyolab-research-7110.md) |
+| 7.1.10-02 | HoYoLAB 登录便利性与海外扫码获取 Cookie | **调研完成，扫码协议仍未确认**：已有邮箱／密码和验证码登录参考；所读扫码实现限定国服 | **未实现** | 未进行海外认证或扫码验证。海外扫码仍需确认 app_id、创建／轮询端点、扫描应用、确认响应及 Cookie 获取方式；不能猜接口或仅换域名。详见 [登录调研](docs/history/hoyolab-research-7110.md) |
+| 7.1.10-05 | 库存原生静态推荐权重缺项 | **已定位，用户要求暂缓** | **未实现，继续暂缓** | 部分角色／目标仍缺原生权重；原生静态接口也不接收 BUFF，需属性补偿的武器（含银釭）沿用已有接口限制。2026-10-04 用户要求“先暂时不管”。喵喵评分与实际伤害优化不替代库存推荐，不自动重启此项。依据：[暂未完成事项](docs/history/pending-items-20261004.md) |
 | 7.1.10-06 | 计算器按面板属性筛选与配装排序，与 Fribbels HSR Optimizer 对照 | **调研完成**：已核对 Fribbels 搜索引擎、结果表控制器及当前官网脚本；它区分搜索目标与结果表列排序，并支持属性上下限、基本／战斗属性视图和已保留结果再筛选。现有项目缺暴击率／爆伤下拉目标及多属性结果表 | **未实现新增功能** | 未运行项目功能测试或浏览器点击实测。Fribbels 默认保留 1024 组，可选 64～65536 组；表列排序及计算后筛选仅作用于已保留方案。建议复用现有约束，补齐属性目标、上下限与结果表，并让所选搜索目标参与结果保留；面板口径及保留数量需在实施时确定。详见下方调研记录 |
-| 7.1.10-10 | 7.1.09 升级至 7.1.10：Android 下载一直 0%／Windows EXE 点击安装后退出无后续 | **Windows 已复现；Android 等待状态丢失已复现，用户系统任务阻塞原因未确认** | **尚未修改业务代码** | 用户确认 EXE 安装版；原更新器 detached PowerShell 未执行脚本却通知主程序退出，独立 Node 承载方案的合成对照通过。手机 Wi-Fi、代理开／关及 GitHub／镜像均测速正常却 0%；原始正式 APK 在只读 AVD 已下载完整 29220065 字节 APK 并回读内容／版本，受控等待时系统 pending 被显示 downloading／空错误。尚缺用户真实系统 status／reason，不能将合成断网当作用户根因。详见 [升级故障排查](docs/update-diagnostic-7109-to-7110.md) |
+| 7.1.10-10 | 7.1.09 升级至 7.1.10：Android 下载一直 0%／Windows EXE 点击安装后退出无后续 | **Windows 已复现；Android 等待状态丢失已复现，用户系统任务阻塞原因未确认** | **尚未修改业务代码** | 用户确认 EXE 安装版；原更新器 detached PowerShell 未执行脚本却通知主程序退出，独立 Node 承载方案的合成对照通过。手机 Wi-Fi、代理开／关及 GitHub／镜像均测速正常却 0%；原始正式 APK 在只读 AVD 已下载完整 29220065 字节 APK 并回读内容／版本，受控等待时系统 pending 被显示 downloading／空错误。尚缺用户真实系统 status／reason，不能将合成断网当作用户根因。详见 [升级故障排查](docs/history/update-diagnostic-7109-to-7110.md) |
 
 
 ### 当前已完成事项
 
 | 事项 | 完成状态 | 实际完成内容与边界 |
 | --- | --- | --- |
-| shadcn-vue 手机界面试验版（7.1.10-11） | **实现及五项定向验证完成** | 手机专用组件、导航及布局复用全部 11 个现有页面和业务接口；手机 / 桌面编译、控件合同、小屏操作、合成 GOOD 导入导出和真实 Worker 核对通过。独立网页与预览位于 .build-target/7110-shadcn-mobile；未构建 APK、未实机安装或发布。详见 [手机重构记录](docs/mobile-shadcn-7110.md) |
+| shadcn-vue 手机界面试验版（7.1.10-11） | **实现及五项定向验证完成** | 手机专用组件、导航及布局复用全部 11 个现有页面和业务接口；手机 / 桌面编译、控件合同、小屏操作、合成 GOOD 导入导出和真实 Worker 核对通过。独立网页与预览位于 .build-target/7110-shadcn-mobile；未构建 APK、未实机安装或发布。详见 [手机重构记录](docs/history/mobile-shadcn-7110.md) |
 | 常规版 7.1.10 独立源码副本与版本声明 | **已完成** | 已从正式 7.1.09 建立独立源码、同步 package／Android 版本及任务分流；2026-10-11 发布任务已生成 7.1.10 启动器与平台包 |
-| 7.1.10 正式构建与 GitHub 上传 | **已正式发布，五项定向验证目的通过** | README 按四部分更新，完整日志列出本版 12 项改动；Windows EXE／ZIP、原签名 Android APK 已上传，启动器版本同步。包内容／版本／签名、桌面／手机编译 Worker 及 GitHub 标签／正文／资产回读通过；[正式发布](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)，详见 [发布核对](docs/release-validation-7.1.10.md) |
+| 7.1.10 正式构建与 GitHub 上传 | **已正式发布，五项定向验证目的通过** | README 按四部分更新，完整日志列出本版 12 项改动；Windows EXE／ZIP、原签名 Android APK 已上传，启动器版本同步。包内容／版本／签名、桌面／手机编译 Worker 及 GitHub 标签／正文／资产回读通过；[正式发布](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)，详见 [发布核对](docs/history/release-validation-7.1.10.md) |
 | 7.1.10-03 过滤圣遗物组查找与保留本人 | **实现与针对性验证完成；Astra 头像问题已修复** | 增加名称搜索、中文拼音排序和准确匹配预设装备的角色头像；搜索及数据刷新保留勾选，组排除保留当前五件。补齐组恰好五件及仓库实际存在的匹配要求，仓库删除后头像响应更新；本轮一项头像回归通过，详见下方记录 |
 | 7.1.10-04 银釭武器适配 | **正式数据核对、实现与针对性验证完成** | 接入正式 7.1.0 release 的等级／突破／精炼、有效层参数、目录／翻译／图标；公共面板、单次、单人优化、词条收益与 DSL 共用属性效果。两项针对性验证及编译 Worker 核对通过；库存静态接口边界归入继续暂缓的 05 |
 | 7.1.10-09 BUFF 弹窗行为统一 | **实现与针对性验证完成** | 两个计算页面的五类 BUFF 添加后均保持弹窗打开，保留角色配置和其他分类默认配置；一项合成组件验证通过，连续选择与重复选择行为正常 |
@@ -83,7 +83,7 @@
 
 用户要求以 7.1.10 为基础尝试手机重构，功能与电脑相同并改善操作和阅读。本轮已实现手机专用 shadcn / Radix 组件和导航，继续复用全部实际页面、数据存储、导入导出及计算接口。手机收藏夹原缺少的清空入口和词条曲线图片导出已接回既有函数；没有新增计算业务或恢复已删除的功能。
 
-五项定向验证完成：手机构建、公共控件合同、小屏浏览器交互、合成导入导出及编译 Worker、桌面隔离。360 / 390 / 768 像素检查及全部 11 个页面切换通过，最终浏览器无页面或控制台错误；5 件 GOOD 导入 / 导出回读、实际单人配装和固定凯亚银釭 Worker 参考一致。详见 [完整记录与证据](docs/mobile-shadcn-7110.md)。
+五项定向验证完成：手机构建、公共控件合同、小屏浏览器交互、合成导入导出及编译 Worker、桌面隔离。360 / 390 / 768 像素检查及全部 11 个页面切换通过，最终浏览器无页面或控制台错误；5 件 GOOD 导入 / 导出回读、实际单人配装和固定凯亚银釭 Worker 参考一致。详见 [完整记录与证据](docs/history/mobile-shadcn-7110.md)。
 
 当前交付为独立网页试验版和本地预览，不是新的正式发布。未验证 Android 实机、真实账号同步、系统保存 / 图片导出或升级安装。正式 dist / dist-mobile 和 EXE / APK、README、Beta、旧版及真实存档保留，版本仍为 7.1.10。新增依赖在 mobile/node_modules，正式端口和凭据目录未改变。
 
@@ -93,7 +93,7 @@
 
 本轮读取原始 7.1.09 成品与源码，核对 GitHub 当前三项资产，使用原随包 Node 执行隔离 Windows 启动对照。`LocalUpdater.install()` 对 PowerShell 使用 `detached:true`，仅等待 `spawn` 就进入 installing；HTTP 回复结束随即通知托盘退出。此环境中该 PowerShell 返回 0 却不执行脚本，符合用户现象；去掉 detached 的即时脚本能执行，但父进程退出后继续运行并未通过该方式验证，不能直接视作完整修复。独立 Node 承载 PowerShell 的合成对照已验证父进程退出后仍执行，仅为方案验证，不记为真实 EXE 覆盖安装完成。
 
-Android 原 size 修复存在于实际 release Java 编译输出。用户补充：手机 Wi-Fi、代理开／关及 GitHub／镜像均测速正常，下载却始终 0%，没有错误。后续只读 AVD 调整测试 DNS 后，原始正式 7.1.09 APK 经真实 JS 桥完成测速和整包下载，ready／29220065 字节，并回读 APK 内容、应用 ID 和 7.1.10 版本。受控断网对照中，系统任务 status=190／pending、0 字节，应用仍返回 downloading／空错误；源码也丢弃 paused 原因。这证实等待状态显示缺陷，但未确定用户手机的实际系统阻塞原因，不把合成断网套用于用户。测速使用应用内连接，下载改用系统 DownloadManager；下一步需取得真实 status／reason 再处理阻塞。测试设备和诊断端口已停止，未执行用户设备下载／安装、修改业务代码或重新发布；旧源码、成品和用户存档保留。详见 [升级故障排查](docs/update-diagnostic-7109-to-7110.md)。
+Android 原 size 修复存在于实际 release Java 编译输出。用户补充：手机 Wi-Fi、代理开／关及 GitHub／镜像均测速正常，下载却始终 0%，没有错误。后续只读 AVD 调整测试 DNS 后，原始正式 7.1.09 APK 经真实 JS 桥完成测速和整包下载，ready／29220065 字节，并回读 APK 内容、应用 ID 和 7.1.10 版本。受控断网对照中，系统任务 status=190／pending、0 字节，应用仍返回 downloading／空错误；源码也丢弃 paused 原因。这证实等待状态显示缺陷，但未确定用户手机的实际系统阻塞原因，不把合成断网套用于用户。测速使用应用内连接，下载改用系统 DownloadManager；下一步需取得真实 status／reason 再处理阻塞。测试设备和诊断端口已停止，未执行用户设备下载／安装、修改业务代码或重新发布；旧源码、成品和用户存档保留。详见 [升级故障排查](docs/history/update-diagnostic-7109-to-7110.md)。
 
 ### 7.1.10 正式发布（2026-10-11）
 
@@ -101,7 +101,7 @@ Android 原 size 修复存在于实际 release Java 编译输出。用户补充�
 
 当前：源码及三项成品已在 [GitHub 7.1.10 正式发布](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.10)，不是草稿或预发布。标签 `v7.1.10` 指向源码提交 `2cc19373ecf4767d5cea8c1adad20313ccf18ea8`；独立 Git 发布目录为 `D:/Documents/ChatGPT/v7.1.10/source-publish`。README 已按软件名称、项目特色、安装说明、其他四部分更新版本、实际功能及下载链接；[更新说明](docs/release-7.1.10-final.md) 完整列出 12 项改动。`build-tray-launcher.ps1` 已重新编译启动器，标题／显示版本 7.1.10、程序集／文件版本 7.1.10.0；安装器同版本。APK 沿用原升级签名，应用 ID、来源及用户存储约定不变。
 
-本轮五项明确验证目的为 Windows 构建／版本、Android 构建／身份／签名、包回读与公开源码范围、桌面／手机编译 Worker、GitHub 发布回读，全部通过。GitHub 标签、README、12 项正文及三项资产名称／上传状态／大小与准备内容一致；未重跑历史全量测试。具体命令、大小、数值及未实机验证边界见 [发布核对](docs/release-validation-7.1.10.md)。旧版、Beta、真实存档和原始发布 WASM 保留，未新增摘要或 SHA256。
+本轮五项明确验证目的为 Windows 构建／版本、Android 构建／身份／签名、包回读与公开源码范围、桌面／手机编译 Worker、GitHub 发布回读，全部通过。GitHub 标签、README、12 项正文及三项资产名称／上传状态／大小与准备内容一致；未重跑历史全量测试。具体命令、大小、数值及未实机验证边界见 [发布核对](docs/history/release-validation-7.1.10.md)。旧版、Beta、真实存档和原始发布 WASM 保留，未新增摘要或 SHA256。
 
 ### 过滤圣遗物组历史复核（2026-10-07，修复前）
 
@@ -121,7 +121,7 @@ Android 原 size 修复存在于实际 release Java 编译输出。用户补充�
 用户提供两份审查报告并要求两个 sub-agent 分别处理。只修改常规版 source，使用合成数据验证，未修改旧版、Beta、README 或真实账号存储。
 
 - **P3：不完整／已删除装备的圣遗物组误显示角色头像，已修复。** 原逻辑仅检查预设长度，空数组 `every` 或短数组前缀可误匹配；也不订阅仓库。`NewArtifactPlanPage.vue` 的头像 computed 现在要求组长度恰好 5、每个 ID 非空且非负并存在于响应式 `artifactStore.artifacts.value`，再沿用预设五槽精确匹配。候选过滤、树勾选逻辑未改。`node --test --test-name-pattern='filter group avatars require' tests/filter-kumi-7110.test.mjs` 返回 0，1 项通过：空／四件／六件组、无效及缺失 ID 不显示头像，完整组多角色头像去重，删除／恢复仓库记录后头像更新。此验证执行真实页面 computed 和 Vue 响应式合成仓库，不是完整浏览器操作。
-- **P2：女旅行者导入“未知角色”，实现与定向验证完成。** 属于 7.1.09 已有问题。共享旅行者解析保留原始角色 ID 10000007、性别、元素及 `UID:角色ID:元素` 键；新增荧七元素目录、名称／图片、草／冰专属目标和冰 BUFF 归属。正式 7.1.0 数据核对确认第二重击倍率存在性别差异，适配只在计算边界复用已核对的空模型，按男女第一／第二段差值修正倍率、保持定额加值。单次、DSL、候选优化和词条收益共用适配，冰默认目标按原发布内核权重构造实时 DSL；浏览器和 Node 注册一致。旧失败记录保留原身份键，通过已有重新同步／重新导入链路恢复预设并清除错误，不清空仓库。合法 DSL 对象复制及赋值保持原语义，原 DSL 禁止的重复 `dmg` 声明保留具体报错。详细修改、来源与边界见 [荧导入修复](docs/lumine-import-fix-7110.md)。
+- **P2：女旅行者导入“未知角色”，实现与定向验证完成。** 属于 7.1.09 已有问题。共享旅行者解析保留原始角色 ID 10000007、性别、元素及 `UID:角色ID:元素` 键；新增荧七元素目录、名称／图片、草／冰专属目标和冰 BUFF 归属。正式 7.1.0 数据核对确认第二重击倍率存在性别差异，适配只在计算边界复用已核对的空模型，按男女第一／第二段差值修正倍率、保持定额加值。单次、DSL、候选优化和词条收益共用适配，冰默认目标按原发布内核权重构造实时 DSL；浏览器和 Node 注册一致。旧失败记录保留原身份键，通过已有重新同步／重新导入链路恢复预设并清除错误，不清空仓库。合法 DSL 对象复制及赋值保持原语义，原 DSL 禁止的重复 `dmg` 声明保留具体报错。详细修改、来源与边界见 [荧导入修复](docs/history/lumine-import-fix-7110.md)。
 
 本轮最多五项明确验证目的，全部使用合成数据，没有运行历史全量清单：
 
@@ -176,7 +176,7 @@ Android 原 size 修复存在于实际 release Java 编译输出。用户补充�
 
 ### HoYoLAB 扫码与角色数据调研（2026-10-07，常规版）
 
-状态：**调研完成；尚未实现或实测 HoYoLAB 登录／同步。** 记录见 [HoYoLAB 接入调研](docs/hoyolab-research-7110.md)。本轮只读当前源码与公开开源／官方静态脚本，没有登录、获取票据或读取用户账号库，不构建、不发布、不修改 README。
+状态：**调研完成；尚未实现或实测 HoYoLAB 登录／同步。** 记录见 [HoYoLAB 接入调研](docs/history/hoyolab-research-7110.md)。本轮只读当前源码与公开开源／官方静态脚本，没有登录、获取票据或读取用户账号库，不构建、不发布、不修改 README。
 
 - 当前扫码实际来源为 [TwiceDrop/mhy-qdcode-to-cookie](https://github.com/TwiceDrop/mhy-qdcode-to-cookie)，使用国服 `ma-cn-passport/app` 创建／轮询，再由 SToken 换 Cookie；当前角色业务与游戏区域均限定国服。桌面与 Android 复用 `server/mys.mjs`，不能只接桌面端。
 - HoYoLAB 数据读取已有 genshin.py 海外消费者：海外绑定账号、`hk4e_global`、四个 os 游戏区域、`sg-public-api.hoyolab.com/event/game_record/genshin/api` 的 POST `character/list`／`character/detail`。详细角色模型与现有转换字段对应，适合复用共享角色／圣遗物转换和入库；实际返回与导入尚未验证。
@@ -192,7 +192,7 @@ Android 原 size 修复存在于实际 release Java 编译输出。用户补充�
 - “纯枚举”是算法选择，排序依据来自目标函数；将算法改为 `Naive` 不会自动把当前伤害目标换成爆伤／暴击率，也不表示保存并展示所有合法搭配。现有 `algorithm.rs:54` 将 `Naive` 映射到 `AStarCutoff`，该源码仍使用分组属性上界剪枝（`cutoff_a_star.rs:292`）；因此不能仅凭界面名称宣称每个组合均逐一计算。网页实际加载的是保留的旧桥接 WASM 和扩展，当前 Rust 源码与旧二进制并不完全一致，本次没有反编译或运行二进制验证搜索完整性。
 - 已有约束：选择一个套装转换为四件套，两个套装转换为二加二；沙／杯／冠可限定多个主词条；已有充能、精通、暴击率、爆伤下限。攻击／生命／防御下限虽然存在 Rust 接口字段，前端当前传 `null`，界面未开放；当前也没有这些属性的通用上限输入。来源：`src/composables/constraint.ts:15`、`:31`；`src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue:79`、`:129`。
 - 普通目标下拉已有 `MaxATK`、`MaxDEF`、`MaxHP`、`MaxEM`、`MaxRecharge`；未发现普通暴击率／爆伤最大化目标。目标源码实际返回对应面板属性，例如 `max_atk.rs:91` 与 `max_hp.rs:88`；这不是五件副词条的简单加总，角色、武器、套装和已选 BUFF 都参与属性计算。DSL 属性读取支持 `crit0`／`cd0`（`mona_dsl/src/object/prop.rs:38`），可作为手动表达目标的基础，但本次未运行该目标，不能据此声明所有角色路径均可用。薇斯纳扩展还限制普通目标名称（`beta-data/vesna-facade.mjs:22`），实施时必须核对实际消费者。
-- 结果区目前通过序号逐组切换，展示目标值及相对最优值，没有多属性配装表、属性列排序或计算后属性范围筛选（`NewArtifactPlanPage.vue:509`）。Rust 单人接口将结果数设为 `100`（`interface_wasm.rs:66`），结果记录器只保留有限数量并按 `value` 降序排列（`cutoff_a_star.rs:174`、`:610`）；旧 Worker 历史返回 100 组的证据见 `docs/entry-repair-7108.md:22`、`:35`。不能将“共计算 N 组”理解为总共只搜索了 N 组，也不能将返回结果当作全部合法组合。
+- 结果区目前通过序号逐组切换，展示目标值及相对最优值，没有多属性配装表、属性列排序或计算后属性范围筛选（`NewArtifactPlanPage.vue:509`）。Rust 单人接口将结果数设为 `100`（`interface_wasm.rs:66`），结果记录器只保留有限数量并按 `value` 降序排列（`cutoff_a_star.rs:174`、`:610`）；旧 Worker 历史返回 100 组的证据见 `docs/history/entry-repair-7108.md:22`、`:35`。不能将“共计算 N 组”理解为总共只搜索了 N 组，也不能将返回结果当作全部合法组合。
 - Fribbels 的搜索前设置：四件套／二件套组合与主属性过滤先缩小候选，装备归属、强化、稀有度和副词条权重门槛也可排除单件；CPU Worker 遍历六槽候选组合，检查套装、属性上下限及所选目标的门槛，再把通过者送入按目标保留前 N 名的队列。它的“穷举”仍受用户候选过滤条件约束，不是无限保存仓库所有组合。来源：[官方 optimizer.ts](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/optimization/optimizer.ts)、[optimizerWorker.ts](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/worker/optimizerWorker.ts) 与 `src/lib/relics/relicFilters.ts`。
 - Fribbels 的属性目标和结果数量：`CharacterSelectorDisplay.tsx` 的真实选择器提供 HP／ATK／DEF／SPD／CR／CD 等优化目标；`optimizer.ts` 将 `resultSort` 映射到基本或战斗属性字段，用 `FixedSizeMinQueue(resultsLimit)` 保留目标值最大的方案。默认结果数为 1024；选择器按 `64 * 2^i` 生成 64～65536 的选项。可按暴击率、爆伤、攻击或生命直接搜索前 N 名，不必先按伤害找结果。来源：[CharacterSelectorDisplay.tsx](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/tabs/tabOptimizer/optimizerForm/components/CharacterSelectorDisplay.tsx)、`src/lib/optimization/defaultForm.ts` 和 `src/lib/dataStructures/fixedSizeMinQueue.ts`。
 - Fribbels 的计算后操作：结果表列定义设 `sortable: true`、降序／升序，表头点击调用 `optimizerTabController.ts` 的 `sort()`，仅重排 `controllerState.rows`；“Filter”按钮调用 `applyRowFilters()`，再按当前属性上下限遍历相同已保留结果，并分页展示，不重新执行搜索。切换表头到另一属性不会取回被初始目标淘汰的组合；放宽后筛选也不能恢复初始搜索排除的方案。要寻找另一属性在候选范围内的最高方案，应更换优化目标并重新运行。来源：[optimizerTabController.ts](https://github.com/fribbels/hsr-optimizer/blob/2140153da4d4b8fd212c9420f2ccf123daa5dc6b/src/lib/tabs/tabOptimizer/optimizerTabController.ts)、`optimizerForm/grid/optimizerGridColumns.ts` 与 `sidebar/ResultsSection.tsx`。
@@ -340,7 +340,7 @@ Android 原 size 修复存在于实际 release Java 编译输出。用户补充�
 
 Android 当前源码 versionCode 为 70110、versionName 为 7.1.10；保持 com.mona.artifact.local 及 https://localhost，不改应用 ID、端口或签名，不安装、不卸载、不清数据。2026-10-11 已构建原签名 APK 并核对版本、签名及包内网页；未进行实机安装。测试多人优化时使用合成数据和隔离测试环境，不共享或修改用户实际存档。
 
-Android 公共保存入口仍为 MonaLocalPlugin.java；已有系统保存、目标 URI 实际写入、完整回读与导入证据见 docs/android-export-7108.md、docs/release-validation-7.1.08.md。不能仅凭界面或编译通过宣称系统流程修复。明确要求系统导出验证时，使用独立 .debug 包和 ExportRegressionTest，不触发依赖库全量测试。
+Android 公共保存入口仍为 MonaLocalPlugin.java；已有系统保存、目标 URI 实际写入、完整回读与导入证据见 docs/history/android-export-7108.md、docs/history/release-validation-7.1.08.md。不能仅凭界面或编译通过宣称系统流程修复。明确要求系统导出验证时，使用独立 .debug 包和 ExportRegressionTest，不触发依赖库全量测试。
 
 Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unknown 和 wasm-bindgen 0.2.92。beta-tools/build-extension.ps1 会追加多套 smoke，按实际范围选择；不运行 npm run build:wasm 覆盖原始内核。桥接脚本 script/build-effect-bridge.py 需要 WABT，先核对函数签名、槽位、图容量和内存生命周期；不手改 WASM。
 
@@ -358,6 +358,6 @@ Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unkn
 - 其他功能与 BUG：[7.1.10](../../v7.1.10/source/AGENTS.md)。
 - 已发布 7.1.09：D:/Documents/ChatGPT/v7.1.09，源码基线、正式成品及 source-publish 保留不变；[GitHub 正式版](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.09)。
 
-先阅读本文件顶部的任务分流，再按实际问题读取 docs/release-7.1.09-final.md、docs/release-validation-7.1.09.md、docs/astra-review-fixes-7109.md、docs/artifact-score-fix-7109.md。计算层工作继续读 docs/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档仅作资料，不自动恢复旧范围。
+先阅读本文件顶部的任务分流，再按实际问题读取 docs/release-7.1.09-final.md、docs/history/release-validation-7.1.09.md、docs/history/astra-review-fixes-7109.md、docs/history/artifact-score-fix-7109.md。计算层工作继续读 docs/history/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档仅作资料，不自动恢复旧范围。
 
 交付用中文说明实际修改、原因、少量验证与边界，给出当前路径。调研或状态变化及时更新对应项目的 AGENTS.md；不要把 Beta 实验、常规开发和已发布版本混写。

@@ -11,7 +11,7 @@
 
 **本目录是当前常规副本。** 用户本轮明确要求新建 7.1.11，取代旧入口所述的常规 7.1.10 开发目录；不要回旧 7.1.10、7.1.09 或 genshin-artifact 代改业务代码。多人任务仍走 Beta。
 
-2026-10-15 的复制与反馈排查阶段，授权范围为复制源码、升级版本、更新交接并排查三项反馈。**计算业务代码未修改，三项反馈不能写成已修复；未构建新网页、Windows 安装包／ZIP 或 Android APK，未发布。** 已依照版本同步约定单独生成 7.1.11 启动器。7.1.10 历史完整交接保存在 [历史快照](docs/handoff-7.1.10-20261014.md)，不把继承成果当成本轮新实现。
+2026-10-15 的复制与反馈排查阶段，授权范围为复制源码、升级版本、更新交接并排查三项反馈。**计算业务代码未修改，三项反馈不能写成已修复；未构建新网页、Windows 安装包／ZIP 或 Android APK，未发布。** 已依照版本同步约定单独生成 7.1.11 启动器。7.1.10 历史完整交接保存在 [历史快照](docs/history/handoff-7.1.10-20261014.md)，不把继承成果当成本轮新实现。
 
 ## 已完成并继承的内容
 
@@ -22,7 +22,7 @@
 - Android 系统保存回调、目标 URI 实际写入、完整回读及重新导入已验证；7.1.07 圣遗物／角色 UID 导出兼容已完成。
 - 已完成角色／武器图片补齐、角色喵喵评分及并列主词条归一化、七七六命 DSL、沃雅妮莎旧角色星扩散支援、薇斯纳普通模式 C2、编译通用星烁 BUFF 的旧原生消费。
 - 原独立星／月反应、多人贡献、主C手填面板入口和自行添加的说明已按用户要求移除。
-- 完整记录：[44 项更新说明](docs/release-7.1.08-final.md)、[发布与跨版本导入验证](docs/release-validation-7.1.08.md)。
+- 完整记录：[44 项更新说明](docs/release-7.1.08-final.md)、[发布与跨版本导入验证](docs/history/release-validation-7.1.08.md)。
 
 ### 7.1.09 正式基线（2026-10-06 已发布）
 
@@ -34,12 +34,12 @@
 6. 喵喵评分三类遗留偏差已修复：具名流派共用专武／绝缘／西风修正，玛薇卡复用上游精通分支，绝缘按原充能 +75 后截取最高权重。固定评分模板和库存推荐没有改变。
 7. 已正式构建发布 Windows EXE／ZIP 和 Android APK，README 与本版 15 条更新说明已同步；五项评分验证含实际桌面／手机编译入口，包内网页回读、版本和 APK 签名核对完成。
 
-[7.1.09 更新说明](docs/release-7.1.09-final.md) · [评分修复](docs/artifact-score-fix-7109.md) · [Astra 修复](docs/astra-review-fixes-7109.md) · [发布核对与边界](docs/release-validation-7.1.09.md)
+[7.1.09 更新说明](docs/release-7.1.09-final.md) · [评分修复](docs/history/artifact-score-fix-7109.md) · [Astra 修复](docs/history/astra-review-fixes-7109.md) · [发布核对与边界](docs/history/release-validation-7.1.09.md)
 
 ### 7.1.10 已继承成果与实际边界
 
-- 2026-10-11 已正式发布的 7.1.10 基线：圣遗物组搜索／拼音排序／头像与保留本人、银釭公共计算、添加 BUFF 弹窗行为统一、Web 扫描及指定页面清理、荧导入与七元素计算适配等。本版 12 项正式改动及历史验证分别见 [更新说明](docs/release-7.1.10-final.md)、[发布核对](docs/release-validation-7.1.10.md)。
-- 2026-10-14 shadcn-vue 手机试验源码已继承；当时五项定向验证属于 7.1.10 既有证据，未发布 APK。本副本不携带旧 dist／dist-mobile／.build-target 冒充新产物，手机试验状态见 [手机重构记录](docs/mobile-shadcn-7110.md)。
+- 2026-10-11 已正式发布的 7.1.10 基线：圣遗物组搜索／拼音排序／头像与保留本人、银釭公共计算、添加 BUFF 弹窗行为统一、Web 扫描及指定页面清理、荧导入与七元素计算适配等。本版 12 项正式改动及历史验证分别见 [更新说明](docs/release-7.1.10-final.md)、[发布核对](docs/history/release-validation-7.1.10.md)。
+- 2026-10-14 shadcn-vue 手机试验源码已继承；当时五项定向验证属于 7.1.10 既有证据，未发布 APK。本副本不携带旧 dist／dist-mobile／.build-target 冒充新产物，手机试验状态见 [手机重构记录](docs/history/mobile-shadcn-7110.md)。
 - 7.1.10 的 HoYoLAB 登录／同步与属性排序仅完成调研；库存静态权重继续暂缓；更新安装故障尚未修改业务代码。完整历史完成表与来源保留在上述历史快照。
 
 ## 当前版本 7.1.11 待办及完成状态
@@ -50,7 +50,7 @@
 
 - 用户最新明确授权“生成7.1.11，根据要求上传到github”，并确认同步README版本及下载链接，保留现有四部分结构。本次授权覆盖Windows EXE／ZIP、沿用原升级签名的Android APK、独立公开源码目录及GitHub正式Release；用户随后要求旧Element Plus与新UI测试两种APK并行交付、包名不同，并修复新UI BUFF分类拖动；无需再次确认发布。
 - 四项成品及源码已正式发布至[GitHub v7.1.11](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.11)，非预发布并设为latest；本版全部7项更新说明、README及下载链接已同步；旧版、Beta、旧工作区及原签名保留。待办不自动重启，不把未修事项写入已修列表。
-- 本轮五项定向核对已完成：Windows构建／版本、双Android构建／独立包身份与原签名、源码及成品内容范围、桌面／手机实际编译评分与分类拖动、GitHub发布回读。ZIP与两APK网页逐文件直接字节比较，原签名证书直接比较；未新增摘要。发布标签源码提交264029a2603f55f946e0cadfbecbace46d075229，独立source-publish接续已清理main，旧工作区未提交／推送。详见[发布核对](docs/release-validation-7.1.11.md)。
+- 本轮五项定向核对已完成：Windows构建／版本、双Android构建／独立包身份与原签名、源码及成品内容范围、桌面／手机实际编译评分与分类拖动、GitHub发布回读。ZIP与两APK网页逐文件直接字节比较，原签名证书直接比较；未新增摘要。发布标签源码提交264029a2603f55f946e0cadfbecbace46d075229，独立source-publish接续已清理main，旧工作区未提交／推送。详见[发布核对](docs/history/release-validation-7.1.11.md)。
 
 ### Android双UI与分类栏（发布前追加，2026-10-20）
 
@@ -63,7 +63,7 @@
 - **实现完成**：Windows改由临时目录中的Node承载不带detached的PowerShell，等待安装脚本实际输出接管确认后才关闭旧托盘／服务；启动失败保留ready并显示具体原因，承载进程不锁住原runtime/node.exe。Android保留系统下载器，返回pending／paused及真实状态／原因，界面继续轮询、显示实际等待原因并支持取消；忽略取消后迟到的状态。
 - **五项目的验证完成**：本机更新API交接与失败；真实父进程退出后的合成ZIP覆盖／重启；真实合成Inno安装器覆盖／重启；实际App.vue等待／暂停／取消组件；Android原生编译与只读模拟器的真实下载状态、取消、23067字节完整HTTPS下载／回读及不完整检查。暂停对照也实际返回nativeStatus=4、reason=1；大样本该次未完成，未写成完整下载通过。
 - **具体边界**：用户手机原始0%具体原因仍未确认；未执行Android系统APK授权／覆盖安装，也未覆盖正式Windows安装。旧客户端继续运行旧更新器，需要先手动覆盖升级一次或另行交付旧客户端补丁。该修复验证阶段未改旧源码／成品、签名、账号、UID或仓库，仅生成原生验证用专用debug APK。随后正式构建／发布已完成，见上方发布记录，不将debug测试包当正式成品。
-- 修改、证据、运行命令及边界见[修复记录](docs/auto-update-fix-7111.md)。测试输出在.build-target/auto-update-7111，合成Windows临时目录已清理，独立只读模拟器已关闭。
+- 修改、证据、运行命令及边界见[修复记录](docs/history/auto-update-fix-7111.md)。测试输出在.build-target/auto-update-7111，合成Windows临时目录已清理，独立只读模拟器已关闭。
 
 ### 圣遗物仓库角色评分排序（2026-10-20）
 
@@ -80,7 +80,7 @@
 - 继续自行读取官方 account SDK 2.56.0、账号首页、实际 login-platform 桌面／移动路由及两个异步登录模块；读取模块中没有找到扫码创建／轮询／确认链。可见海外 API 包含密码、邮箱验证码和第三方登录；静态代码未命中不能证明所有原生客户端均不支持扫码。
 - 建议：扫码继续追踪真实官方海外入口及完整票据合同；登录便利性可参考官方网页容器回收 Cookie。当前 Windows 本机服务加浏览器和 Android 原生 WebView 需要分别落实凭据交接；本轮没有开始实现该替代登录方式。
 - 具体缺口：海外创建端点／app_id、扫描 App 与确认请求、同票据轮询、确认返回凭据及海外兑换、绑定角色／战绩实际消费。不能猜域名或直接复用国服 app_id／GameToken 兑换；不能仅打开网页登录或生成普通网址二维码就声称支持扫码。
-- 完整来源、固定提交、官方脚本链接与实施边界见 [专项调研](docs/hoyolab-qr-research-7111.md)。本轮只更新文档与本记录，未读取用户凭据、创建登录票据、运行功能测试、修改业务代码／README／版本、构建或发布。其余反馈和暂缓事项保持原状态。
+- 完整来源、固定提交、官方脚本链接与实施边界见 [专项调研](docs/history/hoyolab-qr-research-7111.md)。本轮只更新文档与本记录，未读取用户凭据、创建登录票据、运行功能测试、修改业务代码／README／版本、构建或发布。其余反馈和暂缓事项保持原状态。
 
 ### 本轮排查
 
@@ -88,9 +88,9 @@
 | --- | --- | --- | --- |
 | 7.1.11-01 | 双冰共鸣未正常计入的反馈 | **双冰实际消费已核对**。补充薇斯纳真实Debug：82.9%→97.9%，期望173422.39984686117→194767.36750851045；与通用暴击+15%一致。冰空／冰荧的普通、星扩散和默认目标也一致。基础面板不含CriticalAttacking | **未改业务代码**。未发现本轮输入的双冰漏算；不能向基础暴击率重复补加15% |
 | 7.1.11-02 | 薇斯纳只能选灵剑·爆发 | **快捷目标限制已定位**：vesna-facade要求VesnaDefault或Common前缀，实际通用目标MaxATK、AnemoDamage被拒绝。E灵剑／E收尾／爆发的现有DSL均能优化，小型候选与手算一致 | **未改业务代码**。需补快捷目标与真实通用目标消费，不能仅删拦截 |
-| 7.1.11-03 | 哥伦比娅配装超时 | **主要阶段与调用链已定位**：原724候选、43套装、Any搜索在四件套后进入高成本二加二；原生默认目标每次结算6段，3秒诊断计数约30.6万次评分／183.6万次技能结算。共享排序把负分转无符号整数归零，已在源码和实际WAT确认。MaxHP对照4.107秒、限定单个四件套对照0.184秒均返回100组 | **按用户2026-10-20指令暂缓，尚未实施生产修复**。隔离版仅纠正排序后，保留原条件45秒仍未完成，不能视为已解决原600秒超时。需继续处理二加二分支与完整评分成本；不得通过延长阈值、静默换算法或缩小候选冒充修复。见[专项记录](docs/columbina-timeout-7111.md) |
+| 7.1.11-03 | 哥伦比娅配装超时 | **主要阶段与调用链已定位**：原724候选、43套装、Any搜索在四件套后进入高成本二加二；原生默认目标每次结算6段，3秒诊断计数约30.6万次评分／183.6万次技能结算。共享排序把负分转无符号整数归零，已在源码和实际WAT确认。MaxHP对照4.107秒、限定单个四件套对照0.184秒均返回100组 | **按用户2026-10-20指令暂缓，尚未实施生产修复**。隔离版仅纠正排序后，保留原条件45秒仍未完成，不能视为已解决原600秒超时。需继续处理二加二分支与完整评分成本；不得通过延长阈值、静默换算法或缩小候选冒充修复。见[专项记录](docs/history/columbina-timeout-7111.md) |
 
-详细输入合同、数值、代码位置、验证范围及建议见 [首轮排查记录](docs/investigation-7.1.11-20261015.md)。原始哥伦比娅Debug与补充薇斯纳Debug分开；真实文件均只在原路径读取，不复制进源码或固定用例。
+详细输入合同、数值、代码位置、验证范围及建议见 [首轮排查记录](docs/history/investigation-7.1.11-20261015.md)。原始哥伦比娅Debug与补充薇斯纳Debug分开；真实文件均只在原路径读取，不复制进源码或固定用例。
 
 哥伦比娅专项本轮五个核对目的为：Naive路径对照、原生计数与阶段追踪、MaxHP评分成本对照、单四件套规模对照、仅排序键修正对照。所有诊断副本在.build-target/columbina-7111，未修改生产WASM或真实数据。
 
@@ -110,11 +110,11 @@
 
 | 原编号 | 事项 | 当前状态 |
 | --- | --- | --- |
-| 7.1.10-01 | HoYoLAB 海外角色与已穿戴装备同步 | 已调研，未实现；见 [调研](docs/hoyolab-research-7110.md) |
-| 7.1.10-02 | HoYoLAB 登录便利性与海外扫码 | 2026-10-17 专项检索与公开源码调研完成：未找到完整海外扫码消费者；官方桌面／移动登录模块未发现扫码链。已找到网页登录容器与原生 Cookie 回收参考；扫码协议仍未确认，未实现、未真实登录验证。建议与具体缺口见[专项调研](docs/hoyolab-qr-research-7111.md) |
+| 7.1.10-01 | HoYoLAB 海外角色与已穿戴装备同步 | 已调研，未实现；见 [调研](docs/history/hoyolab-research-7110.md) |
+| 7.1.10-02 | HoYoLAB 登录便利性与海外扫码 | 2026-10-17 专项检索与公开源码调研完成：未找到完整海外扫码消费者；官方桌面／移动登录模块未发现扫码链。已找到网页登录容器与原生 Cookie 回收参考；扫码协议仍未确认，未实现、未真实登录验证。建议与具体缺口见[专项调研](docs/history/hoyolab-qr-research-7111.md) |
 | 7.1.10-05 | 库存静态推荐权重缺项 | 用户明确要求继续暂缓；不自动重启 |
 | 7.1.10-06 | 面板属性目标、筛选与排序 | 已调研，未新增业务功能；具体语义与 Fribbels 依据见历史快照 |
-| 7.1.10-10 | Windows安装退出／Android下载0%反馈 | **7.1.11已修确认部分**：Windows独立承载与实际接管确认、Android等待／暂停原因和取消时序；五项目的验证完成。用户手机原始0%根因仍未确认，Android系统安装未验证；旧客户端需先手动升级一次。见[修复](docs/auto-update-fix-7111.md)，历史证据保留[原排查](docs/update-diagnostic-7109-to-7110.md) |
+| 7.1.10-10 | Windows安装退出／Android下载0%反馈 | **7.1.11已修确认部分**：Windows独立承载与实际接管确认、Android等待／暂停原因和取消时序；五项目的验证完成。用户手机原始0%根因仍未确认，Android系统安装未验证；旧客户端需先手动升级一次。见[修复](docs/history/auto-update-fix-7111.md)，历史证据保留[原排查](docs/history/update-diagnostic-7109-to-7110.md) |
 
 ## 1. 先确认工作目录和版本
 
@@ -246,7 +246,7 @@
 
 Android当前versionCode=70111、versionName=7.1.11；旧UI保持com.mona.artifact.local，新UI测试按用户追加要求使用com.mona.artifact.local.mobiletest。两APK已构建并核对原签名与包内容；保持https://localhost，不安装／卸载／清用户数据。详见本版发布核对。测试使用合成数据和隔离环境；用户Debug仅供本次只读排查，不作为固定测试样本或公开源码。
 
-Android 公共保存入口仍为 MonaLocalPlugin.java；已有系统保存、目标 URI 实际写入、完整回读与导入证据见 docs/android-export-7108.md、docs/release-validation-7.1.08.md。不能仅凭界面或编译通过宣称系统流程修复。明确要求系统导出验证时，使用独立 .debug 包和 ExportRegressionTest，不触发依赖库全量测试。
+Android 公共保存入口仍为 MonaLocalPlugin.java；已有系统保存、目标 URI 实际写入、完整回读与导入证据见 docs/history/android-export-7108.md、docs/history/release-validation-7.1.08.md。不能仅凭界面或编译通过宣称系统流程修复。明确要求系统导出验证时，使用独立 .debug 包和 ExportRegressionTest，不触发依赖库全量测试。
 
 Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unknown 和 wasm-bindgen 0.2.92。beta-tools/build-extension.ps1 会追加多套 smoke，按实际范围选择；不运行 npm run build:wasm 覆盖原始内核。桥接脚本 script/build-effect-bridge.py 需要 WABT，先核对函数签名、槽位、图容量和内存生命周期；不手改 WASM。
 
@@ -259,9 +259,9 @@ Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unkn
 ## 9. 当前目录与继续阅读
 
 - 当前常规源码：D:/Documents/ChatGPT/v7.1.11/source。
-- 本轮排查：[哥伦比娅超时专项](docs/columbina-timeout-7111.md)、[首轮三项反馈记录](docs/investigation-7.1.11-20261015.md)；7.1.10完整交接：[历史快照](docs/handoff-7.1.10-20261014.md)。
+- 本轮排查：[哥伦比娅超时专项](docs/history/columbina-timeout-7111.md)、[首轮三项反馈记录](docs/history/investigation-7.1.11-20261015.md)；7.1.10完整交接：[历史快照](docs/history/handoff-7.1.10-20261014.md)。
 - 最新已正式发布版本是[GitHub 7.1.11](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.11)，成品和独立source-publish位于D:/Documents/ChatGPT/v7.1.11；7.1.10旧源码／成品及source-publish保留。
 - 多人优化专用：[7.1.10Beta](../../v7.1.10Beta/source/AGENTS.md)。
 - 7.1.09与7.1.08旧源码、正式成品及原始WASM保留。
 
-计算层继续阅读 docs/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档只作资料，不恢复已删除范围。交付用中文说明实际修改、证据与限制，及时更新本文件；不要混写继承、排查、实现和发布状态。
+计算层继续阅读 docs/history/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档只作资料，不恢复已删除范围。交付用中文说明实际修改、证据与限制，及时更新本文件；不要混写继承、排查、实现和发布状态。

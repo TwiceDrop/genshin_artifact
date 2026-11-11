@@ -31,7 +31,7 @@
 
 ## 测试
 
-`npm run test:strengthened` 使用实际WASM核对瑞希技能等级1～15、命座增益、精通转换、双暴阈值、新目标四种模式及候选配装。结果见 [strengthened-tests.json](strengthened-tests.json)。
+`npm run test:strengthened` 使用实际WASM核对瑞希技能等级1～15、命座增益、精通转换、双暴阈值、新目标四种模式及候选配装。结果见 [strengthened-tests.json](../../beta-data/strengthened-tests.json)。
 
 `npm run test:local` 包含伤害类型显示、曲线默认选择和Vue组件编译检查。武器覆盖率另由 `npm run test:limited71` 检查。
 

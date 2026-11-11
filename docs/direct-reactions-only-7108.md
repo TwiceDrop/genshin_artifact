@@ -30,4 +30,4 @@
 
 共四项针对性检查通过：42 个保留技能直伤与删除前一致；134 个角色公共接口没有已移除的反应结果；旧上下文／DSL／配装目标拒绝与保留目标收益一致；页面编译及实际打包 Worker 均通过。薇斯纳直接星扩散另外在开启辉映状态下核对单次伤害与配装结果。
 
-当前网页包为 `genshin_artifact_V7.1.08beta-tray-repair1_web.zip`，已附带 Node 运行时。解压后先关闭旧版本地服务，运行 `启动7.1.08beta.exe`，在原浏览器使用相同本地地址；必要时 Ctrl+F5 刷新。启动器及五项验证见 [Windows 启动 EXE 与托盘守护](tray-launcher-20261002.md)。该网页包任务保留 Debug、不上传 GitHub，当时未生成手机版。2026-09-30 用户另行明确要求构建 Android 并修复数据导出，见 [Android 导出修复](android-export-7108.md)；计算范围沿用本文。
+当前网页包为 `genshin_artifact_V7.1.08beta-tray-repair1_web.zip`，已附带 Node 运行时。解压后先关闭旧版本地服务，运行 `启动7.1.08beta.exe`，在原浏览器使用相同本地地址；必要时 Ctrl+F5 刷新。启动器及五项验证见 [Windows 启动 EXE 与托盘守护](history/tray-launcher-20261002.md)。该网页包任务保留 Debug、不上传 GitHub，当时未生成手机版。2026-09-30 用户另行明确要求构建 Android 并修复数据导出，见 [Android 导出修复](history/android-export-7108.md)；计算范围沿用本文。

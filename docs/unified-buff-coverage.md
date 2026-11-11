@@ -1,6 +1,6 @@
 # 统一 BUFF 覆盖清单
 
-2026-09-27：本轮补齐剩余12项角色BUFF并构建v7.1.07，详见 [发布与实现说明](release-7.1.07.md)。统计仅表示每个目录名至少有一种接入路径；不表示任意旧角色、手动面板和优化入口均支持。
+2026-09-27：本轮补齐剩余12项角色BUFF并构建v7.1.07，详见 [发布与实现说明](history/release-7.1.07.md)。统计仅表示每个目录名至少有一种接入路径；不表示任意旧角色、手动面板和优化入口均支持。
 
 ## 当前准确计数
 
@@ -109,7 +109,7 @@
 
 ## 本轮完成的12项
 
-CynoC2StellarConduct、KleeC1、TravelerElements、TravelerEnhancedAttribute、AetherCryoTalent1、AetherCryoC6、YaeMikoC1、NahidaC2、DurinTalent2、DurinC2、IfaTalent2、AlyoshaHunterPrecision。具体公式、触发条件、阿罗夏完整等级表与验证范围见 [v7.1.07实现说明](release-7.1.07.md)。
+CynoC2StellarConduct、KleeC1、TravelerElements、TravelerEnhancedAttribute、AetherCryoTalent1、AetherCryoC6、YaeMikoC1、NahidaC2、DurinTalent2、DurinC2、IfaTalent2、AlyoshaHunterPrecision。具体公式、触发条件、阿罗夏完整等级表与验证范围见 [v7.1.07实现说明](history/release-7.1.07.md)。
 
 ### 武器与套装缺口已移出
 
