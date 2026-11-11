@@ -40,7 +40,7 @@ API：CalculatorInterface.get_damage_analysis({character,buffs,single_hit_contex
 
 阿罗夏等级表（1～15级）：11.66%、12.72%、13.78%、14.84%、15.90%、16.96%、18.02%、19.08%、20.14%、21.20%、22.47%、23.74%、25.02%、26.29%、27.56%。前13级与公开表舍入一致；全部15值取自原发布WASM的三个相同连续数据表，字节偏移2706653、3090223、3276951。仅验证数据序列，不宣称已定位其调用函数。六命同时叠加攻击与星超导增益，不能把星超导固定在20%。[阿罗夏机制资料](https://library.keqingmains.com/characters/electro/alyosha)、[技能表](https://keqingmains.com/q/alyosha-quickguide/)。
 
-杜林减抗的触发集合比二命增伤窄；魔导使20%减抗提高75%，结果35%。[杜林机制资料](https://library.keqingmains.com/characters/pyro/durin)。纳西妲与菈乌玛的固定反应暴击率相加（20%+15%=35%），固定100%暴伤不相加成200%；燃烧不吃菈乌玛绽放系定额或暴击。[纳西妲机制资料](https://library.keqingmains.com/characters/dendro/nahida)。可莉魔导一命60%攻击仅属于本人。[可莉机制资料](https://library.keqingmains.com/characters/pyro/klee)。其余此前已确认来源见 docs/recovered-additional-characters.md、原交接存档及用户公式记录。
+杜林减抗的触发集合比二命增伤窄；魔导使20%减抗提高75%，结果35%。[杜林机制资料](https://library.keqingmains.com/characters/pyro/durin)。纳西妲与菈乌玛的固定反应暴击率相加（20%+15%=35%），固定100%暴伤不相加成200%；燃烧不吃菈乌玛绽放系定额或暴击。[纳西妲机制资料](https://library.keqingmains.com/characters/dendro/nahida)。可莉魔导一命60%攻击仅属于本人。[可莉机制资料](https://library.keqingmains.com/characters/pyro/klee)。其余此前已确认来源见 docs/historecovered-additional-characters.md、原交接存档及用户公式记录。
 
 ## 构建与验证
 

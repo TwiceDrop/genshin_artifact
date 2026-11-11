@@ -1,6 +1,13 @@
 # 公式与属性作用域
 
-改公式、乘区、BUFF 作用域或反应系数前先读本文件。内容整理自 `docs/history/handoff-7.1.10-20261014.md` 第 4、5 节，以及 `docs/history/` 下的 `independent-damage-scope.md`、`lunar-character-adapters.md`、`lunar-equipment-adapters.md`、`unified-buff-coverage.md`，以开发者最新确认的语义为准。各条的公式推导、等级表和查证来源见这些原文件。
+改公式、乘区、BUFF 作用域或反应系数前先读本文件。内容整理自 `docs/history/handoff-7.1.10-20261014.md` 第 4、5 节，以及 `docs/history/` 下的 `direct-reactions-only-7108.md`、`shared-buff-rules.md`、`reaction-parameters-implementation.md`、`recovered-character-rules.md`、`recovered-additional-characters.md`、`independent-damage-scope.md`、`lunar-character-adapters.md`、`lunar-equipment-adapters.md`、`unified-buff-coverage.md`，以开发者最新确认的语义为准。各条的公式推导、等级表和查证来源见这些原文件。
+
+## 当前计算范围
+
+- 保留角色技能、天赋、命座直接造成的星扩散、星超导、月感电、月绽放、月结晶伤害（含梦见月瑞希天赋和一命直伤），以及普通扩散、感电、绽放、结晶等原有反应。
+- 已删除独立的反应星扩散·风／冰、反应星超导、反应月感电、反应月结晶、旧月绽放预览，以及多人参与者面板、判暴排序和贡献加权；所有角色共用的「主C手填面板」入口也已删除。
+- 旧 DSL、预设或接口输入明确选择已删除的独立反应时报「独立星／月反应计算已移除」（`beta-data/direct-reaction-scope.mjs`），不改算成其他类型；用户保存的数据不批量删除。
+- 原始发布内核里的独立反应结果被统一接口隔离，不能作为公开的伤害类型、DSL 或配装目标；桑多涅、瑞希的直伤适配仍借用其中的精通／抗性／暴击系数。
 
 ## 乘区与作用域
 
@@ -12,6 +19,31 @@
 - 来源角色面板与受益角色面板分开；前台／后台、触发条件、命座、层数、覆盖率及同源不叠加都要明确建模。BUFF 只在条件满足时生效；手填的最终面板已包含的属性不再重复加。
 - 技能等级的显示值与内部索引不一定一致，查数据定义后转换。最终普通／暴击／期望结果必须是有限数值；元数据不混入属性加总。
 - 新效果的定额位置、倍率适用范围需要开发者单独确认，不凭相似的中文描述推断。
+
+## 手动添加 BUFF 的通用语义
+
+- 手动添加 BUFF 表示来源命座、解锁条件、施放／命中／反应触发、范围和持续时间都已满足。覆盖率参数是该效果对本次计算的适用比例，不模拟持续时间、层数流转或剩余次数；不从受益者的命座推断来源命座。
+- 来源面板字段（如 `atk`、`nicole_atk`）是来源角色的已确定数值，不用受益者的面板代替。固定攻击写 `ATKFixed`；百分比攻击写 `ATKPercentage`，由内核按受益者基础攻击计算。`ExtensionEffect` 的百分比攻击／生命／防御要调用对应的依赖方法，不能用普通 `set_value` 代替。
+- 属性名不能互换：`ExtraDmg*` 是固定伤害，`Bonus*` 是普通增伤，`DefPenetration` 是防御穿透（不同于减防）。「伤害擢升」「造成原本伤害 X%」不能映射成 `BonusBase`。
+- 场上限定效果的前后台判断依次读取：BUFF 自身的 `recipient_on_field` → `input.team_effects.recipient_on_field` → `input.team_effects.on_field` → 受益角色参数 `on_field`。只是缺少这些字段时不判定为后台。菲谢尔、爱诺、八重神子、温迪对自身的例外保留。
+- 按元素过滤的效果（如夏沃蕾天赋 2 只给火／雷，莉奈娅二命只给水／岩）优先读 `recipient_element` 或 `character.element`，否则用从角色目录抄录的成员表；新增角色时同步成员表。
+- 魔导限定部分接受 `recipient_is_magus=false` 关闭；没有按名字猜测的魔导身份表，不传时沿用「选择即声明适用」。黑蚀、誓金枝接受 `recipient_is_wielder=true` 排除装备者；杜林一命、洛恩二命、莫娜辉光按受益者名字排除来源自身。
+- 反应参数类 BUFF 默认只绑定到 ID 与 `input.character.name` 相同的伤害所有者，可以用 `buffRecipientId` 明确指定（`beta-data/reaction-parameter-rules.mjs`）。其他参与者要在自己的 `buffs` 里配置，不自动广播到全队。
+
+## 反应参数类 BUFF
+
+规则在 `beta-data/reaction-parameter-rules.mjs`。
+
+| 配置名 | 输入与编码 |
+| --- | --- |
+| `ElevateMoonelectro`／`ElevateMoonbloom`／`ElevateMoonCrystallize` | `p/100` 加到对应月曜的最终擢升 |
+| `CriticalMoonReaction`、`CriticalDamageMoonReaction` | `p/100` 加到伤害所有者的月曜暴击／暴伤，暴击合并后限制在 0～1；普通伤害和星伤不继承 |
+| `MoonReactionDamageMultiplier` | 默认 100；原生存 `p/100−1`，计算时取 1 加增量；只乘月曜本体，不乘后加的定额；显式 0 保留 |
+| `StellarConductBaseMultiplier` | `value` 是星超导系数 K 的增量，0.70 表示 +0.70 |
+| `ResonanceMoonOmen` | 来源为火／雷／冰时攻击×0.00009，水时生命×0.000006，岩时防御×0.0001，风／草时精通×0.000225，封顶 0.36，加到通用月曜反应增伤（与精通反应增益相加）；不能选物理 |
+| `ResonancePolestarField` | 记录 0 次时 K=1、冰雷增伤 0.20；1～12 次时 K=1.4+0.05n、冰雷增伤 0.28+0.01n；物理减抗 0.40（系数表出自 KeqingMains 星反应指南）。原生写入的是 K−1，所以显式计算的基础 K 填未叠加本共鸣的值（通常为 1），不能先填完整 K 再开共鸣；次数必须是整数 |
+
+两种共鸣同名不叠加，取第一个启用的来源；原始条目和由它编译出的 `ExtensionEffect` 按 `source_buff` 去重。
 
 ## 两个独立倍率 BUFF
 
@@ -44,7 +76,6 @@
 
 ## 已知的精度限制
 
-- 极星辉域 0～12 次记录：星超导系数 K 为 1、1.45、1.50 … 1.95、2（第 1 次起每次加 0.05），冰／雷元素增伤为 20%、29%、30% … 39%、40%，物理抗性降低 40%。来源是 KeqingMains 星反应指南。
 - 3～4 人反应星扩散按各人期望伤害排序后合成，是近似期望，开发者已同意保留并标注为近似，不能称为严格期望。月结晶多人期望用的是开发者提供的独立判暴、重排和 60%／30%／5%／5% 权重，不能据此推断星扩散也是同样的重排。
 - 自动读取队友面板的来源只有 `beta-data/hybrid-team-optimizer.mjs` 的 `TEAM_BUFF_SOURCES`，其余来源要手动添加 BUFF 并填写来源数值。手填的来源面板不会随来源角色的候选装备重算。
 - 阿贝多 `AlbedoWitchEve` 在 `def=0` 且任一覆盖率大于 0 时报错，要求填写来源防御。

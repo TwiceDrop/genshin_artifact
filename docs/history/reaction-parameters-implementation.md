@@ -1,6 +1,6 @@
 # 八项反应参数与两项共鸣：源码接入说明
 
-> 最新追加（2026-09-26）：九位月曜角色22项规则已接入源码，五个JS案例通过，未构建。当前名称覆盖240/257、剩余17项；完整范围见 [lunar-character-adapters.md](history/lunar-character-adapters.md)。下文其他批次数字保留为历史快照。
+> 最新追加（2026-09-26）：九位月曜角色22项规则已接入源码，五个JS案例通过，未构建。当前名称覆盖240/257、剩余17项；完整范围见 [lunar-character-adapters.md](lunar-character-adapters.md)。下文其他批次数字保留为历史快照。
 
 
 2026-09-26，工作目录 `D:/Documents/ChatGPT/unified-kernel-work`。只更新源码，未构建 Rust/WASM/网页，未发布新版本。原发布内核未改动。

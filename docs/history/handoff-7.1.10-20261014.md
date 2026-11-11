@@ -228,7 +228,7 @@ Android 原 size 修复存在于实际 release Java 编译输出。用户补充�
 
 2026-10-10 用户另行要求移除 YAS WebUI 扫描、Amenoma 条目、页脚备案号，以及圣遗物潜力／最佳圣遗物／莫娜数据库三个独立功能；这些页面和入口已移除，不因遗留翻译、数据或底层内核接口存在而自动恢复。
 
-瑞希星扩散保留天赋／一命模式 0／1；伊涅芙默认目标保留薇尔琪塔放电和频率超限回路直伤。历史基线范围见 docs/direct-reactions-only-7108.md；其他多人／独立反应旧文档作为资料，不作为当前实现完成的证据。
+瑞希星扩散保留天赋／一命模式 0／1；伊涅芙默认目标保留薇尔琪塔放电和频率超限回路直伤。历史基线范围见 docs/histodirect-reactions-only-7108.md；其他多人／独立反应旧文档作为资料，不作为当前实现完成的证据。
 
 
 
@@ -358,6 +358,6 @@ Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unkn
 - 其他功能与 BUG：[7.1.10](../../v7.1.10/source/AGENTS.md)。
 - 已发布 7.1.09：D:/Documents/ChatGPT/v7.1.09，源码基线、正式成品及 source-publish 保留不变；[GitHub 正式版](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.09)。
 
-先阅读本文件顶部的任务分流，再按实际问题读取 docs/release-7.1.09-final.md、docs/history/release-validation-7.1.09.md、docs/history/astra-review-fixes-7109.md、docs/history/artifact-score-fix-7109.md。计算层工作继续读 docs/history/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档仅作资料，不自动恢复旧范围。
+先阅读本文件顶部的任务分流，再按实际问题读取 docs/release-7.1.09-final.md、docs/history/release-validation-7.1.09.md、docs/history/astra-review-fixes-7109.md、docs/history/artifact-score-fix-7109.md。计算层工作继续读 docs/history/interface-parameters-7108.md 和 docs/histoshared-buff-rules.md；多人历史文档仅作资料，不自动恢复旧范围。
 
 交付用中文说明实际修改、原因、少量验证与边界，给出当前路径。调研或状态变化及时更新对应项目的 AGENTS.md；不要把 Beta 实验、常规开发和已发布版本混写。

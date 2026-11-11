@@ -134,7 +134,7 @@
 
 2026-10-10 用户另行要求移除 YAS WebUI 扫描、Amenoma 条目、页脚备案号，以及圣遗物潜力／最佳圣遗物／莫娜数据库三个独立功能；这些页面和入口已移除，不因遗留翻译、数据或底层内核接口存在而自动恢复。
 
-瑞希星扩散保留天赋／一命模式 0／1；伊涅芙默认目标保留薇尔琪塔放电和频率超限回路直伤。历史基线范围见 docs/direct-reactions-only-7108.md；其他多人／独立反应旧文档作为资料，不作为当前实现完成的证据。
+瑞希星扩散保留天赋／一命模式 0／1；伊涅芙默认目标保留薇尔琪塔放电和频率超限回路直伤。历史基线范围见 docs/histodirect-reactions-only-7108.md；其他多人／独立反应旧文档作为资料，不作为当前实现完成的证据。
 
 
 
@@ -264,4 +264,4 @@ Rust 扩展沿用 nightly-2024-10-10-x86_64-pc-windows-gnu、wasm32-unknown-unkn
 - 多人优化专用：[7.1.10Beta](../../v7.1.10Beta/source/AGENTS.md)。
 - 7.1.09与7.1.08旧源码、正式成品及原始WASM保留。
 
-计算层继续阅读 docs/history/interface-parameters-7108.md 和 docs/shared-buff-rules.md；多人历史文档只作资料，不恢复已删除范围。交付用中文说明实际修改、证据与限制，及时更新本文件；不要混写继承、排查、实现和发布状态。
+计算层继续阅读 docs/history/interface-parameters-7108.md 和 docs/histoshared-buff-rules.md；多人历史文档只作资料，不恢复已删除范围。交付用中文说明实际修改、证据与限制，及时更新本文件；不要混写继承、排查、实现和发布状态。

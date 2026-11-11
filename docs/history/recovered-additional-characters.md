@@ -1,6 +1,6 @@
 # 追加恢复的角色 BUFF 规则
 
-> 更新纠正：IllugaQ现已按显式单次状态接入，月结晶定额只给直伤，不给月笼谐奏。原记录从公用属性推断反应型也适用不成立。见 [本批说明和网页证据](history/lunar-character-adapters.md)。其余历史状态以最新覆盖清单为准。
+> 更新纠正：IllugaQ现已按显式单次状态接入，月结晶定额只给直伤，不给月笼谐奏。原记录从公用属性推断反应型也适用不成立。见 [本批说明和网页证据](lunar-character-adapters.md)。其余历史状态以最新覆盖清单为准。
 
 
 本次在 `beta-data/shared-buff-rules.mjs` 追加 MonaMagusGlow、PruneTalent2、IllugaP2 三项规则。它们生成已有原生属性，不改动已发布 WASM，不删除星／月反应校准拦截。IfaTalent2、IllugaQ 的数值规则已经静态恢复，但本次没有新增配方。

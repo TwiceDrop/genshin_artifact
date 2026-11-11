@@ -6,7 +6,7 @@
 
 此前装备批次：两套圣遗物和三把武器5项已接入，五项测试通过；见 [实现说明](lunar-equipment-adapters.md)。此前角色批次记录保留。
 
-2026-09-26 更新：八项参数、两项共鸣之后，又接入九位角色的22项规则。见 [本批实现说明](lunar-character-adapters.md) 和 [前批十项说明](../reaction-parameters-implementation.md)。名称覆盖不等于角色技能与优化全部支持。
+2026-09-26 更新：八项参数、两项共鸣之后，又接入九位角色的22项规则。见 [本批实现说明](lunar-character-adapters.md) 和 [前批十项说明](reaction-parameters-implementation.md)。名称覆盖不等于角色技能与优化全部支持。
 
 | 项目 | 数量 |
 |---|---:|
