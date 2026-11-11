@@ -21,3 +21,8 @@
 - [ ] `package.json` 增加 `test:evidence` 脚本，运行 `tests/evidence/*.test.mjs`
 - [ ] `docs/dev/build-and-test.md` 更新：说明 `tests/evidence/` 需要哪些 `beta-tools/` 脚本先生成文件；`docs/dev/release-checklist.md` 的构建核对一节加一步跑 `test:evidence`
 - [ ] 干净检出里，原名单中留在 `tests/` 的文件全部通过
+
+## Comments
+
+- 2026-11-11（任务 01 时发现）：除了 `.build-target/`，还有 4 个测试读取被 `.gitignore` 排除的私有夹具 `beta-data/skirk-fixture.json` 或 `beta-data/mizuki-fixture.json`：`lunar-integration`、`optimize-7107-regression`、`release-7106`、`unified-kernel`。这两个文件是真实账号数据，按 `AGENTS.md` 不能提交，这些用例同样要分到 `tests/evidence/`，或改用合成夹具。
+- `tests/interface-audit-7108.test.mjs` 有用例报 `StellarDamageDetail is not defined`，不是缺文件，是测试本身失效，需要单独排查。

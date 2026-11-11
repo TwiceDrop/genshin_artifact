@@ -46,4 +46,4 @@ V7.0.11 的 Windows 安装包包含 Node.js 22.23.2，来自 Node.js 官方 Wind
 
 ## 本次测试服扩展
 
-`mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `7.1.01 beta1使用说明.md` 与 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。
+`mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。

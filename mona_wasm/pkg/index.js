@@ -26,7 +26,7 @@ if (!response.ok) throw new Error('Mona calculation core could not be loaded');
 const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), { './mona_wasm_bg.js': bridge, mona_progress:progressImports(()=>instance.exports.memory) });
 bindings.lI(instance.exports);
 const extensionResponse = await fetch(new URL('../extension/mona_extension_bg_progress.wasm?raw-wasm', import.meta.url));
-if (!extensionResponse.ok) throw new Error('7.1.04 璁＄畻鍐呮牳鍔犺浇澶辫触');
+if (!extensionResponse.ok) throw new Error('扩展内核加载失败');
 await initExtension(await extensionResponse.arrayBuffer());
 const rawOriginalApi = {BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,
 CommonInterface:bindings.Ps,DSLInterface:bindings.ZB,OptimizeSingleWasm:bindings.E2,PotentialInterface:bindings.gF,

@@ -9,15 +9,9 @@
             "@page": ["src/pages"],
             "@worker": ["src/workers"],
             "@const": ["src/constants"],
-            "@enemy": ["src/enemies"],
-            "mona": ["mona/pkg"],
+            "mona": ["mona_wasm/pkg"],
 
             "@wasm": ["src/wasm"],
-            "@character": ["src/assets/character"],
-            "@weapon": ["src/assets/weapon"],
-            "@targetFunction": ["src/assets/target_function"],
-            "@potentialFunction": ["src/assets/potential_function"],
-            "@buff": ["src/assets/buff"],
             "@image": ["src/images"],
             "@artifact": ["src/assets/artifacts"]
         }
