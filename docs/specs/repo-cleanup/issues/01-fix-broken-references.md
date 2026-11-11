@@ -14,5 +14,5 @@
 - [ ] `jsconfig.json` 里指向不存在目录的别名（`@enemy`、`mona`、`@character`、`@weapon`、`@targetFunction`、`@potentialFunction`、`@buff`）：与 `vue.config.js` 的 `alias` 对齐，`mona` 改成 `mona_wasm/pkg`，其余不存在的删掉
 - [ ] `.eslintrc.js` 的 `ignorePatterns` 去掉已不存在的 `sub/**/*`
 - [ ] 全仓搜索确认没有其他乱码字符串
-- [ ] 只记录、不修改：`src/pages/about/IntroPage/IntroPage.vue` 读取的是 `process.env.MONA_BUILD_DATA`，而 `vue.config.js` 定义的是 `MONA_BUILD_DATE`，两边名字不一致。改正后介绍页会多显示一个构建日期，属于界面变化，把现状和改法列给开发者决定
+- [x] `src/pages/about/IntroPage/IntroPage.vue` 读取的变量名 `MONA_BUILD_DATA` 是笔误，已由开发者确认改成 `vue.config.js` 定义的 `MONA_BUILD_DATE`（2026-11-11 单独提交）。介绍页模板没有用到这个变量，页面显示不变
 - [ ] 验证：`node --test tests/interface-audit-7108.test.mjs` 通过（走 Node 入口，确认没有误伤）；浏览器入口的改动只有一行字符串，用 `git diff` 核对

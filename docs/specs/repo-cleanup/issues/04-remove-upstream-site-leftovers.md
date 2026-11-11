@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-开发者已决定：本项目只做本地发行，下面各项全部删除。上游调用的在线接口单列在最后，那一项仍需开发者决定。
+开发者已决定：本项目只做本地发行，下面各项全部删除。前端调用上游在线接口的三处入口单列在最后，开发者已决定暂时不动。
 
 - [ ] 删除 `.env.production.yaml` 和 `package.json` 的 `build` 脚本（备案加 CDN 的线上构建）；先确认 `script/`、`installer/`、`docs/dev/` 里没有调用 `npm run build`
 - [ ] 三份环境文件里删掉 `MONA_NEED_BEIAN` 和 `TAURI`（没有代码读取）
@@ -17,7 +17,7 @@
 
 ## 仍需开发者决定
 
-**Status of this part:** ready-for-human
+**Status of this part:** wontfix（2026-11-11 开发者决定暂时不动，本规格的执行者跳过这一节）
 
 前端有三处调用上游的在线接口，本机服务（`server/local.mjs`）没有实现这些接口，所以在本地发行里它们请求不到：
 
