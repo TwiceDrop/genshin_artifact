@@ -67,22 +67,6 @@ const buildDate = `${year}/${month + 1}/${date}`
 const useCDN = !!customEnv["USE_CDN"]
 
 
-// const resources = {
-//     js: [
-//         { url: "https://npm.elemecdn.com/vue@3.2.36/dist/vue.global.prod.js", global: "Vue", name: "vue" },
-//         { url: "https://npm.elemecdn.com/vue-router@4.0.16/dist/vue-router.global.prod.js", global: "VueRouter", name: "vue-router" },
-//         // { url: "https://npm.elemecdn.com/element-ui@2.15.6/lib/index.js", global: "ELEMENT", name: "element-ui" },
-//         { url: "https://npm.elemecdn.com/echarts@5.3.0/dist/echarts.min.js", global: "echarts", name: "echarts" },
-//         { url: "https://npm.elemecdn.com/vue-echarts@6.1.0/dist/index.umd.min.js", global: "VueECharts", name: "vue-echarts" },
-//         { url: "https://npm.elemecdn.com/fuse.js@6.6.2/dist/fuse.min.js", global: "Fuse", name: "fuse.js" },
-//         { url: "", global: "monaco", name: "monaco-editor" }
-//     ],
-//     css: [
-//         // { url: "https://npm.elemecdn.com/element-ui@2.15.6/lib/theme-chalk/index.css" },
-//         // { url: "https://npm.elemecdn.com/element-ui@2.15.6/lib/theme-chalk/display.css" },
-//     ]
-// }
-
 
 module.exports = {
     outputDir: customEnv.MONA_MOBILE ? 'dist-mobile' : 'dist',
