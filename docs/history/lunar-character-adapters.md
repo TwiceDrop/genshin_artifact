@@ -42,12 +42,12 @@
 - [KQM叶洛亚](https://library.keqingmains.com/characters/geo/illuga) 和 [月曜机制](https://keqingmains.com/misc/lunar-reactions/) 明确其定额只作用直伤月结晶；旧静态记录把公用属性的消费者范围当作技能作用范围，已纠正。
 - [KQM莉奈娅](https://library.keqingmains.com/characters/geo/linnea) 确认编录消耗、C6以及四命同时给自身和当前场上角色防御；此前“只有自身”描述不完整。
 - [KQM菲林斯](https://keqingmains.com/q/flins-quickguide/) 区分六命自身35%与满辉团队10%擢升。本项目 FlinsC6 目录项为后者，自身额外35%不在该队友BUFF中补算。
-- 菈乌玛等级及状态采用用户提供资料，核对范围见 [菈乌玛证据记录](formula-evidence/lauma-confirmation.md)；[Meropide伤害公式](https://meropide.cn/chs/reference/伤害公式/) 用于核对增伤、定额与最终擢升位置。
+- 菈乌玛等级及状态采用用户提供资料，核对范围见 [菈乌玛证据记录](../formula-evidence/lauma-confirmation.md)；[Meropide伤害公式](https://meropide.cn/chs/reference/伤害公式/) 用于核对增伤、定额与最终擢升位置。
 
 ## 范围和验证
 
 单次显式面板可以消费上述BUFF；普通攻击/防御等属性部分通过适配器进入原生属性图。没有新增这九人的完整技能轴、自动队友面板来源、自动逐击扣层或持续时间状态机。资格/层数由调用者声明；多次独立计算不能冒充有状态循环。不同来源同类基础转换的自动互斥/择优事件不在此批模拟范围。
 
-两个内核仍然分开。旧角色原发布核保留既有路径；固定手填反应上下文仍拒绝优化、词条收益和混合DSL。3～4人反应星扩散继续保留用户接受的近似标记。名称入口覆盖240/257，剩余17项见 [当前覆盖清单](unified-buff-coverage.md)，后续角色任务见 [交接MD](history/%E5%B7%B2%E7%9F%A5%E5%85%AC%E5%BC%8F%E6%9C%AA%E5%AE%9E%E7%8E%B0%E8%A7%92%E8%89%B2BUFF%E4%BA%A4%E6%8E%A5.md)。
+两个内核仍然分开。旧角色原发布核保留既有路径；固定手填反应上下文仍拒绝优化、词条收益和混合DSL。3～4人反应星扩散继续保留用户接受的近似标记。名称入口覆盖240/257，剩余17项见 [当前覆盖清单](unified-buff-coverage.md)，后续角色任务见 [交接MD](%E5%B7%B2%E7%9F%A5%E5%85%AC%E5%BC%8F%E6%9C%AA%E5%AE%9E%E7%8E%B0%E8%A7%92%E8%89%B2BUFF%E4%BA%A4%E6%8E%A5.md)。
 
 本批只用 tests/lunar-characters.test.mjs 的5个案例：注册/边界、菈乌玛组合、月结晶三角色组合、少女分支、实际JS封装与Vue语法。5/5通过；修正前后台绑定后只重跑原有第3和第5项，2/2通过，未新增测试案例。底层原生API使用桩，不等于Rust/WASM或浏览器已实测；未进行任何构建。
