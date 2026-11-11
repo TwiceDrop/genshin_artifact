@@ -2,7 +2,6 @@
 node_modules
 .cache/
 .local-data/
-public/release-assets/
 /dist
 /dist-mobile
 /releases
