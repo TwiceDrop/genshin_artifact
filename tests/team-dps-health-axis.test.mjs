@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {sample,gear,builds,run,sum,inspect} from '../beta-tools/team-dps-full-audit.mjs';
 import {weapon} from '../beta-tools/interface-audit-7108.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {compileTeamDpsAxis} from '../beta-data/team-dps-rotation.mjs';
 import {createEquipmentAxisRules} from '../beta-data/equipment-axis-rules.mjs';

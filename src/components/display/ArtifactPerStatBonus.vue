@@ -19,7 +19,6 @@
 </template>
 
 <script>
-/// #if !USE_CDN
 import { use } from "echarts/core"
 import { LineChart, PieChart } from "echarts/charts"
 import {
@@ -42,7 +41,6 @@ use([
     TitleComponent,
     GridComponent
 ])
-/// #endif
 import { artifactTags } from "@const/artifact"
 import { deviceIsPC } from "@util/device"
 import VChart from "vue-echarts"

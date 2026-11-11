@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import webpack from 'webpack';
-import {api,vesna,named,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,vesna,named,sum} from '../beta-tools/runtime.mjs';
 import {fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {EXTENSION_BUFF_REGISTRY} from '../beta-data/extension-buffs.mjs';
 import {probeCompiledOptimizer} from '../beta-tools/compiled-worker-probe.mjs';

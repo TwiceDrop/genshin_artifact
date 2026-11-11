@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {sample,gear,builds,run,sum,inspect} from '../beta-tools/team-dps-full-audit.mjs';
 import {weapon} from '../beta-tools/interface-audit-7108.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {optimizeTeamDps} from '../beta-data/team-dps-optimizer.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';

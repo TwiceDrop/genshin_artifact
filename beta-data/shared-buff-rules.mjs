@@ -2,7 +2,7 @@
 import {symphonistAttack} from './equipment-effect-values.mjs';
 // Rule inputs are the published BUFF config plus the beneficiary calculation input.
 // Manually enabling a BUFF declares its source/trigger prerequisites satisfied;
-// explicit recipient flags still restrict eligibility. See docs/shared-buff-rules.md.
+// explicit recipient flags still restrict eligibility. See docs/dev/formula-scope.md.
 const number=(p,key,fallback,min=0,max=100000,integer=false)=>{
  const value=p[key]??fallback;
  if(typeof value!=='number'||!Number.isFinite(value)||value<min||value>max||(integer&&!Number.isInteger(value)))throw Error('BUFF 参数无效：'+key);

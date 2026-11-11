@@ -31,7 +31,6 @@ module.exports = {
         "src/**/*",
         "mona_wasm/**/*",
         "loaders/**/*",
-        "sub/**/*",
         // "**/*"
     ],
 

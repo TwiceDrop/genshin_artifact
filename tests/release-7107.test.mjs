@@ -11,7 +11,7 @@ import {calculateSingleHit,singleHitBuffs} from '../beta-data/single-hit-damage.
 import {calculateDirectStellarConduct} from '../beta-data/direct-stellar-conduct.mjs';
 import {calculateBloomFamilyDamage} from '../beta-data/bloom-damage.mjs';
 import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
-import {api,vody,vesna,sum} from '../beta-tools/runtime-7106.mjs';
+import {api,vody,vesna,sum} from '../beta-tools/runtime.mjs';
 const named=(name,p={})=>({name,config:{[name]:p}});
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),String(a)+' != '+b);
 const values=(name,p={},character='Vesna')=>EXTENSION_BUFF_REGISTRY.compile(named(name,p),{character:{name:character}})?.[0]?.config.ExtensionEffect.values||{};

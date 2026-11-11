@@ -1,5 +1,5 @@
 // Five-star game roll tiers. Aggregate BEFORE rounding to Mona's displayed inputs.
-// Sources and precision contract: docs/dynamic-artifact-score-20261108.md.
+// Sources: the miao-plugin section of THIRD_PARTY_NOTICES.md and tests/fixtures/dynamic-score-affix-source.json.
 export const ROLLS = Object.freeze({
     HPFixed: [209.13,239,268.88,298.75], ATKFixed: [13.62,15.56,17.51,19.45],
     DEFFixed: [16.2,18.52,20.83,23.15], HPPercentage: [.0408,.0466,.0525,.0583],

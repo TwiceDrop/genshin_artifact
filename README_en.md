@@ -2,7 +2,7 @@
 Genshin Impact artifacts automatic combination, the website is [here](https://www.mona-uranai.com)  
 This README is also available in:  
 [中文](./README.md)
-<!-- [日本語](./README_jp.md) -->
+[日本語](./README_ja.md)
 ## Description
 *Genshin Impact* artifacts automatic combination
 ## Features

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api, read} from '../beta-tools/runtime-7106.mjs';
+import {api, read} from '../beta-tools/runtime.mjs';
 import {input, gear, named} from '../beta-tools/preview-7201-fixtures.mjs';
 
 const target = {name: 'MityaDefault', params: 'NoConfig', use_dsl: false, dsl_source: ''};

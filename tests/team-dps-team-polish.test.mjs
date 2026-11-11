@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {fixture,weapon} from '../beta-tools/interface-audit-7108.mjs';
 import {TEAM_DPS_ROLES} from '../beta-data/team-dps-config.mjs';
 import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
@@ -38,7 +38,7 @@ test('team polish: ascension boundaries gate shared passives, constellation prer
   if(role===3)assert.equal(Object.hasOwn(h.analysis.extra_damage,'沃雅妮莎·十二弦的泪歌'),a4);
   observations.push({role,level,ascend,expectation:out.expectation});
  }
- fs.writeFileSync('.build-target/team-dps-team-polish-20261027/V1-ascension.json',JSON.stringify(observations,null,2));
+ fs.mkdirSync('.build-target/team-dps-team-polish-20261027',{recursive:true});fs.writeFileSync('.build-target/team-dps-team-polish-20261027/V1-ascension.json',JSON.stringify(observations,null,2));
 });
 
 test('team polish: constellation edits preserve effective talent levels without changing input presets',()=>{

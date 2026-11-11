@@ -151,7 +151,7 @@ test('兼容旧存档：原瑞希纯精通配装目标继续最大化精通',()=
  observations.push({id:'mizuki-default-target',status:'info',finding:'The legacy Elemental Mastery target remains available for existing saves; the new Stellar Swirl target is tested separately below.',samples});
 });
 
-const modes=[{index:14,reaction:'direct_stellarswirl'},{index:15,reaction:'direct_stellarswirl'},{index:14,reaction:'stellarswirl_anemo'},{index:14,reaction:'stellarswirl_cryo'}];
+const modes=[{index:14,reaction:'direct_stellarswirl'},{index:15,reaction:'direct_stellarswirl'}];
 const stellarTarget=mode=>({name:MIZUKI_STELLAR_TARGET,params:{[MIZUKI_STELLAR_TARGET]:{mode}}});
 const legacyTarget={name:'YumemizukiMizukiDefault',params:'NoConfig'};
 const equipment=()=>read('beta-data/mizuki-fixture.json').input.artifacts.map(a=>({...a,set_name:'GladiatorsFinale'}));
@@ -160,21 +160,21 @@ function optimize(input,target,algorithm='Naive',artifacts=input.artifacts){
  return api.OptimizeSingleWasm.optimize({...input,target_function:target,algorithm,constraint:null,filter:null},artifacts);
 }
 function freezeDeep(value){if(value&&typeof value==='object'){Object.freeze(value);for(const v of Object.values(value))freezeDeep(v);}return value;}
-test('新星扩散目标位于瑞希目录首位，四模式和旧精通目标同时存在',()=>{
+test('新星扩散目标位于瑞希目录首位，两种模式和旧精通目标同时存在',()=>{
  const all=read('src/assets/_gen_tf.js'),names=Object.values(all).filter(v=>v.for==='YumemizukiMizuki').map(v=>v.name);
  assert.equal(names[0],MIZUKI_STELLAR_TARGET);assert.ok(names.includes(legacyTarget.name));
- const config=all[MIZUKI_STELLAR_TARGET].config.find(v=>v.name==='mode');assert.equal(config.default,0);assert.equal(config.options.length,4);
+ const config=all[MIZUKI_STELLAR_TARGET].config.find(v=>v.name==='mode');assert.equal(config.default,0);assert.equal(config.options.length,modes.length);
 });
-test('四模式 AStar/Naive 配装值等于对应实际伤害，保留强化状态及C1开关',()=>{
- for(const mode of [0,1,2,3])for(const co of [1,6])for(const enhanced of [false,true])for(const c1active of [false,true]){
+test('两种模式 AStar/Naive 配装值等于对应实际伤害，保留强化状态及C1开关',()=>{
+ for(const mode of modes.keys())for(const co of [1,6])for(const enhanced of [false,true])for(const c1active of [false,true]){
   const x=fixture(co,enhanced,750);x.artifacts=equipment();x.character.params.YumemizukiMizuki.c1_reaction_active=c1active;
   // A different selected panel skill must not overwrite the target mode.
   x.skill.index=0;const expected=targetDamage(x,mode);
   for(const algorithm of ['Naive','AStar']){const results=optimize(x,stellarTarget(mode),algorithm);assert.ok(results.length);close(results[0].value,expected,'mode '+mode+' '+algorithm);}
  }
 });
-test('四模式十词条收益：精通、暴击率、暴伤逐档与实际加词条伤害一致',()=>{
- for(const mode of [0,1,2,3])for(const co of [1,6]){
+test('两种模式十词条收益：精通、暴击率、暴伤逐档与实际加词条伤害一致',()=>{
+ for(const mode of modes.keys())for(const co of [1,6]){
   const x=fixture(co,true,750);x.artifacts=equipment();const baseline=targetDamage(x,mode);
   const result=api.BonusPerStat.bonus_per_stat({...x,tf:stellarTarget(mode),artifacts_config:x.artifact_config});
   for(const [key,stat,roll]of [['elemental_mastery','ElementalMastery',23],['critical_rate','CriticalRate',.039],['critical_damage','CriticalDamage',.078]]){
@@ -198,8 +198,8 @@ test('变化候选以实际星伤选择精通或双暴，旧精通目标仍选�
  }
  observations.push({id:'mizuki-stellar-target-candidate-selection',status:'info',samples});
 });
-test('四模式最优词条曲线每个点与新配装目标一致',()=>{
- for(const mode of [0,1,2,3]){
+test('两种模式最优词条曲线每个点与新配装目标一致',()=>{
+ for(const mode of modes.keys()){
   const x=fixture(6,true,750);x.artifacts=equipment();x.skill.index=modes[mode].index;
   const options={stats:['ElementalMastery','CriticalRate','CriticalDamage'],maxRolls:3,tier:'max'};
   const ev=createDamageEvaluator(api,x,modes[mode].reaction,null,options.stats,options.tier),curve=computeCurve(ev.evaluate,options);
@@ -209,13 +209,13 @@ test('四模式最优词条曲线每个点与新配装目标一致',()=>{
  }
 });
 test('新目标不改写角色、目标或圣遗物存档，冻结输入也可计算',()=>{
- const x=fixture(6,true,750);x.artifacts=equipment();const target=stellarTarget(2),saved=clone({x,target});freezeDeep(x);freezeDeep(target);
+ const x=fixture(6,true,750);x.artifacts=equipment();const target=stellarTarget(1),saved=clone({x,target});freezeDeep(x);freezeDeep(target);
  assert.ok(optimize(x,target).length);api.BonusPerStat.bonus_per_stat({...x,tf:target,artifacts_config:x.artifact_config});damage(x);
  assert.deepEqual({x,target},saved);
 });
 test('非法目标模式、错误角色、C0一命模式及静态评分都明确拒绝',()=>{
  const x=fixture(0,true);x.artifacts=equipment();
- for(const mode of [-1,4,1.5,NaN,Infinity,'0']){
+ for(const mode of [-1,2,3,4,1.5,NaN,Infinity,'0']){
   assert.throws(()=>optimize(x,stellarTarget(mode)),/类型无效/);
   assert.throws(()=>api.BonusPerStat.bonus_per_stat({...x,tf:stellarTarget(mode),artifacts_config:x.artifact_config}),/类型无效/);
  }
@@ -245,7 +245,7 @@ test('保留新目标名称时用户自定义DSL优先，配装和收益按自�
 });
 test('理论套装排行明确拒绝新星扩散目标，避免旧内核忽略DSL',()=>{
  const x=fixture(1,true);x.artifacts=equipment();
- for(const mode of [0,1,2,3])for(const key of ['target_function','tf'])
+ for(const mode of modes.keys())for(const key of ['target_function','tf'])
   assert.throws(()=>api.CalcArtifactBestSet.calc_artifact_best_set({...x,[key]:stellarTarget(mode)}),/暂不支持理论套装排行/);
  // Rejection occurs outside WASM and leaves valid inventory optimization usable.
  close(optimize(x,stellarTarget(0))[0].value,targetDamage(x,0));
@@ -274,6 +274,6 @@ for(const index of [14,15]){
  observations.push({id:'explicit-stellar-skill-'+index,status:'review',finding:'Explicitly selecting a stellar-only skill still evaluates its damage with enhanced_state=false. This may be intentional standalone-skill evaluation, so it is not classified as a formula failure.',damage:damage(x).direct_stellarswirl});
 }
 const report={checkedAt:new Date().toISOString(),scope:'Published WASM formula audit and the full composed API for the new Yumemizuki Mizuki Stellar Swirl optimization target; no product code is patched by this script.',source:{url:'https://gi.gachabase.net/characters/10000109/yumemizuki-mizuki/release?lang=chs',version:'7.0.0',designRevision:47194594},passed:tests.filter(t=>t.pass).length,total:tests.length,tests,observations};
-fs.writeFileSync(file('beta-data/strengthened-tests.json'),JSON.stringify(report,null,2)+'\n');
+fs.writeFileSync((fs.mkdirSync(new URL('../.build-target/smoke/',import.meta.url),{recursive:true}),new URL('../.build-target/smoke/strengthened-tests.json',import.meta.url)),JSON.stringify(report,null,2)+'\n');
 console.log(report.passed+'/'+report.total+' passed; '+observations.filter(o=>o.status==='gap').length+' functional gap(s) recorded');
 if(report.passed!==report.total)process.exitCode=1;

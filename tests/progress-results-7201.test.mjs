@@ -1,10 +1,10 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';import fs from 'node:fs';
-import {api} from '../beta-tools/runtime-7106.mjs';import {fixture} from '../beta-tools/interface-audit-7108.mjs';import {resultDamagePreview,formatComputeTime} from '../src/algorithms/optimization-results.mjs';import {runSingleOptimizeWorker} from '../src/wasm/single-optimize-task.mjs';
+import {api} from '../beta-tools/runtime.mjs';import {fixture} from '../beta-tools/interface-audit-7108.mjs';import {resultDamagePreview,formatComputeTime} from '../src/algorithms/optimization-results.mjs';import {runSingleOptimizeWorker} from '../src/wasm/single-optimize-task.mjs';
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 test('read-only native callbacks preserve both algorithms and both kernels, with real work counts',()=>{
  const probe=flag=>JSON.parse(execFileSync(process.execPath,['beta-tools/progress-parity-7201.mjs'],{env:{...process.env,MONA_PROGRESS:flag},encoding:'utf8'})),before=probe('0'),after=probe('1');assert.equal(after.length,16);
  for(let i=0;i<after.length;i++){const a=after[i],b=before[i];assert.equal(a.results.length,b.results.length);for(let j=0;j<a.results.length;j++){assert.equal(a.results[j].ids,b.results[j].ids);near(a.results[j].value,b.results[j].value);}const p=a.records.at(-1);assert.ok(p.evaluated>0);assert.ok(p.visitedGroups<=p.totalGroups);assert.equal(p.remainingGroups,0);assert.equal(p.percent,100);}
- fs.writeFileSync('.build-target/progress-results-7201/parity.json',JSON.stringify(after,null,2));
+ fs.mkdirSync('.build-target/progress-results-7201',{recursive:true});fs.writeFileSync('.build-target/progress-results-7201/parity.json',JSON.stringify(after,null,2));
 });
 test('result preview follows skill and infusion, exposes only participating panel stats and leaves input intact',()=>{
  for(const [role,index,required,excluded]of [['Kaeya',0,'atk','hp'],['Mitya',8,'elemental_mastery','atk'],['Valeriy',9,'atk','critical']]){const x=fixture(role);x.skill.index=index;const before=JSON.stringify(x),r=resultDamagePreview(api,x,x.artifacts,'None');assert.ok(r.attributes.some(a=>a.key===required));assert.ok(!r.attributes.some(a=>a.key===excluded));const key=role==='Mitya'?'direct_stellarconduct':'normal';near(r.analysis[key].expectation,api.CalculatorInterface.get_damage_analysis(x,null)[key].expectation);assert.equal(JSON.stringify(x),before);}

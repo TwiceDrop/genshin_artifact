@@ -1,6 +1,6 @@
 # 菈乌玛两项缺失数据确认
 
-用户补充原文已保存为 user-lauma-confirmation.txt。数值、状态规则、命座复合分别存入 beta-data/lauma-formula-data.mjs，本批已在 lunar-character-rules.mjs 接入两项的单次状态与公式消费，见 ../lunar-character-adapters.md。
+用户补充原文已保存为 user-lauma-confirmation.txt。数值、状态规则、命座复合分别存入 beta-data/lauma-formula-data.mjs，本批已在 lunar-character-rules.mjs 接入两项的单次状态与公式消费，见 ../history/lunar-character-adapters.md。
 
 - LaumaSkillResMinus：Lv1–15 水/草减抗表已记录；使用含C5后的实际等级。目标敌人减抗10秒，命中刷新，不逐次叠加。
 - LaumaBurst：普通绽放系与月绽放分别用两套等级定额倍率。C2分别加5.0、4.0，不是把技能表乘2。Q13对应10.902×来源精通与8.723×来源精通。

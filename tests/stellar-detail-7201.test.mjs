@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';import test from 'node:test';
-import {api,vesna,named} from '../beta-tools/runtime-7106.mjs';import {fixture,weapon} from '../beta-tools/interface-audit-7108.mjs';import {input} from '../beta-tools/preview-7201-fixtures.mjs';
+import {api,vesna,named} from '../beta-tools/runtime.mjs';import {fixture,weapon} from '../beta-tools/interface-audit-7108.mjs';import {input} from '../beta-tools/preview-7201-fixtures.mjs';
 import {stellarDetail,stellarDetailState,stellarDetailResult} from '../src/algorithms/stellar-detail.mjs';
 const enemy={level:95,electro_res:.25,cryo_res:.4,anemo_res:.3,pyro_res:.1,hydro_res:.1,geo_res:.1,dendro_res:.1,physical_res:.1};
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);

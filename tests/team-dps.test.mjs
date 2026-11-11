@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {fixture,weapon} from '../beta-tools/interface-audit-7108.mjs';
 import {TEAM_DPS_ROLES,TEAM_DPS_SLOTS} from '../beta-data/team-dps-axis.mjs';
 import {importedAxis} from './helpers/team-dps-configuration.mjs';

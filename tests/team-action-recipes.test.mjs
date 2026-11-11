@@ -3,7 +3,7 @@ import {defineActionRecipes} from '../beta-data/team-engine/action-recipes.mjs';
 import {characterPackages} from '../beta-data/team-engine/character-packages.mjs';
 import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {nativeEventTrace,compareEventValues,compareTeamResults} from './helpers/team-dps-result-comparison.mjs';
 import {effectInput,action} from './helpers/team-effect-refactor.mjs';

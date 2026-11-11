@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {api,original,vody,named} from '../beta-tools/runtime-7106.mjs';
+import {api,original,vody,named} from '../beta-tools/runtime.mjs';
 import {stellarSupportState} from '../beta-data/stellar-support-facade.mjs';
 import {VODYANITSA_SUPPORT_RULES,STELLAR_SUPPORT_RULES} from '../beta-data/scoped-character-effect-rules.mjs';
 import {CHARACTER_EFFECT_RULES,PENDING_CHARACTER_RULES} from '../beta-data/character-effect-rules.mjs';

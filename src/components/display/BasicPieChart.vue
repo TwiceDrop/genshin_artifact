@@ -3,7 +3,6 @@
 </template>
 
 <script>
-/// #if !USE_CDN
 import { use } from "echarts/core"
 import { PieChart } from "echarts/charts"
 import {
@@ -18,7 +17,6 @@ use([
     TooltipComponent,
     TitleComponent,
 ])
-/// #endif
 import VChart from "vue-echarts"
 import {useI18n} from "../../i18n/i18n";
 

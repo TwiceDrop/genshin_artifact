@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {sample,builds,gear} from '../beta-tools/team-dps-full-audit.mjs';
 import {weapon} from '../beta-tools/interface-audit-7108.mjs';
 import {createActionTeamEvaluator,compileActionAxis} from '../beta-data/team-engine/index.mjs';
@@ -49,5 +49,5 @@ test('action engine: character IDs survive reordered slots; candidate HP and equ
  const hit=out.hits.find(h=>h.role===0&&h.time===8.5);
  assert.ok(hit.analysis.atk['讨龙英杰谭']>0);assert.ok(hit.analysis.atk['千岩牢固4']>0);
  assert.ok(out.hits.some(h=>h.category==='equipment'));
- fs.writeFileSync('.build-target/team-engine-feasibility-20261028/V2-actions.json',JSON.stringify({actions:input.team_dps.axis.timeline.length,hits:out.hits.length,health:out.health.length,expectation:out.expectation,reordered:changed.expectation,higherSupportHP:stronger.expectation},null,2));
+ fs.mkdirSync('.build-target/team-engine-feasibility-20261028',{recursive:true});fs.writeFileSync('.build-target/team-engine-feasibility-20261028/V2-actions.json',JSON.stringify({actions:input.team_dps.axis.timeline.length,hits:out.hits.length,health:out.health.length,expectation:out.expectation,reordered:changed.expectation,higherSupportHP:stronger.expectation},null,2));
 });

@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import {api,read} from './runtime-7106.mjs';
+import {api,read} from './runtime.mjs';
 import {defaultDamageReaction,visibleDamageReactionKeys} from '../src/algorithms/reaction-labels.mjs';
 import {createDamageEvaluator} from '../src/algorithms/stat-gain/curve.mjs';
 export const chars=read('src/assets/_gen_character.js'),targets=read('src/assets/_gen_tf.js'),weapons=read('src/assets/_gen_weapon.js'),buffs=read('src/assets/_gen_buff.js'),sets=read('src/assets/_gen_artifact.js');
@@ -28,5 +28,5 @@ for(const [name,w]of Object.entries(weapons)){
 for(const name of Object.values(sets).map(s=>s.name2))for(const role of ['Kaeya','Vodyanitsa','Vesna']){const x=fixture(role);x.artifacts=gear.map(a=>({...a,set_name:name}));check('set.damage',role+'/'+name,()=>finiteDamage(api.CalculatorInterface.get_damage_analysis(x,null)));check('set.optimize',role+'/'+name,()=>api.OptimizeSingleWasm.optimize(optimizer(x),x.artifacts));}
 for(const name of Object.keys(buffs))for(const role of ['Kaeya','Vodyanitsa','Vesna']){const x=fixture(role);x.buffs=[namedBuff(name)];check('buff.damage',role+'/'+name,()=>finiteDamage(api.CalculatorInterface.get_damage_analysis(x,null)));check('buff.optimize',role+'/'+name,()=>api.OptimizeSingleWasm.optimize(optimizer(x),x.artifacts));if(role==='Kaeya')check('buff.dsl',name,()=>{const r=api.DSLInterface.run('prop p = Kaeya.atk\nprint(p)',x,x.artifacts);if(r.is_error)throw Error(r.error_msg);const expected=Object.values(api.CommonInterface.get_attribute(x).atk).reduce((a,b)=>a+b,0);if(Math.abs(Number(r.output.trim())-expected)>.01)throw Error('ATK mismatch '+r.output.trim()+' vs '+expected)});}
 const pf=read('src/assets/_gen_pf.js').ArtifactEff;check('potential','ArtifactEff',()=>api.PotentialInterface.get_potential(gear,{name:pf.name,config:config(pf.name,pf.config)}));
-console.log=log;fs.writeFileSync('.build-target/interface-audit/report.json',JSON.stringify(report,null,2));return report;}
+console.log=log;fs.mkdirSync('.build-target/interface-audit',{recursive:true});fs.writeFileSync('.build-target/interface-audit/report.json',JSON.stringify(report,null,2));return report;}
 if(process.argv.includes('--run')){const r=runInterfaceAudit();console.log(JSON.stringify({counts:r.counts,failures:r.failures,observations:r.observations},null,2));}

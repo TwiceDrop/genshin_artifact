@@ -14,7 +14,7 @@ if(workerData.graph){
  model=compileTeamDpsExpression(api,x,artifacts,resources,undefined,{trace:true});const computation=createTeamDpsComputation(model,artifacts);
  results=(await computation.score(workerData.repeat?[...ids,ids[0]]:ids,{detail:true})).results;computation.dispose();
 }else{
- const {api}=await import('../../beta-tools/runtime-7106.mjs'),{createTeamDpsEvaluator}=await import('../../beta-data/team-dps-evaluator.mjs'),{nativeEventTrace}=await import('./team-dps-result-comparison.mjs');
+ const {api}=await import('../../beta-tools/runtime.mjs'),{createTeamDpsEvaluator}=await import('../../beta-data/team-dps-evaluator.mjs'),{nativeEventTrace}=await import('./team-dps-result-comparison.mjs');
  const evaluator=createTeamDpsEvaluator(api,x);results=(workerData.repeat?[...teams,teams[0]]:teams).map(team=>{const result=evaluator.evaluate(team,true);return {...result,eventTrace:nativeEventTrace(result)};});
  if(workerData.permutations){
   function* orders(a,p=[]){if(!a.length){yield p;return;}for(let i=0;i<a.length;i++)yield*orders(a.filter((_,j)=>j!==i),[...p,a[i]]);}

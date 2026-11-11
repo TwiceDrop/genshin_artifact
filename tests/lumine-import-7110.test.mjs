@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire, Module } from 'node:module';
-import { api, read, sum } from '../beta-tools/runtime-7106.mjs';
+import { api, read, sum } from '../beta-tools/runtime.mjs';
 import { fixture, optimizer, namedBuff, weapon } from '../beta-tools/interface-audit-7108.mjs';
 import { createMysConverter } from '../src/import/miyoushe.mjs';
 import { characterSummary } from '../src/import/character-summary.mjs';
@@ -183,7 +183,7 @@ test('3 UI catalog, dedicated targets, saved female BUFF profiles and browser/No
         } else assert.ok(expandedWeaponEffects(w, { characterName: 'LumineCryo' }).attackPercentage > 0);
     }
     assert.deepEqual(characters.LumineHydro.skillMap1.filter(row => [5,6].includes(row.index)).map(row => row.text), [3159,3160]);
-    for (const file of ['mona_wasm/pkg/index.js', 'beta-tools/runtime-7106.mjs']) assert.match(fs.readFileSync(file, 'utf8'), /withLumineTraveler\(withHybridTeamOptimization\(createExpandedWeaponsFacade/);
+    for (const file of ['mona_wasm/pkg/index.js', 'beta-tools/runtime.mjs']) assert.match(fs.readFileSync(file, 'utf8'), /withLumineTraveler\(withHybridTeamOptimization\(createExpandedWeaponsFacade/);
     for (const file of ['/characters/lumine-avatar.png', '/characters/lumine-splash.png']) { const bytes = fs.readFileSync('public' + file); assert.equal(bytes.readUInt32BE(0), 0x89504e47); }
     assert.equal(characterSummary({ key: 'failed', label: '旅行者', error: '未知角色：旅行者' }, { raw: rawCharacter('LumineCryo'), characters, weapons, artifacts, locale, inventory: new Map() }).label, '荧-冰');
 }));

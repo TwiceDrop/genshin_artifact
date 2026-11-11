@@ -68,5 +68,5 @@ test('界面完整圣遗物配置与十条词条收益入口可使用',()=>{
  const r=api.BonusPerStat.bonus_per_stat({...x,tf:{name:'VodyanitsaDefault',params:'NoConfig'},artifacts_config:config});assert.equal(r.hp_percentage.length,10);assert.ok(r.hp_percentage.every(v=>Number.isFinite(v)&&v>0));
 });
 const output={results,passed:results.filter(r=>r.pass).length,total:results.length};
-fs.writeFileSync(new URL('../beta-data/smoke-results.json',import.meta.url),JSON.stringify(output,null,2));console.log(JSON.stringify(output,null,2));
+fs.writeFileSync((fs.mkdirSync(new URL('../.build-target/smoke/',import.meta.url),{recursive:true}),new URL('../.build-target/smoke/smoke-results.json',import.meta.url)),JSON.stringify(output,null,2));console.log(JSON.stringify(output,null,2));
 if(output.passed!==output.total)process.exitCode=1;

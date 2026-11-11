@@ -10,7 +10,7 @@ import {importedAxis} from './helpers/team-dps-configuration.mjs';
 import {AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS} from '../beta-data/equipment-axis-rules.mjs';
 import {teamDpsWeaponAvailable,teamDpsArtifactAvailable,INCOMPLETE_ARTIFACT_SETS} from '../beta-data/team-dps-equipment-support.mjs';
 import {MANUAL_WEAPON_OPTIONS,defaultWeaponOptions,WIDSITH_THEMES} from '../beta-data/team-dps-weapon-options.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {optimizeTeamDps} from '../beta-data/team-dps-optimizer.mjs';
 import {runTeamDpsWorkers} from '../src/wasm/team-dps-task.mjs';
 import {changeTeamConstellation} from '../beta-data/team-dps-character-rules.mjs';

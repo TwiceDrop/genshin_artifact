@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {Worker} from 'node:worker_threads';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {scalarMath} from '../beta-data/team-dps-numeric-rules.mjs';
 import {createNumericProgram,executeNumericProgram} from '../beta-data/team-dps-numeric-program.mjs';
 import {createNativeGraphCompiler} from '../beta-data/team-dps-native-compiler.mjs';

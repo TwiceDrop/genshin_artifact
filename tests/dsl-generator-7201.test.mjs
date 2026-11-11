@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';import test from 'node:test';import fs from 'node:fs';
-import {api} from '../beta-tools/runtime-7106.mjs';import {chars,fixture} from '../beta-tools/interface-audit-7108.mjs';
+import {api} from '../beta-tools/runtime.mjs';import {chars,fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {generateDsl,skillRows,availableDamageTypes} from '../src/algorithms/dsl-generator.mjs';
 const names=JSON.parse(fs.readFileSync('beta-data/dsl-skill-names.json','utf8'));
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);

@@ -28,6 +28,12 @@ https://github.com/TwiceDrop/mhy-qdcode-to-cookie
 
 来源提交 `1813583f97548fb7b9afddead548b13f92d4106a`。TwiceDrop 确認拥有本项目所用模块的全部版权，并于 2026-09-12 授权该模块以 MIT 许可随本项目发布。许可见 `server/vendor/twicedrop/LICENSE`。该项授权不改变上游仓库其余版本的许可标识。
 
+## Agent skills
+
+https://github.com/mattpocock/skills
+
+`.claude/skills/` 与 `.agents/skills/` 下的开发流程 skill 来自该仓库，安装时的上游提交为 `4ae2317ddb22b046e26455e4f9c9b3aaaf62212d`，各 skill 的来源路径记录在 `skills-lock.json`。MIT，Copyright (c) 2026 Matt Pocock，许可全文见 `docs/agents/LICENSE.mattpocock-skills`。
+
 ## 运行库与游戏资源
 
 V7.2.02 Windows 包的 HoYoLAB 登录窗口使用 Microsoft Edge WebView2。随包分发的 WebView2 SDK 组件版本为 1.0.4129.50，许可证及声明位于 `runtime/hoyolab-login/LICENSE.txt`、`NOTICE.txt`；系统需要安装 Microsoft Edge WebView2 Runtime。
@@ -40,4 +46,4 @@ V7.0.11 的 Windows 安装包包含 Node.js 22.23.2，来自 Node.js 官方 Wind
 
 ## 本次测试服扩展
 
-`mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `7.1.01 beta1使用说明.md` 与 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。
+`mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import * as vue from 'vue';
-import {api, read, sum} from '../beta-tools/runtime-7106.mjs';
+import {api, read, sum} from '../beta-tools/runtime.mjs';
 import {fixture, optimizer} from '../beta-tools/interface-audit-7108.mjs';
 import {createMysConverter, mergeEquipped} from '../src/import/miyoushe.mjs';
 import * as importHistory from '../src/import/import-history.mjs';

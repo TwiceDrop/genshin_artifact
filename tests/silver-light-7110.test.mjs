@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import source from '../beta-data/silver-light-release-71.json' with {type:'json'};
 import {expandedWeaponStats,expandedWeaponEffects,normalizeExpandedWeapon} from '../beta-data/expanded-weapons.mjs';
-import {api,sum,vesna} from '../beta-tools/runtime-7106.mjs';
+import {api,sum,vesna} from '../beta-tools/runtime.mjs';
 import {fixture,optimizer,gear} from '../beta-tools/interface-audit-7108.mjs';
 import {scoreBuild,panelScoreAttributes} from '../src/algorithms/artifact-score/score.mjs';
 const near=(a,b,label='')=>assert.ok(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${label}: ${a} != ${b}`);

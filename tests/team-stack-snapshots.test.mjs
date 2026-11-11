@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import {Wor
 import {createEffectState} from '../beta-data/team-engine/effect-state.mjs';import {createEffectResolver} from '../beta-data/team-engine/effect-resolver.mjs';
 import {createNumericProgram,executeNumericProgram} from '../beta-data/team-dps-numeric-program.mjs';import {scalarMath} from '../beta-data/team-dps-numeric-rules.mjs';
 import {compileEffectPlan} from '../beta-data/team-engine/effect-plan.mjs';import {compileActionAxis} from '../beta-data/team-engine/timeline.mjs';
-import {characterPackages} from '../beta-data/team-engine/character-packages.mjs';import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';import {api} from '../beta-tools/runtime-7106.mjs';
+import {characterPackages} from '../beta-data/team-engine/character-packages.mjs';import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';import {api} from '../beta-tools/runtime.mjs';
 import {effectInput} from './helpers/team-effect-refactor.mjs';import {nativeEventTrace,compareEventValues} from './helpers/team-dps-result-comparison.mjs';
 import {stackSnapshotDefinition,installStackSnapshotFixture,configureStackSnapshotFixture} from './helpers/stack-snapshot-definition.mjs';
 const near=(a,b)=>assert.ok(Object.is(a,b)||Math.abs(a-b)<1e-11*Math.max(1,Math.abs(b)),`${a} != ${b}`);

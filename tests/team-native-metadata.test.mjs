@@ -4,7 +4,7 @@ import {createNativeDamageProjector} from '../beta-data/team-engine/native-proje
 import {STELLAR_DAMAGE_FIELDS} from '../beta-data/team-engine/native-damage-fields.mjs';
 import {createNumericProgram,executeNumericProgram} from '../beta-data/team-dps-numeric-program.mjs';
 import {createNativeGraphCompiler} from '../beta-data/team-dps-native-compiler.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {nativeEventTrace,compareEventValues} from './helpers/team-dps-result-comparison.mjs';

@@ -9,7 +9,7 @@ import {resolveCombatTimeline} from '../beta-data/team-engine/combat-runtime.mjs
 import {createNumericProgram,executeNumericProgram} from '../beta-data/team-dps-numeric-program.mjs';
 import {scalarMath} from '../beta-data/team-dps-numeric-rules.mjs';
 import {createTeamDpsEvaluator} from '../beta-data/team-dps-evaluator.mjs';
-import {api} from '../beta-tools/runtime-7106.mjs';
+import {api} from '../beta-tools/runtime.mjs';
 import {nodeTeamDps} from './helpers/team-dps-node-pool.mjs';
 import {compareEventValues,nativeEventTrace} from './helpers/team-dps-result-comparison.mjs';
 import {stackInput} from './helpers/team-effect-stacks.mjs';
