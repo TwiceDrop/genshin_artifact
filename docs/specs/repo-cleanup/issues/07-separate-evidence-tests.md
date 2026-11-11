@@ -26,3 +26,4 @@
 
 - 2026-11-11（任务 01 时发现）：除了 `.build-target/`，还有 4 个测试读取被 `.gitignore` 排除的私有夹具 `beta-data/skirk-fixture.json` 或 `beta-data/mizuki-fixture.json`：`lunar-integration`、`optimize-7107-regression`、`release-7106`、`unified-kernel`。这两个文件是真实账号数据，按 `AGENTS.md` 不能提交，这些用例同样要分到 `tests/evidence/`，或改用合成夹具。
 - `tests/interface-audit-7108.test.mjs` 有用例报 `StellarDamageDetail is not defined`，不是缺文件，是测试本身失效，需要单独排查。
+- 2026-11-11（任务 05 时发现）：`beta-tools/` 的冒烟脚本 `smoke`、`smoke-beta2`、`smoke-beta3`、`smoke-limited-71` 也读取私有夹具，而 `beta-tools/build-extension.ps1` 在编译扩展内核后会依次运行它们。处理测试时一并决定这些冒烟脚本放在哪一类。

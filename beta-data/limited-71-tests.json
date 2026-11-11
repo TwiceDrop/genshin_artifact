@@ -1,11 +1,13 @@
 {
-  "checkedAt": "2026-09-22T14:18:16.524Z",
-  "passed": 61,
+  "checkedAt": "2026-11-11T10:18:36.546Z",
+  "passed": 53,
   "total": 61,
   "tests": [
     {
       "name": "公开快照SHA256、1248等级行及65档中英文特效数值一致",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\sources-limited-71\\11435.html'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\sources-limited-71\\11435.html'\n    at Object.openSync (node:fs:622:18)\n    at Object.readFileSync (node:fs:488:35)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:54:54\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:50:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "熔猎异端之刃：原生1～90级及六处突破前后（96组）",
@@ -173,23 +175,33 @@
     },
     {
       "name": "新枝单人配装、十词条收益、最优曲线与薇斯纳实际星伤一致",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'\n    at Object.readFileSync (node:fs:484:20)\n    at read (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:16:29)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:242:85\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:241:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "旧角色新枝配装目标、词条收益和普通伤害曲线都读取武器效果",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'\n    at Object.readFileSync (node:fs:484:20)\n    at read (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:16:29)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:258:86\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:257:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "MONA-DSL第二参数接入新枝/柔风与队友Buff，数值和面板伤害一致",
-      "pass": true
+      "pass": false,
+      "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.",
+      "stack": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:276:49\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:268:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "薇斯纳未实现静态评分时明确拒绝而不进入WASM panic",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'\n    at Object.readFileSync (node:fs:484:20)\n    at read (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:16:29)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:280:129\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:279:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "无新武器/新队友Buff的旧角色与原发布内核面板和伤害数值一致",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\skirk-fixture.json'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\skirk-fixture.json'\n    at Object.readFileSync (node:fs:484:20)\n    at read (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:16:29)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:286:11\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:284:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "计算和配置迁移不修改用户输入",
@@ -241,11 +253,15 @@
     },
     {
       "name": "薇斯纳新双覆盖率接入单人配装、十词条收益与最优曲线",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'\n    at Object.readFileSync (node:fs:484:20)\n    at read (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:16:29)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:442:14\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:440:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     },
     {
       "name": "金律旧角色跨乐章双覆盖率接入真实蒸发、配装、收益、曲线",
-      "pass": true
+      "pass": false,
+      "error": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'",
+      "stack": "Error: ENOENT: no such file or directory, open 'F:\\codeForStudy\\genshin_artifact\\beta-data\\mizuki-fixture.json'\n    at Object.readFileSync (node:fs:484:20)\n    at read (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:16:29)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:463:14\n    at test (file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:46:28)\n    at file:///F:/codeForStudy/genshin_artifact/beta-tools/smoke-limited-71.mjs:456:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
     }
   ]
 }
