@@ -12,7 +12,7 @@ npm run build:local
 npm start
 ```
 
-打开 **http://127.0.0.1:4174/#/calculate**。以后只需 `npm start`；修改前端后重新 `npm run build:local`。保持该终端运行。`MONA_PORT` 可修改监听端口，但浏览器存储按访问地址隔离，换端口或 localhost/127.0.0.1 会进入不同的存储空间。
+打开 **http://127.0.0.1:4183/#/calculate**（Windows 启动器用的是 4174）。以后只需 `npm start`；修改前端后重新 `npm run build:local`。保持该终端运行。`MONA_PORT` 可修改监听端口，但浏览器存储按访问地址隔离，换端口或 localhost/127.0.0.1 会进入不同的存储空间。
 
 这是本地网页加本机服务，尚未重新打包为 Tauri EXE。原 `npm run serve` 仅用于前端开发，米游社功能请在上述本机地址验证。
 

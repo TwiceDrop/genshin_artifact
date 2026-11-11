@@ -14,7 +14,7 @@ npm run setup:release
 
 | 目的 | 命令 |
 | --- | --- |
-| 本机服务（米游社导入、更新） | `npm start`，然后打开 `http://127.0.0.1:4174/#/calculate` |
+| 本机服务（米游社导入、更新） | `npm run build:local` 后 `npm start`，打开 `http://127.0.0.1:4183/#/calculate` |
 | 前端开发服务（不含本机服务功能） | `npm run serve` |
 | 桌面网页 | `npm run build:local` |
 | 新移动 UI | `npm run build:mobile` |
@@ -22,7 +22,7 @@ npm run setup:release
 | Rust 扩展内核 | `npm run build:beta-kernel`，需要先把 `compiler-source.json` 里的 MinGW 解到 `beta-tools/mingw64/` |
 | 效果桥接内核 | `npm run build:effect-bridge`（Python） |
 
-签名、密码不进入源码。改端口（`MONA_PORT`）或在 localhost 与 127.0.0.1 之间切换，会进入另一份浏览器存储。
+签名、密码不进入源码。`npm start` 默认端口是 4183，Windows 启动器（`installer/Launcher.cs`）固定用 `MONA_PORT=4174`。改端口或在 localhost 与 127.0.0.1 之间切换，会进入另一份浏览器存储。
 
 ## 测试
 
