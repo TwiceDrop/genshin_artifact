@@ -273,7 +273,7 @@ test('MONA-DSL第二参数接入新枝/柔风与队友Buff，数值和面板伤�
   [bow,'prop er = Amber.recharge\nprint(er)\ndmg a = Amber.Normal1\nprint(a.normal.e)',[sum(a(bow).recharge),d(bow).normal.expectation]],
  ];
  for(const [x,source,expected]of cases){const result=api.DSLInterface.run(source,x,x.artifacts);assert.equal(result.is_error,false,result.error_msg);const values=result.output.replace(/^MONA:\s*/gm,'').trim().split(/\s+/).map(Number);assert.equal(values.length,expected.length);values.forEach((v,i)=>close(v,expected[i]));}
- const vesna=fixture('Vesna','NewBough');assert.throws(()=>api.DSLInterface.run('print(1)',vesna,[]),/DSL/);
+ const vesna=fixture('Vesna','NewBough'),vesnaResult=api.DSLInterface.run('print(1)',vesna,[]);assert.equal(vesnaResult.is_error,false,vesnaResult.error_msg);
 });
 
 test('薇斯纳未实现静态评分时明确拒绝而不进入WASM panic',()=>{
