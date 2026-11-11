@@ -6,32 +6,9 @@
 import SimpleLoading from "@/components/loading/SimpleLoading.vue"
 import SimpleError from "@/components/loading/SimpleError.vue"
 
-import { loadScript } from "@/utils/common"
 
-async function loadMonaco() {
-    if (!process.env.USE_CDN) return import('monaco-editor')
-    const monacoBase = "https://s1.pstatp.com/cdn/expire-1-y/monaco-editor/0.31.1/min/vs"
-    await loadScript(monacoBase + "/loader.min.js")
-    // @ts-ignore
-    window.require.config({ paths: { vs: monacoBase } })
-    // @ts-ignore
-    window.MonacoEnvironment = {
-        getWorkerUrl(workerId: any, label: any) {
-            return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
-                self.MonacoEnvironment = {
-                    baseUrl: "${monacoBase}"
-                }
-                importScripts("${monacoBase + '/base/worker/workerMain.js'}")
-            `)}`
-        }
-    }
-    return await new Promise((resolve, reject) => {
-        window.require(["vs/editor/editor.main"], function () {
-            // console.log(monaco)
-            // @ts-ignore
-            resolve(window.monaco)
-        })
-    })
+function loadMonaco() {
+    return import('monaco-editor')
 }
 
 

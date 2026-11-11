@@ -76,7 +76,6 @@ import {AUTOMATIC_UPDATE_CHANGED_EVENT, isAutomaticUpdateEnabled,
 
 const version = process.env.MONA_VERSION
 const webTitle = process.env.MONA_TITLE
-const needMigrate = process.env.MONA_NEED_MIGRATE
 const buildDate = process.env.MONA_BUILD_DATE
 const host = location.hostname
 

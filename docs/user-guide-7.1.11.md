@@ -661,7 +661,7 @@ result = q.normal.e * 0.5 + q.melt.e * 0.5
 
 DSL 使用计算器配置的角色、武器、BUFF、敌人和候选装备。下方技能选择与该声明的技能仍是两个入口；要对照数值，应让技能和条件一致。已有伤害结果可重复引用，避免为同一技能条件重复声明。
 
-语法说明见 [MONA-DSL 概览](../mona_dsl_book/src/overview.md)与[伤害声明](../mona_dsl_book/src/grammar/damage_statement.md)。旧语法资料中的历史功能不能据此认定为当前常规版仍支持的入口。
+语法说明见 [MONA-DSL 概览](https://github.com/wormtql/genshin_artifact/blob/main/mona_dsl_book/src/overview.md)与[伤害声明](https://github.com/wormtql/genshin_artifact/blob/main/mona_dsl_book/src/grammar/damage_statement.md)。旧语法资料中的历史功能不能据此认定为当前常规版仍支持的入口。
 
 ## 12 常见问题与 Debug
 

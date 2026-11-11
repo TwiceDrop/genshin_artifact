@@ -64,7 +64,6 @@ const month = now.getMonth()
 const date = now.getDate()
 const buildDate = `${year}/${month + 1}/${date}`
 
-const useCDN = !!customEnv["USE_CDN"]
 
 
 
@@ -178,58 +177,7 @@ module.exports = {
             return definitions
         })
 
-        // use monaco webpack plugin if using non cdn mode
-        if (!customEnv["USE_CDN"]) {
-            config.plugin("monaco").use(new MonacoWebpackPlugin())
-        }
-
-        // set ifdef loader
-        config.module.rule("js")
-            .use("ifdef")
-            .loader("ifdef-loader")
-            .options({
-                "USE_CDN": !!customEnv["USE_CDN"]
-            })
-        config.module.rule("vue")
-            .use("ifdef")
-            .loader("ifdef-loader")
-            .options({
-                "USE_CDN": !!customEnv["USE_CDN"]
-            })
-
-        if (useCDN) {
-            const assets = {
-                js: [
-                    { url: "https://npm.elemecdn.com/vue@3.2.36/dist/vue.global.prod.js", name: "vue", global: "Vue" },
-                    { url: "https://npm.elemecdn.com/vue-router@4.0.16/dist/vue-router.global.prod.js", name: "vue-router", global: "VueRouter" },
-                    { url: "https://npm.elemecdn.com/echarts@5.3.3/dist/echarts.min.js", name: "echarts", global: "echarts" },
-                    { url: "https://npm.elemecdn.com/vue-echarts@6.1.0/dist/index.umd.min.js", name: "vue-echarts", global: "VueECharts" },
-                ],
-                css: [
-                    { url: "https://npm.elemecdn.com/element-plus@2.2.6/dist/index.css" },
-                ]
-            }
-
-            const externals = {
-                "monaco-editor": "monaco"
-            }
-
-            for (const item of assets.js) {
-                externals[item.name] = item.global
-            }
-
-            config.externals(externals)
-
-            config.plugin("html").tap(args => {
-                args[0].cdn = assets
-                return args
-            })
-
-            // config.externals({
-            //     "monaco-editor": "var monaco",
-            // })
-            // config.set("externalsType", "script")
-        }
+        config.plugin("monaco").use(new MonacoWebpackPlugin())
     },
     productionSourceMap: false,
 }

@@ -59,7 +59,6 @@ import { artifactTags, artifactEff } from "@/constants/artifact"
 import {useArtifactStore} from "@/store/pinia/artifact"
 import type {IArtifact} from "@/types/artifact"
 import {useI18n} from "@/i18n/i18n"
-/// #if !USE_CDN
 import { use } from "echarts/core"
 import { PieChart } from "echarts/charts"
 import {
@@ -78,7 +77,6 @@ use([
     LegendComponent,
     TitleComponent,
 ])
-/// #endif
 import VChart from "vue-echarts"
 
 

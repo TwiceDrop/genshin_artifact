@@ -112,9 +112,7 @@ import {deviceIsPC} from "@/utils/device"
 import IconEpRefresh from "~icons/ep/refresh"
 import {useI18n} from "@/i18n/i18n";
 
-/// #if !USE_CDN
 // import {ElMessageBox} from "element-plus"
-/// #endif
 
 const { t } = useI18n()
 
