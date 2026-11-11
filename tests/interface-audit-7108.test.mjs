@@ -5,7 +5,6 @@ import {api,read} from '../beta-tools/runtime.mjs';
 import {fixture,gear,optimizer,namedBuff,runInterfaceAudit} from '../beta-tools/interface-audit-7108.mjs';
 import {normalizeBonusInput} from '../beta-data/interface-contracts.mjs';
 import {defaultDamageReaction,visibleDamageReactionKeys} from '../src/algorithms/reaction-labels.mjs';
-import {probeCompiledOptimizer} from '../beta-tools/compiled-worker-probe.mjs';
 import * as stellar from '../src/algorithms/stellar-detail.mjs';
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<1e-7*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 function quiet(fn){const log=console.log,error=console.error;console.log=()=>{};console.error=()=>{};try{return fn()}finally{console.log=log;console.error=error}}

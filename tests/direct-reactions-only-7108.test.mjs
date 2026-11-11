@@ -8,7 +8,6 @@ import {REMOVED_REACTION_KEYS,assertDirectReactionDsl} from '../beta-data/direct
 import {calculateDirectLunarDamage} from '../beta-data/lunar-damage.mjs';
 import {calculateSingleHit} from '../beta-data/single-hit-damage.mjs';
 import {visibleDamageReactionKeys,damageReactionOptions} from '../src/algorithms/reaction-labels.mjs';
-import {probeCompiledOptimizer} from '../beta-tools/compiled-worker-probe.mjs';
 const near=(a,b,label='')=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${label}: ${a} != ${b}`);
 const quiet=fn=>{const log=console.log;console.log=()=>{};try{return fn()}finally{console.log=log}};
 const damage=(x,index=x.skill.index)=>{const {target_function,tf,...input}=x;return api.CalculatorInterface.get_damage_analysis({...input,skill:{...input.skill,index}},null)};

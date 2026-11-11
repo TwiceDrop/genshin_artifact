@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import {api} from '../beta-tools/runtime.mjs';
 import {chars,buffs,fixture,optimizer,gear,namedBuff} from '../beta-tools/interface-audit-7108.mjs';
 import {normalizeEnemy} from '../beta-data/enemy-interface.mjs';
-import {probeCompiledOptimizer} from '../beta-tools/compiled-worker-probe.mjs';
 const near=(a,b,label='')=>assert.ok(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${label}: ${a} != ${b}`);
 function quiet(fn){const log=console.log,error=console.error;console.log=()=>{};console.error=()=>{};try{return fn()}finally{console.log=log;console.error=error}}
 function tree(a,b,label=''){if(typeof b==='number')return near(a,b,label);if(b===null||typeof b!=='object')return assert.equal(a,b,label);assert.deepEqual(Object.keys(a).sort(),Object.keys(b).sort(),label);for(const k of Object.keys(b))tree(a[k],b[k],label+'/'+k);}
