@@ -70,3 +70,7 @@ mona-debug-*.json
 /tauri-exe/gen/
 # This is the deployment script, not a backup data file.
 !/online-service/scripts/backup.sh
+
+# Personal agent settings stay local; shared rules live in AGENTS.md and .claude/settings.json.
+.claude/settings.local.json
+CLAUDE.local.md

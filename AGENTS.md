@@ -1,30 +1,89 @@
-# 莫娜占卜铺 V7.2.04 R3 开发约定
+# 莫娜占卜铺 开发约定
 
-本版包含单次伤害、单人配装与四人固定轴DPS。当前为7.2.04 R3源码更新；本次没有构建或创建Release，README保持原样。
+原神圣遗物配装与伤害计算工具。Vue 3 前端；计算由原始发布内核、效果桥接内核、扩展内核和 `beta-data/` 下的 JS 适配层组合完成，四人轴在 `beta-data/team-engine/`。术语以 `GLOSSARY.md` 为准，当前版本号与已实现范围见 `docs/dev/current-state.md`。
 
-- 后续角色接入沿用：内部调用角色规则，外部只导入技能顺序。角色状态、天赋、命座与技能事件放在对应角色模块；附着、反应和装备使用公共规则。
-- 使用合成数据测试，不把真实账号、UID、库存、预设、Debug导出、浏览器存储、密钥或签名资料提交或打包。
-- 关键倍率和时序必须有独立预期；CPU／GPU一致不能代替规则正确性证明。以实际运行WASM为准，不能拿Rust源码编译物直接覆盖原始发布内核。
-- 保留真实错误和Debug；不通过取消检查、吞异常或清理用户存档掩盖问题。
-- 每轮最多五个针对性验证目的，按实际改动选择；保护已有预设、应用身份和升级签名。
-- 版本变更同步package、Android元数据、启动器文件名及程序集／产品／文件版本；输出新成品时保留旧版。
-- 未公开游戏版本内容须在官方授权创作体验服视频正式解禁并公开后才可发布；每次正式发布仍须用户明确授权，禁止夹带其他未解禁内容。
+本文件是多人共用、Claude Code 与 Codex 共读的正本（`CLAUDE.md` 只引用它）。个人偏好写进 `CLAUDE.local.md` 或 `.claude/settings.local.json`，这两个文件不提交。事项状态记在 GitHub Issue 或 `docs/dev/current-state.md`，本文件只放跨版本都成立的规则。
 
-## 当前实现
+## 远端与发布
 
-软件版本 7.2.4／7.2.04，Android 70204／7.2.04，TeamDPS 规则 mona-team-engine/58；动作轴注册 15 人。四人轴以初始满能、无循环充能、无敌人来伤为基础；已记录的近似时序不能当成实测。
+- 提交与合并只在本地。推送、建 PR、推标签、发 Release，以及新建或修改 GitHub Issue／评论／标签，都只在当前对话的开发者明确要求时执行，一次要求只做那一次。原因：账号曾因一小时内连发多个版本被暂停。
+- 正式发布需要开发者明确授权。未公开的游戏版本内容，要等官方授权创作体验服视频正式解禁并公开后才能发布，也不能夹带其他未解禁内容。发版步骤见 `docs/dev/release-checklist.md`。
+- README 只在开发者明确要求时修改。
 
-- 新角色首先复用原生能力，角色身份、动作、附着、天赋和默认装备由 `beta-data/team-engine/characters/` 中的角色包及 `character-packages.mjs` 注册表投影；只在缺少公共原语时扩展引擎。
-- 普通动作使用 `action-recipes.mjs`；复杂资源和状态使用对应角色 runtime；增益使用 `effect-plan.mjs`、`effect-state.mjs` 和 `effect-resolver.mjs`。
-- 附着与反应复用 `elemental-runtime.mjs` 和反应模块；装备规则复用 `equipment-axis-rules.mjs`、`equipment-effects.mjs` 等现有入口，不在页面或 Worker 复制角色机制。
-- 概率状态保持相关性，按当前候选求值；技能快照、有限次数、治疗与资源遵守事件顺序。普通命中、附着、反应伤害与额外攻击分开处理，不以伤害是否为零判断触发资格。
-- 公共入口同步核对单次、面板、DSL、配装和词条收益；保留原发布 WASM，不因文档或来源数据更新重编译覆盖内核。
-- 桌面网页使用 `npm run build:local`，新 UI 使用 `npm run build:mobile`；Android 使用 `script/build-android.ps1 -Ui elementplus|mobiletest`，构建时显式指定原签名目录，签名和密码不进入源码。
-- README、发布说明、启动器和成品版本保持一致；Windows 安装器、便携包及双 APK 分别核对实际内容与版本。发布源码接续已清理的公开历史，不导入本地工作目录或调试资料。
+## 数据与隐私
 
-## 7.2.04 R3 源码更新
+- 测试用合成数据。真实数据（账号、UID、库存、预设、Debug 导出、浏览器存储、密钥、签名资料）不提交、不打包；开发者提供的调试包只用于当次排查。
+- 已保存的数据保持原样：浏览器存储、用户原始导出、端口、主机名、应用 ID 和签名都不动，它们决定存储位置和覆盖升级。
+- 临时测试产物放在 `.cache/test/<用途>/`（已被忽略），每类用固定子目录，用完删除。
 
-- 保留喵喵评分，新增技能／DSL动态圣遗物评分、合法副词条历史匹配、缓存与可取消Worker。合法搜索参照未证明全局最优，350分不等同于所有角色的理论毕业。
-- 组过滤按来源角色判断。新保存组记录来源；旧组使用完整五件与预设的精确匹配。来源未知或多角色匹配时，勾选组不豁免当前五槽。新增「清空已选」，保留仓库、保存组／预设与过滤勾选。
-- 浅色／深色／跟随系统外观与双UI共用；在线账号入口隐藏。在线服务、同步相关源码与独立Tauri 2封装源码保留，但本次源码上传不代表云端部署、完整同步或原生平台实机验收完成。
-- 既有原WASM、游戏角色／武器／圣遗物目录、动作包和伤害公式保持。本次只同步源码，不生成客户端安装包或GitHub Release，不修改README。
+## 计算内核
+
+- 原始发布内核 `mona_wasm/pkg/mona_wasm_bg.wasm` 保留原样，以实际运行的 WASM 为准，Rust 源码只用于扩展内核（`docs/adr/0001-keep-original-release-kernel.md`）。
+- 浏览器入口 `mona_wasm/pkg/index.js` 与 Node 入口 `beta-tools/runtime-7106.mjs`（名字含 7106，仍是当前入口）的包装顺序保持一致；改注册或包装顺序时两处同改，并核对 `src/workers/optimize_artifact.js`。
+- 关键倍率和时序要有独立预期值，CPU／GPU 结果一致不能证明规则正确。
+- 改公式、乘区、BUFF 作用域或反应系数前，先读 `docs/dev/formula-scope.md`。
+- 接入新角色或新效果，按 `docs/dev/add-character.md` 走。
+
+## 编码
+
+- 只写解决当前问题的最小改动，信任内部代码。要新增校验、拦截、兜底、兼容回退或猜测的默认值时，先向开发者说明问题和拟改内容，同意后再写。
+- 真实错误和 Debug 保留下来：异常带上阶段、原因和可定位信息，问题照实暴露，不靠取消检查、吞异常或清理存档来掩盖。
+- 界面上新增说明、小字、提示或免责声明，先把具体文案交给开发者确认；适配限制和缺项在对话里说明。
+- `src/assets/_gen_*.js` 与 `src/i18n/generated/` 之间用数字索引关联，保持原有顺序。它们由 `script/prepare-release.cjs` 和 `beta-tools/metadata-*.cjs` 生成，重新生成前先读生成脚本，确认不会覆盖本地补充的数据。
+
+## 验证
+
+- 每轮最多五项有明确目的的针对性验证，按实际改动选择；只改文档时不构建、不跑功能测试。汇报时说清实际核对了什么，只验证了源码就不说浏览器实测通过。
+- 命令、环境要求和已知的测试问题见 `docs/dev/build-and-test.md`。
+
+## 目录地图
+
+| 位置 | 内容 |
+| --- | --- |
+| `src/` | Vue 前端，桌面（Element Plus）与新移动 UI 共用；`src/workers/` 是配装 Worker |
+| `mona_wasm/pkg/` | 原始发布内核、效果桥接内核和浏览器 JS 入口 |
+| `mona_wasm/extension/` | 扩展内核产物；源码在 `mona_core/`、`mona_wasm/src/`、`mona_dsl/` |
+| `beta-data/` | JS 适配层：BUFF 规则、装备规则、单次伤害、配装接口 |
+| `beta-data/team-engine/` | 四人轴引擎；角色包在 `characters/`，注册在 `character-packages.mjs` |
+| `public/release-assets/` | 从原版发布包解出的图片，`_gen_character.js` 引用，已提交 |
+| `server/` | 本机服务（`npm start`）：米游社导入、软件更新 |
+| `online-service/` | 在线账号服务源码，尚未部署 |
+| `android/`、`mobile/` | Android（Capacitor）与新移动 UI |
+| `tauri-exe/`、`installer/` | Windows 的 Tauri 2 封装、Inno 安装器和托盘启动器 |
+| `src-tauri/` | 旧 Tauri 1 封装，依赖的 `sub/yas` 不存在，无法构建 |
+| `tests/` | `node --test` 测试；`tests/helpers/` 放合成夹具 |
+| `beta-tools/` | 测试依赖的 Node 运行入口、冒烟脚本、证据生成脚本和数据提取脚本 |
+| `docs/` | 发布说明与核对记录；`docs/dev/` 是开发文档，`docs/adr/` 是架构决策，`docs/agents/` 是 skill 配置 |
+
+## 开发流程
+
+项目内置 Matt Pocock 的 skills。Claude 用 `/名称` 调用，Codex 用 `$名称` 调用。
+
+| 环节 | skill |
+| --- | --- |
+| 动手前对齐需求，沉淀术语和决策 | `grill-with-docs` |
+| 把对齐结果写成规格 | `to-spec` |
+| 把规格拆成 issue | `to-tickets` |
+| 给 issue 分类 | `triage` |
+| 实现一个 issue 或规格 | `implement` |
+| 测试先行 | `tdd` |
+| 排查 bug | `diagnosing-bugs` |
+| 代码审查 | Claude 用自带的 `/code-review`；Codex 用 `code-review` |
+| 找架构改进点 | `improve-codebase-architecture` |
+
+- `.claude/skills/`（Claude）和 `.agents/skills/`（Codex）是 `npx skills` 生成的同一批拷贝，来源与哈希记在 `skills-lock.json`。skill 文件保持上游原样，本项目的补充规则写在本文件或 `docs/agents/`。
+- 更新 skill：`npx skills update`，两个目录一起更新，单独提交。
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues（`TwiceDrop/genshin_artifact`，用 `gh`），写操作需要开发者明确要求。见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+默认的五个标签：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+单一上下文：根目录 `GLOSSARY.md` 与 `docs/adr/`。见 `docs/agents/domain.md`。
