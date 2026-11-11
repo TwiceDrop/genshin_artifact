@@ -52,7 +52,7 @@ flowchart TD
 | 开发时本机运行 | 浏览器 | `npm start`，端口 4183 | 浏览器加 `http://127.0.0.1:4183` | `npm run build:local` |
 | Android（Element Plus） | Capacitor WebView | `MonaLocalPlugin` 等原生插件 | 应用 ID `com.mona.artifact.local` | `script/build-android.ps1 -Ui elementplus` |
 | Android（新移动 UI） | Capacitor WebView | 同上 | 应用 ID 加 `.mobiletest` 后缀 | `script/build-android.ps1 -Ui mobiletest` |
-| Windows Tauri 封装 | WebView2 窗口 | 内嵌的 Node.js 运行同一套本机服务，端口 47504 | 应用标识 `com.mona.artifact.tauri7204` 下的 WebView 目录 | 仓库里没有构建脚本，载荷由 `tauri-exe/prepare-payload.py` 生成 |
+| Windows Tauri 封装 | WebView2 窗口 | 内嵌的 Node.js 运行同一套本机服务，端口 47504 | 应用标识 `com.mona.artifact.tauri` 下的 WebView 目录 | 仓库里没有构建脚本，载荷由 `tauri-exe/prepare-payload.py` 生成 |
 
 每种形态各有一份存储，互相不共享，换形态要靠「UID 数据」导出再导入。
 
@@ -61,6 +61,6 @@ flowchart TD
 这些是现状，不是规则。处理计划见 `docs/specs/repo-cleanup/`，桌面封装的决策见 `docs/adr/0002-tauri-shell-stays-experimental.md`。
 
 - **`beta-data/` 和 `beta-tools/` 的名字已经不符合内容。** 前者是正式的适配层，根目录平铺了一百多个文件，规则、数据 JSON、校验清单和笔记混在一起；后者同时放着 Node 运行入口、冒烟脚本和一次性数据提取脚本。
-- **版本号写进了文件名和标识。** 测试、脚本、适配层模块里有几十个带 `7106`、`7108`、`7201` 的文件名，其中一部分仍是当前入口（例如 `runtime-7106.mjs`、`preview-7201-facade.mjs`）。Tauri 封装的应用标识和包名也带着 `7204`，标识变了存储位置就跟着变。
+- **版本号写进了文件名。** 测试、脚本、适配层模块里有几十个带 `7106`、`7108`、`7201` 的文件名，其中一部分仍是当前入口（例如 `runtime-7106.mjs`、`preview-7201-facade.mjs`）。
 - **Tauri 封装没有接进构建和发版流程。** 它依赖仓库外的 `../launcher/runtime` 和构建时才生成的 `runtime/hoyolab-login`，目前只是保留的源码。
 - **上游遗留的配置仍在。** 备案、CDN、`www.mona-uranai.com` 代理这些开关服务于上游的线上站点，本项目只做本地发行。

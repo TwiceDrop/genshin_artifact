@@ -9,7 +9,7 @@
 - [ ] `package.json`：`version`、`displayVersion`
 - [ ] `mobile/package.json` 与 `mobile/package-lock.json`：`version`
 - [ ] `android/app/build.gradle`：`versionCode`（例如 `70204`）、`versionName`
-- [ ] `tauri-exe/Cargo.toml`：`version`、`description`；`tauri-exe/tauri.conf.json`：`productName`；`tauri-exe/Cargo.lock` 里本包的 `version`
+- [ ] `tauri-exe/Cargo.toml` 与 `tauri-exe/Cargo.lock` 里本包的 `version`（应用标识、包名和端口固定不变，见 ADR 0002）
 - [ ] `online-service/compose.yaml` 镜像标签、`online-service/scripts/pack.py` 的 `root_name`
 - [ ] TeamDPS 规则版本有变化时：`beta-data/team-engine/action-config.mjs` 的 `TEAM_ACTION_RULES_VERSION`，以及引用它的测试
 

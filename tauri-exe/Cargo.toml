@@ -1,8 +1,8 @@
 [package]
-name = "mona-tauri7204"
+name = "mona-tauri"
 version = "7.2.4"
 edition = "2021"
-description = "莫娜占卜铺 7.2.04 Tauri 2"
+description = "莫娜占卜铺 Tauri 2"
 license = "MIT"
 
 [build-dependencies]

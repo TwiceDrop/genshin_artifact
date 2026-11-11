@@ -2097,7 +2097,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mona-tauri7204"
+name = "mona-tauri"
 version = "7.2.4"
 dependencies = [
  "flate2",
