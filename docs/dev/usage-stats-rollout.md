@@ -20,6 +20,8 @@ py online-service/scripts/pack.py
 
 部署包里会包含 `server/usage-stats-features.mjs`（功能登记）、`server/usage-stats-characters.mjs`（角色名单）和 `online-service/static/`（统计页面）。以后功能清单或角色名单有变化，服务端也要用新的部署包重新部署，否则新版客户端上报的新功能 ID 或新角色会被整批拒绝。新增角色时先运行 `node beta-tools/usage-stats-characters.mjs` 重新生成名单。
 
+同一个部署包也包含在线账号的同步接口（账号登录、Cookie 托管拉取、云端档案、历史记录），这次部署会一起上线，以后客户端开放在线账号入口时不用再部署。对齐结论见 `docs/specs/online-sync/spec.md`。
+
 ## 3. 部署在线服务
 
 - **首次部署**：按 `online-service/DEPLOY.md` 的"首次部署"操作。初始化脚本会一起生成 `secrets/usage_stats_admin_token`，`chmod 644` 那一行已经包含这个文件。
