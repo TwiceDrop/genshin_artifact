@@ -52,3 +52,4 @@
   - `usage-stats-features` 等 4 个文件共 24 项通过，上面两个测试修好后 7 项通过。
   - 另外 6 项失败（`good-import`、`team-dps-page`、`team-dps-personal-task`、`team-mona-manager`、`team3-product`、`team-action-manager`）在改动前的提交 `f156ac3` 上同样失败，原因是这些测试的替身里缺 `onActivated`、`useRoute` 等，和本次无关，没有改。
   - 浏览器里只实测了切换外观这一项（见 06）；其余 13 项是对照代码核对的，没有在浏览器里逐项点过。
+- 2026-11-12：开发者交由 agent 决定。新增 `action.uid-data-restore`（还原 UID 数据），UID 包和角色快照文件两种还原成功后都记；"新建空的圣遗物组"只是建一个空组，不计。关键动作变为 15 项。服务端的功能清单随部署包更新，尚未部署，所以没有影响。

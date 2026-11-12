@@ -25,6 +25,7 @@ const ACTIONS = [
     ['action.team-dps', '四人轴计算'],
     ['action.miyoushe-import', '米游社/HoYoLAB 导入'],
     ['action.artifact-file-import', '导入圣遗物文件'],
+    ['action.uid-data-restore', '还原 UID 数据'],
     ['action.data-export', '导出数据'],
     ['action.preset-save', '保存预设'],
     ['action.kumi-save', '保存圣遗物组'],

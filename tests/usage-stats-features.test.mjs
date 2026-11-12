@@ -51,7 +51,7 @@ test('feature ids are unique and every feature is complete', () => {
         else assert.equal(f.route, undefined)
     }
     assert.equal(features.filter(f => f.category === 'page').length, 12)
-    assert.equal(features.filter(f => f.category === 'action').length, 14)
+    assert.equal(features.filter(f => f.category === 'action').length, 15)
 })
 
 test('lookups return nothing for unknown ids and routes, and the registry cannot be changed', () => {

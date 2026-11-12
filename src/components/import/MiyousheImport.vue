@@ -322,11 +322,13 @@ async function restore(event) {
             for (const [type, content] of Object.entries({ miyoushe: store.data.value, artifacts: artifactsContent(), presets: presetsContent() })) await backend.setItem(`mona_account_${type}_${accountId}`, JSON.parse(JSON.stringify(content)))
             await backend.allReady()
             result.value = { imported: imported.imported, added: imported.added, reused: raw.artifacts.length - imported.added }
+            recordUsage('action.uid-data-restore')
             return
         }
         const snapshots = Array.isArray(raw) ? raw : [raw]
         if (snapshots.length > 10) throw new Error('单次最多恢复 10 个 UID')
         for (const snapshot of snapshots) await save(snapshot, accountId, file.name)
+        recordUsage('action.uid-data-restore')
     } catch (e) { error.value = e.message }
     finally { busy.value = false; event.target.value = '' }
 }
