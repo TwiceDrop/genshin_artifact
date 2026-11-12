@@ -26,6 +26,7 @@
 <script setup>
 import {computed,ref,watch,onBeforeUnmount} from 'vue'
 import {createScoreWorkerClient} from '@/algorithms/artifact-score/worker-client.mjs'
+import {recordUsage} from '@/usage-stats/index.mjs'
 import {damageReactionOptions,defaultDamageReaction} from '@/algorithms/reaction-labels.mjs'
 import sets from '@/assets/_gen_artifact'
 import DynamicArtifactScoreResult from './DynamicArtifactScoreResult.vue'
@@ -49,7 +50,7 @@ async function start(){
   const request=JSON.parse(JSON.stringify({input:props.input,basis:basis.value,objective:target.value==='dsl'?{kind:'dsl'}:{kind:'skill',reaction:target.value,infusion:props.infusion},constraints:props.constraints,
     sets:Object.values(sets).filter(s=>s.maxStar===5&&['flower','feather','sand','cup','head'].every(k=>s[k])).map(s=>s.name2)}))
   try {const value=await client.run(request,p=>{if(token===generation)status.value=p.stage==='reference'?`求解参照 · 起点 ${p.start}/${p.starts} · 第 ${p.pass} 轮`:`计算单件替换 · ${p.slot}/5`})
-    if(token!==generation)return;result.value=value;emit('result',value);status.value='计算完成';return value
+    if(token!==generation)return;result.value=value;emit('result',value);status.value='计算完成';recordUsage('action.dynamic-artifact-score');return value
   }catch(e){if(token!==generation||e.name==='AbortError')return;error.value=e.message;status.value='计算失败'}
   finally{if(token===generation)running.value=false}
 }

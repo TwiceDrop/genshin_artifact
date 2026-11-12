@@ -173,7 +173,7 @@ test('4. real update component compiles and runs source selection, download prog
     let body = code
     for (const node of ast.program.body.filter(node => node.type === 'ImportDeclaration').reverse())
         body = body.slice(0, node.start) + body.slice(node.end)
-    const calls = []
+    const calls = [], usage = []
     let phases = ['pending', 'paused', 'downloading', 'ready']
     const bindings = {
         ref: value => ({value}), computed: get => ({get value() {return get()}}), onMounted() {}, onBeforeUnmount() {},
@@ -188,12 +188,14 @@ test('4. real update component compiles and runs source selection, download prog
         startUpdateDownload: async (release, kind, source) => {calls.push('source:'+source,'download'); return {phase: 'pending', downloaded: 0, total: 128}},
         cancelUpdateDownload: async () => ({phase: 'cancelled'}), installDownloadedUpdate: async () => {calls.push('install')},
         setTimeout: callback => {callback()},
+        recordUsage: id => usage.push(id),
     }
     const setup = new Function(...Object.keys(bindings), body + '\nreturn {checkForUpdates, acceptUpdate, openOtherSources, acceptOtherSource, cancelDownload, progress, otherSource};')(...Object.values(bindings))
     await setup.checkForUpdates(true)
     assert.deepEqual(calls, [], 'opening the update prompt does not probe any download source')
     await setup.acceptUpdate()
     assert.deepEqual(calls, ['source:cnb', 'download', 'install'])
+    assert.deepEqual(usage, ['action.update-install'])
     assert.equal(setup.progress.value.phase, 'installing')
     assert.equal(phases.length, 0, 'waiting and paused states must keep polling until ready')
     calls.length = 0

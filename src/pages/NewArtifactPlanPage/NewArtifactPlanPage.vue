@@ -606,7 +606,7 @@
                                         :icon="isAllLocked ? IconEpUnlock : IconEpLock"
                                         @click="() => { isAllLocked ? handleUnlockAll() : handleLockAll() }"
                                     >{{ isAllLocked ? t("calcPage.unlockAll") : t("calcPage.lockAll") }}</el-button>
-                                    <el-button :disabled="artifactCount === 0" @click="clearArtifacts">清空已选</el-button>
+                                    <el-button :disabled="artifactCount === 0" @click="clearArtifacts(); recordUsage('action.clear-selected')">清空已选</el-button>
                                 </el-button-group>
                                 <el-button v-if="useNewScore && dynamicScore" class="score-basis-button" size="small" @click="openScoreBasis">评分依据</el-button>
                                 <span v-else-if="useNewScore && dynamicScoreState.running" class="score-status" role="status">{{ dynamicScoreState.status }}</span>
@@ -844,7 +844,7 @@ import {convertArtifact} from "@util/converter"
 import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
 import {deepCopy, downloadString} from "@/utils/common"
 import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
-import {usageStatsDebugInfo} from "@/usage-stats/index.mjs"
+import {usageStatsDebugInfo, recordUsage} from "@/usage-stats/index.mjs"
 import {wasmSingleOptimize} from "@/wasm/single_optimize"
 import {wasmPanelOptimize} from '@/wasm/panel_optimize'
 import {newPanelSearchOptions,readPanel} from '../../../beta-data/panel-search.mjs'
@@ -1284,6 +1284,7 @@ function handleSavePreset(name: string) {
             item.artifactIds = [...artifactIds.value]
         }
         presetStore.addOrOverwrite(name, item)
+        recordUsage('action.preset-save')
 
         ElMessage.success({
             message: "已保存"
@@ -1302,6 +1303,7 @@ function handleClickSaveOptimizeConfig() {
     }).then(({ value }) => {
         item.name = value
         presetStore.addOrOverwrite(value, item)
+        recordUsage('action.preset-save')
         miscCurrentPresetName.value = value
         ElMessage.success({
             message: "保存成功"
@@ -1799,6 +1801,7 @@ function handleSaveAsKumi({ dirIds, name }: { dirIds: number[], name: string }) 
             }
         }
     }
+    if (dirIds.length) recordUsage('action.kumi-save')
 }
 
 function handleClickUseKumi() {
@@ -2127,7 +2130,7 @@ async function exportOptimizationDebug() {
     if (!optimizationDebugRecord.value) return
     // Usage stats state is read at export time so the latest send failure is included.
     const record = {...optimizationDebugRecord.value, environment: {...optimizationDebugRecord.value.environment, usageStats: usageStatsDebugInfo()}}
-    try { await downloadString(JSON.stringify(record,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`) }
+    try { await downloadString(JSON.stringify(record,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`); recordUsage('action.debug-export') }
     catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
 }
 function handleOptimizeArtifact() {
@@ -2187,6 +2190,7 @@ function handleOptimizeArtifact() {
         const results=detail.results
         if (controller.signal.aborted) return
         debug?.complete(results); triggerRef(optimizationDebugRecord)
+        recordUsage('action.single-optimize')
         if (optimizationInBackground || !calculationPageActive) return
         if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) { showOptimizationProgress.value=false; return }
         if (JSON.stringify(panelMode?getPanelOptimizeInterface():getOptimizeArtifactWasmInterface()) !== JSON.stringify(optimizeInterface) || JSON.stringify(getArtifactsToBeCalculated()) !== JSON.stringify(artifacts)) { showOptimizationProgress.value=false; return }

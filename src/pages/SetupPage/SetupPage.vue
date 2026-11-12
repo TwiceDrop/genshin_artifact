@@ -2,7 +2,7 @@
     <div>
         <el-form label-width="120px" label-position="left">
             <el-form-item :label="t('setupPage.appearance')">
-                <el-radio-group :model-value="colorMode" @update:model-value="setColorMode" :aria-label="t('setupPage.appearance')">
+                <el-radio-group :model-value="colorMode" @update:model-value="handleSetColorMode" :aria-label="t('setupPage.appearance')">
                     <el-radio-button label="light">{{ t('setupPage.light') }}</el-radio-button>
                     <el-radio-button label="dark">{{ t('setupPage.dark') }}</el-radio-button>
                     <el-radio-button label="auto">{{ t('setupPage.system') }}</el-radio-button>
@@ -48,11 +48,16 @@
 import localforage from "localforage"
 import {colorMode,setColorMode} from "@/styles/color-mode.mjs"
 import {useI18n} from "@/i18n/i18n"
-import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent} from "@/usage-stats/index.mjs"
+import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent, recordUsage} from "@/usage-stats/index.mjs"
 import IconEpDelete from "~icons/ep/delete"
 
 const { t, setLocale, locale } = useI18n()
 
+
+function handleSetColorMode(mode: string) {
+    setColorMode(mode)
+    recordUsage('action.color-mode-change')
+}
 
 function handleClearLocalStorage() {
     localStorage.clear()
@@ -71,6 +76,7 @@ async function handleSetLocale(lang: string) {
     await setLocale(lang).finally(() => {
         loading.close()
     })
+    recordUsage('action.locale-change')
 }
 </script>
 

@@ -54,6 +54,7 @@ import {onMounted, onBeforeUnmount, ref, computed} from 'vue'
 import {ElMessage} from 'element-plus'
 import MainPage from "@page/MainPage"
 import UsageStatsNotice from "@/components/UsageStatsNotice.vue"
+import {recordUsage} from "@/usage-stats/index.mjs"
 import {createReleaseCheckCoordinator, isAutomaticUpdateEnabled, setAutomaticUpdateEnabled,
     MANUAL_UPDATE_EVENT, openReleaseDownload, UPDATE_SOURCES, releaseAsset,
     sourceUrl, getUpdatePlatform, probeUpdateSource,
@@ -153,6 +154,7 @@ async function acceptUpdate(source = 'cnb') {
         if (progress.value.phase === 'error') throw new Error(progress.value.error)
         if (progress.value.phase === 'ready') {
             rememberSuppression()
+            recordUsage('action.update-install')
             await installDownloadedUpdate()
             progress.value.phase = 'installing'
         }
@@ -162,7 +164,7 @@ async function acceptUpdate(source = 'cnb') {
     } finally {busy.value = false}
 }
 let automaticTimer
-const manualCheck = () => checkForUpdates(true)
+const manualCheck = () => { recordUsage('action.update-check'); return checkForUpdates(true) }
 onMounted(() => {
     window.addEventListener(MANUAL_UPDATE_EVENT, manualCheck)
     if (isAutomaticUpdateEnabled()) checkForUpdates()

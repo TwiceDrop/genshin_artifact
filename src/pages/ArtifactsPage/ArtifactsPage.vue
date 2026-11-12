@@ -221,6 +221,7 @@ import {useKumiStore} from '@/store/pinia/kumi'
 import {useMiyousheStore} from '@/store/pinia/miyoushe'
 import {positions} from '@/constants/artifact'
 import {downloadString} from '@/utils/common'
+import {recordUsage} from '@/usage-stats/index.mjs'
 import {deviceIsPC} from "@/utils/device"
 import {createRepo} from "@/api/repo"
 import {type Ref} from "vue"
@@ -420,6 +421,7 @@ async function importJson(text: string, deleteUnseen: boolean, backupKumiDir: bo
         const rawObj = JSON.parse(text)
         await importMonaJson(rawObj, deleteUnseen, backupKumiDir, artifactImportContext(
             presetStore.presets.value, useKumiStore().kumi.value, useMiyousheStore().data.value))
+        recordUsage('action.artifact-file-import')
     } catch (e) {
         console.error('圣遗物文件导入失败', e)
         ElMessage({
@@ -479,6 +481,7 @@ function getArtifactString(): string {
 async function handleOutputJsonClicked() {
     try {
         await downloadString(getArtifactString(), 'application/json', 'artifacts_mona')
+        recordUsage('action.data-export')
     } catch (e) {
         ElMessage.error(e instanceof Error ? e.message : String(e))
     }

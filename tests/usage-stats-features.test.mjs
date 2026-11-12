@@ -62,3 +62,14 @@ test('lookups return nothing for unknown ids and routes, and the registry cannot
     assert.throws(() => { first.name = 'changed' }, TypeError)
     assert.throws(() => { listUsageFeatures().push({}) }, TypeError)
 })
+
+test('every action feature is recorded somewhere in src, and every recorded id is registered', () => {
+    const calls = new Set()
+    for (const file of fs.readdirSync('src', { recursive: true })) {
+        if (!/\.(vue|mjs|js|ts)$/.test(file)) continue
+        for (const [, id] of fs.readFileSync(`src/${file}`, 'utf8').matchAll(/recordUsage\(\s*['"]([^'"]+)['"]\s*\)/g)) calls.add(id)
+    }
+    for (const id of calls) assert.ok(getUsageFeature(id), `src records unregistered id ${id}`)
+    for (const f of listUsageFeatures().filter(f => f.category === 'action'))
+        assert.ok(calls.has(f.id), `${f.id} is never recorded in src`)
+})

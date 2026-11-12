@@ -77,6 +77,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import QRCode from 'qrcode'
 import MiyousheVerification from './MiyousheVerification.vue'
+import { recordUsage } from '@/usage-stats/index.mjs'
 import MiyousheCharacterPicker from './MiyousheCharacterPicker.vue'
 import characters from '@/assets/_gen_character'
 import weapons from '@/assets/_gen_weapon'
@@ -251,7 +252,7 @@ async function sync() {
     const run = ++generation, accountId = accounts.currentAccountId.value
     error.value = ''; result.value = null; busy.value = true; verificationNeeded.value = false
     progressTimer = setInterval(async () => { try { const p = await api('progress'); if (run === generation) progress.value = p } catch { /* Main request reports errors. */ } }, 1500)
-    try { const snapshot = await api('import', 'POST', { uid: selectedUid.value }); if (run === generation && !disposed) await save(snapshot, accountId) }
+    try { const snapshot = await api('import', 'POST', { uid: selectedUid.value }); if (run === generation && !disposed) { await save(snapshot, accountId); recordUsage('action.miyoushe-import') } }
     catch (e) { if (run === generation) { error.value = e.message; verificationNeeded.value = e.retcode === 1034 && loginPlatform.value !== 'hoyolab' } }
     finally { clearInterval(progressTimer); if (run === generation) busy.value = false; await loadAccounts().catch(() => {}) }
 }
@@ -294,13 +295,14 @@ async function finishVerification(result) {
     }
 }
 async function exportSnapshots() {
-    try { await saveText(JSON.stringify(Object.values(store.data.value.snapshots), null, 2), 'application/json', 'mona-miyoushe-characters.json') }
+    try { await saveText(JSON.stringify(Object.values(store.data.value.snapshots), null, 2), 'application/json', 'mona-miyoushe-characters.json'); recordUsage('action.data-export') }
     catch (e) { error.value = e.message }
 }
 async function exportUid() {
     try {
         const pack = exportUidPackage(store.selectedUid.value, store.data.value, usePresetStore().presets.value, useArtifactStore().artifacts.value, includeInventory.value)
         await saveText(JSON.stringify(pack), 'application/json', `mona-uid-${pack.uid}.json`)
+        recordUsage('action.data-export')
     } catch (e) { error.value = e.message }
 }
 async function restore(event) {

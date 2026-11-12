@@ -59,10 +59,11 @@ test('clear selected removes snapshot equipment without altering inventory, grou
 test('saving a calculator group records source without requiring or changing a preset',()=>{
     const dir={id:0,dir:true,children:[]},kumi=vue.ref([dir]),kumiById=vue.ref(new Map([[0,dir]]))
     const {createKumi}=functions(new URL('../src/store/pinia/kumi.ts',import.meta.url),['createKumi'],{kumi,kumiById,idGenerator:{generateId:()=>10}})
-    const ids=[1,2,3,4,5],state={showSaveKumiDialog:vue.ref(true),characterName:vue.ref('Klee'),artifactIds:vue.ref(ids),kumiStore:{createKumi,addArtifact:(id,artifact)=>{kumiById.value.get(id).artifactIds[artifact-1]=artifact}}}
+    const recorded=[],ids=[1,2,3,4,5],state={recordUsage:id=>recorded.push(id),showSaveKumiDialog:vue.ref(true),characterName:vue.ref('Klee'),artifactIds:vue.ref(ids),kumiStore:{createKumi,addArtifact:(id,artifact)=>{kumiById.value.get(id).artifactIds[artifact-1]=artifact}}}
     functions(pageUrl,['handleSaveAsKumi'],state).handleSaveAsKumi({dirIds:[0],name:'随意名字'})
     const saved=plain(kumi.value).find(group=>group.id===10)
     assert.equal(saved.sourceCharacter,'Klee');assert.deepEqual(saved.artifactIds,ids)
     assert.deepEqual(artifactGroupCharacterNames(saved,[],new Map()),['Klee'])
     assert.equal(state.showSaveKumiDialog.value,false)
+    assert.deepEqual(recorded,['action.kumi-save'])
 })
