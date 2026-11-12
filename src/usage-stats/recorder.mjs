@@ -2,6 +2,8 @@
 // Storage, sending, the clock and the endpoint are injected, so pages never touch storage or the network
 // for usage stats, and the tests run without a browser.
 // A send never throws into the page; the latest failure is kept for the Debug exports instead.
+// The player's answer to the first-run notice is kept here too: unanswered records but does not send,
+// on records and sends, off records nothing and forgets the queue and the install id.
 import { getUsageFeature, USAGE_UPLOAD_RULES } from '../../server/usage-stats-features.mjs'
 
 export const USAGE_STATS_KEYS = Object.freeze({
@@ -10,6 +12,7 @@ export const USAGE_STATS_KEYS = Object.freeze({
     failure: 'mona-usage-stats-failure',
     sent: 'mona-usage-stats-sent',
     sentAt: 'mona-usage-stats-sent-at',
+    consent: 'mona-usage-stats-consent',
 })
 const DAY_MS = 86400000
 
@@ -20,9 +23,10 @@ function localDay(date) {
 const dayNumber = day => Date.parse(`${day}T00:00:00Z`) / DAY_MS
 
 export function createUsageStatsRecorder({ storage, send, endpoint, platform, version, clock = () => new Date(),
-    isEnabled = () => true, randomId = () => crypto.randomUUID() }) {
+    randomId = () => crypto.randomUUID() }) {
     let failure = null, inflight = null
-    const active = () => Boolean(endpoint) && isEnabled()
+    // Usage stats exist in this build only when it was built with an endpoint.
+    const available = () => Boolean(endpoint)
 
     function fail(stage, error, extra = {}) {
         failure = { stage, reason: error?.message || String(error), ...extra, at: clock().toISOString() }
@@ -43,6 +47,20 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         }
     }
     const readQueue = () => readList(USAGE_STATS_KEYS.queue)
+    function consent() {
+        try { return storage.getItem(USAGE_STATS_KEYS.consent) } catch (error) { fail('storage', error); return null }
+    }
+    const canRecord = () => available() && consent() !== 'off'
+    const canSend = () => available() && consent() === 'on'
+    const needsNotice = () => available() && consent() === null
+    function setConsent(value) {
+        if (value !== 'on' && value !== 'off') throw new Error(`使用统计开关只能是 on 或 off：${value}`)
+        storage.setItem(USAGE_STATS_KEYS.consent, value)
+        if (value === 'off') {
+            for (const name of [USAGE_STATS_KEYS.queue, USAGE_STATS_KEYS.sent, USAGE_STATS_KEYS.installId, USAGE_STATS_KEYS.failure, USAGE_STATS_KEYS.sentAt]) storage.removeItem(name)
+            failure = null
+        }
+    }
     const key = r => `${r.feature}|${r.day}`
     // The server rejects days further than dayTolerance from its own day, so older records cannot be sent.
     function current(queue) {
@@ -62,7 +80,7 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
 
     function record(feature) {
         if (!getUsageFeature(feature)) throw new Error(`未登记的功能 ID：${feature}`)
-        if (!active()) return
+        if (!canRecord()) return
         try {
             const entry = { feature, day: localDay(clock()) }, queue = current(readQueue())
             // Once per feature and day: skip it when it is queued or was already sent today.
@@ -81,6 +99,8 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         } catch (error) { return fail('storage', error) }
         let result
         try { result = await send(body, options) } catch (error) { return fail('send', error) }
+        // Turned off while the batch was on its way: the queue and ids are already gone, keep it that way.
+        if (consent() !== 'on') return
         if (!result.ok) return fail('response', new Error(result.message || `HTTP ${result.status}`), { status: result.status })
         try {
             const sent = new Set(batch.map(key))
@@ -90,7 +110,7 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         } catch (error) { fail('storage', error) }
     }
     function flush(options = {}) {
-        if (!active()) return Promise.resolve()
+        if (!canSend()) return Promise.resolve()
         inflight ||= sendQueue(options).finally(() => { inflight = null })
         return inflight
     }
@@ -99,8 +119,8 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         let queued = 0, lastSentAt = null
         try { queued = current(readQueue()).length; lastSentAt = storage.getItem(USAGE_STATS_KEYS.sentAt) } catch {}
         // No install id here: a Debug export must not link a player's report to their usage rows.
-        return { active: active(), queued, lastSentAt, lastFailure: failure }
+        return { active: canSend(), consent: consent(), queued, lastSentAt, lastFailure: failure }
     }
 
-    return { record, flush, debugInfo, active }
+    return { record, flush, debugInfo, available, consent, setConsent, needsNotice }
 }

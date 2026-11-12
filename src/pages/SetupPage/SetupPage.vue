@@ -22,6 +22,11 @@
                 </el-select>
             </el-form-item>
 
+            <el-form-item v-if="usageStatsAvailable" :label="t('usageStats.title')">
+                <el-switch :model-value="usageStatsConsent === 'on'" :aria-label="t('usageStats.title')"
+                    @update:model-value="setUsageStatsConsent($event ? 'on' : 'off')"></el-switch>
+            </el-form-item>
+
             <el-form-item>
                 <template #label>
                     <div class="setup-item-label">
@@ -43,6 +48,7 @@
 import localforage from "localforage"
 import {colorMode,setColorMode} from "@/styles/color-mode.mjs"
 import {useI18n} from "@/i18n/i18n"
+import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent} from "@/usage-stats/index.mjs"
 import IconEpDelete from "~icons/ep/delete"
 
 const { t, setLocale, locale } = useI18n()

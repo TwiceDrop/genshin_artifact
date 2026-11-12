@@ -24,6 +24,7 @@ test('a desktop record reaches the online-service tables through the local serve
         endpoint: f.base, platform: 'windows', version: '7.2.04', clock: () => new Date(2026, 10, 7, 10),
         send: desktopUsageStatsSender(f.base, `http://127.0.0.1:${local.address().port}`),
     })
+    recorder.setConsent('on')
     recorder.record('page.calculate')
     recorder.record('action.team-dps')
     await recorder.flush()
@@ -39,6 +40,7 @@ test('a desktop record reaches the online-service tables through the local serve
     const bad = createUsageStatsRecorder({ storage: memory(),
         endpoint: f.base, platform: 'windows', version: 'bad version', clock: () => new Date(2026, 10, 7, 10),
         send: desktopUsageStatsSender(f.base, `http://127.0.0.1:${local.address().port}`) })
+    bad.setConsent('on')
     bad.record('page.calculate')
     await bad.flush()
     assert.deepEqual([bad.debugInfo().lastFailure.stage, bad.debugInfo().lastFailure.status], ['response', 400])

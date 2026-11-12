@@ -309,6 +309,12 @@ export default {
         subStat: "推荐副词条分布",
         count: "词条数",
     },
+    usageStats: {
+        title: "使用统计",
+        notice: "为了解哪些功能有人在用，莫娜会匿名统计功能使用次数，不包含 UID、角色、圣遗物或计算数据。可随时在设置中关闭。",
+        gotIt: "知道了",
+        turnOff: "关闭统计",
+    },
     setupPage: {
         appearance: "外观",
         light: "浅色",

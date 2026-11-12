@@ -2,9 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { installUsageStats, routeUsageFeature, USAGE_STATS_SEND_INTERVAL_MS } from '../src/usage-stats/install.mjs'
 
-function harness(active = true) {
+function harness(available = true) {
     const hooks = [], recorded = [], flushes = [], reports = [], timers = [], listeners = {}
-    const recorder = { active: () => active, record: id => recorded.push(id), flush: options => flushes.push(options || {}) }
+    const recorder = { available: () => available, record: id => recorded.push(id), flush: options => flushes.push(options || {}) }
     const target = { addEventListener: (name, fn) => { listeners[name] = fn },
         document: { visibilityState: 'visible', addEventListener: (name, fn) => { listeners[`document:${name}`] = fn } } }
     installUsageStats({ router: { afterEach: fn => hooks.push(fn) }, recorder, target, report: m => reports.push(m),
@@ -31,7 +31,7 @@ test('a route without a registered feature is reported, not recorded', () => {
     assert.deepEqual(h.reports, ['使用统计：路由 /no-such-page 没有登记功能 ID'])
 })
 
-test('an active recorder sends on start, every 10 minutes and when the page is hidden or closed', () => {
+test('a build with usage stats sends on start, every 10 minutes and when the page is hidden or closed', () => {
     const h = harness()
     assert.deepEqual(h.timers.map(([kind, ms]) => [kind, ms]), [['timeout', 5000], ['interval', USAGE_STATS_SEND_INTERVAL_MS]])
     h.timers.forEach(([, , fn]) => fn())
@@ -42,10 +42,10 @@ test('an active recorder sends on start, every 10 minutes and when the page is h
     assert.deepEqual(h.flushes, [{}, {}, { keepalive: true }, { keepalive: true }])
 })
 
-test('an inactive recorder still gets the route hook but no timers or listeners', () => {
+test('a build without usage stats still gets the route hook but no timers or listeners', () => {
     const h = harness(false)
     assert.equal(h.timers.length, 0)
     assert.deepEqual(Object.keys(h.listeners), [])
     h.navigate(route('/calculate'))
-    assert.deepEqual(h.recorded, ['page.calculate'], 'the recorder itself ignores records while inactive')
+    assert.deepEqual(h.recorded, ['page.calculate'], 'the recorder itself ignores records in such a build')
 })

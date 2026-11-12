@@ -307,6 +307,12 @@ export default {
         subStat: "Sub Stats Distribution Recommendation",
         count: "Rolls",
     },
+    usageStats: {
+        title: "Usage statistics",
+        notice: "To learn which features are used, Mona counts feature use anonymously. No UID, characters, artifacts or calculation data are included. You can turn this off in Settings at any time.",
+        gotIt: "Got it",
+        turnOff: "Turn off",
+    },
     setupPage: {
         appearance: "Appearance",
         light: "Light",

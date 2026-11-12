@@ -7,7 +7,7 @@ function memoryStorage() {
     return { map, getItem: k => map.has(k) ? map.get(k) : null, setItem: (k, v) => map.set(k, String(v)), removeItem: k => map.delete(k) }
 }
 // Local time 2026-11-12 10:00; the recorder uses the player's local day.
-function setup({ endpoint = 'https://stats.example.test', send, start = new Date(2026, 10, 12, 10) } = {}) {
+function setup({ endpoint = 'https://stats.example.test', send, start = new Date(2026, 10, 12, 10), consent = 'on' } = {}) {
     let now = start.getTime()
     const storage = memoryStorage(), sent = []
     let ids = 0
@@ -16,11 +16,14 @@ function setup({ endpoint = 'https://stats.example.test', send, start = new Date
         randomId: () => `00000000-0000-4000-8000-00000000000${++ids}`,
         send: send || (async body => { sent.push(structuredClone(body)); return { ok: true, status: 200 } }),
     })
+    if (consent) recorder.setConsent(consent)
     return { recorder, storage, sent, advanceDays: n => { now += n * 86400000 } }
 }
 
 test('an empty endpoint turns usage stats off completely', async () => {
-    const { recorder, storage, sent } = setup({ endpoint: '' })
+    const { recorder, storage, sent } = setup({ endpoint: '', consent: null })
+    assert.equal(recorder.available(), false)
+    assert.equal(recorder.needsNotice(), false, 'no notice when usage stats are off')
     recorder.record('page.calculate')
     await recorder.flush()
     assert.equal(sent.length, 0)
@@ -129,4 +132,44 @@ test('a corrupt queue in storage is reported and replaced', async () => {
     assert.equal(recorder.debugInfo().lastFailure.stage, 'storage')
     await recorder.flush()
     assert.deepEqual(sent[0].records, [{ feature: 'page.calculate', day: '2026-11-12' }])
+})
+
+test('before the player answers the notice, records queue but nothing is sent', async () => {
+    const { recorder, sent } = setup({ consent: null })
+    assert.equal(recorder.consent(), null)
+    assert.equal(recorder.needsNotice(), true)
+    recorder.record('page.calculate')
+    await recorder.flush()
+    assert.equal(sent.length, 0)
+    assert.equal(recorder.debugInfo().queued, 1)
+    recorder.setConsent('on')
+    assert.equal(recorder.needsNotice(), false)
+    await recorder.flush()
+    assert.deepEqual(sent[0].records, [{ feature: 'page.calculate', day: '2026-11-12' }])
+})
+
+test('turning usage stats off clears the queue, the sent list and the install id; turning on again gets a new id', async () => {
+    const { recorder, storage, sent } = setup()
+    recorder.record('page.calculate')
+    await recorder.flush()
+    recorder.record('page.artifacts')
+    recorder.setConsent('off')
+    assert.equal(recorder.consent(), 'off')
+    assert.equal(recorder.needsNotice(), false)
+    assert.deepEqual([...storage.map.keys()], ['mona-usage-stats-consent'])
+    recorder.record('action.team-dps')
+    await recorder.flush()
+    assert.equal(sent.length, 1, 'nothing is recorded or sent while off')
+    assert.equal(recorder.debugInfo().queued, 0)
+    recorder.setConsent('on')
+    recorder.record('page.calculate')
+    await recorder.flush()
+    assert.equal(sent.length, 2)
+    assert.notEqual(sent[1].installId, sent[0].installId)
+    assert.deepEqual(sent[1].records, [{ feature: 'page.calculate', day: '2026-11-12' }], 'the old sent list went with the old id')
+})
+
+test('only on and off are valid answers', () => {
+    const { recorder } = setup({ consent: null })
+    assert.throws(() => recorder.setConsent('maybe'), /使用统计开关只能是 on 或 off/)
 })

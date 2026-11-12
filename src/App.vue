@@ -1,5 +1,6 @@
 <template>
     <main-page></main-page>
+    <usage-stats-notice></usage-stats-notice>
     <el-dialog v-model="updateVisible" title="发现新版本" width="600px" custom-class="release-update-dialog"
         :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
         <template v-if="availableRelease">
@@ -52,6 +53,7 @@
 import {onMounted, onBeforeUnmount, ref, computed} from 'vue'
 import {ElMessage} from 'element-plus'
 import MainPage from "@page/MainPage"
+import UsageStatsNotice from "@/components/UsageStatsNotice.vue"
 import {createReleaseCheckCoordinator, isAutomaticUpdateEnabled, setAutomaticUpdateEnabled,
     MANUAL_UPDATE_EVENT, openReleaseDownload, UPDATE_SOURCES, releaseAsset,
     sourceUrl, getUpdatePlatform, probeUpdateSource,

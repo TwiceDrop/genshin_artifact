@@ -21,7 +21,7 @@ export function installUsageStats({ router, recorder, target = window, timers = 
         if (!route.feature) return report(`使用统计：路由 ${route.path} 没有登记功能 ID`)
         recorder.record(route.feature)
     })
-    if (!recorder.active()) return
+    if (!recorder.available()) return
     timers.setTimeout(() => recorder.flush(), 5000)
     timers.setInterval(() => recorder.flush(), USAGE_STATS_SEND_INTERVAL_MS)
     target.addEventListener('pagehide', () => recorder.flush({ keepalive: true }))

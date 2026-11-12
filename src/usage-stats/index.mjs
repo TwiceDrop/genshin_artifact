@@ -1,6 +1,7 @@
 // The app's usage stats recorder. Pages call recordUsage(featureId) where a key action succeeds;
 // page features are recorded by the router hook in install.mjs.
 // MONA_USAGE_STATS_URL is set at build time; when it is empty usage stats stay off.
+import { ref } from 'vue'
 import { createUsageStatsRecorder } from './recorder.mjs'
 import { installUsageStats as install } from './install.mjs'
 import { CapacitorHttp } from '@capacitor/core'
@@ -21,3 +22,12 @@ export const usageStats = createUsageStatsRecorder({
 export const recordUsage = feature => usageStats.record(feature)
 export const usageStatsDebugInfo = () => usageStats.debugInfo()
 export const installUsageStats = router => install({ router, recorder: usageStats })
+
+// For the first-run notice and the settings switch.
+export const usageStatsAvailable = usageStats.available()
+export const usageStatsConsent = ref(usageStats.consent())
+export function setUsageStatsConsent(value) {
+    usageStats.setConsent(value)
+    usageStatsConsent.value = usageStats.consent()
+    if (value === 'on') usageStats.flush()
+}
