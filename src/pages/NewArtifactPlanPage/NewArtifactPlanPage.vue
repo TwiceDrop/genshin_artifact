@@ -844,7 +844,7 @@ import {convertArtifact} from "@util/converter"
 import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
 import {deepCopy, downloadString} from "@/utils/common"
 import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
-import {usageStatsDebugInfo, recordUsage, recordUsageUnlessCancelled} from "@/usage-stats/index.mjs"
+import {usageStatsDebugInfo, recordUsage, recordUsageUnlessCancelled, recordCharacterUsage} from "@/usage-stats/index.mjs"
 import {wasmSingleOptimize} from "@/wasm/single_optimize"
 import {wasmPanelOptimize} from '@/wasm/panel_optimize'
 import {newPanelSearchOptions,readPanel} from '../../../beta-data/panel-search.mjs'
@@ -2191,6 +2191,7 @@ function handleOptimizeArtifact() {
         if (controller.signal.aborted) return
         debug?.complete(results); triggerRef(optimizationDebugRecord)
         recordUsage('action.single-optimize')
+        recordCharacterUsage('action.single-optimize', [optimizeInterface.character.name])
         if (optimizationInBackground || !calculationPageActive) return
         if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) { showOptimizationProgress.value=false; return }
         if (JSON.stringify(panelMode?getPanelOptimizeInterface():getOptimizeArtifactWasmInterface()) !== JSON.stringify(optimizeInterface) || JSON.stringify(getArtifactsToBeCalculated()) !== JSON.stringify(artifacts)) { showOptimizationProgress.value=false; return }

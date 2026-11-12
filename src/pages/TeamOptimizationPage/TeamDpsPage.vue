@@ -156,7 +156,7 @@ import {changeTeamConstellation} from '../../../beta-data/team-dps-character-rul
 import {teamDpsObjectiveValue} from '../../../beta-data/team-dps-numeric-rules.mjs'
 import {TEAM_DPS_RESULT_VERSION,canRestoreTeamDpsResult,createTeamDpsResultPacker,unpackTeamDpsResult,teamDamageAnalysis,teamProbabilityText} from '../../../beta-data/team-dps-result-view.mjs'
 import {exportTeamDpsResult} from '../../wasm/team-dps-result-export.mjs'
-import {usageStatsDebugInfo, recordUsage} from '../../usage-stats/index.mjs'
+import {usageStatsDebugInfo, recordUsage, recordCharacterUsage} from '../../usage-stats/index.mjs'
 import {normalizeEnemy} from '../../../beta-data/enemy-interface.mjs'
 import TeamDpsEvents from './TeamDpsEvents.vue'
 import {useEnemy} from '@/composables/enemy'
@@ -313,7 +313,7 @@ async function run(mode:string){
   return {detail:{...historyDetail,output:packResult(result)},summary:{members:historyMembers(input.single_interfaces,itemMap,first?first.artifacts.map(buildIds):input.single_interfaces.map(()=>[])),...(first?{totalDamage:total,dps:total/first.duration,axisDuration:first.duration}:{})}};
  });
  const task=job.controller;controller=task
- try{const {detail}:any=await job.promise;recordUsage('action.team-dps');if(task.signal.aborted||controller!==task||backgrounded||!pageActive||accountStore.currentAccountId.value!==accountId||loadedUid!==uid)return;resultContext.value=snapshot;output.value=unpackTeamDpsResult(detail.output);sortMetric.value=input.team_dps.metric;if(output.value.results.length)await selectResult(0)}
+ try{const {detail}:any=await job.promise;recordUsage('action.team-dps');recordCharacterUsage('action.team-dps',input.single_interfaces.map((x:any)=>x.character.name));if(task.signal.aborted||controller!==task||backgrounded||!pageActive||accountStore.currentAccountId.value!==accountId||loadedUid!==uid)return;resultContext.value=snapshot;output.value=unpackTeamDpsResult(detail.output);sortMetric.value=input.team_dps.metric;if(output.value.results.length)await selectResult(0)}
  catch(e:any){if(e.name==='AbortError'){if(controller===task)ElMessage.info('计算已取消')}else{console.error(e);if(controller===task)error.value=e.message}}
  finally{clearInterval(taskTimer);if(controller===task){clock.value=performance.now();busy.value=false;showProgress.value=false;controller=null;timer=null}}
 }

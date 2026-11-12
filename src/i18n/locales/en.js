@@ -309,7 +309,7 @@ export default {
     },
     usageStats: {
         title: "Usage statistics",
-        notice: "To learn which features are used, Mona counts feature use anonymously. No UID, characters, artifacts or calculation data are included. You can turn this off in Settings at any time.",
+        notice: "To learn which features and characters are used, Mona counts their use anonymously. No UID, artifacts or calculation data are included. You can turn this off in Settings at any time.",
         gotIt: "Got it",
         turnOff: "Turn off",
     },

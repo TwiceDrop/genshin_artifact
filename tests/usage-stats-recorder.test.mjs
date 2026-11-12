@@ -206,3 +206,29 @@ test('a send that fails after the player turned usage stats off leaves nothing b
     assert.deepEqual([...storage.map.keys()], ['mona-usage-stats-consent'])
     assert.equal(recorder.debugInfo().lastFailure, null)
 })
+
+test('single optimisation and team DPS queue one record per character and day', async () => {
+    const { recorder, sent } = setup()
+    recorder.record('action.single-optimize', 'Mona')
+    recorder.record('action.single-optimize', 'Mona')
+    recorder.record('action.single-optimize', 'Furina')
+    recorder.record('action.single-optimize')
+    recorder.record('action.team-dps', 'Mona')
+    await recorder.flush()
+    assert.deepEqual(sent[0].records, [
+        { feature: 'action.single-optimize', day: '2026-11-12', character: 'Mona' },
+        { feature: 'action.single-optimize', day: '2026-11-12', character: 'Furina' },
+        { feature: 'action.single-optimize', day: '2026-11-12' },
+        { feature: 'action.team-dps', day: '2026-11-12', character: 'Mona' },
+    ])
+    recorder.record('action.single-optimize', 'Mona')
+    assert.equal(recorder.debugInfo().queued, 0, 'already sent today')
+})
+
+test('a character on an action that does not carry one is a programming error; an unknown character is reported', () => {
+    const { recorder } = setup()
+    assert.throws(() => recorder.record('page.calculate', 'Mona'), /功能 page\.calculate 不记录角色/)
+    assert.doesNotThrow(() => recorder.record('action.team-dps', 'NotACharacter'))
+    assert.equal(recorder.debugInfo().queued, 0)
+    assert.deepEqual([recorder.debugInfo().lastFailure.stage, recorder.debugInfo().lastFailure.reason], ['record', '未登记的角色：NotACharacter'])
+})

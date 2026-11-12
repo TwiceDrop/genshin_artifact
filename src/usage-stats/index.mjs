@@ -20,6 +20,8 @@ export const usageStats = createUsageStatsRecorder({
     send: isNative ? nativeUsageStatsSender(endpoint, options => CapacitorHttp.request(options)) : desktopUsageStatsSender(endpoint),
 })
 export const recordUsage = feature => usageStats.record(feature)
+// Single optimisation and team DPS also record the characters they ran for.
+export const recordCharacterUsage = (feature, characters) => { for (const character of new Set(characters)) usageStats.record(feature, character) }
 export const usageStatsDebugInfo = () => usageStats.debugInfo()
 export const installUsageStats = router => install({ router, recorder: usageStats })
 

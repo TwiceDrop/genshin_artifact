@@ -5,6 +5,7 @@
 // The player's answer to the first-run notice is kept here too: unanswered records but does not send,
 // on records and sends, off records nothing and forgets the queue and the install id.
 import { getUsageFeature, USAGE_UPLOAD_RULES } from '../../server/usage-stats-features.mjs'
+import { getUsageCharacter } from '../../server/usage-stats-characters.mjs'
 
 export const USAGE_STATS_KEYS = Object.freeze({
     installId: 'mona-usage-stats-id',
@@ -61,7 +62,7 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
             failure = null
         }
     }
-    const key = r => `${r.feature}|${r.day}`
+    const key = r => `${r.feature}|${r.day}|${r.character ?? ''}`
     // Keep what the server still accepts (see USAGE_UPLOAD_RULES), newest last, at most maxRecords.
     function current(queue) {
         const oldest = dayNumber(localDay(clock())) - (USAGE_UPLOAD_RULES.pastDays - 1)
@@ -78,11 +79,16 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         return id
     }
 
-    function record(feature) {
-        if (!getUsageFeature(feature)) throw new Error(`未登记的功能 ID：${feature}`)
+    // `character` is only for actions that carry one (single optimisation, team DPS).
+    function record(feature, character) {
+        const registered = getUsageFeature(feature)
+        if (!registered) throw new Error(`未登记的功能 ID：${feature}`)
+        if (character !== undefined && !registered.characters) throw new Error(`功能 ${feature} 不记录角色`)
         if (!canRecord()) return
+        // A character comes from player data, so an unknown one is reported for Debug instead of thrown into the page.
+        if (character !== undefined && !getUsageCharacter(character)) return fail('record', new Error(`未登记的角色：${character}`))
         try {
-            const entry = { feature, day: localDay(clock()) }, queue = current(readQueue())
+            const entry = { feature, day: localDay(clock()), ...(character === undefined ? {} : { character }) }, queue = current(readQueue())
             // Once per feature and day: skip it when it is queued or was already sent today.
             if ([...queue, ...readList(USAGE_STATS_KEYS.sent)].some(r => key(r) === key(entry))) return
             queue.push(entry)

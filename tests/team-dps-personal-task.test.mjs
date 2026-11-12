@@ -30,7 +30,7 @@ test('personal task survives remount and UID changes, preserves snapshots and re
  function mount(axis=importedAxis()){
   const close=[],scope=effectScope(),env={characterPackages,...equipment,...options,...resultView,normalizeEnemy,...teamDpsHistoryStandIns(),changeTeamConstellation,teamDpsObjectiveValue,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,ref,shallowRef,computed,watch,nextTick,
    defineProps:()=>({configuration:axis,taskKey:7,tasks}),defineEmits:()=>((_,e)=>{assert.equal(e.key,7);assert.equal(e.accountId,1);tasks[e.uid]=structuredClone(e.state);}),
-   onBeforeUnmount:f=>close.push(f),onDeactivated:()=>{},onActivated:()=>{},recordUsage:()=>{},usageStatsDebugInfo:()=>({}),usePresetStore:()=>presets,useArtifactStore:()=>inventory,useMiyousheStore:()=>mys,useAccountStore:()=>account,useEnemy:()=>({enemyConfig:ref({level:90})}),
+   onBeforeUnmount:f=>close.push(f),onDeactivated:()=>{},onActivated:()=>{},recordUsage:()=>{},recordCharacterUsage:()=>{},usageStatsDebugInfo:()=>({}),usePresetStore:()=>presets,useArtifactStore:()=>inventory,useMiyousheStore:()=>mys,useAccountStore:()=>account,useEnemy:()=>({enemyConfig:ref({level:90})}),
    characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],weaponByType:{Sword:[],Polearm:[],Catalyst:[]},upgradeArtifactConfig:x=>x,convertArtifactName:x=>x,
    ElMessage:{success(){},info(){}},AbortController,performance,setInterval,clearInterval,console};
   vm.createContext(env);scope.run(()=>vm.runInContext(ts.transpileModule(script,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,env));
