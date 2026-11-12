@@ -39,7 +39,10 @@ export const CLASSIC_EFFECT_RULE_BOOK={
  XilonenE:R(elements.map(e=>E('ResMinus'+e,talent('xilonen_e_res','skill_level'),includes(P('elements'),e)))),
  XilonenC2:R([E('BonusBase',.5,includes(P('elements'),'Geo')),E('ATKPercentage',.45,includes(P('elements'),'Pyro')),E('HPPercentage',.45,includes(P('elements'),'Hydro')),E('CriticalDamageBase',.6,includes(P('elements'),'Cryo'))]),
  XilonenC4:R(['ExtraDmgNormalAttack','ExtraDmgChargedAttack','ExtraDmgPlungingAttack'].map(a=>E(a,mul(.65,P('def'))))),
- CitlaliTalent1:R(['ResMinusPyro','ResMinusHydro'].map(a=>E(a,mul(choose(P('has_c2'),.4,.2),rate)))),
+ CitlaliTalent1:R([
+  ...['ResMinusPyro','ResMinusHydro'].map(a=>E(a,mul(choose(P('has_c2'),.4,.2),rate))),
+  E('ElementalMastery',mul(250,rate),and(P('has_c2'),not(eq(recipient,'Citlali')))),
+ ]),
  CitlaliC1:R(['ExtraDmgNormalAttack','ExtraDmgChargedAttack','ExtraDmgPlungingAttack','ExtraDmgElementalSkill','ExtraDmgElementalBurst'].map(a=>E(a,mul(2,P('em'))))),
  CitlaliC6:R(['BonusPyro','BonusHydro'].map(a=>E(a,mul(.015,P('stack'))))),
  YumemizukiMizukiC1:R([E('SwirlExtraDmg',mul(11,P('em')))]),
