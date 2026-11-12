@@ -3,7 +3,7 @@ import { ApiError, invalid } from './errors.mjs'
 import { createAuth } from './auth.mjs'
 import { createAccounts } from './accounts.mjs'
 import { createProfiles, SYNC_BODY_LIMIT } from './profiles.mjs'
-import { createUsageStats, USAGE_UPLOAD_LIMITS } from './usage-stats.mjs'
+import { createUsageStats, USAGE_UPLOAD_LIMITS, USAGE_STATS_PAGE_POLICY, usageStatsPageFile } from './usage-stats.mjs'
 
 export function logError(error, event = 'request_error') {
     console.error(JSON.stringify({ event, name: error.name, code: error.code || 'INTERNAL_ERROR', retcode: error.retcode, command: error.command, responseCode: error.responseCode, causeCode: error.cause?.code,
@@ -63,6 +63,13 @@ export function createApi(options) {
             if (method === 'POST' && path === '/v1/auth/email/request') return send(200, await auth.requestCode(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/auth/email/verify') return send(200, await auth.verifyCode(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/usage-stats') return send(200, await usageStats.ingest(await bodyOf(request, USAGE_UPLOAD_LIMITS.bodyBytes), ip))
+            if (method === 'GET' && path === '/v1/usage-stats/summary') return send(200, await usageStats.summary(url.searchParams, request.headers.authorization))
+            const pageFile = method === 'GET' && path.startsWith('/admin/') ? await usageStatsPageFile(path) : null
+            if (pageFile) {
+                response.writeHead(200, { 'Content-Type': pageFile.type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
+                    'Content-Security-Policy': USAGE_STATS_PAGE_POLICY, 'Referrer-Policy': 'no-referrer' })
+                return response.end(pageFile.body)
+            }
             const identity = await auth.authenticate(request.headers.authorization)
             const userId = identity.user.id
             if (method === 'GET' && path === '/v1/me') return send(200, { user: identity.user })

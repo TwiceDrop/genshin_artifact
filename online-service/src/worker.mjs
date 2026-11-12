@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { transaction } from './db.mjs'
+import { pruneUsageStats } from './usage-stats.mjs'
 import { queueJob } from './accounts.mjs'
 import { gameFailure } from './errors.mjs'
 import { credentialsFrom, createGameClient } from './game-client.mjs'
@@ -26,6 +27,7 @@ export function createWorker({ pool, vault, config, clock = () => new Date(), ga
             await db.query('DELETE FROM sessions WHERE expires_at<$1', [now])
             await db.query('DELETE FROM rate_limits WHERE window_start<$1', [new Date(now.getTime() - 86400000)])
             await db.query("DELETE FROM sync_jobs WHERE status IN ('succeeded','failed','cancelled') AND finished_at<$1", [new Date(now.getTime() - 30 * 86400000)])
+            await pruneUsageStats(db, now)
         })
     }
     async function schedule() {

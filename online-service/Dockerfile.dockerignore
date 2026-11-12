@@ -7,6 +7,8 @@
 !online-service/src/**
 !online-service/migrations/
 !online-service/migrations/**
+!online-service/static/
+!online-service/static/**
 !server/
 !server/hoyolab.mjs
 !server/mys.mjs

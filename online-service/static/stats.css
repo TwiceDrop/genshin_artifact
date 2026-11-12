@@ -1,0 +1,35 @@
+:root {
+    color-scheme: light dark;
+    --bg: #f7f7f5; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #e2e1dc; --accent: #2f6fdf; --error: #c23b2e;
+}
+@media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --panel: #1f1f1d; --text: #ecebe6; --muted: #9c9b95; --line: #34332f; --accent: #6d9cf0; --error: #f07a6d; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+h1 { font-size: 24px; margin: 0; }
+h2 { font-size: 16px; margin: 32px 0 12px; }
+.muted { color: var(--muted); font-size: 13px; }
+.error { color: var(--error); min-height: 1.4em; margin: 8px 0 0; }
+form { margin-top: 32px; display: grid; gap: 8px; max-width: 360px; }
+input, select, button { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+button { cursor: pointer; background: var(--accent); border-color: var(--accent); color: #fff; }
+button.quiet { background: transparent; color: var(--muted); border-color: var(--line); margin-left: auto; }
+.toolbar { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 24px; }
+.metric { margin-top: 24px; display: flex; align-items: baseline; gap: 10px; }
+.metric span { font-size: 36px; font-weight: 600; font-variant-numeric: tabular-nums; }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+figure svg { display: block; width: 100%; height: auto; }
+.axis { stroke: var(--line); }
+.label { fill: var(--muted); font-size: 11px; }
+.series { fill: none; stroke: var(--accent); stroke-width: 2; }
+.table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+tbody tr:last-child td { border-bottom: 0; }
+thead th { color: var(--muted); font-weight: 500; font-size: 13px; }
+td.zero { color: var(--muted); }

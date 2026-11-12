@@ -79,6 +79,6 @@ export async function fixture() {
         if (verified.status !== 200) throw new Error(`Synthetic login failed: ${JSON.stringify(verified)}`)
         return { ...verified.body, challengeId: challenge.body.challengeId, code: emails.at(-1).code }
     }
-    return { ...options, ...db, request, login, emails, errors, state, advance: milliseconds => { now += milliseconds }, worker: createWorker(options),
+    return { ...options, ...db, base, request, login, emails, errors, state, advance: milliseconds => { now += milliseconds }, worker: createWorker(options),
         close: async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await db.close() } }
 }

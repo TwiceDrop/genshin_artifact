@@ -20,6 +20,7 @@ x-app: &app
     TRUST_PROXY: "true"
     DATABASE_URL_FILE: /run/secrets/database_url
     VAULT_KEY_FILE: /run/secrets/vault_key
+    USAGE_STATS_ADMIN_TOKEN_FILE: /run/secrets/usage_stats_admin_token
     SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST in .env}
     SMTP_PORT: ${SMTP_PORT:-587}
     SMTP_SECURE: ${SMTP_SECURE:-false}
@@ -39,6 +40,7 @@ x-app: &app
     - database_url
     - vault_key
     - smtp_password
+    - usage_stats_admin_token
   networks:
     - service
     - database
@@ -150,3 +152,5 @@ secrets:
     file: ./secrets/vault_key
   smtp_password:
     file: ./secrets/smtp_password
+  usage_stats_admin_token:
+    file: ./secrets/usage_stats_admin_token

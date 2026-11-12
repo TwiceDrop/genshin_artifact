@@ -16,7 +16,7 @@ cp .env.example .env
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work node:24-bookworm-slim node scripts/init-secrets.mjs
 # 用编辑器把 SMTP 密码写入 secrets/smtp_password（只写密码本身）。
 chmod 700 secrets
-chmod 644 secrets/db_password secrets/database_url secrets/vault_key secrets/smtp_password
+chmod 644 secrets/db_password secrets/database_url secrets/vault_key secrets/smtp_password secrets/usage_stats_admin_token
 docker compose config --quiet
 docker compose up -d --build
 docker compose ps
@@ -44,8 +44,15 @@ API 的 `TRUST_PROXY=true` 仅用于本包的单层 Caddy 入口；Caddy 用连�
 | CORS | 原生客户端／桌面本地代理不需要填写；仅确实使用浏览器直连时填写精确 Origin，以逗号分隔，不使用通配符 |
 | 本机诊断 | API 仅在服务器 `127.0.0.1:18080` 额外监听；`LOCAL_API_PORT` 可改 |
 | 数据库连接 | `secrets/database_url`；内置 PostgreSQL 的密码对应 `secrets/db_password` |
+| 使用统计页面 | `https://你的域名/admin/stats`，口令是 `secrets/usage_stats_admin_token` 的内容；文件为空时页面拒绝所有访问 |
 
 如仅做本机 HTTP 调试，可在配置好 SMTP 后执行 `docker compose up -d --build db migrate api worker`，访问 `http://127.0.0.1:18080/healthz`。该地址只在服务器本机可用，不作为公网部署地址。
+
+## 使用统计
+
+客户端匿名上报每天用过哪些功能，接口是 `POST /v1/usage-stats`，不需要登录。库里只有匿名安装 ID、功能 ID、平台、版本和日期，不保存 IP；限流计数只在 API 进程内存里，重启后清零。按天的明细保留 400 天，由 worker 自动删除；累计人数另存，不随明细删除。
+
+打开 `https://你的域名/admin/stats`，输入 `secrets/usage_stats_admin_token` 的内容即可查看。口令只保存在当前浏览器标签页。更换口令：改写该文件后执行 `docker compose up -d api`。从旧版本升级时，先重新运行一次初始化脚本补出这个文件，并按上面的命令设好权限。
 
 ## 备份与恢复
 

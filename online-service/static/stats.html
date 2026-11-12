@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>使用统计</title>
+<link rel="stylesheet" href="/admin/stats.css">
+</head>
+<body>
+<main>
+    <header>
+        <h1>使用统计</h1>
+        <p id="today" class="muted"></p>
+    </header>
+
+    <form id="login" hidden>
+        <label for="token">管理员口令</label>
+        <input id="token" type="password" autocomplete="off" required>
+        <button type="submit">查看</button>
+        <p id="login-error" class="error" role="alert"></p>
+    </form>
+
+    <section id="report" hidden>
+        <div class="toolbar">
+            <label>平台 <select id="platform"><option value="">全部</option></select></label>
+            <label>版本 <select id="version"><option value="">全部</option></select></label>
+            <button id="logout" type="button" class="quiet">退出</button>
+        </div>
+        <p id="report-error" class="error" role="alert"></p>
+
+        <div class="metric"><span id="active">-</span><small>近 30 天活跃安装</small></div>
+
+        <h2>每日活跃安装（近 90 天）</h2>
+        <figure id="chart" aria-label="每日活跃安装折线图"></figure>
+
+        <h2>各功能使用人数</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th scope="col">功能</th><th scope="col">类别</th><th scope="col">累计</th><th scope="col">近 7 天</th><th scope="col">近 30 天</th><th scope="col">占近 30 天活跃</th></tr></thead>
+                <tbody id="features"></tbody>
+            </table>
+        </div>
+        <p class="muted">一个人是一个匿名安装 ID；同一安装同一天多次使用同一功能只算一次。日期按 UTC 计算。</p>
+    </section>
+</main>
+<script src="/admin/stats.js"></script>
+</body>
+</html>

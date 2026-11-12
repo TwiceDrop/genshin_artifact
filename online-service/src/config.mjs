@@ -37,5 +37,6 @@ export function loadConfig(env = process.env, { mailRequired = true, vaultRequir
             logger: false, debug: false,
         },
         mailFrom: env.MAIL_FROM,
+        usageStatsAdminToken: secret(env, 'USAGE_STATS_ADMIN_TOKEN'),
     }
 }
