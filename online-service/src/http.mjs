@@ -3,6 +3,7 @@ import { ApiError, invalid } from './errors.mjs'
 import { createAuth } from './auth.mjs'
 import { createAccounts } from './accounts.mjs'
 import { createProfiles, SYNC_BODY_LIMIT } from './profiles.mjs'
+import { createUsageStats, USAGE_UPLOAD_LIMITS } from './usage-stats.mjs'
 
 export function logError(error, event = 'request_error') {
     console.error(JSON.stringify({ event, name: error.name, code: error.code || 'INTERNAL_ERROR', retcode: error.retcode, command: error.command, responseCode: error.responseCode, causeCode: error.cause?.code,
@@ -32,6 +33,7 @@ async function bodyOf(request, maximumBytes = 32768) {
 export function createApi(options) {
     const { pool, config, onError = logError } = options
     const auth = createAuth({ ...options, onError }), accounts = createAccounts(options), profiles = createProfiles(options)
+    const usageStats = createUsageStats(options)
     return createServer(async (request, response) => {
         const send = (status, value) => {
             if (response.writableEnded) return
@@ -60,6 +62,7 @@ export function createApi(options) {
                 ? request.headers['x-forwarded-for'].split(',')[0].trim() : request.socket.remoteAddress || 'unknown'
             if (method === 'POST' && path === '/v1/auth/email/request') return send(200, await auth.requestCode(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/auth/email/verify') return send(200, await auth.verifyCode(await bodyOf(request), ip))
+            if (method === 'POST' && path === '/v1/usage-stats') return send(200, await usageStats.ingest(await bodyOf(request, USAGE_UPLOAD_LIMITS.bodyBytes), ip))
             const identity = await auth.authenticate(request.headers.authorization)
             const userId = identity.user.id
             if (method === 'GET' && path === '/v1/me') return send(200, { user: identity.user })

@@ -36,6 +36,9 @@ const ACTIONS = [
     ['action.debug-export', 'Debug 导出'],
 ]
 
+// The platforms an upload may name. The desktop build reports windows and the Android build android.
+export const USAGE_PLATFORMS = Object.freeze(['windows', 'android'])
+
 const FEATURES = Object.freeze([
     ...PAGES.map(([id, name, route]) => Object.freeze({id, category: 'page', name, route})),
     ...ACTIONS.map(([id, name]) => Object.freeze({id, category: 'action', name})),
