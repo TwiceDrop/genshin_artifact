@@ -18,7 +18,7 @@
 py online-service/scripts/pack.py
 ```
 
-部署包里会包含 `server/usage-stats-features.mjs`（功能登记）和 `online-service/static/`（统计页面）。以后功能清单有变化，服务端也要用新的部署包重新部署，否则新版客户端上报的新功能 ID 会被整批拒绝。
+部署包里会包含 `server/usage-stats-features.mjs`（功能登记）、`server/usage-stats-characters.mjs`（角色名单）和 `online-service/static/`（统计页面）。以后功能清单或角色名单有变化，服务端也要用新的部署包重新部署，否则新版客户端上报的新功能 ID 或新角色会被整批拒绝。新增角色时先运行 `node beta-tools/usage-stats-characters.mjs` 重新生成名单。
 
 ## 3. 部署在线服务
 

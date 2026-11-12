@@ -50,7 +50,7 @@ API 的 `TRUST_PROXY=true` 仅用于本包的单层 Caddy 入口；Caddy 用连�
 
 ## 使用统计
 
-客户端匿名上报每天用过哪些功能，接口是 `POST /v1/usage-stats`，不需要登录。库里只有匿名安装 ID、功能 ID、平台、版本和日期，不保存 IP；限流计数只在 API 进程内存里，重启后清零。按天的明细保留 400 天，由 worker 自动删除；累计人数另存，不随明细删除。
+客户端匿名上报每天用过哪些功能，接口是 `POST /v1/usage-stats`，不需要登录。库里只有匿名安装 ID、功能 ID、平台、版本和日期，不保存 IP；限流计数只在 API 进程内存里，重启后清零。按天的明细保留 400 天，由 worker 自动删除；累计人数另存，不随明细删除。单人配装和四人轴计算的记录还带角色 ID，只接受部署包里 `server/usage-stats-characters.mjs` 名单中的角色。
 
 打开 `https://你的域名/admin/stats`，输入 `secrets/usage_stats_admin_token` 的内容即可查看。口令只保存在当前浏览器标签页。更换口令：改写该文件后执行 `docker compose up -d api`。从旧版本升级时，先重新运行一次初始化脚本补出这个文件，并按上面的命令设好权限。
 
