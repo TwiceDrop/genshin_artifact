@@ -20,6 +20,7 @@ import {normalizeEnemy} from '../beta-data/enemy-interface.mjs';
 import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../beta-data/team-engine/action-config.mjs';
 import {characterPackages} from '../beta-data/team-engine/character-packages.mjs';
 import {FakeTeamWorker as Worker} from './helpers/team-dps-fake-worker.mjs';
+import {teamDpsHistoryStandIns} from './helpers/team-dps-history-stand-ins.mjs';
 const sourceText=relative=>fs.readFileSync(new URL(import.meta.resolve(relative)),'utf8');
 
 test('repair 4: real page state, UID refresh, result snapshots, cancellation and late responses',async()=>{
@@ -34,15 +35,17 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
  const presetStore={presets:ref(records)};presetStore.allFlat=computed(()=>Object.values(presetStore.presets.value));
  const artifactStore={artifacts:ref(new Map(builds.flat().map(a=>[a.id,{...a}])))};
  const mys={selectedUid:ref('first'),data:ref({entries:Object.keys(records).map(name=>({uid:name.startsWith('first')?'first':'second',presetName:name}))})};
- const accountStore={currentAccountId:ref(1)},pending=[],unmount=[],scope=effectScope(),taskRecords={},savedTasks=[];
- const env={ref,shallowRef,computed,watch,nextTick,defineEmits:()=>(_event,data)=>savedTasks.push(data),changeTeamConstellation,defineProps:()=>({configuration:importedAxis(),tasks:taskRecords,taskKey:1}),onBeforeUnmount:f=>unmount.push(f),onDeactivated:f=>unmount.push(f),usePresetStore:()=>presetStore,useArtifactStore:()=>artifactStore,useAccountStore:()=>accountStore,useMiyousheStore:()=>mys,useEnemy:()=>({enemyConfig:ref({level:100})}),characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],upgradeArtifactConfig:x=>x,convertArtifact:x=>x,convertPresetToWasmInterface:x=>({character:x.character,weapon:x.weapon}),teamDps:(input,artifacts,options)=>new Promise((resolve,reject)=>{const request={input,artifacts,options,resolve,reject};pending.push(request);options.signal.addEventListener('abort',()=>{if(!request.ignoreAbort)reject(new DOMException('cancel','AbortError'));});}),ElMessage:{success(){},info(){}},AbortController,DOMException,performance,setInterval,clearInterval,console};
+ const notices=[],accountStore={currentAccountId:ref(1),applyingCloud:ref(false)},pending=[],unmount=[],scope=effectScope(),taskRecords={},savedTasks=[];
+ const env={ref,shallowRef,computed,watch,nextTick,defineEmits:()=>(_event,data)=>savedTasks.push(data),changeTeamConstellation,defineProps:()=>({configuration:importedAxis(),tasks:taskRecords,taskKey:1}),onBeforeUnmount:f=>unmount.push(f),onDeactivated:f=>unmount.push(f),onActivated:()=>{},...teamDpsHistoryStandIns(),recordUsage:()=>{},usageStatsDebugInfo:()=>({}),usePresetStore:()=>presetStore,useArtifactStore:()=>artifactStore,useAccountStore:()=>accountStore,useMiyousheStore:()=>mys,useEnemy:()=>({enemyConfig:ref({level:100})}),characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],upgradeArtifactConfig:x=>x,convertArtifact:x=>x,convertPresetToWasmInterface:x=>({character:x.character,weapon:x.weapon}),teamDps:(input,artifacts,options)=>new Promise((resolve,reject)=>{const request={input,artifacts,options,resolve,reject};pending.push(request);options.signal.addEventListener('abort',()=>{if(!request.ignoreAbort)reject(new DOMException('cancel','AbortError'));});}),ElMessage:{success(){},info:message=>notices.push(message)},AbortController,DOMException,performance,setInterval,clearInterval,console};
  Object.assign(env,{teamDpsObjectiveValue,TEAM_DPS_RESULT_VERSION,canRestoreTeamDpsResult,createTeamDpsResultPacker,unpackTeamDpsResult,teamDamageAnalysis,teamProbabilityText,normalizeEnemy,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,characterPackages});
  const converterSource=sourceText('../src/utils/converter.ts').replace(/import type \{[\s\S]*?from "@\/types\/artifact"/,'').replace(/^import .*$/mg,'').replace(/^export /mg,'');
  const converterEnv={artifactsData:sets};vm.createContext(converterEnv);vm.runInContext(ts.transpileModule(converterSource+'\nglobalThis.convertName=convertArtifactName;',{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,converterEnv);
- Object.assign(env,{AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,teamDpsWeaponAvailable,teamDpsArtifactAvailable,INCOMPLETE_ARTIFACT_SETS,MANUAL_WEAPON_OPTIONS,defaultWeaponOptions,WIDSITH_THEMES,convertArtifactName:converterEnv.convertName,weaponByType:Object.fromEntries(['Sword','Polearm','Catalyst','Claymore'].map(type=>[type,Object.values(weapons).filter(w=>w.type===type)]))});
+ Object.assign(env,{AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,teamDpsWeaponAvailable,teamDpsArtifactAvailable,INCOMPLETE_ARTIFACT_SETS,MANUAL_WEAPON_OPTIONS,defaultWeaponOptions,WIDSITH_THEMES,convertArtifactName:converterEnv.convertName,weaponByType:Object.fromEntries(['Sword','Polearm','Catalyst','Claymore','Bow'].map(type=>[type,Object.values(weapons).filter(w=>w.type===type)]))});
  env.convertPresetToWasmInterface=x=>({character:x.character,weapon:x.weapon,artifact_config:x.artifactConfig});
  vm.createContext(env);scope.run(()=>vm.runInContext(ts.transpileModule(script,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,env));
  const u=env.ui;
+ // Runs start after the calculation history has read its storage, so the request reaches the worker a few ticks later.
+ const takeRequest=async()=>{for(let i=0;i<100&&!pending.length;i++)await new Promise(r=>setImmediate(r));assert.ok(pending.length,'no team DPS request reached the worker');return pending.shift();};
  try{
   await nextTick();assert.equal(u.names.value[0],'first0');assert.equal(u.members.value[0].weapon.name,records.first0.item.weapon.name);
   assert.deepEqual(Array.from(u.initialHp.value),[100,100,100,100]);u.initialHp.value[0]=65;
@@ -84,7 +87,7 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
   u.weaponConditions.value[0].AmosBow.stack=3;u.weaponConditions.value[0].Slingshot.close_rate=.4;u.weaponConditions.value[0].UltimateOverlordsMegaMagicSword.rate=.6;
   u.members.value[0].artifactConfig={config_berserker:{rate:.37},config_brave_heart:{rate:.42},config_bloodstained_chivalry:{rate:.61}};
   assert.equal(u.searchAlgorithm.value,'auto');u.searchAlgorithm.value='branch_bound';
-  const job=u.run('optimize'),req=pending.shift();assert.equal(req.input.team_dps.axis.id,importedAxis().id);
+  const job=u.run('optimize'),req=await takeRequest();assert.equal(req.input.team_dps.axis.id,importedAxis().id);
   assert.equal(req.input.team_dps.search_algorithm,'branch_bound');u.searchAlgorithm.value='auto';assert.equal(req.input.team_dps.search_algorithm,'branch_bound');
   assert.deepEqual(Array.from(req.input.team_dps.initial_hp),[.65,1,1,1]);u.initialHp.value[0]=20;assert.equal(req.input.team_dps.initial_hp[0],.65);assert.equal('fanfare' in req.input.team_dps,false);
   assert.equal(req.input.single_interfaces[0].artifact_config.config_bloodstained_chivalry.rate,.61);
@@ -108,31 +111,31 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
   for(let r=0;r<4;r++){u.editingRole.value=r;assert.equal(u.panelProfile.value,displayedContext.input.single_interfaces[r]);}
   u.editingRole.value=0;assert.equal(u.editingMember.value.character.level,1);assert.equal(u.panelProfile.value.character.level,90);
   u.sortMetric.value='critical';assert.equal(u.sortedResults.value[0].index,0);u.sortMetric.value='expectation';assert.equal(u.sortedResults.value[0].index,1);
-  const detail=u.selectResult(1),detailReq=pending.shift();assert.equal(u.members.value[0].artifactIds[0],other[0].flower);
+  const detail=u.selectResult(1),detailReq=await takeRequest();assert.equal(u.members.value[0].artifactIds[0],other[0].flower);
   assert.equal(u.showHitAnalysis.value,false);assert.equal(u.activeHit.value,null);
   assert.equal(detailReq.input.team_dps.initial_ids[0][0],other[0].flower);detailReq.resolve({results:[{...makeResult('old').results[1],hits:[{time:1}]}]});await detail;
   assert.equal(u.selected.value.hits[0].time,1);
-  const current=u.run('evaluate'),currentReq=pending.shift();assert.equal(currentReq.input.team_dps.initial_ids[0][0],other[0].flower);u.abort();await current;
+  const current=u.run('evaluate'),currentReq=await takeRequest();assert.equal(currentReq.input.team_dps.initial_ids[0][0],other[0].flower);u.abort();await current;
   const retained=u.output.value,context=u.resultContext.value;
   u.members.value[0].weapon.name='CoolSteel';u.minLevel.value=20;
-  const cancel=u.run('optimize'),cancelReq=pending.shift();assert.equal(cancelReq.input.team_dps.minimum_artifact_level,20);u.abort();await cancel;
+  const cancel=u.run('optimize'),cancelReq=await takeRequest();assert.equal(cancelReq.input.team_dps.minimum_artifact_level,20);u.abort();await cancel;
   assert.equal(u.output.value,retained);assert.equal(u.resultContext.value,context);assert.equal(u.selectedIndex.value,2);
-  const failed=u.run('optimize'),failedReq=pending.shift();failedReq.reject(new Error('Worker test error'));await failed;
+  const failed=u.run('optimize'),failedReq=await takeRequest();failedReq.reject(new Error('Worker test error'));await failed;
   assert.equal(u.error.value,'Worker test error');
   assert.equal(u.output.value,retained);assert.equal(u.resultContext.value,context);assert.equal(JSON.stringify(presetStore.presets.value),saved);
   delete u.output.value.results[1].hits;
-  const oldDetail=u.selectResult(1),oldReq=pending.shift();oldReq.ignoreAbort=true;
+  const oldDetail=u.selectResult(1),oldReq=await takeRequest();oldReq.ignoreAbort=true;
   assert.equal(oldReq.input.single_interfaces[0].weapon.name,'DullBlade');
-  const newer=u.run('evaluate'),newReq=pending.shift();assert.ok(oldReq.options.signal.aborted);
+  const newer=u.run('evaluate'),newReq=await takeRequest();assert.ok(oldReq.options.signal.aborted);
   newReq.resolve(makeResult('new'));await newer;oldReq.resolve({results:[{...makeResult('stale').results[1],hits:[{time:99}]}]});await oldDetail;
   assert.equal(u.output.value.results[1].marker,'new1');
-  // A main response that was already queued when cancelled cannot replace the newer batch either.
-  const first=u.run('optimize'),firstReq=pending.shift();firstReq.ignoreAbort=true;
-  const second=u.run('optimize'),secondReq=pending.shift();secondReq.resolve(makeResult('latest'));await second;
-  firstReq.resolve(makeResult('late'));await first;assert.equal(u.output.value.results[0].marker,'latest0');assert.equal(u.busy.value,false);
+  // Since calculation history (7.2.03) one calculation runs at a time: a second run is refused, not swapped in.
+  const first=u.run('optimize'),firstReq=await takeRequest();
+  await u.run('optimize');assert.equal(pending.length,0);assert.equal(notices.at(-1),'当前有计算线程正在进行');
+  firstReq.resolve(makeResult('latest'));await first;assert.equal(u.output.value.results[0].marker,'latest0');assert.equal(u.busy.value,false);
   const eventBatch=makeResult('events'),state={time:1,role:0,analysis:{atk:{compiled:100,'天赋':20},normal:{expectation:10}}};delete eventBatch.results[0].hits;delete eventBatch.results[0].health;delete eventBatch.results[0].enemy;
   eventBatch.results[0].eventTrace={semantics:'event-local-joint-values',events:[{id:'hit/0',channel:'hits',probability:1,states:[{state:0,probability:.25,value:state},{state:1,probability:.75,value:{...state,time:2}}]}]};
-  const eventJob=u.run('evaluate'),eventRequest=pending.shift();eventRequest.resolve(eventBatch);await eventJob;assert.equal(pending.length,0);await u.selectResult(0);assert.equal(pending.length,0);assert.equal(u.selected.value.eventTrace,eventBatch.results[0].eventTrace);
+  const eventJob=u.run('evaluate'),eventRequest=await takeRequest();eventRequest.resolve(eventBatch);await eventJob;assert.equal(pending.length,0);await u.selectResult(0);assert.equal(pending.length,0);assert.deepEqual(u.selected.value.eventTrace,eventBatch.results[0].eventTrace);
   await u.openHitAnalysis(state,.25);assert.equal(u.activeHit.value.probability,.25);assert.equal(u.activeHit.value.enemy.level,100);assert.equal(shown.atk['未分项合计'],100);assert.equal(shown.atk['天赋'],20);assert.equal(shown.atk.compiled,undefined);assert.equal(state.analysis.atk.compiled,100);
   // Legacy event axes use the same numerical rules and must invalidate stale results too.
   u.saveTask();const currentTask=savedTasks.at(-1).state;assert.equal(currentTask.engineRulesVersion,TEAM_ACTION_RULES_VERSION);
@@ -140,11 +143,12 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
   u.clearResults();u.restoreTask('second');assert.equal(u.output.value,null);assert.equal(u.budget.value,17);assert.equal(u.members.value[0].weapon.name,'CoolSteel');assert.equal(presetStore.presets.value.second0.item.weapon.name,'DullBlade');
   taskRecords.second=currentTask;u.restoreTask('second');assert.equal(u.output.value.results[0].marker,'events0');assert.equal(u.selected.value.eventTrace.events[0].states[0].probability,.25);
   const display=u.selectedItems.value[0][0],oldLevel=display.level;artifactStore.artifacts.value.get(display.id).level=0;assert.equal(u.selectedItems.value[0][0].level,oldLevel);
-  const pendingDetail=u.selectResult(1),accountReq=pending.shift();accountStore.currentAccountId.value=2;await nextTick();await pendingDetail;
+  const pendingDetail=u.selectResult(1),accountReq=await takeRequest();accountStore.currentAccountId.value=2;await nextTick();await pendingDetail;
   assert.ok(accountReq.options.signal.aborted);assert.equal(u.output.value,null);
   // Account store loads asynchronously after the account id changes.
   presetStore.presets.value={...presetStore.presets.value};await nextTick();assert.equal(u.names.value[0],'second0');
-  const last=u.run('evaluate'),lastReq=pending.shift();for(const f of unmount)f();await last;assert.ok(lastReq.options.signal.aborted);
+  // Leaving the page moves a running calculation to the background (calculation history) instead of aborting it.
+  const last=u.run('evaluate'),lastReq=await takeRequest();for(const f of unmount)f();assert.equal(lastReq.options.signal.aborted,false);lastReq.resolve(makeResult('background'));await last;
   assert.equal(JSON.stringify(presetStore.presets.value),saved);
   const directory=process.env.TEAM_DPS_TEST_OUTPUT_DIR||'.build-target/team-dps-tests';fs.mkdirSync(directory,{recursive:true});fs.writeFileSync(directory+'/V4.json',JSON.stringify({initialHpDefault:true,initialHpSnapshot:true,uidReset:true,healthSelection:true,cancelPreservesResults:true,presetsUnchanged:true}));
   const x={single_interfaces:profiles,team_dps:{axis:importedAxis(),enemy:{level:100},initial_ids:builds.map(b=>b.map(a=>a.id)),max_evaluations:1,result_count:1}};

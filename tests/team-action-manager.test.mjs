@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {teamDpsHistoryStandIns} from './helpers/team-dps-history-stand-ins.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -17,10 +18,10 @@ test('V2: select four roles, compute duration, autosave every 15s and confirm ma
  assert.doesNotMatch(vue,/label="(?:命座条件|修订)"/);
  let script=vue.match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'');
  script+='\nglobalThis.ui={library,selected,draft,error,managing,createDraft,confirmMembers,toggleMember,newMembers,selectingMembers,draftDurationMs,autoSaveDraft,addAction,changeActor,changeKind,changeAction,setActionParameter,parametersFor,selectableCharacters,moveAction,openTimelineJson,applyTimelineJson,importFile,saveDraft,exportDraft,removeDraft,timelineText,openManager};';
- const account={currentAccountId:ref(1)},data=new Map([['mona_account_presets_1',{existing:'untouched'}]]),downloads=[],scope=effectScope(),unmount=[],timers=[],cleared=[],notifications=[];let writes=0;
+ const account={currentAccountId:ref(1),reloadGeneration:ref(0),applyingCloud:ref(false)},data=new Map([['mona_account_presets_1',{existing:'untouched'}]]),downloads=[],scope=effectScope(),unmount=[],timers=[],cleared=[],notifications=[];let writes=0;
  const backend={getItem:async key=>structuredClone(data.get(key)??null),setItem:async(key,value)=>{writes++;data.set(key,structuredClone(value));}};
  const ElMessage=Object.assign(options=>notifications.push(options),{success:message=>notifications.push({message})});
- const env={...libraryApi,...actionApi,validateTeamDpsConfiguration,ref,shallowRef,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),useAccountStore:()=>account,useMiyousheStore:()=>({selectedUid:ref('')}),backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:JSON.parse(fs.readFileSync('src/i18n/generated/zh-cn.json','utf8')),ElMessage,console,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearInterval:id=>cleared.push(id)};
+ const env={...libraryApi,...actionApi,validateTeamDpsConfiguration,ref,shallowRef,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),onActivated:()=>{},useRoute:()=>({path:'/team-optimization',query:{}}),calculationHistory:teamDpsHistoryStandIns().calculationHistory,useAccountStore:()=>account,useMiyousheStore:()=>({selectedUid:ref('')}),backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:JSON.parse(fs.readFileSync('src/i18n/generated/zh-cn.json','utf8')),ElMessage,console,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},clearInterval:id=>cleared.push(id)};
  vm.createContext(env);scope.run(()=>vm.runInContext(ts.transpileModule(script,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,env));
  const ui=env.ui;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,0);
  const importAxis=axis=>ui.importFile({target:{files:[{text:async()=>JSON.stringify(axis)}],value:''}});
@@ -42,7 +43,7 @@ test('V2: select four roles, compute duration, autosave every 15s and confirm ma
  assert.deepEqual(data.get('mona_account_presets_1'),{existing:'untouched'});
  const fresh=fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/TeamDpsPage.vue',import.meta.url),'utf8').match(/function fresh[^\n]+/)[0];
  const defaults={characterPackages,characterData:chars,weaponData:weapons,params:()=>({}),upgradeArtifactConfig:x=>x};vm.createContext(defaults);vm.runInContext(ts.transpileModule(fresh+'\nglobalThis.make=fresh;',{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,defaults);
- assert.equal(ui.selectableCharacters.value.length,13);
+ assert.equal(ui.selectableCharacters.value.length,Object.keys(characterPackages).length);
  for(const [index,role]of Object.keys(characterPackages).entries()){const profile=defaults.make(role,index);assert.equal(weapons[profile.weapon.name].type,chars[role].weapon);}
  for(const fn of unmount)fn();assert.deepEqual(cleared,[1]);scope.stop();
 });

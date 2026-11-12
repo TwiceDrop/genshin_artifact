@@ -195,6 +195,7 @@ test('actual file reader and page save callback reach shared import and wait for
         'const {ref,computed}=Vue; const ImportBlock={template:' + JSON.stringify(upload.template.content) + ',setup(props,{expose}){' +
         'return (new Function("ref","defineProps","defineExpose",' + JSON.stringify(uploadCode + '\nreturn {isDragover,file,hasFile,fileName,fileInput,handleDragEnter,handleDragLeave,handleDragover,handleClick,handleSelectFile,handleDrop,props};') + '))(ref,()=>props,expose);}};' +
         'Vue.createApp({components:{ImportBlock},setup(){const t=x=>x;const ElLoading={service:()=>({close(){window.events.push("close")}})};const ElMessage=e=>window.messages.push(e.message);window.events=[];window.messages=[];' +
+        'const presetStore={presets:{value:{}}},useKumiStore=()=>({kumi:{value:[]}}),useMiyousheStore=()=>({data:{value:{}}}),artifactImportContext=()=>null,recordUsage=id=>window.events.push("usage:"+id);' +
         pageCode + ';return {fileUploader,handleImportJson};},template:\'<import-block ref="fileUploader"/><button @click="handleImportJson">导入</button>\'}).use(ElementPlus).mount("#app");</script></body></html>'
     const server = http.createServer((req, res) => {
         res.setHeader('Content-Type', req.url === '/' ? 'text/html; charset=utf-8' : 'text/javascript')
@@ -215,7 +216,7 @@ test('actual file reader and page save callback reach shared import and wait for
         await page.locator('input[type=file]').setInputFiles({ name: '任意文件名.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(fixture())) })
         await page.getByRole('button', { name: '导入', exact: true }).click()
         await page.waitForFunction(() => window.events.includes('close'))
-        assert.deepEqual(await page.evaluate(() => window.events), ['import-complete', 'close'])
+        assert.deepEqual(await page.evaluate(() => window.events), ['import-complete', 'usage:action.artifact-file-import', 'close'])
         assert.deepEqual(await page.evaluate(() => window.messages), [])
         assert.deepEqual(errors, [])
         assert.equal(store.artifactsCount.value, 5)
