@@ -5,6 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LocalUpdater } from './updates.mjs'
 import { CloudGateway } from './cloud.mjs'
+import { forwardUsageStats } from './usage-stats-forward.mjs'
 import { communityClient } from './hoyolab.mjs'
 import { communityAccount } from './cookie.mjs'
 import { startHoyolabWebLogin } from './hoyolab-web-login.mjs'
@@ -58,6 +59,10 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
                 })
             }
             try {
+                if (url.pathname === '/api/usage-stats' && req.method === 'POST') {
+                    const result = await forwardUsageStats(decodeURIComponent(req.headers['x-mona-usage-stats-url'] || ''), await input(70000))
+                    return json(result.data, result.status)
+                }
                 if (url.pathname.startsWith('/api/cloud/')) {
                     cloud ||= new CloudGateway({ file: path.join(path.dirname(credentialStore.file), 'cloud-session.dpapi'), credentialStore })
                     const expectedContext = req.headers['x-mona-cloud-url'] || req.headers['x-mona-cloud-user']

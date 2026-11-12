@@ -17,6 +17,7 @@ import {chartTheme} from './styles/color-mode.mjs'
 
 import App from './App.vue'
 import {initI18n} from "@/i18n/i18n"
+import {installUsageStats} from "@/usage-stats/index.mjs"
 
 declare global {
     interface Window {
@@ -42,6 +43,7 @@ async function mount() {
     // vue router
     monaApp.provide('ecTheme', chartTheme)
     monaApp.use(router)
+    installUsageStats(router)
 
     monaApp.mount("#app")
 

@@ -844,6 +844,7 @@ import {convertArtifact} from "@util/converter"
 import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
 import {deepCopy, downloadString} from "@/utils/common"
 import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
+import {usageStatsDebugInfo} from "@/usage-stats/index.mjs"
 import {wasmSingleOptimize} from "@/wasm/single_optimize"
 import {wasmPanelOptimize} from '@/wasm/panel_optimize'
 import {newPanelSearchOptions,readPanel} from '../../../beta-data/panel-search.mjs'
@@ -2124,7 +2125,9 @@ const optimizationError = ref('')
 const optimizationDebugDetail = computed(() => JSON.stringify({events:optimizationDebugRecord.value?.events,error:optimizationDebugRecord.value?.error},null,2))
 async function exportOptimizationDebug() {
     if (!optimizationDebugRecord.value) return
-    try { await downloadString(JSON.stringify(optimizationDebugRecord.value,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`) }
+    // Usage stats state is read at export time so the latest send failure is included.
+    const record = {...optimizationDebugRecord.value, environment: {...optimizationDebugRecord.value.environment, usageStats: usageStatsDebugInfo()}}
+    try { await downloadString(JSON.stringify(record,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`) }
     catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
 }
 function handleOptimizeArtifact() {

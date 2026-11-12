@@ -6,12 +6,12 @@ import { ApiError, invalid } from './errors.mjs'
 import { transaction } from './db.mjs'
 import { isUuid } from './auth.mjs'
 import { sameSecret } from './crypto.mjs'
-import { getUsageFeature, listUsageFeatures, USAGE_PLATFORMS } from '../../server/usage-stats-features.mjs'
+import { getUsageFeature, listUsageFeatures, USAGE_PLATFORMS, USAGE_UPLOAD_RULES } from '../../server/usage-stats-features.mjs'
 
 export const USAGE_UPLOAD_LIMITS = Object.freeze({
-    records: 500,          // the client queue holds at most 500 records
+    records: USAGE_UPLOAD_RULES.maxRecords,
     bodyBytes: 65536,
-    dayTolerance: 2,       // days either side of the server's UTC day
+    dayTolerance: USAGE_UPLOAD_RULES.dayTolerance,
     requestsPerWindow: 120,
     windowSeconds: 600,
 })
@@ -70,7 +70,7 @@ function parseUpload(input, today) {
         if (typeof record.feature !== 'string' || !getUsageFeature(record.feature)) reject('功能 ID 未登记')
         const day = dayNumber(record.day)
         if (day === null) reject('日期格式不正确')
-        if (Math.abs(day - today) > USAGE_UPLOAD_LIMITS.dayTolerance) reject('日期和服务器日期相差超过 2 天')
+        if (Math.abs(day - today) > USAGE_UPLOAD_LIMITS.dayTolerance) reject(`日期和服务器日期相差超过 ${USAGE_UPLOAD_LIMITS.dayTolerance} 天`)
     })
     return { installId: installId.toLowerCase(), platform, version, records }
 }

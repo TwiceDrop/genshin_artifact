@@ -39,6 +39,11 @@ const ACTIONS = [
 // The platforms an upload may name. The desktop build reports windows and the Android build android.
 export const USAGE_PLATFORMS = Object.freeze(['windows', 'android'])
 
+// Upload rules shared by the client queue and the online-service check.
+// A record's day may be at most `dayTolerance` days from the server's UTC day (confirmed 2026-11-12),
+// so the client drops queued records older than that instead of sending them.
+export const USAGE_UPLOAD_RULES = Object.freeze({ maxRecords: 500, dayTolerance: 2 })
+
 const FEATURES = Object.freeze([
     ...PAGES.map(([id, name, route]) => Object.freeze({id, category: 'page', name, route})),
     ...ACTIONS.map(([id, name]) => Object.freeze({id, category: 'action', name})),
