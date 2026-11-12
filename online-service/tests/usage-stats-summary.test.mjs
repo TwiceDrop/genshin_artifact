@@ -44,6 +44,8 @@ test('the summary counts each install once per feature and window', async t => {
     assert.equal(status, 200)
     assert.equal(body.today, '2026-11-07')
     assert.equal(body.activeInstalls30, 3)                       // A, B, C
+    assert.equal(body.activeInstalls7, 2)                        // A (11-07, 11-01), B (11-06)
+    assert.equal(body.totalInstalls, 3)                          // every install with a cumulative row
     assert.deepEqual(pick(body, 'page.calculate'), { total: 3, last7: 2, last30: 3, share30: 1 })
     assert.deepEqual(pick(body, 'action.single-optimize'), { total: 1, last7: 0, last30: 1, share30: 1 / 3 })
     assert.deepEqual(pick(body, 'page.artifacts'), { total: 1, last7: 0, last30: 0, share30: 0 })
@@ -66,6 +68,8 @@ test('platform and version filters narrow every number', async t => {
     const f = await seeded(t)
     const windows = (await f.summary('?platform=windows')).body
     assert.equal(windows.activeInstalls30, 2)                    // A, B
+    assert.equal(windows.activeInstalls7, 2)
+    assert.equal(windows.totalInstalls, 2)
     assert.deepEqual(pick(windows, 'page.calculate'), { total: 2, last7: 2, last30: 2, share30: 1 })
     assert.deepEqual(pick(windows, 'action.single-optimize'), { total: 1, last7: 0, last30: 1, share30: 0.5 })
     assert.deepEqual(pick(windows, 'page.artifacts'), { total: 0, last7: 0, last30: 0, share30: 0 })

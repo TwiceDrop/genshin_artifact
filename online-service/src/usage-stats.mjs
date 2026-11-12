@@ -120,16 +120,17 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
         const firstsFilter = filter(1), daysFilter = filter(2)
         const days = [today, ...daysFilter.values]
         const window = length => `day BETWEEN $1::date - ${length - 1} AND $1::date`
-        const [totals, recent, active, daily, versions, characterTotals, characterRecent] = await Promise.all([
+        const [totals, recent, active, daily, versions, characterTotals, characterRecent, installs] = await Promise.all([
             pool.query(`SELECT feature_id, count(DISTINCT install_id)::int AS n FROM usage_stats_firsts WHERE true${firstsFilter.and} GROUP BY feature_id`, firstsFilter.values),
             pool.query(`SELECT feature_id, count(DISTINCT install_id) FILTER (WHERE day >= $1::date - 6)::int AS last7,
                 count(DISTINCT install_id)::int AS last30 FROM usage_stats_days WHERE ${window(30)}${daysFilter.and} GROUP BY feature_id`, days),
-            pool.query(`SELECT count(DISTINCT install_id)::int AS n FROM usage_stats_days WHERE ${window(30)}${daysFilter.and}`, days),
+            pool.query(`SELECT count(DISTINCT install_id)::int AS n, count(DISTINCT install_id) FILTER (WHERE day >= $1::date - 6)::int AS last7 FROM usage_stats_days WHERE ${window(30)}${daysFilter.and}`, days),
             pool.query(`SELECT day::text AS day, count(DISTINCT install_id)::int AS n FROM usage_stats_days WHERE ${window(DAILY_DAYS)}${daysFilter.and} GROUP BY day`, days),
             pool.query('SELECT DISTINCT version FROM usage_stats_firsts ORDER BY version'),
             pool.query(`SELECT character, feature_id, count(DISTINCT install_id)::int AS n FROM usage_stats_character_firsts WHERE true${firstsFilter.and} GROUP BY character, feature_id`, firstsFilter.values),
             pool.query(`SELECT character, feature_id, count(DISTINCT install_id) FILTER (WHERE day >= $1::date - 6)::int AS last7,
                 count(DISTINCT install_id)::int AS last30 FROM usage_stats_character_days WHERE ${window(30)}${daysFilter.and} GROUP BY character, feature_id`, days),
+            pool.query(`SELECT count(DISTINCT install_id)::int AS n FROM usage_stats_firsts WHERE true${firstsFilter.and}`, firstsFilter.values),
         ])
         const characterFeatures = listUsageFeatures().filter(f => f.characters).map(({ id, name }) => ({ id, name }))
         const characters = new Map()
@@ -154,7 +155,7 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
         const perDay = new Map(daily.rows.map(r => [r.day, r.n]))
         const start = Date.parse(`${today}T00:00:00Z`) - (DAILY_DAYS - 1) * DAY_MS
         return {
-            today, filters: { platform, version }, activeInstalls30,
+            today, filters: { platform, version }, activeInstalls30, activeInstalls7: active.rows[0].last7, totalInstalls: installs.rows[0].n,
             platforms: [...USAGE_PLATFORMS], versions: versions.rows.map(r => r.version),
             features: listUsageFeatures().map(({ id, category, name }) => {
                 const last30 = windows.get(id)?.last30 || 0
