@@ -112,14 +112,18 @@ test('the stats page is served as static files with a strict policy', async t =>
     const html = await page.text()
     assert.match(html, /<script src="\/admin\/stats\.js"/)
     assert.doesNotMatch(html, /https?:\/\//)
-    for (const [path, type] of [['/admin/stats.js', /javascript/], ['/admin/stats.css', /css/]]) {
+    assert.match(page.headers.get('content-security-policy'), /img-src 'self' https:\/\/act-webstatic\.mihoyo\.com/)
+    for (const [path, type] of [['/admin/stats.js', /javascript/], ['/admin/stats.css', /css/], ['/admin/avatars.js', /javascript/]]) {
         const asset = await fetch(f.base + path)
         assert.equal(asset.status, 200, path)
         assert.match(asset.headers.get('content-type'), type)
-        // The SVG namespace is an identifier, not a request.
-        const text = (await asset.text()).replaceAll('http://www.w3.org/2000/svg', '')
+        // The SVG namespace is an identifier, not a request; avatars come only from the hosts the policy allows.
+        const text = (await asset.text()).replaceAll('http://www.w3.org/2000/svg', '').replace(/https:\/\/(act-webstatic|upload-bbs|fastcdn)\.mihoyo\.com\//g, '')
         assert.doesNotMatch(text, /https?:\/\//, `${path} loads nothing from outside`)
     }
+    const picture = await fetch(`${f.base}/admin/mona.png`)
+    assert.equal(picture.status, 200)
+    assert.equal(picture.headers.get('content-type'), 'image/png')
     for (const path of ['/admin/stats.html', '/admin/package.json', '/admin/stats/../../src/main.mjs'])
         assert.notEqual((await fetch(f.base + path)).status, 200, path)
 })

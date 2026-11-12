@@ -36,13 +36,16 @@ export function createUsageStatsPruner() {
     }
 }
 
-// The stats page: three fixed files, nothing else under /admin is served.
+// The stats page: a fixed set of files, nothing else under /admin is served.
 const PAGE_FILES = new Map([
     ['/admin/stats', ['stats.html', 'text/html; charset=utf-8']],
     ['/admin/stats.js', ['stats.js', 'text/javascript; charset=utf-8']],
     ['/admin/stats.css', ['stats.css', 'text/css; charset=utf-8']],
+    ['/admin/avatars.js', ['avatars.js', 'text/javascript; charset=utf-8']],
+    ['/admin/mona.png', ['mona.png', 'image/png']],
 ])
-export const USAGE_STATS_PAGE_POLICY = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+// Pictures may also come from the game's own CDN hosts, for character avatars; nothing else leaves the origin.
+export const USAGE_STATS_PAGE_POLICY = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' https://act-webstatic.mihoyo.com https://upload-bbs.mihoyo.com https://fastcdn.mihoyo.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 export async function usageStatsPageFile(path) {
     const entry = PAGE_FILES.get(path)
     if (!entry) return null

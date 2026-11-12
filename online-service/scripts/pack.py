@@ -21,7 +21,7 @@ fixed = [
 files = [source / name for name in fixed]
 files += sorted((service / "src").rglob("*.mjs"))
 files += sorted((service / "migrations").rglob("*.sql"))
-files += sorted((service / "static").glob("stats.*"))
+files += sorted(path for path in (service / "static").iterdir() if path.is_file())
 for path in files:
     if not path.is_file() or path.is_symlink():
         raise RuntimeError(f"Missing or linked package source: {path}")

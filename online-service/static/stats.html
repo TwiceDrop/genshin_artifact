@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
 <title>使用统计 · 莫娜占卜铺</title>
 <link rel="stylesheet" href="/admin/stats.css">
 </head>
@@ -23,59 +24,64 @@
     </div>
 </header>
 
-<main class="sheet">
-    <form id="login" class="login" hidden>
-        <h1>使用统计</h1>
-        <p class="muted">匿名统计各功能和各角色有多少个安装在用。输入服务器上 usage_stats_admin_token 文件里的口令。</p>
-        <label for="token">管理员口令</label>
-        <input id="token" type="password" autocomplete="off" required>
-        <button type="submit" class="btn primary">查看统计</button>
-        <p id="login-error" class="error" role="alert"></p>
+<main class="page">
+    <form id="login" class="login panel" hidden>
+        <img class="login-art" src="/admin/mona.png" alt="">
+        <div class="login-body">
+            <h1>使用统计</h1>
+            <p class="muted">匿名统计各功能和各角色有多少个安装在用。口令在服务器的 usage_stats_admin_token 文件里。</p>
+            <label for="token">管理员口令</label>
+            <input id="token" type="password" autocomplete="off" required>
+            <button type="submit" class="btn primary">查看统计</button>
+            <p id="login-error" class="error" role="alert"></p>
+        </div>
     </form>
 
     <div id="report" class="report" hidden>
-        <div class="title-row">
-            <div>
-                <h1>使用统计</h1>
+        <section class="hero panel">
+            <img class="hero-art" src="/admin/mona.png" alt="">
+            <div class="hero-body">
+                <div class="hero-top">
+                    <h1>使用统计</h1>
+                    <div class="filters">
+                        <label class="select"><span>平台</span><select id="platform"><option value="">全部</option></select></label>
+                        <label class="select"><span>版本</span><select id="version"><option value="">全部</option></select></label>
+                        <button id="refresh" type="button" class="btn">刷新</button>
+                    </div>
+                </div>
                 <p id="finding" class="finding"></p>
+                <div id="report-error" class="notice" role="alert" hidden>
+                    <span id="report-error-text"></span>
+                    <button id="retry" type="button" class="link">重试</button>
+                </div>
+                <dl class="kpis">
+                    <div class="kpi lead"><dt>近 30 天活跃安装</dt><dd id="kpi-30" class="num">—</dd></div>
+                    <div class="kpi"><dt>近 7 天活跃安装</dt><dd id="kpi-7" class="num">—</dd></div>
+                    <div class="kpi"><dt>累计安装</dt><dd id="kpi-total" class="num">—</dd></div>
+                </dl>
             </div>
-            <div class="filters">
-                <label class="select"><span>平台</span><select id="platform"><option value="">全部</option></select></label>
-                <label class="select"><span>版本</span><select id="version"><option value="">全部</option></select></label>
-                <button id="refresh" type="button" class="btn">刷新</button>
-            </div>
-        </div>
-        <div id="report-error" class="notice" role="alert" hidden>
-            <span id="report-error-text"></span>
-            <button id="retry" type="button" class="link">重试</button>
-        </div>
-
-        <section class="kpis" aria-label="安装数">
-            <div class="kpi lead"><span class="kpi-label">近 30 天活跃安装</span><span id="kpi-30" class="kpi-value num">—</span></div>
-            <div class="kpi"><span class="kpi-label">近 7 天活跃安装</span><span id="kpi-7" class="kpi-value num">—</span></div>
-            <div class="kpi"><span class="kpi-label">累计安装</span><span id="kpi-total" class="kpi-value num">—</span></div>
         </section>
 
         <div class="grid">
-            <section class="card span-8 trend" aria-labelledby="trend-title">
-                <header class="card-head">
+            <section class="panel span-8 trend" aria-labelledby="trend-title">
+                <header class="panel-head">
                     <h2 id="trend-title">每日活跃安装</h2>
-                    <span class="card-meta">近 90 天 · 按 UTC 日期</span>
+                    <span class="panel-meta">近 90 天 · 按 UTC 日期</span>
                 </header>
                 <div id="chart" class="chart"></div>
             </section>
 
-            <section class="card span-4" aria-labelledby="candidates-title">
-                <header class="card-head">
+            <section class="panel span-4" aria-labelledby="candidates-title">
+                <header class="panel-head">
                     <h2 id="candidates-title">四人轴候选</h2>
-                    <span class="card-meta">近 30 天单人配装人数</span>
+                    <span class="panel-meta">近 30 天单人配装</span>
                 </header>
-                <p class="card-sub">单人配装算得多、还没在四人轴计算里出现过的角色。</p>
+                <p class="panel-sub">单人配装算得多、还没在四人轴计算里出现过的角色。</p>
                 <ol id="candidates" class="candidates"></ol>
             </section>
 
-            <section class="card span-7" aria-labelledby="characters-title">
-                <header class="card-head">
+            <section class="panel span-7" aria-labelledby="characters-title">
+                <header class="panel-head">
                     <h2 id="characters-title">角色热度</h2>
                     <div id="character-sort" class="segmented" role="group" aria-label="排序依据"></div>
                 </header>
@@ -92,8 +98,8 @@
                 <button id="characters-more" type="button" class="more" hidden></button>
             </section>
 
-            <section class="card span-5" aria-labelledby="features-title">
-                <header class="card-head">
+            <section class="panel span-5" aria-labelledby="features-title">
+                <header class="panel-head">
                     <h2 id="features-title">功能使用</h2>
                     <div id="feature-filter" class="segmented" role="group" aria-label="功能类别"></div>
                 </header>
@@ -109,9 +115,10 @@
                 <button id="features-more" type="button" class="more" hidden></button>
             </section>
         </div>
-        <p class="footnote">一个人是一个匿名安装 ID；同一安装同一天多次使用同一功能或同一角色只算一次。</p>
+        <p class="footnote">一个人是一个匿名安装 ID；同一安装同一天多次使用同一功能或同一角色只算一次。角色头像来自米游社。</p>
     </div>
 </main>
+<script src="/admin/avatars.js"></script>
 <script src="/admin/stats.js"></script>
 </body>
 </html>

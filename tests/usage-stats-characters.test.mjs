@@ -1,13 +1,15 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
-import {buildUsageStatsCharacters, renderUsageStatsCharacters, USAGE_STATS_CHARACTERS_FILE} from '../beta-tools/usage-stats-characters.mjs'
+import {buildUsageStatsCharacters, renderUsageStatsCharacters, USAGE_STATS_CHARACTERS_FILE, buildUsageStatsAvatars, renderUsageStatsAvatars, USAGE_STATS_AVATARS_FILE} from '../beta-tools/usage-stats-characters.mjs'
 import {listUsageCharacters, getUsageCharacter} from '../server/usage-stats-characters.mjs'
 import {listUsageFeatures} from '../server/usage-stats-features.mjs'
 
 test('the shared character list matches the release character catalog', () => {
     assert.equal(fs.readFileSync(USAGE_STATS_CHARACTERS_FILE, 'utf8'), renderUsageStatsCharacters(buildUsageStatsCharacters()),
         'run node beta-tools/usage-stats-characters.mjs to regenerate server/usage-stats-characters.mjs')
+    assert.equal(fs.readFileSync(USAGE_STATS_AVATARS_FILE, 'utf8'), renderUsageStatsAvatars(buildUsageStatsAvatars()),
+        'run node beta-tools/usage-stats-characters.mjs to regenerate online-service/static/avatars.js')
 })
 
 test('characters are looked up by id and carry a Chinese name', () => {
