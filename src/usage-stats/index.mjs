@@ -26,6 +26,14 @@ export const installUsageStats = router => install({ router, recorder: usageStat
 // For the first-run notice and the settings switch.
 export const usageStatsAvailable = usageStats.available()
 export const usageStatsConsent = ref(usageStats.consent())
+// Re-read after something outside the recorder changed storage, such as clearing local storage in Settings.
+export function refreshUsageStatsConsent() {
+    usageStatsConsent.value = usageStats.consent()
+}
+// Native save dialogs resolve {cancelled: true} when the player backs out; only a real save counts.
+export function recordUsageUnlessCancelled(result, feature) {
+    if (!result?.cancelled) usageStats.record(feature)
+}
 export function setUsageStatsConsent(value) {
     usageStats.setConsent(value)
     usageStatsConsent.value = usageStats.consent()

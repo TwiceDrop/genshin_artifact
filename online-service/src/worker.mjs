@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { transaction } from './db.mjs'
-import { pruneUsageStats } from './usage-stats.mjs'
+import { createUsageStatsPruner } from './usage-stats.mjs'
 import { queueJob } from './accounts.mjs'
 import { gameFailure } from './errors.mjs'
 import { credentialsFrom, createGameClient } from './game-client.mjs'
@@ -8,6 +8,7 @@ import { credentialsFrom, createGameClient } from './game-client.mjs'
 const MAX_ATTEMPTS = 3
 export function createWorker({ pool, vault, config, clock = () => new Date(), gameClient = createGameClient, onError = () => {} }) {
     let stopping = false, activeAbort = null
+    const pruneUsageStats = createUsageStatsPruner()
     const leaseEnd = () => new Date(clock().getTime() + config.jobLeaseSeconds * 1000)
     async function recover() {
         const now = clock()

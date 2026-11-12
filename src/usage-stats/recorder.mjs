@@ -97,10 +97,11 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
             if (!batch.length) return
             body = { installId: installId(), platform, version, records: batch }
         } catch (error) { return fail('storage', error) }
-        let result
-        try { result = await send(body, options) } catch (error) { return fail('send', error) }
-        // Turned off while the batch was on its way: the queue and ids are already gone, keep it that way.
+        let result, sendError
+        try { result = await send(body, options) } catch (error) { sendError = error }
+        // Turned off while the batch was on its way: the queue, ids and failure are already gone, keep it that way.
         if (consent() !== 'on') return
+        if (sendError) return fail('send', sendError)
         if (!result.ok) return fail('response', new Error(result.message || `HTTP ${result.status}`), { status: result.status })
         try {
             const sent = new Set(batch.map(key))
@@ -117,7 +118,7 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
 
     function debugInfo() {
         let queued = 0, lastSentAt = null
-        try { queued = current(readQueue()).length; lastSentAt = storage.getItem(USAGE_STATS_KEYS.sentAt) } catch {}
+        try { queued = current(readQueue()).length; lastSentAt = storage.getItem(USAGE_STATS_KEYS.sentAt) } catch (error) { fail('storage', error) }
         // No install id here: a Debug export must not link a player's report to their usage rows.
         return { active: canSend(), consent: consent(), queued, lastSentAt, lastFailure: failure }
     }

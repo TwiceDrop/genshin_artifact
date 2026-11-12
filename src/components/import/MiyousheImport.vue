@@ -77,7 +77,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import QRCode from 'qrcode'
 import MiyousheVerification from './MiyousheVerification.vue'
-import { recordUsage } from '@/usage-stats/index.mjs'
+import { recordUsage, recordUsageUnlessCancelled } from '@/usage-stats/index.mjs'
 import MiyousheCharacterPicker from './MiyousheCharacterPicker.vue'
 import characters from '@/assets/_gen_character'
 import weapons from '@/assets/_gen_weapon'
@@ -295,14 +295,13 @@ async function finishVerification(result) {
     }
 }
 async function exportSnapshots() {
-    try { await saveText(JSON.stringify(Object.values(store.data.value.snapshots), null, 2), 'application/json', 'mona-miyoushe-characters.json'); recordUsage('action.data-export') }
+    try { recordUsageUnlessCancelled(await saveText(JSON.stringify(Object.values(store.data.value.snapshots), null, 2), 'application/json', 'mona-miyoushe-characters.json'), 'action.data-export') }
     catch (e) { error.value = e.message }
 }
 async function exportUid() {
     try {
         const pack = exportUidPackage(store.selectedUid.value, store.data.value, usePresetStore().presets.value, useArtifactStore().artifacts.value, includeInventory.value)
-        await saveText(JSON.stringify(pack), 'application/json', `mona-uid-${pack.uid}.json`)
-        recordUsage('action.data-export')
+        recordUsageUnlessCancelled(await saveText(JSON.stringify(pack), 'application/json', `mona-uid-${pack.uid}.json`), 'action.data-export')
     } catch (e) { error.value = e.message }
 }
 async function restore(event) {

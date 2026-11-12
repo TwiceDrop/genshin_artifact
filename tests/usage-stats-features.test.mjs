@@ -67,7 +67,7 @@ test('every action feature is recorded somewhere in src, and every recorded id i
     const calls = new Set()
     for (const file of fs.readdirSync('src', { recursive: true })) {
         if (!/\.(vue|mjs|js|ts)$/.test(file)) continue
-        for (const [, id] of fs.readFileSync(`src/${file}`, 'utf8').matchAll(/recordUsage\(\s*['"]([^'"]+)['"]\s*\)/g)) calls.add(id)
+        for (const [, id] of fs.readFileSync(`src/${file}`, 'utf8').matchAll(/recordUsage\w*\([^;]*?['"]([a-z]+\.[a-z0-9-]+)['"]\s*\)/g)) calls.add(id)
     }
     for (const id of calls) assert.ok(getUsageFeature(id), `src records unregistered id ${id}`)
     for (const f of listUsageFeatures().filter(f => f.category === 'action'))

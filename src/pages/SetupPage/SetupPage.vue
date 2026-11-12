@@ -48,7 +48,7 @@
 import localforage from "localforage"
 import {colorMode,setColorMode} from "@/styles/color-mode.mjs"
 import {useI18n} from "@/i18n/i18n"
-import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent, recordUsage} from "@/usage-stats/index.mjs"
+import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent, refreshUsageStatsConsent, recordUsage} from "@/usage-stats/index.mjs"
 import IconEpDelete from "~icons/ep/delete"
 
 const { t, setLocale, locale } = useI18n()
@@ -62,6 +62,7 @@ function handleSetColorMode(mode: string) {
 function handleClearLocalStorage() {
     localStorage.clear()
     localforage.clear()
+    refreshUsageStatsConsent()
 }
 
 async function handleSetLocale(lang: string) {

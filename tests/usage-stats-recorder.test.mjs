@@ -194,3 +194,15 @@ test('only on and off are valid answers', () => {
     const { recorder } = setup({ consent: null })
     assert.throws(() => recorder.setConsent('maybe'), /使用统计开关只能是 on 或 off/)
 })
+
+test('a send that fails after the player turned usage stats off leaves nothing behind', async () => {
+    let fail
+    const { recorder, storage } = setup({ send: () => new Promise((_, reject) => { fail = reject }) })
+    recorder.record('page.calculate')
+    const pending = recorder.flush()
+    recorder.setConsent('off')
+    fail(new TypeError('Failed to fetch'))
+    await pending
+    assert.deepEqual([...storage.map.keys()], ['mona-usage-stats-consent'])
+    assert.equal(recorder.debugInfo().lastFailure, null)
+})
