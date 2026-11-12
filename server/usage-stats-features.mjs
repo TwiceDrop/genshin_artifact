@@ -40,9 +40,10 @@ const ACTIONS = [
 export const USAGE_PLATFORMS = Object.freeze(['windows', 'android'])
 
 // Upload rules shared by the client queue and the online-service check.
-// A record's day may be at most `dayTolerance` days from the server's UTC day (confirmed 2026-11-12),
-// so the client drops queued records older than that instead of sending them.
-export const USAGE_UPLOAD_RULES = Object.freeze({ maxRecords: 500, dayTolerance: 2 })
+// A record's day may be up to `pastDays` before and `futureDays` after the server's UTC day
+// (30 days back so an offline client can catch up, 2 days ahead for time zones; developer, 2026-11-12).
+// The client keeps one day less than pastDays, since a player west of UTC is a day behind the server.
+export const USAGE_UPLOAD_RULES = Object.freeze({ maxRecords: 500, pastDays: 30, futureDays: 2 })
 
 const FEATURES = Object.freeze([
     ...PAGES.map(([id, name, route]) => Object.freeze({id, category: 'page', name, route})),

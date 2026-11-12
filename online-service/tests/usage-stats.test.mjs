@@ -56,7 +56,7 @@ test('one invalid record rejects the whole upload and names the record', async t
     }
     const second = await rejected(upload({ records: [{ feature: 'page.calculate', day: '2026-11-07' }, { feature: 'action.unknown', day: '2026-11-07' }] }), /第 2 条.*功能 ID/)
     assert.equal(second.body.error.index, 1)
-    await rejected(upload({ records: [{ feature: 'page.calculate', day: '2026-11-04' }] }), /第 1 条.*日期/)
+    await rejected(upload({ records: [{ feature: 'page.calculate', day: '2026-10-07' }] }), /第 1 条.*日期/)
     await rejected(upload({ records: [{ feature: 'page.calculate', day: '2026-11-10' }] }), /第 1 条.*日期/)
     await rejected(upload({ records: [{ feature: 'page.calculate', day: '2026-11-7' }] }), /第 1 条.*日期/)
     await rejected(upload({ records: [{ feature: 'page.calculate', day: '2026-02-30' }] }), /第 1 条.*日期/)
@@ -71,8 +71,8 @@ test('one invalid record rejects the whole upload and names the record', async t
     await rejected(upload({ records: tooMany }), /记录/)
     assert.equal((await f.pool.query('SELECT count(*)::int AS n FROM usage_stats_days')).rows[0].n, 0)
     assert.equal((await f.pool.query('SELECT count(*)::int AS n FROM usage_stats_firsts')).rows[0].n, 0)
-    // The edges of the accepted window are two days either side of the server day.
-    assert.equal((await post(upload({ records: [{ feature: 'page.calculate', day: '2026-11-05' }, { feature: 'page.calculate', day: '2026-11-09' }] }))).status, 200)
+    // The edges of the accepted window: 30 days back, 2 days ahead of the server day.
+    assert.equal((await post(upload({ records: [{ feature: 'page.calculate', day: '2026-10-08' }, { feature: 'page.calculate', day: '2026-11-09' }] }))).status, 200)
 })
 
 test('uploads are rate limited per address in memory only', async t => {

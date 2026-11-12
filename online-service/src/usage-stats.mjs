@@ -11,7 +11,8 @@ import { getUsageFeature, listUsageFeatures, USAGE_PLATFORMS, USAGE_UPLOAD_RULES
 export const USAGE_UPLOAD_LIMITS = Object.freeze({
     records: USAGE_UPLOAD_RULES.maxRecords,
     bodyBytes: 65536,
-    dayTolerance: USAGE_UPLOAD_RULES.dayTolerance,
+    pastDays: USAGE_UPLOAD_RULES.pastDays,
+    futureDays: USAGE_UPLOAD_RULES.futureDays,
     requestsPerWindow: 120,
     windowSeconds: 600,
 })
@@ -70,7 +71,8 @@ function parseUpload(input, today) {
         if (typeof record.feature !== 'string' || !getUsageFeature(record.feature)) reject('功能 ID 未登记')
         const day = dayNumber(record.day)
         if (day === null) reject('日期格式不正确')
-        if (Math.abs(day - today) > USAGE_UPLOAD_LIMITS.dayTolerance) reject(`日期和服务器日期相差超过 ${USAGE_UPLOAD_LIMITS.dayTolerance} 天`)
+        if (day < today - USAGE_UPLOAD_LIMITS.pastDays || day > today + USAGE_UPLOAD_LIMITS.futureDays)
+            reject(`日期超出服务器日期前 ${USAGE_UPLOAD_LIMITS.pastDays} 天到后 ${USAGE_UPLOAD_LIMITS.futureDays} 天的范围`)
     })
     return { installId: installId.toLowerCase(), platform, version, records }
 }

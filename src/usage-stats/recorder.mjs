@@ -62,10 +62,10 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         }
     }
     const key = r => `${r.feature}|${r.day}`
-    // The server rejects days further than dayTolerance from its own day, so older records cannot be sent.
+    // Keep what the server still accepts (see USAGE_UPLOAD_RULES), newest last, at most maxRecords.
     function current(queue) {
-        const oldest = dayNumber(localDay(clock())) - USAGE_UPLOAD_RULES.dayTolerance
-        return queue.filter(r => dayNumber(r.day) >= oldest)
+        const oldest = dayNumber(localDay(clock())) - (USAGE_UPLOAD_RULES.pastDays - 1)
+        return queue.filter(r => dayNumber(r.day) >= oldest).slice(-USAGE_UPLOAD_RULES.maxRecords)
     }
     function writeList(name, list) {
         if (list.length) storage.setItem(name, JSON.stringify(list))

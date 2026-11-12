@@ -26,3 +26,4 @@
 - 新增了版本格式校验（以字母或数字开头，只含字母、数字和 `.+-`，最长 32 位），防止任意字符串写进库。平台取值 `windows`、`android` 放在功能登记模块里，客户端和服务端共用。
 - 限流：每个 IP 每 10 分钟 120 次，只存在进程内存里，窗口切换时整体清空；`rate_limits` 表不写入。单次最多 500 条、请求体最多 64 KB。
 - 验证：`online-service/tests/usage-stats.test.mjs` 4 项通过；原有 `backend.test.mjs`、`profiles.test.mjs` 4 项通过；`tests/usage-stats-features.test.mjs` 4 项通过。打包脚本没有实际运行。
+- 2026-11-12（后续）：开发者决定把离线补发放宽到 30 天。日期规则拆成两个上限：过去最多 30 天，未来仍然最多 2 天，都写在登记模块的 `USAGE_UPLOAD_RULES` 里。

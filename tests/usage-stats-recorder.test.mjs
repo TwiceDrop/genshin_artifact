@@ -91,16 +91,37 @@ test('a failed send keeps the queue, records why, and the next flush retries', a
     assert.ok(recorder.debugInfo().lastSentAt)
 })
 
-test('records older than the server accepts are dropped from the queue', async () => {
+test('the queue keeps records up to 29 days old for an offline player and drops older ones', async () => {
     const { recorder, sent, advanceDays } = setup()
     recorder.record('page.calculate')            // 11-12
-    advanceDays(2)
-    recorder.record('page.artifacts')            // 11-14: 11-12 is still within 2 days
+    advanceDays(29)
+    recorder.record('page.artifacts')            // 12-11: 11-12 is 29 days old, still kept
     assert.equal(recorder.debugInfo().queued, 2)
-    advanceDays(1)                               // 11-15: 11-12 is now 3 days old
+    advanceDays(1)                               // 12-12: 11-12 is 30 days old and goes
     await recorder.flush()
-    assert.deepEqual(sent[0].records, [{ feature: 'page.artifacts', day: '2026-11-14' }])
+    assert.deepEqual(sent[0].records, [{ feature: 'page.artifacts', day: '2026-12-11' }])
 })
+
+test('the queue holds at most 500 records and drops the oldest first', async () => {
+    const { recorder, storage, sent } = setup()
+    const features = ['page.calculate', 'page.artifacts', 'page.presets', 'page.account', 'page.setup', 'page.intro', 'page.playground', 'page.uid-data',
+        'page.calculation-history', 'page.export-tools-help', 'page.artifacts-kumi', 'page.team-optimization', 'action.team-dps', 'action.preset-save',
+        'action.kumi-save', 'action.data-export', 'action.debug-export', 'action.update-check', 'action.locale-change', 'action.clear-selected',
+        'action.color-mode-change', 'action.single-optimize', 'action.miyoushe-import', 'action.artifact-file-import']
+    // 21 days (10-23 to 11-12) x 24 features = 504 records, oldest first.
+    const queue = []
+    for (let offset = 0; offset < 21; offset++) for (const feature of features) queue.push({ feature, day: dayFromOffset(offset) })
+    storage.setItem('mona-usage-stats-queue', JSON.stringify(queue))
+    assert.equal(recorder.debugInfo().queued, 500)
+    await recorder.flush()
+    assert.equal(sent[0].records.length, 500)
+    assert.deepEqual(sent[0].records[0], { feature: 'page.setup', day: '2026-10-23' }, 'the four oldest records were dropped')
+    assert.deepEqual(sent[0].records.at(-1), { feature: 'action.artifact-file-import', day: '2026-11-12' })
+})
+function dayFromOffset(offset) {
+    const date = new Date(2026, 10, 12 - 20 + offset)
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
 
 test('records added while a send is in flight survive its success, and flushes do not overlap', async () => {
     let release
