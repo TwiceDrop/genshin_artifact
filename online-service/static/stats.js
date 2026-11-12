@@ -68,8 +68,25 @@ function render(data) {
             cell(f.share30 === null ? '-' : `${(f.share30 * 100).toFixed(1)}%`, !f.share30))
         return tr
     }))
+    renderCharacters(data)
     $('login').hidden = true
     $('report').hidden = false
+}
+
+function renderCharacters(data) {
+    const head = document.createElement('tr'), top = document.createElement('tr')
+    const th = (text, attrs = {}) => { const el = document.createElement('th'); el.textContent = text; el.scope = 'col'; Object.assign(el, attrs); return el }
+    top.append(th('角色', { rowSpan: 2 }), ...data.characterFeatures.map(f => th(f.name, { colSpan: 3, scope: 'colgroup' })))
+    head.append(...data.characterFeatures.flatMap(() => [th('累计'), th('近 7 天'), th('近 30 天')]))
+    $('character-head').replaceChildren(top, head)
+    $('characters').replaceChildren(...data.characters.map(c => {
+        const tr = document.createElement('tr'), name = document.createElement('td')
+        name.textContent = c.zh
+        name.title = c.name
+        tr.append(name, ...data.characterFeatures.flatMap(f => [cell(c.counts[f.id].total), cell(c.counts[f.id].last7), cell(c.counts[f.id].last30)]))
+        return tr
+    }))
+    $('no-characters').hidden = data.characters.length > 0
 }
 
 async function load() {

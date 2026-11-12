@@ -41,7 +41,17 @@
                 <tbody id="features"></tbody>
             </table>
         </div>
-        <p class="muted">一个人是一个匿名安装 ID；同一安装同一天多次使用同一功能只算一次。日期按 UTC 计算。</p>
+        <h2>角色热度</h2>
+        <p class="muted">每个角色被多少个安装拿去做单人配装或四人轴计算，按近 30 天单人配装人数排序。</p>
+        <div class="table-wrap">
+            <table>
+                <thead id="character-head"></thead>
+                <tbody id="characters"></tbody>
+            </table>
+        </div>
+        <p id="no-characters" class="muted" hidden>还没有角色记录。</p>
+
+        <p class="muted">一个人是一个匿名安装 ID；同一安装同一天多次使用同一功能或角色只算一次。日期按 UTC 计算。</p>
     </section>
 </main>
 <script src="/admin/stats.js"></script>

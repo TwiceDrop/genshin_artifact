@@ -20,9 +20,9 @@ const PAGES = [
 ]
 
 const ACTIONS = [
-    ['action.single-optimize', '单人配装'],
+    ['action.single-optimize', '单人配装', {characters: true}],
     ['action.dynamic-artifact-score', '动态圣遗物评分'],
-    ['action.team-dps', '四人轴计算'],
+    ['action.team-dps', '四人轴计算', {characters: true}],
     ['action.miyoushe-import', '米游社/HoYoLAB 导入'],
     ['action.artifact-file-import', '导入圣遗物文件'],
     ['action.uid-data-restore', '还原 UID 数据'],
@@ -48,7 +48,8 @@ export const USAGE_UPLOAD_RULES = Object.freeze({ maxRecords: 500, pastDays: 30,
 
 const FEATURES = Object.freeze([
     ...PAGES.map(([id, name, route]) => Object.freeze({id, category: 'page', name, route})),
-    ...ACTIONS.map(([id, name]) => Object.freeze({id, category: 'action', name})),
+    // `characters`: records of this action may also name the characters it ran for (server/usage-stats-characters.mjs).
+    ...ACTIONS.map(([id, name, options]) => Object.freeze({id, category: 'action', name, ...options})),
 ])
 const BY_ID = new Map(FEATURES.map(f => [f.id, f]))
 const BY_ROUTE = new Map(FEATURES.filter(f => f.route).map(f => [f.route, f.id]))
