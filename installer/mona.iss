@@ -33,16 +33,24 @@ SolidCompression=yes
 WizardStyle=modern
 LicenseFile={#StageDir}\LICENSE
 UninstallDisplayIcon={app}\{#LauncherName}
-AppMutex=Local\MonaArtifactLauncher
+; Upgrades show the directory page too, prefilled with the previous install directory.
+DisableDirPage=no
+; The first name is the tray launcher's mutex (installer/TrayLauncher.cs); the second is the legacy launcher's.
+AppMutex=Local\MonaArtifactLauncher4184,Local\MonaArtifactLauncher
 CloseApplications=no
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
+; Inno Setup 6 ships no official Simplified Chinese; this file comes from issrc tag is-6_7_4 (see THIRD_PARTY_NOTICES.md).
+Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 [Tasks]
-Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
+Name: "desktopicon"; Description: "创建桌面快捷方式"; Flags: unchecked
+[InstallDelete]
+; Launcher names carry the version, so an in-place update removes the previous version's launcher.
+Type: files; Name: "{app}\启动*.exe"
+Type: files; Name: "{app}\启动*.bat"
 [Files]
 Source: "{#StageDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\莫娜占卜铺"; Filename: "{app}\{#LauncherName}"
 Name: "{autodesktop}\莫娜占卜铺"; Filename: "{app}\{#LauncherName}"; Tasks: desktopicon
 [Run]
-Filename: "{app}\{#LauncherName}"; Description: "Launch Mona"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#LauncherName}"; Description: "启动莫娜占卜铺"; Flags: nowait postinstall skipifsilent

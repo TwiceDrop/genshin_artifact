@@ -23,9 +23,14 @@ function Install-PortablePackage([string]$Archive, [string]$Destination, [string
         if(-not $target.StartsWith($destinationPrefix,[StringComparison]::OrdinalIgnoreCase)){throw '更新目标超出程序目录'}
         Copy-Item -LiteralPath $source -Destination $destinationPath -Recurse -Force
     }
-    foreach($name in @($launcherName,'LICENSE','THIRD_PARTY_NOTICES.md','LICENSE.miao')){
+    $batchName='启动'+$DisplayVersion+'.bat'
+    foreach($name in @($launcherName,$batchName,'LICENSE','THIRD_PARTY_NOTICES.md','LICENSE.miao')){
         Copy-Item -LiteralPath (Join-Path $packageRoot $name) -Destination (Join-Path $destinationPath $name) -Force
     }
+    # Launcher names carry the version; remove the previous versions' launchers, as the EXE installer does.
+    Get-ChildItem -LiteralPath $destinationPath -File |
+        Where-Object {$_.Name -match '^启动.+\.(exe|bat)$' -and $_.Name -notin @($launcherName,$batchName)} |
+        Remove-Item -Force
 }
 
 try {

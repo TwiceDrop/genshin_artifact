@@ -39,10 +39,12 @@ async function fixture(mode) {
     await writeFile(path.join(target, '.local-data/synthetic.json'), 'synthetic-saved-data')
     await writeFile(path.join(target, 'user-file.txt'), 'keep')
     await writeFile(path.join(target, '启动7.1.10.exe'), 'old-launcher')
+    await writeFile(path.join(target, '启动7.1.10.bat'), 'old-launcher')
     if (mode === 'installer') await writeFile(path.join(target, 'unins000.exe'), 'synthetic-install-marker')
     const source = path.join(root, 'FixtureLauncher.cs')
     await writeFile(source, 'using System; using System.IO; class FixtureLauncher { static void Main() { File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"relaunched.txt"),Environment.GetEnvironmentVariable("MONA_PORT") ?? "missing"); } }')
     run(compiler, ['/nologo', '/target:winexe', '/out:' + path.join(stage, '启动7.1.11.exe'), source])
+    await writeFile(path.join(stage, '启动7.1.11.bat'), 'new-batch')
     for (const name of ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'LICENSE.miao']) await writeFile(path.join(stage, name), 'synthetic-license')
     const parent = path.join(root, 'parent.mjs')
     await writeFile(parent, `import {LocalUpdater} from ${JSON.stringify(pathToFileURL(path.join(project, 'server/updates.mjs')).href)}
@@ -86,7 +88,9 @@ async function checkResult(f, file, report) {
     assert.equal(await readFile(path.join(f.target, 'runtime/node.exe'), 'utf8'), 'replacement-runtime')
     assert.equal(await readFile(path.join(f.target, '.local-data/synthetic.json'), 'utf8'), 'synthetic-saved-data')
     assert.equal(await readFile(path.join(f.target, 'user-file.txt'), 'utf8'), 'keep')
-    assert.equal(await readFile(path.join(f.target, '启动7.1.10.exe'), 'utf8'), 'old-launcher')
+    await assert.rejects(access(path.join(f.target, '启动7.1.10.exe')))
+    await assert.rejects(access(path.join(f.target, '启动7.1.10.bat')))
+    assert.equal(await readFile(path.join(f.target, '启动7.1.11.bat'), 'utf8'), 'new-batch')
 }
 async function cleanup(f) {
     assert.ok(path.resolve(f.root).startsWith(path.join(path.resolve(tmpdir()), 'mona-update-7111-')))
@@ -114,10 +118,18 @@ test('Windows: real synthetic Inno installer updates the original directory and 
     const f = await fixture('installer')
     t.diagnostic('Synthetic fixture: ' + f.root)
     const setupScript = path.join(f.root, 'fixture.iss')
-    await writeFile(setupScript, '\ufeff[Setup]\nAppName=Mona Synthetic Update\nAppVersion=7.1.11\nDefaultDirName=' + f.target + '\nOutputDir=' + f.job + '\nOutputBaseFilename=fixture\nPrivilegesRequired=lowest\nUninstallable=no\nCreateUninstallRegKey=no\nUsePreviousAppDir=no\nDisableProgramGroupPage=yes\nDisableReadyPage=yes\n[Files]\nSource: "' + f.stage + '\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs\n', 'utf8')
+    // Reuse the release installer's own [InstallDelete] section, so the test covers the shipped cleanup.
+    const installDelete = (await readFile(path.join(project, 'installer/mona.iss'), 'utf8')).match(/^\[InstallDelete\]\r?\n(?:[^[\r\n].*\r?\n)*/m)[0]
+    await writeFile(setupScript, '\ufeff[Setup]\nAppName=Mona Synthetic Update\nAppVersion=7.1.11\nDefaultDirName=' + f.target + '\nOutputDir=' + f.job + '\nOutputBaseFilename=fixture\nPrivilegesRequired=lowest\nUninstallable=no\nCreateUninstallRegKey=no\nUsePreviousAppDir=no\nDisableProgramGroupPage=yes\nDisableReadyPage=yes\n' + installDelete + '[Files]\nSource: "' + f.stage + '\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs\n', 'utf8')
     run(inno, ['/Q', setupScript])
     const exe = path.join(f.job, 'fixture.exe')
     const accepted = await execute(f, exe, 'accepted.json')
     await checkResult(f, exe, accepted)
     await cleanup(f)
+})
+
+test('Windows installer detects the running tray launcher before overwriting it in place', async () => {
+    const tray = (await readFile(path.join(project, 'installer/TrayLauncher.cs'), 'utf8')).match(/MutexName = "(.+?)"/)[1].replaceAll('\\\\', '\\')
+    const mutexes = (await readFile(path.join(project, 'installer/mona.iss'), 'utf8')).match(/^AppMutex=(.+)$/m)[1].trim().split(',')
+    assert.ok(mutexes.includes(tray), tray + ' missing from AppMutex ' + mutexes.join(','))
 })

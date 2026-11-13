@@ -130,12 +130,13 @@ test('3. portable update accepts the default trailing-separator root and applies
             await writeFile(path.join(stage, name, name === 'dist' ? 'index.html' : 'program.txt'), 'new-' + name)
             await writeFile(path.join(target, name, name === 'dist' ? 'index.html' : 'program.txt'), 'old-' + name)
         }
-        for (const name of ['启动7.1.10.exe', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'LICENSE.miao'])
+        for (const name of ['启动7.1.10.exe', '启动7.1.10.bat', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'LICENSE.miao'])
             await writeFile(path.join(stage, name), 'fixture')
         await mkdir(path.join(target, '.local-data'))
         await writeFile(path.join(target, '.local-data', 'synthetic.json'), 'synthetic-saved-data')
         await writeFile(path.join(target, 'user-file.txt'), 'keep')
         await writeFile(path.join(target, '启动7.1.09.exe'), 'old')
+        await writeFile(path.join(target, '启动7.1.09.bat'), 'old')
         const helper = path.resolve('script/install-update.ps1')
         powershell("$ErrorActionPreference='Stop'\n$tokens=$null;$errors=$null\n" +
             '$ast=[Management.Automation.Language.Parser]::ParseFile(' + psQuote(helper) + ',[ref]$tokens,[ref]$errors)\n' +
@@ -155,8 +156,10 @@ test('3. portable update accepts the default trailing-separator root and applies
             assert.equal(await readFile(path.join(target, name, name === 'dist' ? 'index.html' : 'program.txt'), 'utf8'), 'new-' + name)
         assert.equal(await readFile(path.join(target, '.local-data', 'synthetic.json'), 'utf8'), 'synthetic-saved-data')
         assert.equal(await readFile(path.join(target, 'user-file.txt'), 'utf8'), 'keep')
-        assert.equal(await readFile(path.join(target, '启动7.1.09.exe'), 'utf8'), 'old')
+        await assert.rejects(access(path.join(target, '启动7.1.09.exe')))
+        await assert.rejects(access(path.join(target, '启动7.1.09.bat')))
         await access(path.join(target, '启动7.1.10.exe'))
+        await access(path.join(target, '启动7.1.10.bat'))
     } finally {
         assert.ok(root.startsWith(path.join(tmpdir(), 'mona-update-zip-')))
         await rm(root, {recursive: true, force: true})
