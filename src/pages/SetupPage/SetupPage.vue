@@ -23,8 +23,11 @@
             </el-form-item>
 
             <el-form-item v-if="usageStatsAvailable" :label="t('usageStats.title')">
-                <el-switch :model-value="usageStatsConsent === 'on'" :aria-label="t('usageStats.title')"
-                    @update:model-value="setUsageStatsConsent($event ? 'on' : 'off')"></el-switch>
+                <div class="usage-stats-setting">
+                    <el-switch :model-value="usageStatsConsent === 'on'" :aria-label="t('usageStats.title')"
+                        @update:model-value="setUsageStatsConsent($event ? 'on' : 'off')"></el-switch>
+                    <p class="usage-stats-description">{{ t('usageStats.notice') }}</p>
+                </div>
             </el-form-item>
 
             <el-form-item>
@@ -82,6 +85,21 @@ async function handleSetLocale(lang: string) {
 </script>
 
 <style scoped lang="scss">
+.usage-stats-setting {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.usage-stats-description {
+    max-width: 44rem;
+    margin: 4px 0 0;
+    color: var(--el-text-color-regular);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
 .setup-item-label {
     display: flex;
     align-items: center;
