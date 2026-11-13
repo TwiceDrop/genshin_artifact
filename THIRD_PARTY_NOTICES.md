@@ -40,6 +40,8 @@ V7.2.02 Windows 包的 HoYoLAB 登录窗口使用 Microsoft Edge WebView2。随�
 
 V7.0.11 的 Windows 安装包包含 Node.js 22.23.2，来自 Node.js 官方 Windows x64 发行包；其许可证位于安装目录 `runtime/LICENSE`。本次 7.1.01 beta1 网页压缩包不捆绑 Node.js，使用用户自行安装的运行环境。
 
+Windows 安装器的简体中文界面使用 Inno Setup 社区翻译 `installer/ChineseSimplified.isl`，原样取自 https://github.com/jrsoftware/issrc 标签 `is-6_7_4`（提交 `c2913c993858a781fcb455bac8b8949c1c366cb8`）的 `Files/Languages/Unofficial/ChineseSimplified.isl`，维护者 Zhenghan Yang，按 Inno Setup 许可随安装器分发。
+
 前端依赖及版本在 `package-lock.json` 中记录，包含 Vue、Element Plus、ECharts、Monaco Editor 等。各依赖按其自身许可证提供；构建时生成的许可证文件随对应资源一同分发。图标、字体及其他第三方素材按各自许可证提供。
 
 游戏图片、角色/武器/圣遗物名称及资料属于相应权利人，本项目 MIT 许可不覆盖这些权利。
