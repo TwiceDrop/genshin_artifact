@@ -40,6 +40,10 @@ export interface ITeamContextSource {
 
 export interface IPreset {
     name: string,
+    enemy?: {level: number, electro_res: number, pyro_res: number, hydro_res: number, cryo_res: number, geo_res: number, anemo_res: number, dendro_res: number, physical_res: number},
+    infusion?: string,
+    skill?: {index: number, config: any},
+    singleConfig?: any,
     artifactIds?: number[],
     miyousheKey?: string,
     algorithm?: PresetAlgorithm,

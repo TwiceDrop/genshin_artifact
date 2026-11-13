@@ -326,45 +326,12 @@
             <header class="calc-toolbar">
                 <h2><i-ep-data-analysis aria-hidden="true"/>单次计算</h2>
                 <div class="preset-actions">
-                    <el-dropdown
-                        trigger="click"
-                        @command="handleCommandPreset"
-                        @click="handleSavePreset(miscCurrentPresetName)"
-                        split-button
-                    >
+                    <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handleClickSaveOptimizeConfig()">
                         <template v-if="!miscCurrentPresetName">{{ t("calcPage.newPreset") }}</template>
                         <template v-else>{{ t("calcPage.savePreset") }}「{{ miscCurrentPresetName }}」</template>
-
-                        <template #dropdown>
-                            <div class="preset-menu">
-                                <div class="preset-menu-filters">
-                                    <el-select v-model="presetElement" :teleported="false" aria-label="筛选预设元素">
-                                        <el-option label="全部元素" value="" />
-                                        <el-option v-for="element in presetElements" :key="element" :value="element" :label="t('ele', element)" />
-                                    </el-select>
-                                    <el-select v-model="presetSort" :teleported="false" aria-label="预设排序">
-                                        <el-option label="最近更新" value="recent" />
-                                        <el-option label="元素属性" value="element" />
-                                    </el-select>
-                                </div>
-                            <el-dropdown-menu class="preset-menu-list">
-                                <el-dropdown-item
-                                    v-if="miscCurrentPresetName"
-                                    icon="el-icon-s-tools"
-                                    command="save-preset"
-                                >{{ t("calcPage.saveAsPreset") }}</el-dropdown-item>
-
-                                <el-dropdown-item
-                                    v-for="(item, index) in presetMenuEntries"
-                                    :divided="index === 0 && !!miscCurrentPresetName"
-                                    :key="item.name"
-                                    :icon="IconEpMenu"
-                                    :command="'apply-' + item.name"
-                                >{{ item.name }}</el-dropdown-item>
-                            </el-dropdown-menu>
-                            </div>
-                        </template>
+                        <template #dropdown><el-dropdown-menu><el-dropdown-item command="save-as">{{ t('calcPage.saveAsPreset') }}</el-dropdown-item></el-dropdown-menu></template>
                     </el-dropdown>
+                    <preset-picker @select="usePreset" />
                 </div>
             </header>
             <div class="calc-action-bar">
@@ -462,6 +429,10 @@
 
                     <div class="artifact-borrowing-control">
                         <label><span>是否允许替换其他角色已穿戴的圣遗物</span><el-switch v-model="allowBorrowEquipped" aria-label="是否允许替换其他角色已穿戴的圣遗物" /></label>
+                        <div v-if="allowBorrowEquipped" class="borrowing-sources">
+                            <el-checkbox v-model="borrowGameArtifacts">包含游戏内角色</el-checkbox>
+                            <el-checkbox v-model="borrowCustomArtifacts">包含自定义角色</el-checkbox>
+                        </div>
                     </div>
                     <div class="optimization-actions">
                         <el-button-group>
@@ -491,6 +462,7 @@
                 @replace="handleGotoSelectArtifact" @score="i=>{scoreArtifactIndex=i;showArtifactScore=true}"
                 @analysis="handleClickArtifactAnalysis" @panel="jumpToSection('panel-card')" @details="jumpToSection('damage-card')"
                 @equipment="jumpToSection('artifacts-card')" @curve="showOptimalGainCurve=true">
+                <template #preset><preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" /></template>
                 <template #scoring><artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" /></template>
                 <template v-if="useNewScore" #score-basis><el-button v-if="dynamicScore" size="small" @click="openScoreBasis">评分依据</el-button><span v-else-if="dynamicScoreState.running" role="status">{{ dynamicScoreState.status }}</span><span v-else-if="dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span></template>
                 <template #baseline><artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
@@ -588,6 +560,7 @@
                                 </div>
                             </div>
                             <div class="artifact-tool">
+                                <preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" />
                                 <el-button-group>
                                     <el-button
                                         :icon="IconEpHistogram"
@@ -689,84 +662,8 @@
                             <header class="card-heading"><h3><i-ep-magic-stick aria-hidden="true"/>BUFF</h3><el-button :icon="IconEpPlus" @click="handleClickAddBuff" title="添加BUFF">添加BUFF</el-button></header>
                             <selected-buff-groups class="buffs" :buffs="otherBuffs">
                                 <template #character-controls>
-                            <div class="team-context-control">
-                                <h3 class="common-title2">队友来源（可选）</h3>
-                                <el-select v-model="selectedTeamPresetNames" multiple filterable clearable
-                                    placeholder="选择已保存的队友预设" style="width:100%">
-                                    <el-option v-for="entry in availableTeamPresets" :key="entry.name"
-                                        :label="`${entry.name} · ${teamCharacterLabel(entry.item.character.name)}`"
-                                        :value="entry.name" />
-                                </el-select>
-                                <template v-if="teamContextSources.length">
-                                    <div class="team-context-row">
-                                        <span>受益伤害模式</span>
-                                        <el-radio-group v-model="teamContextStellarMode" size="small">
-                                            <el-radio-button :label="false">普通伤害</el-radio-button>
-                                            <el-radio-button :label="true">星扩散</el-radio-button>
-                                        </el-radio-group>
-                                    </div>
-                                    <div v-for="source in teamContextSources" :key="source.presetName" class="team-source-card">
-                                        <strong>{{ source.presetName }} · {{ teamCharacterLabel(presetStore.presets.value[source.presetName]?.item.character.name) }}</strong>
-                                        <span class="team-source-gear">{{ teamSourceGearLabel(source.presetName) }}</span>
-                                        <label class="team-source-id">来源 ID
-                                            <el-input v-model="source.sourceId" size="small" aria-label="BUFF 来源 ID" />
-                                        </label>
-                                        <el-switch v-model="source.triggers.recipientOnField" active-text="受益角色在前台" />
-                                        <template v-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Vodyanitsa'">
-                                            <div class="team-trigger-grid">
-                                                <el-switch v-model="source.triggers.eActive" active-text="战技命中" />
-                                                <el-switch v-model="source.triggers.songActive" active-text="歌声状态" />
-                                                <el-switch v-model="source.triggers.a1Active" active-text="流荡风旋已触发" />
-                                                <el-switch v-model="source.triggers.a4Active" active-text="领唱／重唱已触发" />
-                                                <el-switch v-if="presetStore.presets.value[source.presetName]?.item.character.constellation >= 1"
-                                                    v-model="source.triggers.c1Active" active-text="一命条件" />
-                                                <el-switch v-if="presetStore.presets.value[source.presetName]?.item.character.constellation >= 2"
-                                                    v-model="source.triggers.c2Active" active-text="二命角笛命中" />
-                                            </div>
-                                            <div v-if="presetStore.presets.value[source.presetName]?.item.weapon.name === 'HymnOfTheMaelstrom'" class="team-context-row">
-                                                <span>专武层数</span>
-                                                <el-input-number v-model="source.triggers.signatureStacks" :min="0" :max="3" size="small" />
-                                                <el-switch v-model="source.triggers.signatureBoosted" active-text="强化状态" />
-                                                <el-switch v-model="source.triggers.signatureOnField" active-text="专武对当前角色生效" />
-                                            </div>
-                                        </template>
-                                        <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Vesna'">
-                                            <div class="team-trigger-grid">
-                                                <el-switch v-model="source.triggers.vesnaRadiance" active-text="辉映已触发" />
-                                                <el-switch v-model="source.triggers.vesnaTalentActive" active-text="队友星耀祝礼已触发" />
-                                            </div>
-                                            <div class="team-context-row">
-                                                <span>星耀祝礼平均覆盖率</span>
-                                                <el-input-number v-model="source.triggers.vesnaTalentCoverage" :min="0" :max="1" :step="0.1" :precision="2" size="small" />
-                                            </div>
-                                        </template>
-                                        <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Odette'">
-                                            <div class="team-context-row">
-                                                <span>奥黛塔辉映</span>
-                                                <el-select v-model="source.triggers.odetteRadianceMode" size="small">
-                                                    <el-option :value="0" label="未触发" /><el-option :value="1" label="星超导" /><el-option :value="2" label="星扩散" />
-                                                </el-select>
-                                                <el-switch v-model="source.triggers.odetteBlessing" active-text="星耀祝礼生效" />
-                                            </div>
-                                            <div class="team-context-row">
-                                                <el-switch v-model="source.triggers.odetteSplendor" active-text="受益角色已获得华彩" />
-                                                <span>受益华彩层数</span><el-input-number v-model="source.triggers.odetteStacks" :min="0" :max="presetStore.presets.value[source.presetName]?.item.character.constellation >= 1 ? 6 : 4" size="small" />
-                                            </div>
-                                            <el-switch v-model="source.triggers.odetteDouble" active-text="独舞倒影在场（二命）" />
-                                            <el-switch v-model="source.triggers.odetteDream" active-text="雪鹄之梦已触发（四命）" />
-                                        </template>
-                                        <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Qiqi'">
-                                            <el-switch v-model="source.triggers.qiqiTalisman" active-text="辉映·星烁：度厄真符条件已触发" />
-                                            <el-switch v-model="source.triggers.qiqiC6" active-text="六命增益已触发" />
-                                        </template>
-                                        <template v-else-if="presetStore.presets.value[source.presetName]?.item.character.name === 'Sandrone'">
-                                            <el-switch v-model="source.triggers.sandroneBlessing" active-text="星耀祝礼·星扩散已触发" />
-                                            <el-switch v-model="source.triggers.sandroneC1" active-text="一命队友星扩散增益已触发" />
-                                        </template>
-                                    </div>
-                                    <el-alert v-for="issue in teamContextResult.issues" :key="issue" type="error" :closable="false" :title="issue" />
-                                </template>
-                            </div>
+                            <team-buff-sources v-model="teamContextSources" v-model:stellar-mode="teamContextStellarMode"
+                                :character="characterName" :preset-name="miscCurrentPresetName" :issues="teamContextResult.issues" />
                             <div class="polestar-field-control">
                                 <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
                                 <div class="polestar-field-stacks"><span>极星辉域层数</span>
@@ -830,13 +727,16 @@ import {dslObjective} from '@/algorithms/single-result-comparison.mjs'
 import DynamicArtifactScore from '@/components/display/DynamicArtifactScore.vue'
 import ArtifactScoreMode from '@/components/display/ArtifactScoreMode.vue'
 import SingleResultWorkbench from './SingleResultWorkbench.vue'
+import PresetPicker from '@/components/preset/PresetPicker.vue'
+import TeamBuffSources from '@/components/preset/TeamBuffSources.vue'
+import {applyPresetIdentity, restorePresetConfiguration} from '@/utils/preset-view'
+import {snapshotPreset, customPresetNameError, assertPresetArtifacts} from '@/utils/preset-workflow.mjs'
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import ArtifactComparisonControls from '@/components/display/ArtifactComparisonControls.vue'
 import { useArtifactComparison, snapshotEquipment } from '@/composables/artifactComparison.mjs'
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { createMysConverter } from '@/import/miyoushe.mjs'
 import scoreCharacters from '@/assets/_gen_character'
-import {characterByElement} from '@/assets/character'
 import scoreWeapons from '@/assets/_gen_weapon'
 import scoreLocale from '@/i18n/generated/zh-cn.json'
 import { scoreBuild, scoreSetNames, panelScoreAttributes, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
@@ -869,8 +769,8 @@ import AttributePanel from "@c/display/AttributePanel"
 import ItemConfig from "@c/config/ItemConfig"
 import BuffItem from "./BuffItem"
 import SelectedBuffGroups from '@/components/display/SelectedBuffGroups.vue'
-import { otherCharacterArtifactIds, artifactGroupCharacterNames } from '@/algorithms/artifact-ownership.mjs'
-import { createTeamContextSource, deriveSingleTeamContext } from '@/algorithms/single-team-context.mjs'
+import { protectedPresetArtifactIds, artifactGroupCharacterNames } from '@/algorithms/artifact-ownership.mjs'
+import { deriveSingleTeamContext } from '@/algorithms/single-team-context.mjs'
 import WeaponDisplay from "@/components/display/WeaponDisplay.vue"
 import SaveAsKumi from "./SaveAsKumi.vue"
 import TransformativeDamage from "./TransformativeDamage"
@@ -881,7 +781,7 @@ import ArtifactConfig from "./ArtifactConfig.vue"
 import DamageAnalysis from "@/components/display/DamageAnalysis"
 import {useCharacter, useCharacterSkill} from "@/composables/character"
 import {useEnemy} from "@/composables/enemy"
-import {useWeapon} from "@/composables/weapon"
+import {useCharacterWeapon} from "@/composables/weapon"
 import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
 import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
@@ -1093,12 +993,9 @@ const {
     weaponConfigConfig,
     weaponInterface,
     weaponLocale
-} = useWeapon(characterWeaponType)
+} = useCharacterWeapon(characterName, characterWeaponType)
 
-watch(characterName, name => {
-    if (name === 'Vodyanitsa') weaponName.value = 'HymnOfTheMaelstrom' as any
-    else if (name === 'Vesna') weaponName.value = 'BeyondTheChrysalis' as any
-}, { flush: 'sync' })
+
 
 
 //////////////////////////////////////////////////////////////
@@ -1216,6 +1113,8 @@ const {
 
     constraintSetMode,
     constraintInterface,
+    presetConstraint,
+    presetFilter,
 } = useComputeConstraint()
 const filterKumiRef = ref<InstanceType<typeof ElTree> | null>(null)
 const filterKumiSearch = ref("")
@@ -1240,36 +1139,15 @@ function handleClickArtifactConfig() {
 ///////////////////////////////////////////////////////////////
 // save and use presets
 const miscCurrentPresetName = ref<null | string>(null)
-const presetElement = ref("")
-const presetSort = ref("recent")
-const presetElements = Object.keys(characterByElement)
-const presetMenuEntries = computed(() => {
-    const entries = presetStore.allFlat.value.filter(entry =>
-        !presetElement.value || scoreCharacters[entry.item.character.name].element === presetElement.value)
-    return entries.sort((a, b) => {
-        const recent = (b.updatedAt ?? 0) - (a.updatedAt ?? 0)
-        if (presetSort.value === "recent") return recent
-        return presetElements.indexOf(scoreCharacters[a.item.character.name].element)
-            - presetElements.indexOf(scoreCharacters[b.item.character.name].element) || recent
-    })
-})
+watch(characterName, name => {
+    const current = presetStore.getPreset(miscCurrentPresetName.value || '')?.item
+    if (current?.miyousheKey && current.character.name !== name) miscCurrentPresetName.value = null
+}, {flush: 'sync'})
 const presetDefaultName = computed((): string => {
     const cName = characterLocale.value
     const wName = weaponLocale.value
     return `${cName}-${wName}`
 })
-
-function handleCommandPreset(cmd: string) {
-    if (cmd === "save-preset") {
-        handleClickSaveOptimizeConfig()
-    } else {
-        if (cmd.startsWith("apply-")) {
-            const name = cmd.slice(6)
-
-            usePreset(name)
-        }
-    }
-}
 
 function handleSavePreset(name: string) {
     if (!name) {
@@ -1292,59 +1170,48 @@ function handleSavePreset(name: string) {
     }
 }
 
-function handleClickSaveOptimizeConfig() {
+async function handleClickSaveOptimizeConfig(fromResult = false) {
     const item = getPresetItem()
-
-    ElMessageBox.prompt("输入名称（重复名称将覆盖）", "存为预设", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputPattern: /[^\s]+$/,
-        inputValue: presetDefaultName.value
-    }).then(({ value }) => {
-        item.name = value
-        presetStore.addOrOverwrite(value, item)
+    const displayed = deepCopy(artifactItems.value)
+    try {
+        if (fromResult) assertPresetArtifacts(item.artifactIds!, displayed, artifactStore.artifacts.value)
+        const {value} = await ElMessageBox.prompt('预设名称', '新建自定义预设', {
+            confirmButtonText: '确定', cancelButtonText: '取消', inputValue: presetDefaultName.value,
+            inputValidator: value => customPresetNameError(presetStore.presets.value, value) || true,
+        })
+        if (fromResult) assertPresetArtifacts(item.artifactIds!, displayed, artifactStore.artifacts.value)
+        presetStore.createCustom(value, item)
         recordUsage('action.preset-save')
         miscCurrentPresetName.value = value
-        ElMessage.success({
-            message: "保存成功"
-        })
-    })
+        ElMessage.success('保存成功')
+    } catch (error: any) {
+        if (error !== 'cancel' && error !== 'close') ElMessage.error(error.message || String(error))
+    }
+}
+
+function createPresetFromResult() { handleClickSaveOptimizeConfig(true) }
+
+function applyArtifactsToPreset(name: string) {
+    try {
+        presetStore.applyArtifacts(name, artifactIds.value, artifactItems.value)
+        recordUsage('action.preset-save')
+        ElMessage.success('已应用圣遗物到预设。')
+    } catch (error: any) { ElMessage.error(error.message) }
 }
 
 function getPresetItem() {
-    type BuffType = Omit<BuffEntry, "id">
-    let buffsToBeSaved: BuffType[] = []
-    for (let buff of buffs.value) {
-        buffsToBeSaved.push({
-            name: buff.name,
-            config: deepCopy(buff.config),
-            lock: buff.lock,
-            source_id: (buff as any).source_id,
-            source_effect: (buff as any).source_effect,
-        })
-    }
-
     const item = {
-        // buffs: deepCopy(config.buffs),
-        buffs: buffsToBeSaved,
+        buffs: buffs.value,
+        enemy: enemyConfig.value, infusion: fumo.value,
+        skill: characterSkillInterface.value, singleConfig: artifactSingleConfig.value,
         artifactIds: [...artifactIds.value],
         teamContext: deepCopy(teamContextSources.value),
         teamContextStellarMode: teamContextStellarMode.value,
         character: deepCopy(characterInterface.value),
         weapon: deepCopy(weaponInterface.value),
         targetFunction: deepCopy(targetFunctionInterface.value),
-        constraint: {
-            setNames: deepCopy(constraintArtifactSet.value),
-            minRecharge: constraintMinRecharge.value,
-            minCritical: constraintMinCritical.value,
-            minCriticalDamage: constraintMinCriticalDamage.value,
-            minElementalMastery: constraintMinElementalMastery.value
-        },
-        filter: {
-            sandMainStats: deepCopy(constraintSandMainStats.value),
-            gobletMainStats: deepCopy(constraintGobletMainStats.value),
-            headMainStats: deepCopy(constraintHeadMainStats.value),
-        },
+        constraint: presetConstraint.value,
+        filter: presetFilter.value,
         artifactConfig: deepCopy(artifactConfig.value),
         algorithm: algorithm.value,
         artifactEffectMode: artifactEffectMode.value,
@@ -1356,7 +1223,7 @@ function getPresetItem() {
         dslSource: targetFunctionDSLSource.value,
         name: ""
     } as IPreset
-    return item
+    return snapshotPreset(item) as IPreset
 }
 
 function usePreset(name: string, historyItem?: IPreset) {
@@ -1367,7 +1234,7 @@ function usePreset(name: string, historyItem?: IPreset) {
 
     resetArtifactComparison()
 
-    const item: IPreset = deepCopy(historyItem || entry.item)
+    const item = restorePresetConfiguration(historyItem || entry.item)
     optimizationMode.value = item.optimizationMode ?? 'damage'
     panelSearchOptions.value = item.panelSearch ? deepCopy(item.panelSearch) : newPanelSearchOptions()
     if (item.artifactIds) {
@@ -1395,27 +1262,14 @@ function usePreset(name: string, historyItem?: IPreset) {
     teamContextSources.value = Array.isArray(item.teamContext) ? deepCopy(item.teamContext) : []
     teamContextStellarMode.value = item.teamContextStellarMode === true
 
-    // use character
-    const c = item.character
-    if (c) {
-        // this.characterName = c.name
-        characterName.value = c.name
-        characterLevel.value = c.level.toString() + (c.ascend ? "+" : "-")
-        characterConstellation.value = c.constellation ?? 0
-        characterSkill1.value = c.skill1 + 1
-        characterSkill2.value = c.skill2 + 1
-        characterSkill3.value = c.skill3 + 1
-        characterConfig.value = c.params
-    }
-
-    // use weapon
-    const w = item.weapon
-    if (w) {
-        weaponName.value = w.name
-        weaponLevel.value = w.level.toString() + (w.ascend ? "+" : "-")
-        weaponRefine.value = w.refine
-        weaponConfig.value = w.params
-    }
+    applyPresetIdentity(item, {
+        characterName, characterLevel, characterConstellation, characterSkill1, characterSkill2, characterSkill3, characterConfig,
+    }, {weaponName, weaponLevel, weaponRefine, weaponConfig})
+    enemyConfig.value = item.enemy!
+    fumo.value = item.infusion!
+    characterSkillIndex.value = item.skill!.index
+    characterSkillConfig.value = item.skill!.config
+    artifactSingleConfig.value = item.singleConfig
 
     // use target function
     const tf = item.targetFunction
@@ -1489,25 +1343,6 @@ const {
 const otherBuffs = computed(() => buffs.value.filter(buff => buff.name !== 'ResonancePolestarField'))
 const teamContextSources = ref<ITeamContextSource[]>([])
 const teamContextStellarMode = ref(false)
-const availableTeamPresets = computed(() => presetStore.allFlat.value.filter(entry =>
-    ['Vodyanitsa', 'Vesna', 'Odette', 'Qiqi', 'Sandrone'].includes(entry.item?.character?.name)
-    && entry.item.character.name !== characterName.value
-    && entry.name !== miscCurrentPresetName.value))
-const selectedTeamPresetNames = computed<string[]>({
-    get: () => teamContextSources.value.map(source => source.presetName),
-    set: names => {
-        teamContextSources.value = names.map(name => teamContextSources.value.find(source => source.presetName === name)
-            || createTeamContextSource(name, presetStore.presets.value[name]))
-    },
-})
-function teamCharacterLabel(name?: string) {
-    return ({Vodyanitsa:'沃雅妮莎',Vesna:'薇斯纳',Odette:'奥黛塔',Qiqi:'七七',Sandrone:'桑多涅'} as Record<string,string>)[name || ''] || '未知角色'
-}
-function teamSourceGearLabel(name: string) {
-    const ids = presetStore.presets.value[name]?.item.artifactIds
-    if (!Array.isArray(ids)) return '未保存当前装备'
-    return `当前装备 ${ids.filter(id => id >= 0 && !!artifactStore.getArtifact(id)).length}/5 件`
-}
 const selectedTeamArtifactIds = computed(() => new Set(teamContextSources.value.flatMap(source =>
     (presetStore.presets.value[source.presetName]?.item.artifactIds || []).filter(id => Number.isInteger(id) && id >= 0))))
 const teamContextResult = computed(() => deriveSingleTeamContext(mona, {
@@ -1879,10 +1714,23 @@ const allowBorrowEquipped = computed({
     get: () => miyousheStore.data.value.allowBorrowEquipped === true,
     set: value => { miyousheStore.data.value.allowBorrowEquipped = value },
 })
-const reservedArtifactIds = computed(() => otherCharacterArtifactIds(
-    miyousheStore.data.value.entries, ownershipUid.value, comparisonEntry.value?.key, artifactStore.artifacts.value))
+const borrowGameArtifacts = computed({
+    get: () => miyousheStore.data.value.borrowGameArtifacts !== false,
+    set: value => { miyousheStore.data.value.borrowGameArtifacts = value },
+})
+const borrowCustomArtifacts = computed({
+    get: () => miyousheStore.data.value.borrowCustomArtifacts !== false,
+    set: value => { miyousheStore.data.value.borrowCustomArtifacts = value },
+})
+const reservedArtifactIds = computed(() => protectedPresetArtifactIds({
+    entries: miyousheStore.data.value.entries, uid: ownershipUid.value,
+    currentKey: comparisonEntry.value?.key, inventory: artifactStore.artifacts.value,
+    presets: presetStore.allFlat.value, character: characterName.value,
+    enabled: allowBorrowEquipped.value, gameAllowed: borrowGameArtifacts.value, customAllowed: borrowCustomArtifacts.value,
+}))
 const ownershipFilterKey = computed(() => JSON.stringify([ownershipUid.value, comparisonKey.value,
-    allowBorrowEquipped.value, allowBorrowEquipped.value ? [] : [...reservedArtifactIds.value].sort((a,b) => a-b),
+    allowBorrowEquipped.value, borrowGameArtifacts.value, borrowCustomArtifacts.value,
+    [...reservedArtifactIds.value].sort((a,b) => a-b),
     [...selectedTeamArtifactIds.value].sort((a,b) => a-b),teamContextKey.value]))
 watch(ownershipFilterKey, () => { optimizationResults.value = []; optimizationResultIndex.value = 0 }, { flush: 'sync' })
 const comparisonStorage = computed({
@@ -2034,7 +1882,7 @@ function getPanelOptimizeInterface() {
 
 function getAllArtifactsFiltered(): IArtifact[] {
     // s is artifact ids to be filtered
-    let s = new Set([...(allowBorrowEquipped.value ? [] : reservedArtifactIds.value), ...selectedTeamArtifactIds.value])
+    let s = new Set([...reservedArtifactIds.value, ...selectedTeamArtifactIds.value])
 
     // filter kumi
     const currentArtifactIds = new Set(artifactIds.value)
@@ -2161,7 +2009,7 @@ function handleOptimizeArtifact() {
             baseline: readPanel(mona,optimizeInterface,artifactWasmFormat.value),
             items: Object.fromEntries(artifacts.map(a=>[a.id,deepCopy(artifactStore.getArtifact(a.id))])),
         }
-        debug?.capture(optimizeInterface,artifacts,{allowBorrowEquipped:allowBorrowEquipped.value,minimumArtifactLevel:panelMode?panelSearchOptions.value.minArtifactLevel:16,sandMainStats:constraintSandMainStats.value,gobletMainStats:constraintGobletMainStats.value,headMainStats:constraintHeadMainStats.value,reservedOtherCharacterCount:reservedArtifactIds.value.size})
+        debug?.capture(optimizeInterface,artifacts,{allowBorrowEquipped:allowBorrowEquipped.value,borrowGameArtifacts:borrowGameArtifacts.value,borrowCustomArtifacts:borrowCustomArtifacts.value,minimumArtifactLevel:panelMode?panelSearchOptions.value.minArtifactLevel:16,sandMainStats:constraintSandMainStats.value,gobletMainStats:constraintGobletMainStats.value,headMainStats:constraintHeadMainStats.value,reservedOtherCharacterCount:reservedArtifactIds.value.size})
         debugEvent({phase:'parameters-prepared'})
         if (!artifacts.length) throw new Error('没有符合条件的圣遗物，请检查仓库、主词条筛选及其他角色穿戴保护开关')
     } catch (error: any) { reportError(error); return }
@@ -2366,7 +2214,14 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .card-heading h3 { font-size: 20px; }
 .calc-toolbar h2 svg, .card-heading h3 svg { color: #568de0; width: 1.1em; height: 1.1em; }
 .preset-actions, .preset-actions :deep(.el-dropdown), .preset-actions :deep(.el-button-group) { min-width: 0; max-width: 100%; }
+.preset-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.preset-actions :deep(.el-dropdown) { flex:1; }
+.preset-actions > :deep(button) { margin:0; flex-shrink:0; }
+.borrowing-sources { display:flex; flex-wrap:wrap; gap:8px 16px; padding:8px 0 0 16px; }
 .preset-actions :deep(.el-button-group) { display: flex; }
+.preset-actions :deep(.m-button-group) { display:flex; flex-wrap:nowrap; gap:0; width:100%; }
+.preset-actions :deep(.m-button-group button:first-child) { flex:1; min-inline-size:0; min-width:0; }
+.preset-actions :deep(.m-button-group button + button) { flex-shrink:0; }
 .preset-actions :deep(.el-button:first-child) { min-width: 0; }
 .preset-actions :deep(.el-button:first-child > span) { overflow: hidden; text-overflow: ellipsis; display: block; }
 .calc-action-bar {
@@ -2502,6 +2357,8 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
     .calc-mobile-tabs span { display: none; }
     .calc-mobile-tabs .compact-name { display: inline; }
     .calc-toolbar h2 { font-size: 22px; }
+    .calc-toolbar { flex-direction:column; align-items:stretch; }
+    .calc-toolbar .preset-actions, .review-mode .calc-toolbar .preset-actions { max-width:100%; width:100%; }
     .card-heading h3 { font-size: 18px; }
     .constellation-line > span { width: 100%; }
     .constellation-line button { flex: 1; min-width: 30px; min-height: 40px; padding: 0 3px; }
@@ -2523,7 +2380,6 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 
 .optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 
-.team-context-control{padding:12px;margin:0 0 14px;border:1px solid #e4e7ed;border-radius:6px;background:#f8faff}.team-context-control :deep(.el-alert){margin-top:8px}.team-source-card{display:flex;flex-direction:column;gap:9px;padding:12px;margin-top:10px;border:1px solid #e0e7f0;border-radius:6px;background:white;font-size:13px}.team-source-gear{color:#667085;font-size:12px}.team-source-id{display:flex;align-items:center;gap:10px}.team-source-id :deep(.el-input){flex:1}.team-trigger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.team-context-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:13px}
 .manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:#667085;font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
 .artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}
 .artifact-grade-summary{padding:4px 10px;background:var(--el-color-primary-light-9);border-radius:6px;color:var(--el-text-color-primary)}

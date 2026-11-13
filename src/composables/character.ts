@@ -104,6 +104,12 @@ export function useCharacter() {
     }
 }
 
+export function defaultCharacterSkill(name: CharacterName) {
+    const configs = characterData[name].configSkill
+    return {index: 0, config: configs.length
+        ? {[name]: Object.fromEntries(configs.map((c: {name: string, default: any}) => [c.name, c.default]))} : 'NoConfig'}
+}
+
 export function useCharacterSkill(characterName: Ref<CharacterName>) {
     const characterSkillConfig = ref<any>("NoConfig")
     const characterSkillIndex = ref(0)
@@ -125,23 +131,9 @@ export function useCharacterSkill(characterName: Ref<CharacterName>) {
     })
 
     watch(() => characterName.value, name => {
-        const hasConfigSkill = characterData[name].configSkill.length > 0
-
-        // change skill config
-        if (hasConfigSkill) {
-            let defaultConfig: any = {}
-            for (let c of characterData[name].configSkill) {
-                defaultConfig[c.name] = c.default
-            }
-            characterSkillConfig.value = {
-                [name]: defaultConfig
-            }
-        } else {
-            characterSkillConfig.value = "NoConfig"
-        }
-
-        // change skill index
-        characterSkillIndex.value = 0
+        const defaults = defaultCharacterSkill(name)
+        characterSkillConfig.value = defaults.config
+        characterSkillIndex.value = defaults.index
     }, {
         flush: "sync", immediate: true
     })

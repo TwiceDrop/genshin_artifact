@@ -1,6 +1,8 @@
 import {upgradePresetItem} from "@/utils/preset"
 import {computed, reactive, type Ref, ref, watch} from "vue"
 import {type IPreset} from "@/types/preset"
+import {createCustomPreset, applyPresetArtifacts} from '@/utils/preset-workflow.mjs'
+import {useArtifactStore} from './artifact'
 
 const VERSION = 3
 
@@ -51,6 +53,14 @@ function f() {
         return presets.value[name]
     }
 
+    function createCustom(name: string, item: IPreset) {
+        addOrOverwrite(name, createCustomPreset(presets.value, name, item))
+    }
+
+    function applyArtifacts(name: string, ids: number[], displayed: any[]) {
+        addOrOverwrite(name, applyPresetArtifacts(presets.value[name].item, ids, displayed, useArtifactStore().artifacts.value))
+    }
+
     function deletePreset(name: string) {
         delete presets.value[name]
     }
@@ -68,6 +78,8 @@ function f() {
 
         init,
         addOrOverwrite,
+        createCustom,
+        applyArtifacts,
         deletePreset,
         getPreset,
 
