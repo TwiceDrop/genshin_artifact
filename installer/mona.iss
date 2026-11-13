@@ -33,12 +33,19 @@ SolidCompression=yes
 WizardStyle=modern
 LicenseFile={#StageDir}\LICENSE
 UninstallDisplayIcon={app}\{#LauncherName}
-AppMutex=Local\MonaArtifactLauncher
+; Upgrades show the directory page too, prefilled with the previous install directory.
+DisableDirPage=no
+; The first name is the tray launcher's mutex (installer/TrayLauncher.cs); the second is the legacy launcher's.
+AppMutex=Local\MonaArtifactLauncher4184,Local\MonaArtifactLauncher
 CloseApplications=no
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
+[InstallDelete]
+; Launcher names carry the version, so an in-place update removes the previous version's launcher.
+Type: files; Name: "{app}\启动*.exe"
+Type: files; Name: "{app}\启动*.bat"
 [Files]
 Source: "{#StageDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
