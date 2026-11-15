@@ -1,6 +1,7 @@
 <template>
-    <button type="button" class="art-card" :class="{ selected }" :aria-label="`${setLabel} · ${slotLabel} +${item.level}`" @click="emit('open')">
-        <span v-if="item.omit" class="art-lock" title="已锁定"><icon-ep-lock aria-hidden="true" /></span>
+    <component :is="readonly ? 'div' : 'button'" :type="readonly ? undefined : 'button'" class="art-card" :class="{ selected, readonly }"
+               :aria-label="readonly ? undefined : `${setLabel} · ${slotLabel} +${item.level}`" @click="readonly || emit('open')">
+        <span v-if="item.omit && !readonly" class="art-lock" title="已锁定"><icon-ep-lock aria-hidden="true" /></span>
         <span class="art-head">
             <artifact-icon :item="item" />
             <span class="art-name">
@@ -21,10 +22,11 @@
             <span>喵喵评分<template v-if="scoreLabel"> · {{ scoreLabel }}</template></span>
             <b class="miao-score" :data-grade="grade">{{ score.toFixed(1) }}</b>
         </span>
-    </button>
+    </component>
 </template>
 
 <script setup lang="ts">
+// 圣遗物卡片：圣遗物页的网格和历史记录详情共用。readonly 时只展示（不可点、不显示锁定），用于计算记录里的快照。
 import IconEpLock from "~icons/ep/lock"
 import {computed} from "vue"
 import {artifactsData} from "@/assets/artifacts"
@@ -33,7 +35,7 @@ import {useI18n} from "@/i18n/i18n"
 import type {IArtifact} from "@/types/artifact"
 import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
 
-const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string, selected?: boolean }>()
+const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string, selected?: boolean, readonly?: boolean }>()
 const emit = defineEmits<{ (e: "open"): void }>()
 const { t, ta } = useI18n()
 
@@ -67,6 +69,15 @@ const subs = computed(() => props.item.normalTags.map(tag => {
     &:hover {
         transform: translateY(-2px);
         box-shadow: 0 0 0 2px var(--cx-step-2);
+    }
+
+    &.readonly {
+        cursor: default;
+
+        &:hover {
+            transform: none;
+            box-shadow: none;
+        }
     }
 
     &.selected {

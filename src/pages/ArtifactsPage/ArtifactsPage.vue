@@ -163,7 +163,7 @@ import AddArtifactDialog from './AddArtifactDialog';
 import SelectArtifactSet from '@c/select/SelectArtifactSet';
 import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
 import ArtifactDisplay from '@c/display/ArtifactDisplay';
-import ArtifactCard from './ArtifactCard.vue';
+import ArtifactCard from '@/components/display/ArtifactCard.vue';
 import ArtifactDetail from './ArtifactDetail.vue';
 import SideDrawer from '@/components/misc/SideDrawer.vue';
 import {useScreen} from '@/composables/screen';

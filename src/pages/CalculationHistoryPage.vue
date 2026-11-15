@@ -1,5 +1,5 @@
 <template>
-  <main class="calculation-history">
+  <main class="calculation-history cx-scope">
     <div class="history-frame" :class="{ 'show-detail': mobileDetail }">
       <header class="page-head">
         <h2><i-ep-clock aria-hidden="true" />历史记录</h2>
@@ -19,8 +19,11 @@
           </div>
           <div v-if="visible.length" class="record-rows">
             <button v-for="row in visible" :key="row.id" type="button" class="record-row"
-              :class="{ chosen: selected.id === row.id }" :aria-current="selected.id === row.id ? 'true' : undefined"
+              :class="{ chosen: selected.id === row.id, multi: row.members.length > 1 }" :aria-current="selected.id === row.id ? 'true' : undefined"
               :data-history-id="row.id" @click="selectRecord(row, $event.currentTarget)">
+              <span class="row-avatars" aria-hidden="true">
+                <img v-for="(m, i) in row.members" :key="i" :src="characterData[m.character.name]?.avatar" alt="" />
+              </span>
               <span class="row-info">
                 <b class="row-title">{{ row.members.map(m => characterName(m.character.name)).join(' / ') }}</b>
                 <span class="row-sub" :title="rowSubtitle(row)">{{ rowSubtitle(row) }}</span>
@@ -45,7 +48,7 @@
               <div class="timestamp"><time>{{ date(selected.startedAt) }}</time><span>{{ selected.status === 'running' ? '已用时间' : '用时' }} {{ calculationDuration(selected.status === 'running' ? now - selected.startedAt : selected.elapsedMs) }}</span></div>
             </div>
             <el-button v-if="selected.status === 'running'" @click="calculationHistory.cancel(account.currentAccountId.value, selected.id)">取消计算</el-button>
-            <el-button v-else type="primary" @click="view(selected)">查看计算<i-ep-right aria-hidden="true" /></el-button>
+            <el-button v-else type="primary" round @click="view(selected)">查看计算<i-ep-right aria-hidden="true" /></el-button>
           </header>
 
           <div v-if="selected.status === 'running'" class="progress-block">
@@ -67,18 +70,21 @@
           <section v-for="(member, i) in selected.members" :key="selected.id + ':' + i" class="history-member">
             <div class="member-head">
               <img v-if="characterData[member.character.name]?.avatar" :src="characterData[member.character.name].avatar" class="portrait" alt="" />
-              <div>
+              <div class="member-name">
                 <h4>{{ characterName(member.character.name) }}</h4>
                 <div class="member-meta"><b>{{ member.character.constellation }} 命</b><span>天赋 {{ member.character.skill1 + 1 }} / {{ member.character.skill2 + 1 }} / {{ member.character.skill3 + 1 }}</span></div>
               </div>
-              <div class="weapon"><span>武器</span><b>{{ weaponName(member.weapon.name) }}</b><span>精炼 {{ member.weapon.refine }} 阶</span></div>
+              <div class="weapon">
+                <img v-if="weaponData[member.weapon.name]?.url" :src="weaponData[member.weapon.name].url" alt="" />
+                <span class="weapon-text"><span>武器</span><b>{{ weaponName(member.weapon.name) }}</b><span>精炼 {{ member.weapon.refine }} 阶</span></span>
+              </div>
             </div>
             <div v-if="selected.kind === 'single'" class="buffs"><b>BUFF</b><span v-for="(name, j) in buffTitles(member.buffs)" :key="j">{{ name }}</span><span v-if="!member.buffs.length">无</span></div>
             <div v-if="selected.status === 'completed' && member.artifacts.length" class="history-artifacts">
-              <div v-for="(item, j) in member.artifacts" :key="j" class="gear-slot">
-                <div class="slot-name">{{ slots[j] }}</div>
-                <artifact-display v-if="item" :item="item" :buttons="false" /><span v-else class="empty-artifact">未装备</span>
-              </div>
+              <template v-for="(item, j) in member.artifacts" :key="j">
+                <artifact-card v-if="item" :item="item" readonly />
+                <div v-else class="empty-artifact"><b>{{ slots[j] }}</b><span>未装备</span></div>
+              </template>
             </div>
           </section>
         </article>
@@ -95,7 +101,7 @@ import { useAccountStore } from '@/store/pinia/account'
 import { calculationHistory, calculationState } from '@/store/calculation-history'
 import { calculationDuration } from '@/algorithms/calculation-history.mjs'
 import { teamDpsProgressText, teamDpsProgressIndeterminate } from '../../beta-data/team-dps-progress.mjs'
-import ArtifactDisplay from '@/components/display/ArtifactDisplay.vue'
+import ArtifactCard from '@/components/display/ArtifactCard.vue'
 import { characterData } from '@/assets/character'
 import { weaponData } from '@/assets/weapon'
 import { artifactsData } from '@asset/artifacts'
