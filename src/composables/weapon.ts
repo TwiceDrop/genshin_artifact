@@ -6,6 +6,15 @@ import {useI18n} from "@/i18n/i18n";
 import {isSignatureWeapon, normalizeSignatureWeapon} from '../../beta-data/weapon-effects.mjs'
 import {isLimitedWeapon, normalizeLimitedWeapon} from '../../beta-data/limited-weapons.mjs'
 
+export function useCharacterWeapon(characterName: Ref<string>, weaponType: Ref<WeaponType>) {
+    const weapon = useWeapon(weaponType)
+    watch(characterName, name => {
+        if (name === 'Vodyanitsa') weapon.weaponName.value = 'HymnOfTheMaelstrom'
+        else if (name === 'Vesna') weapon.weaponName.value = 'BeyondTheChrysalis'
+    }, {flush: 'sync'})
+    return weapon
+}
+
 export function useWeapon(weaponType: null | Ref<WeaponType>) {
     const weaponName = ref<WeaponName>("PolarStar")
     const weaponLevel = ref("90")

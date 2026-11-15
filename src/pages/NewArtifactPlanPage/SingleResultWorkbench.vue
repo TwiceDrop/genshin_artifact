@@ -47,6 +47,7 @@
       </section>
     </div>
     <footer><span>{{ totalLabel }} <b class="miao-score" :data-grade="total.split(' ').pop()">{{ total }}</b></span><slot name="score-basis" /></footer>
+    <div class="preset-application"><slot name="preset" /></div>
   </div>
   <nav class="further"><button class="link" @click="$emit('details')">详细伤害表 ›</button><button class="link" @click="$emit('curve')">最优收益曲线 ›</button><button class="link" @click="$emit('equipment')">装备设置 ›</button></nav>
 </section>
@@ -86,6 +87,6 @@ const meta=a=>artifactsData[a.setName][a.position]
 const tag=s=>{const str=displayedTag(s.name,s.value),i=str.indexOf('+');return [str.slice(0,i),str.slice(i)]}
 </script>
 <style scoped src="./single-result-workbench.css"></style>
-<style scoped>.gear-sheet footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}</style>
+<style scoped>.gear-sheet footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.preset-application{padding:0 18px 18px}</style>
 
 <style scoped src="../../styles/artifact-score.css"></style>

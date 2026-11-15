@@ -1,5 +1,5 @@
-export function useEnemy() {
-    const enemyConfig = ref({
+export function newEnemyConfig() {
+    return {
         level: 90,
         electro_res: 0.1,
         pyro_res: 0.1,
@@ -9,7 +9,11 @@ export function useEnemy() {
         anemo_res: 0.1,
         dendro_res: 0.1,
         physical_res: 0.1
-    })
+    }
+}
+
+export function useEnemy() {
+    const enemyConfig = ref(newEnemyConfig())
 
     const enemyInterface = computed(() => {
         return enemyConfig.value

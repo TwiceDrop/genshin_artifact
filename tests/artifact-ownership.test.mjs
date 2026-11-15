@@ -1,6 +1,26 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { otherCharacterArtifactIds } from '../src/algorithms/artifact-ownership.mjs'
+import { otherCharacterArtifactIds, protectedPresetArtifactIds } from '../src/algorithms/artifact-ownership.mjs'
+
+test('two source permissions protect shared gear, exempt all own custom presets and use actual game equipment', () => {
+    const inventory = new Map([0,1,2,3,4,5,6].map(id => [id, {id}]))
+    const game = [{uid:'111111111',key:'own',artifactIds:[0]}, {uid:'111111111',key:'other',artifactIds:[1,2]}]
+    const presets = [
+        {item:{character:{name:'Amber'},artifactIds:[3]}},
+        {item:{character:{name:'Amber'},artifactIds:[4]}},
+        {item:{character:{name:'Lisa'},artifactIds:[2,5]}},
+        {item:{character:{name:'Lisa'},miyousheKey:'other',artifactIds:[6]}},
+    ]
+    const run = (enabled, gameAllowed, customAllowed) => [...protectedPresetArtifactIds({
+        entries:game, uid:'111111111', currentKey:'own', inventory, presets, character:'Amber',
+        enabled, gameAllowed, customAllowed,
+    })].sort()
+    assert.deepEqual(run(false, true, true), [1,2,5])
+    assert.deepEqual(run(true, false, false), [1,2,5])
+    assert.deepEqual(run(true, true, false), [2,5])
+    assert.deepEqual(run(true, false, true), [1,2])
+    assert.deepEqual(run(true, true, true), [])
+})
 
 test('protect game equipment of other characters in the selected UID while retaining own and idle copies', () => {
     const inventory = new Map([0,1,2,3,4,5,6].map(id => [id,{id}]))

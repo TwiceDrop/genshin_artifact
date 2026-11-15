@@ -12,6 +12,12 @@ export function useComputeConstraint() {
     const constraintMinCritical = ref(0)
     const constraintMinCriticalDamage = ref(0)
 
+    const presetConstraint = computed(() => ({setNames: constraintArtifactSet.value,
+        minRecharge: constraintMinRecharge.value, minElementalMastery: constraintMinElementalMastery.value,
+        minCritical: constraintMinCritical.value, minCriticalDamage: constraintMinCriticalDamage.value}))
+    const presetFilter = computed(() => ({sandMainStats: constraintSandMainStats.value,
+        gobletMainStats: constraintGobletMainStats.value, headMainStats: constraintHeadMainStats.value}))
+
     const constraintSetMode = computed(() => {
         const convertedName = constraintArtifactSet.value.map(x => convertArtifactName(x))
         const len = convertedName.length
@@ -47,6 +53,8 @@ export function useComputeConstraint() {
     })
 
     return {
+        presetConstraint,
+        presetFilter,
         algorithm,
         constraintArtifactSet,
         constraintSandMainStats,

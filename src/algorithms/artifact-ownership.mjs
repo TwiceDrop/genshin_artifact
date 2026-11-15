@@ -1,3 +1,5 @@
+import {presetSource} from '../utils/preset-workflow.mjs'
+
 // Imported entry IDs describe game equipment. Calculation presets can be edited
 // independently, so they must not be used as ownership records.
 export function otherCharacterArtifactIds(entries, uid, currentKey, inventory) {
@@ -7,6 +9,21 @@ export function otherCharacterArtifactIds(entries, uid, currentKey, inventory) {
         if (String(entry.uid) !== String(uid) || (currentKey && entry.key === currentKey)) continue
         for (const id of entry.artifactIds || []) {
             if (Number.isSafeInteger(id) && id >= 0 && inventory.has(id)) reserved.add(id)
+        }
+    }
+    return reserved
+}
+
+export function protectedPresetArtifactIds({entries, uid, currentKey, inventory, presets, character,
+    enabled, gameAllowed, customAllowed}) {
+    const reserved = enabled && gameAllowed ? new Set()
+        : otherCharacterArtifactIds(entries, uid, currentKey, inventory)
+    if (!enabled || !customAllowed) {
+        for (const {item} of presets) {
+            if (presetSource(item) !== 'custom' || item.character.name === character) continue
+            for (const id of item.artifactIds || []) {
+                if (inventory.has(id)) reserved.add(id)
+            }
         }
     }
     return reserved

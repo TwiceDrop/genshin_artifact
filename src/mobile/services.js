@@ -22,6 +22,10 @@ function messageBox(message,title,options={},prompt=false) {
     const value=ref(options.inputValue||''),error=ref('');
     const done=confirm=>{
       if(confirm&&prompt&&options.inputPattern&&!options.inputPattern.test(value.value)){error.value=options.inputErrorMessage||'输入不符合要求';return}
+      if(confirm&&prompt&&options.inputValidator){
+        const validation=options.inputValidator(value.value);
+        if(validation!==true){error.value=typeof validation==='string'?validation:options.inputErrorMessage||'输入不符合要求';return}
+      }
       close();confirm?resolve(prompt?{value:value.value,action:'confirm'}:'confirm'):reject('cancel')
     };
     close=mountService(defineComponent({setup:()=>()=>h(Sheet,{open:true,title,'onUpdate:open':()=>done(false)}, {

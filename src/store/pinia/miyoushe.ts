@@ -4,6 +4,7 @@ import { usePresetStore } from './preset'
 import { selectUidInventory } from '@/import/uid-inventory.mjs'
 import { captureImportState, appendImportRecord } from '@/import/import-history.mjs'
 import { mergeEquipped } from '@/import/miyoushe.mjs'
+import { refreshGamePreset } from '@/utils/preset-workflow.mjs'
 
 const data = ref<any>({ snapshots: {}, entries: [] })
 const comparisonSettings = ref({ enabled: true, mode: 'session' })
@@ -55,13 +56,7 @@ function importSnapshot(snapshot: any, converter: any, source = '米游社同步
             while (presets.presets.value[name]) name = `${e.preset.name} (${n++})`
         }
         const artifactIds = result.equipment[e.key]
-        const item = { ...e.preset, name, artifactIds, miyousheKey: e.key }
-        // Preserve saved calculation assumptions when refreshing the same imported character.
-        if (existing) {
-            Object.assign(item, existing.item, { name, character: e.preset.character, weapon: e.preset.weapon, artifactIds, miyousheKey: e.key })
-            if (existing.item.character.name === item.character.name) item.character.params = existing.item.character.params
-            if (existing.item.weapon.name === item.weapon.name) item.weapon.params = existing.item.weapon.params
-        }
+        const item = refreshGamePreset(existing?.item, e.preset, artifactIds, e.key, name)
         presets.addOrOverwrite(name, item)
         return { key: e.key, uid, id: e.id, gender: e.gender, element: e.element, label: e.label, presetName: name, artifactIds, equippedArtifacts: JSON.parse(JSON.stringify(e.gear)), level: e.preset.character.level, constellation: e.preset.character.constellation, updatedAt: snapshot.importedAt }
     })
