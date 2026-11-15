@@ -136,11 +136,15 @@ const { t } = useI18n()
     justify-content: center;
 }
 
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 @media only screen and (min-width: 992px) {
     .filters {
-        display: flex;
         align-items: center;
-        //gap: 16px;
     }
 }
 
