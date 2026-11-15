@@ -31,20 +31,17 @@ import { buffData } from '@/assets/buff'
 import characters from '@/assets/_gen_character'
 import { useI18n } from '@/i18n/i18n'
 import rules from '@/algorithms/buff-groups/ownership.json'
-import { groupSelectedBuffs } from '@/algorithms/buff-groups/index.mjs'
+import { groupSelectedBuffs, buffColumnKey, BUFF_COLUMNS } from '@/algorithms/buff-groups/index.mjs'
 
 const props = defineProps({ buffs: { type: Array, default: () => [] } })
 const { ta } = useI18n()
 const columns = computed(() => {
     const buckets = { Character: [], Weapon: [], Artifact: [], Common: [] }
     for (const buff of props.buffs) {
-        const genre = buffData[buff.name]?.genre
-        const key = genre === 'Resonance' ? 'Character' : genre
         // Keep removed entries visible so their existing delete/disable controls remain available.
-        const bucket = buckets[key] || buckets.Common
-        bucket.push(buff)
+        buckets[buffColumnKey(buffData[buff.name]?.genre)].push(buff)
     }
-    return [['Character', '角色'], ['Weapon', '武器'], ['Artifact', '圣遗物'], ['Common', '自定义']]
+    return BUFF_COLUMNS
         .filter(([key]) => key !== 'Common' || buckets.Common.length)
         .map(([key, label]) => ({ key, label, buffs: buckets[key] }))
 })

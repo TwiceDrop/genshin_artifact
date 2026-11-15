@@ -6,6 +6,12 @@ export function isBoundBuffField(buff, field) {
     return !!(skillFields[field] || (field === 'skill_level' && skillsByBuff[buff.name]) ||
         (buff.name === 'ColumbinaQ' && field === 'level') || constellationFields[field] || field === 'constellation')
 }
+// 已选 BUFF 按来源分栏：共鸣算角色，未知类别归「自定义」。已选列表和计算器条件卡的摘要共用。
+export const BUFF_COLUMNS = [['Character', '角色'], ['Weapon', '武器'], ['Artifact', '圣遗物'], ['Common', '自定义']]
+export function buffColumnKey(genre) {
+    const key = genre === 'Resonance' ? 'Character' : genre
+    return ['Character', 'Weapon', 'Artifact'].includes(key) ? key : 'Common'
+}
 export function groupCharacterBuffs(buffs, rules) {
     const groups = new Map()
     for (const buff of buffs.filter(b => b.genre === 'Character' && b.selectable !== false)) {

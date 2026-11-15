@@ -273,24 +273,6 @@
 
         </el-dialog>
 
-<!--        enemy config-->
-        <el-dialog
-            v-model="showEnemyConfigDialog"
-            :title="t('calcPage.setupEnemy')"
-            :width="deviceIsPC ? '60%' : '90%'"
-        >
-            <div class="enemy-infusion">
-                <h3 class="common-title2">{{ t("calcPage.fumo") }}</h3>
-                <select-element-type
-                    v-model="fumo"
-                    :aria-label="t('calcPage.fumo')"
-                    :elements="['Pyro', 'Electro', 'Hydro', 'Anemo', 'Geo', 'Cryo', 'Dendro', 'None']"
-                />
-            </div>
-            <enemy-config-component
-                v-model="enemyConfig"
-            ></enemy-config-component>
-        </el-dialog>
 
 <!--        artifact config-->
         <el-dialog
@@ -596,6 +578,50 @@
                         >{{ t("calcPage.statCurve") }}</el-button>
                     </div>
             </calc-drawer>
+            <calc-drawer v-model="buffDrawerOpen" title="BUFF">
+                <template #actions><el-button :icon="IconEpPlus" @click="handleClickAddBuff">添加BUFF</el-button></template>
+                            <selected-buff-groups class="buffs" :buffs="otherBuffs">
+                                <template #default="{ buff }">
+                                <buff-item
+                                    :key="buff.id"
+                                    :buff="buff"
+                                    v-model:buffConfig="buff.config"
+                                    @delete="handleClickDeleteBuff(buff.id)"
+                                    @toggle="handleClickToggleBuff(buff.id)"
+                                ></buff-item>
+                                <label v-if="teamContextSources.length" class="manual-buff-source">手动 BUFF 来源
+                                    <el-select v-model="buff.source_id" clearable placeholder="未关联队友" size="small">
+                                        <el-option v-for="source in teamContextSources" :key="source.sourceId"
+                                            :label="source.presetName" :value="source.sourceId" />
+                                    </el-select>
+                                </label>
+                                </template>
+                            </selected-buff-groups>
+            </calc-drawer>
+            <calc-drawer v-model="teammateDrawerOpen" title="队友">
+                            <team-buff-sources v-model="teamContextSources" v-model:stellar-mode="teamContextStellarMode"
+                                :character="characterName" :preset-name="miscCurrentPresetName" :issues="teamContextResult.issues" />
+                            <div class="polestar-field-control">
+                                <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
+                                <div class="polestar-field-stacks"><span>极星辉域层数</span>
+                                    <!-- This Element Plus version sets aria-disabled only on mount. -->
+                                    <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
+                                </div>
+                            </div>
+            </calc-drawer>
+            <calc-drawer v-model="enemyDrawerOpen" :title="t('calcPage.setupEnemy')">
+            <div class="enemy-infusion">
+                <h3 class="common-title2">{{ t("calcPage.fumo") }}</h3>
+                <select-element-type
+                    v-model="fumo"
+                    :aria-label="t('calcPage.fumo')"
+                    :elements="['Pyro', 'Electro', 'Hydro', 'Anemo', 'Geo', 'Cryo', 'Dendro', 'None']"
+                />
+            </div>
+            <enemy-config-component
+                v-model="enemyConfig"
+            ></enemy-config-component>
+            </calc-drawer>
             <single-result-workbench v-if="!editorOpen" :character="characterLocale" :skill="reviewSkill"
                 :items="artifactItems" :baseline="comparisonBaseline" :changes="artifactChanges" :baseline-label="reviewBaselineLabel"
                 :analysis="characterDamageAnalysis" :previous="comparisonDamage.value" :panel-data="attributeFromWasm"
@@ -625,7 +651,6 @@
                     :score="heroScore" :stats="heroStats" @open="openHeroSection" />
                 <div class="calc-editor">
                         <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" @details="handleDisplayAnalysis">
-                            <template #actions><button type="button" class="damage-enemy-link" @click="handleClickEnemyConfig">{{ t("calcPage.setupEnemy") }}</button></template>
                             <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
                             <damage-panel v-if="!betaCalculationError && characterDamageAnalysis" layout="feature"
                                 :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
@@ -646,37 +671,7 @@
                                 ></transformative-damage>
                             </details>
                         </damage-result-card>
-                        <section class="calc-card config-buff setup-section">
-                            <header class="card-heading"><h3><i-ep-magic-stick aria-hidden="true"/>BUFF</h3><el-button :icon="IconEpPlus" @click="handleClickAddBuff" title="添加BUFF">添加BUFF</el-button></header>
-                            <selected-buff-groups class="buffs" :buffs="otherBuffs">
-                                <template #character-controls>
-                            <team-buff-sources v-model="teamContextSources" v-model:stellar-mode="teamContextStellarMode"
-                                :character="characterName" :preset-name="miscCurrentPresetName" :issues="teamContextResult.issues" />
-                            <div class="polestar-field-control">
-                                <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
-                                <div class="polestar-field-stacks"><span>极星辉域层数</span>
-                                    <!-- This Element Plus version sets aria-disabled only on mount. -->
-                                    <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
-                                </div>
-                            </div>
-                                </template>
-                                <template #default="{ buff }">
-                                <buff-item
-                                    :key="buff.id"
-                                    :buff="buff"
-                                    v-model:buffConfig="buff.config"
-                                    @delete="handleClickDeleteBuff(buff.id)"
-                                    @toggle="handleClickToggleBuff(buff.id)"
-                                ></buff-item>
-                                <label v-if="teamContextSources.length" class="manual-buff-source">手动 BUFF 来源
-                                    <el-select v-model="buff.source_id" clearable placeholder="未关联队友" size="small">
-                                        <el-option v-for="source in teamContextSources" :key="source.sourceId"
-                                            :label="source.presetName" :value="source.sourceId" />
-                                    </el-select>
-                                </label>
-                                </template>
-                            </selected-buff-groups>
-                        </section>
+                        <calc-conditions-card class="conditions-card" :rows="conditionRows" @open="openCondition" />
                 </div>
             </div>
         </div>
@@ -751,6 +746,8 @@ import CalcTopBar from './CalcTopBar.vue'
 import CalcDrawer from './CalcDrawer.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
 import DamageResultCard from './DamageResultCard.vue'
+import CalcConditionsCard from './CalcConditionsCard.vue'
+import {buffColumnKey, BUFF_COLUMNS} from '@/algorithms/buff-groups/index.mjs'
 import {characterData} from '@character'
 import {characterSkillGroups} from '@/utils/character-skill-groups'
 import {weaponData} from '@weapon'
@@ -811,9 +808,12 @@ const characterDrawerOpen = ref(false)
 const weaponDrawerOpen = ref(false)
 const artifactsDrawerOpen = ref(false)
 const attributesDrawerOpen = ref(false)
+const buffDrawerOpen = ref(false)
+const teammateDrawerOpen = ref(false)
 onDeactivated(() => {
     optimizeSettingsOpen.value = characterDrawerOpen.value = weaponDrawerOpen.value = false
     artifactsDrawerOpen.value = attributesDrawerOpen.value = false
+    buffDrawerOpen.value = teammateDrawerOpen.value = enemyDrawerOpen.value = false
 })
 // 角色卡上点哪一块就打开哪个抽屉；空槽位直接选圣遗物，有圣遗物的槽位打开圣遗物抽屉并定位到该部位
 async function openHeroSection(section: string, slot?: number) {
@@ -877,10 +877,10 @@ const {
     enemyConfig,
     enemyInterface
 } = useEnemy()
-const showEnemyConfigDialog = ref(false)
+const enemyDrawerOpen = ref(false)
 
 function handleClickEnemyConfig() {
-    showEnemyConfigDialog.value = true
+    enemyDrawerOpen.value = true
 }
 
 
@@ -1687,6 +1687,30 @@ const heroScore = computed(() => useNewScore.value
     : { value: artifactBuildScore.value.total === null ? '—' : artifactBuildScore.value.total.toFixed(1),
         label: '喵喵总分 · ' + artifactBuildScore.value.grade, grade: artifactBuildScore.value.grade })
 
+// 计算条件卡的三行摘要
+const conditionRows = computed(() => {
+    const counts: Record<string, number> = { Character: 0, Weapon: 0, Artifact: 0, Common: 0 }
+    for (const buff of otherBuffs.value) counts[buffColumnKey(buffData[buff.name]?.genre)]++
+    const buffSummary = BUFF_COLUMNS.filter(([key]) => key !== 'Common' || counts.Common)
+        .map(([key, label]) => `${label} ${counts[key]}`).join(' · ')
+    const teammates = teamContextSources.value.map((source: any) => source.presetName).join('、') || '未选队友预设'
+    const polestar = polestarEnabled.value ? `极星辉域 ${polestarStacks.value} 层` : '极星辉域未启用'
+    const enemy: any = enemyConfig.value
+    const res = Object.keys(enemy).filter(key => key.endsWith('_res')).map(key => Math.round(enemy[key] * 100))
+    const resText = Math.min(...res) === Math.max(...res) ? `全元素抗性 ${res[0]}%` : `抗性 ${Math.min(...res)}%～${Math.max(...res)}%`
+    const infusion = fumo.value === 'None' ? '无附魔' : `${t('ele', fumo.value)}元素附魔`
+    return [
+        { key: 'buff', title: 'BUFF', action: '添加', summary: buffSummary },
+        { key: 'teammate', title: '队友', action: '选择', summary: `${teammates} · ${polestar}` },
+        { key: 'enemy', title: '敌人', action: '修改', summary: `Lv ${enemy.level} · ${resText} · ${infusion}` },
+    ]
+})
+function openCondition(key: string) {
+    if (key === 'buff') buffDrawerOpen.value = true
+    else if (key === 'teammate') teammateDrawerOpen.value = true
+    else enemyDrawerOpen.value = true
+}
+
 // 伤害卡左侧的技能列表
 const damageSkillGroups = computed(() => characterSkillGroups(characterData[characterName.value], ta))
 
@@ -2254,7 +2278,8 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .calc-mobile-tabs { display: none; }
 .calc-mobile-tabs .compact-name { display: none; }
 /* Configure from top to bottom while the live panel stays in view. */
-.damage-enemy-link { padding: 0; border: 0; background: none; color: var(--cx-dim); font: inherit; font-size: 13px; cursor: pointer; }
+.calc-editor { display: grid; grid-template-columns: minmax(0,1fr) 360px; gap: 20px; align-items: start; }
+@container single-calculator (max-width: 1100px) { .calc-editor { grid-template-columns: minmax(0,1fr); } }
 .calc-workspace { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
 .calc-editor, .identity-row { min-width: 0; display: grid; gap: 14px; align-content: start; }
 .calc-editor { grid-template-columns: minmax(0,1fr); }
