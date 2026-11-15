@@ -79,6 +79,7 @@ const emit = defineEmits<{
     small {
         color: var(--cx-dim);
         font-size: 12px;
+        white-space: nowrap;
     }
 
     b {
@@ -164,6 +165,14 @@ const emit = defineEmits<{
     }
 }
 
+// 手机上站点顶栏固定在最上方（48px），顶部条吸在它下面
+@media (max-width: 767px) {
+    .calc-top-bar {
+        top: 48px;
+        padding: 10px 0;
+    }
+}
+
 // 窄屏：账号导入和我的角色收进预设下拉（见页面模板），这里只隐藏
 @container single-calculator (max-width: 820px) {
     .calc-top-account {
@@ -176,6 +185,25 @@ const emit = defineEmits<{
 
     .calc-top-chip b {
         max-width: 8em;
+    }
+
+    // 预设占一整行；配装目标和自动配装并排在第二行
+    .calc-top-preset {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .calc-top-spacer {
+        display: none;
+    }
+
+    .calc-top-target {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .calc-top-run {
+        padding: 0 18px;
     }
 }
 </style>

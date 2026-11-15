@@ -530,4 +530,67 @@ const portraitSrc = computed(() => {
         }
     }
 }
+
+// 窄屏：立绘在上、信息在下，面板两列
+@container single-calculator (max-width: 820px) {
+    .hero {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: 0;
+    }
+
+    .hero-art {
+        height: 240px;
+
+        img {
+            width: 260px;
+        }
+
+        &::after {
+            background: linear-gradient(0deg, var(--sh-night) 0, transparent 40%);
+        }
+    }
+
+    .hero-id {
+        margin-top: -56px;
+        padding: 0 16px 18px;
+        position: relative;
+    }
+
+    .hero-name h2 {
+        font-size: 32px;
+    }
+
+    .hero-arts {
+        gap: 8px;
+    }
+
+    .hero-slot {
+        width: 52px;
+        height: 52px;
+    }
+
+    .hero-slot-art {
+        width: 46px;
+        height: 46px;
+    }
+
+    .hero-score {
+        margin-left: 0;
+    }
+
+    .hero-stats {
+        grid-column: auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 18px;
+        padding: 18px 16px 14px;
+    }
+
+    .hero-result {
+        padding: 10px 14px;
+    }
+
+    .hero-result-spacer {
+        display: none;
+    }
+}
 </style>

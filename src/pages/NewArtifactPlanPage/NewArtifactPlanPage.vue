@@ -1,5 +1,5 @@
 <template>
-    <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
+    <div class="calculator-page">
         <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog">
             <el-progress :percentage="Math.round((optimizationProgress.percent ?? 0) * 10) / 10" :indeterminate="optimizationProgress.percent === null" :status="optimizationRunning ? undefined : optimizationCancelled ? 'warning' : 'success'" />
             <div class="optimization-progress-stats">
@@ -324,13 +324,6 @@
                     </div>
                 </template>
             </calc-top-bar>
-            <div class="calc-action-bar">
-                <nav class="calc-mobile-tabs" aria-label="计算器分区">
-                    <button aria-label="角色与配置" :aria-pressed="mobileCalcTab === 'character'" @click="activateTab('character')">角色<span>与</span><b class="tab-tail">配置</b></button>
-                    <button aria-label="圣遗物与伤害" :aria-pressed="mobileCalcTab === 'equipment'" @click="activateTab('equipment')"><span>圣遗物与</span><span class="compact-name">装备</span><b class="tab-tail">伤害</b></button>
-                    <button aria-label="面板与曲线" :aria-pressed="mobileCalcTab === 'panel'" @click="activateTab('panel')">面板<span>与</span><b class="tab-tail">曲线</b></button>
-                </nav>
-            </div>
             <calc-drawer v-model="optimizeSettingsOpen" title="配装设置">
                     <el-radio-group v-model="optimizationMode" aria-label="配装模式">
                         <el-radio-button label="damage">伤害配装</el-radio-button>
@@ -625,7 +618,7 @@
             <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
                 :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
                 @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
-            <div ref="workspace" class="calc-workspace">
+            <div class="calc-workspace">
                 <character-hero-card class="hero-row" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
                     :element-label="t('ele', scoreCharacters[characterName].element)" :avatar="scoreCharacters[characterName].avatar"
                     :splash="scoreCharacters[characterName].splash" :level="characterLevel" :constellation="characterConstellation"
@@ -780,8 +773,6 @@ const MiyousheImport = defineAsyncComponent(() => import('@/components/import/Mi
 const showMiyousheImport = ref(false)
 const MiyousheCharacterPicker = defineAsyncComponent(() => import('@/components/import/MiyousheCharacterPicker.vue'))
 const showMyCharacters = ref(false)
-const mobileCalcTab = ref('equipment')
-function activateTab(tab:string) { mobileCalcTab.value=tab;window.scrollTo(0,0) }
 // 配装前穿着的五件（圣遗物 ID），供「恢复原装备」使用；从计算历史恢复的结果没有这份记录
 const preOptimizationIds = ref<number[] | null>(null)
 const optimizeSettingsOpen = ref(false)
@@ -811,15 +802,6 @@ async function openHeroSection(section: string, slot?: number) {
 }
 const { width: screenWidth } = useScreen()
 const narrowCalc = computed(() => screenWidth.value <= 820)
-const workspace = ref<HTMLElement | null>(null)
-async function jumpToSection(name: string) {
-    // 圣遗物和面板已移进抽屉
-    if (name === 'artifacts-card') { artifactsDrawerOpen.value = true; return }
-    if (name === 'panel-card') { attributesDrawerOpen.value = true; return }
-    mobileCalcTab.value=name==='panel-card'?'panel':name.startsWith('config-')&&name!=='config-weapon'?'character':'equipment'
-    await nextTick()
-    workspace.value?.querySelector('.' + name)?.scrollIntoView({block: 'start'})
-}
 const kumiStore = useKumiStore()
 const accountStore = useAccountStore()
 
@@ -2256,38 +2238,16 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .preset-actions :deep(.m-button-group button + button) { flex-shrink:0; }
 .preset-actions :deep(.el-button:first-child) { min-width: 0; }
 .preset-actions :deep(.el-button:first-child > span) { overflow: hidden; text-overflow: ellipsis; display: block; }
-.calc-action-bar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 0;
-    background: #f6f8fb;
-}
-.calc-jumps, .calc-mobile-tabs { display: flex; gap: 6px; }
-.calc-run { flex-shrink: 0; margin: 0; border-radius: 8px; font-weight: 600; }
-.calc-jumps button, .calc-mobile-tabs button {
-    border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 7px 12px;
-    background: transparent;
-    color: #526985;
-    font: inherit;
-    font-size: 15px;
-    cursor: pointer;
-}
-.calc-jumps button:hover, .calc-mobile-tabs button[aria-pressed=true] { border-color: #c5d8f1; color: #386da9; background: #e7f1ff; }
-.calc-mobile-tabs { display: none; }
-.calc-mobile-tabs .compact-name { display: none; }
 /* Configure from top to bottom while the live panel stays in view. */
 .calc-editor { display: grid; grid-template-columns: minmax(0,1fr) 360px; gap: 20px; align-items: start; }
 @container single-calculator (max-width: 1100px) { .calc-editor { grid-template-columns: minmax(0,1fr); } }
+/* 顶部条里的预设：保存按钮和角色预设选择并排，各占一半 */
+.calc-top-bar .preset-actions { display: flex; gap: 8px; width: 100%; max-width: none; min-width: 0; }
+.calc-top-bar .preset-actions > * { flex: 1 1 0; min-width: 0; }
+.calc-top-bar .preset-actions :deep(.el-button-group) { width: 100%; }
+.calc-top-bar .preset-actions :deep(.el-button-group > .el-button:first-child) { flex: 1; }
 .calc-workspace { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
 .calc-editor, .identity-row { min-width: 0; display: grid; gap: 14px; align-content: start; }
-.calc-editor { grid-template-columns: minmax(0,1fr); }
 .identity-row { grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr); align-items: start; gap: 20px; }
 .config-character, .config-weapon { min-width: 0; }
 .config-weapon { border-left: 1px solid var(--hairline); padding-left: 20px; }
@@ -2371,25 +2331,14 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
     .weapon-fields > :first-child { grid-column: 1/-1; }
 }
 @container single-calculator (max-width: 820px) {
-    .calc-action-bar { z-index: 100; }
-    .calc-jumps { display: none; }
-    .calc-mobile-tabs { display: flex; flex: 1; min-width: 0; }
-    .calc-mobile-tabs button { flex: 1; padding: 6px 4px; min-height: 42px; font-size: 14px; background: #fff; border-color: #dce4ef; }
     .calc-run { min-height: 42px; padding-inline: 12px; }
     .calc-workspace { grid-template-columns: minmax(0,1fr); }
     .calc-card { padding: 14px; }
     .panel-card { position: static; max-height: none; overflow: visible; }
     .identity-row { grid-template-columns: minmax(0,1fr); }
     .config-weapon { border-left: 0; padding: 16px 0 0; border-top: 1px solid var(--hairline); }
-    .mobile-section-character .equipment-section, .mobile-section-equipment .setup-section,
-    .mobile-section-character .panel-card, .mobile-section-equipment .panel-card, .mobile-section-panel .calc-editor { display: none; }
-}
-@media (max-width: 767px) {
-    .calc-action-bar { top: 48px; }
 }
 @container single-calculator (max-width: 520px) {
-    .calc-mobile-tabs span { display: none; }
-    .calc-mobile-tabs .compact-name { display: inline; }
     .calc-toolbar h2 { font-size: 22px; }
     .calc-toolbar { flex-direction:column; align-items:stretch; }
     .calc-toolbar .preset-actions, .review-mode .calc-toolbar .preset-actions { max-width:100%; width:100%; }
