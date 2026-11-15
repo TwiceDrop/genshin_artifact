@@ -1,0 +1,70 @@
+/* 计算器内容区的配色（夜空风格）。角色卡等夜空色区块直接读外框的 --sh-* 变量。
+   变量名避开 script/postcss-mona-colors.cjs 识别的角色词（background、text、line、
+   edge、accent、color 等），否则深色模式下会被它再映射一次。
+   抽屉挂在 body 上（内容区的容器查询会困住固定定位），所以变量同时定义在 .calc-drawer 上；
+   本文件以不带 scoped 的方式引入。 */
+.calc-content,
+.calc-drawer {
+    --cx-ground: #eef0f6;
+    --cx-card: #ffffff;
+    --cx-step: #f3f5fa;
+    --cx-step-2: #e6eaf3;
+    --cx-letter: #121733;
+    --cx-dim: #5a6380;
+    --cx-gold: #8a6420;
+    --cx-gold-on: #ffffff;
+    --cx-up: #2f8a5b;
+    --cx-down: #c0474f;
+    --cx-radius: 18px;
+}
+
+html[data-color-mode="dark"] .calc-content,
+html[data-color-mode="dark"] .calc-drawer {
+    --cx-ground: #0f1428;
+    --cx-card: #161d38;
+    --cx-step: #1b2343;
+    --cx-step-2: #232c52;
+    --cx-letter: #eeeaf6;
+    --cx-dim: #a3abc6;
+    --cx-gold: #e2c078;
+    --cx-gold-on: #17120a;
+    --cx-up: #6fcf97;
+    --cx-down: #ef8f95;
+}
+
+/* 内容区里的 Element Plus 控件用金色做主色 */
+.calc-content[data-theme],
+.calc-drawer {
+    --el-color-primary: var(--cx-gold);
+    --el-color-primary-dark-2: var(--cx-gold);
+    --el-color-primary-light-3: var(--cx-gold);
+    --el-color-primary-light-5: var(--cx-step-2);
+    --el-color-primary-light-7: var(--cx-step-2);
+    --el-color-primary-light-8: var(--cx-step);
+    --el-color-primary-light-9: var(--cx-step);
+}
+
+/* mona-theme.css 在深色模式下把单选按钮、开关、主按钮单独设成了蓝色，这里盖回金色 */
+html[data-color-mode] .calc-content .el-radio-button,
+html[data-color-mode] .calc-drawer .el-radio-button {
+    --el-radio-button-checked-bg-color: var(--cx-gold);
+    --el-radio-button-checked-border-color: var(--cx-gold);
+    --el-radio-button-checked-text-color: var(--cx-gold-on);
+}
+
+html[data-color-mode] .calc-content .el-switch,
+html[data-color-mode] .calc-drawer .el-switch {
+    --el-switch-on-color: var(--cx-gold);
+}
+
+html[data-color-mode] .calc-content .el-button--primary,
+html[data-color-mode] .calc-drawer .el-button--primary {
+    --el-button-bg-color: var(--cx-gold);
+    --el-button-border-color: var(--cx-gold);
+    --el-button-text-color: var(--cx-gold-on);
+    --el-button-hover-bg-color: var(--cx-gold);
+    --el-button-hover-border-color: var(--cx-gold);
+    --el-button-hover-text-color: var(--cx-gold-on);
+    --el-button-active-bg-color: var(--cx-gold);
+    --el-button-active-border-color: var(--cx-gold);
+}

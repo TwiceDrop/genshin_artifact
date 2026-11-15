@@ -63,7 +63,8 @@ Status: ready-for-agent
 | `DamageResultCard.vue` | 伤害卡（复用 `DamagePanel` 的取数和对比逻辑，只换展示） |
 | `CalcConditionsCard.vue` | 计算条件卡 |
 | `CalcDrawer.vue` | 抽屉外壳：桌面右侧、手机底部，标题、关闭、Esc、焦点管理 |
-| `CharacterDrawer.vue`、`WeaponDrawer.vue`、`ArtifactsDrawer.vue`、`AttributesDrawer.vue`、`BuffDrawer.vue`、`TeammateDrawer.vue`、`EnemyDrawer.vue`、`OptimizeSettingsDrawer.vue` | 各抽屉内容 |
+
+各抽屉（角色、武器、圣遗物、全部属性、BUFF、队友、敌人、配装设置）的内容留在页面模板里，外面套 `CalcDrawer`。它们绑着页面上四十多个状态，拆成组件要来回传一大串 v-model，只增加接线、不减少耦合（2026-11-15 实现 02、03 时改定）。
 
 现有的子组件（`select-character`、`attribute-panel`、`selected-buff-groups`、`item-config`、`enemy-config-component`、`artifact-config`、`select-target-function`、`dsl-generator`、`panel-search-config` 等）直接放进抽屉里用，不重写。
 

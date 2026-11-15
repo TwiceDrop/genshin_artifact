@@ -322,39 +322,34 @@
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />
         <div class="calc-content" data-theme="mist">
-            <div class="calc-command">
-            <header class="calc-toolbar">
-                <h2><i-ep-data-analysis aria-hidden="true"/>单次计算</h2>
-                <div class="preset-actions">
-                    <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handleClickSaveOptimizeConfig()">
-                        <template v-if="!miscCurrentPresetName">{{ t("calcPage.newPreset") }}</template>
-                        <template v-else>{{ t("calcPage.savePreset") }}「{{ miscCurrentPresetName }}」</template>
-                        <template #dropdown><el-dropdown-menu><el-dropdown-item command="save-as">{{ t('calcPage.saveAsPreset') }}</el-dropdown-item></el-dropdown-menu></template>
-                    </el-dropdown>
-                    <preset-picker @select="usePreset" />
-                </div>
-            </header>
+            <calc-top-bar :target-label="optimizeTargetLabel" :running="optimizationRunning || dynamicScoreState.running"
+                @target="optimizeSettingsOpen = true" @import="showMiyousheImport = true" @my-characters="showMyCharacters = true"
+                @run="optimizeSettingsOpen = false; handleOptimizeArtifact()">
+                <template #preset>
+                    <div class="preset-actions">
+                        <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handlePresetCommand">
+                            <template v-if="!miscCurrentPresetName">{{ t("calcPage.newPreset") }}</template>
+                            <template v-else>{{ t("calcPage.savePreset") }}「{{ miscCurrentPresetName }}」</template>
+                            <template #dropdown><el-dropdown-menu>
+                                <el-dropdown-item command="save-as">{{ t('calcPage.saveAsPreset') }}</el-dropdown-item>
+                                <template v-if="narrowCalc">
+                                    <el-dropdown-item command="import" divided>账号导入</el-dropdown-item>
+                                    <el-dropdown-item command="my-characters">我的角色</el-dropdown-item>
+                                </template>
+                            </el-dropdown-menu></template>
+                        </el-dropdown>
+                        <preset-picker @select="usePreset" />
+                    </div>
+                </template>
+            </calc-top-bar>
             <div class="calc-action-bar">
-                <nav class="calc-jumps" aria-label="计算器分区">
-                    <button v-for="entry in sectionLinks" :key="entry[0]" type="button" @click="jumpToSection(entry[0])">{{ entry[1] }}</button>
-                </nav>
                 <nav class="calc-mobile-tabs" aria-label="计算器分区">
                     <button aria-label="角色与配置" :aria-pressed="mobileCalcTab === 'character'" @click="activateTab('character')">角色<span>与</span><b class="tab-tail">配置</b></button>
                     <button aria-label="圣遗物与伤害" :aria-pressed="mobileCalcTab === 'equipment'" @click="activateTab('equipment')"><span>圣遗物与</span><span class="compact-name">装备</span><b class="tab-tail">伤害</b></button>
                     <button aria-label="面板与曲线" :aria-pressed="mobileCalcTab === 'panel'" @click="activateTab('panel')">面板<span>与</span><b class="tab-tail">曲线</b></button>
                 </nav>
-                <button ref="targetTrigger" type="button" class="target-trigger" :aria-label="t('misc.tf')"
-                    :aria-expanded="targetMenuOpen" aria-haspopup="dialog" aria-controls="calc-target-menu"
-                    @click="targetMenuOpen ? closeTargetMenu() : openTargetMenu()">
-                    <span class="target-label">{{ t('misc.tf') }}</span><span class="target-compact" aria-hidden="true">目标</span><i-ep-arrow-down aria-hidden="true"/>
-                </button>
-                <section v-show="targetMenuOpen" id="calc-target-menu" ref="targetMenu"
-                    class="calc-card config-target-function target-menu" role="dialog" aria-labelledby="calc-target-title"
-                    @keydown.esc="dismissTargetWithEscape">
-                    <header class="target-menu-head">
-                        <h3 id="calc-target-title" ref="targetTitle" tabindex="-1">{{ t("misc.tf") }}</h3>
-                        <button type="button" aria-label="关闭目标函数" @click="closeTargetMenu(true)"><i-ep-close aria-hidden="true"/></button>
-                    </header>
+            </div>
+            <calc-drawer v-model="optimizeSettingsOpen" title="配装设置">
                     <el-radio-group v-model="optimizationMode" aria-label="配装模式">
                         <el-radio-button label="damage">伤害配装</el-radio-button>
                         <el-radio-button label="panel">面板配装</el-radio-button>
@@ -404,7 +399,7 @@
                             type="success"
                             style="margin-bottom: 12px"
                         ></el-alert>
-                        <el-button @click="closeTargetMenu(); showOptimizationResults=true" style="margin-bottom:12px" class="view-optimization-results">点开查看所有搭配</el-button>
+                        <el-button @click="optimizeSettingsOpen = false; showOptimizationResults=true" style="margin-bottom:12px" class="view-optimization-results">点开查看所有搭配</el-button>
                         <el-input-number
                             :model-value="optimizationResultIndex"
                             @update:modelValue="handleUseNthOptimizationResult"
@@ -439,20 +434,16 @@
 
                             <el-button
                                 :icon="IconEpTools"
-                                @click="closeTargetMenu(); handleClickSetupOptimization()"
+                                @click="optimizeSettingsOpen = false; handleClickSetupOptimization()"
                             >{{ t("calcPage.setupCalc") }}</el-button>
 
                             <el-button
                                 :icon="IconEpTools"
-                                @click="closeTargetMenu(); handleClickArtifactConfig()"
+                                @click="optimizeSettingsOpen = false; handleClickArtifactConfig()"
                             >{{ t("calcPage.setupArt") }}</el-button>
                         </el-button-group>
                     </div>
-                </section>
-                <el-button class="calc-run" type="primary" :icon="IconEpCaretRight" :loading="optimizationRunning || dynamicScoreState.running"
-                    @click="closeTargetMenu(); handleOptimizeArtifact()">{{ optimizationRunning || dynamicScoreState.running ? '计算中' : t('calcPage.start') }}</el-button>
-            </div>
-            </div>
+            </calc-drawer>
             <single-result-workbench v-if="!editorOpen" :character="characterLocale" :skill="reviewSkill"
                 :items="artifactItems" :baseline="comparisonBaseline" :changes="artifactChanges" :baseline-label="reviewBaselineLabel"
                 :analysis="characterDamageAnalysis" :previous="comparisonDamage.value" :panel-data="attributeFromWasm"
@@ -477,9 +468,7 @@
             <div v-show="editorOpen" ref="workspace" class="calc-workspace">
                 <div class="calc-editor">
                     <section class="calc-card identity-card setup-section">
-                            <header class="card-heading"><h3><i-ep-user-filled aria-hidden="true"/>角色与武器</h3>
-                                <div class="card-actions"><el-button @click="showMiyousheImport = true">账号导入</el-button><el-button @click="showMyCharacters = true">我的角色</el-button></div>
-                            </header>
+                            <header class="card-heading"><h3><i-ep-user-filled aria-hidden="true"/>角色与武器</h3></header>
                         <div class="identity-row">
                         <section class="config-character setup-section">
                             <div class="character-fields">
@@ -786,6 +775,9 @@ import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
 import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
 import DslGenerator from './DslGenerator.vue'
+import CalcTopBar from './CalcTopBar.vue'
+import CalcDrawer from './CalcDrawer.vue'
+import {useScreen} from '@/composables/screen'
 import {generateDsl} from '@/algorithms/dsl-generator.mjs'
 import {useTargetFunction} from "@/composables/targetFunction"
 import type {ArtifactPosition, IArtifact, IArtifactWasm} from "@/types/artifact"
@@ -836,49 +828,10 @@ const mobileCalcTab = ref('equipment')
 const editorOpen = ref(true)
 function showResult() { editorOpen.value=false; mobileCalcTab.value='equipment'; window.scrollTo(0,0) }
 function activateTab(tab:string) { mobileCalcTab.value=tab;editorOpen.value=true;window.scrollTo(0,0) }
-const targetMenuOpen = ref(false)
-const targetTrigger = ref<HTMLButtonElement | null>(null)
-const targetMenu = ref<HTMLElement | null>(null)
-const targetTitle = ref<HTMLElement | null>(null)
-function fitTargetMenu() {
-    const menu = targetMenu.value
-    if (menu) menu.style.setProperty('--target-top', Math.ceil(menu.getBoundingClientRect().top) + 'px')
-}
-async function openTargetMenu() {
-    targetMenuOpen.value = true
-    await nextTick()
-    fitTargetMenu()
-    targetMenu.value?.scrollTo(0, 0)
-    targetTitle.value?.focus({ preventScroll: true })
-}
-function closeTargetMenu(restoreFocus = false) {
-    targetMenuOpen.value = false
-    if (restoreFocus) targetTrigger.value?.focus({ preventScroll: true })
-}
-function dismissTargetWithEscape(event: KeyboardEvent) {
-    if (event.defaultPrevented) return
-    event.stopPropagation()
-    closeTargetMenu(true)
-}
-watch(targetMenuOpen, (open, _, onCleanup) => {
-    if (!open) return
-    function onPointerDown(event: PointerEvent) {
-        const el = event.target
-        if (!(el instanceof Element) || targetMenu.value?.contains(el) || targetTrigger.value?.contains(el)) return
-        // Nested selectors and the DSL editor can render their interactive layer outside this panel.
-        if (el.closest('.el-popper, .el-overlay, .m-sheet, .m-sheet-overlay, [data-radix-popper-content-wrapper]')) return
-        closeTargetMenu()
-    }
-    window.addEventListener('resize', fitTargetMenu)
-    window.addEventListener('scroll', fitTargetMenu, { passive: true })
-    document.addEventListener('pointerdown', onPointerDown, true)
-    onCleanup(() => {
-        window.removeEventListener('resize', fitTargetMenu)
-        window.removeEventListener('scroll', fitTargetMenu)
-        document.removeEventListener('pointerdown', onPointerDown, true)
-    })
-}, { flush: 'post' })
-onDeactivated(() => closeTargetMenu())
+const optimizeSettingsOpen = ref(false)
+onDeactivated(() => { optimizeSettingsOpen.value = false })
+const { width: screenWidth } = useScreen()
+const narrowCalc = computed(() => screenWidth.value <= 820)
 const workspace = ref<HTMLElement | null>(null)
 async function jumpToSection(name: string) {
     mobileCalcTab.value=name==='panel-card'?'panel':name.startsWith('config-')&&name!=='config-weapon'?'character':'equipment'
@@ -899,11 +852,6 @@ let restoringHistory = false
 
 // i18n
 const { t, ta } = useI18n()
-const sectionLinks = computed(() => [
-    ['config-character', t('misc.character')], ['config-weapon', t('misc.weapon')],
-    ['artifacts-card', t('misc.artifact')], ['damage-card', t('calcPage.dmg')],
-    ['config-buff', 'BUFF'],
-])
 
 
 //////////////////////////////////////////////////////////
@@ -1698,6 +1646,17 @@ const reviewIndex=computed(()=>{
     if(current&&matches(current))return optimizationResultIndex.value
     return optimizationResults.value.findIndex(matches)+1
 })
+// 顶部条「配装目标」按钮上显示的名字
+const optimizeTargetLabel = computed(() => {
+    if (optimizationMode.value === 'panel') return '面板配装'
+    if (miscTargetFunctionTab.value !== 'normal') return '自定义 DSL'
+    return ta(targets[targetFunctionName.value].nameLocale)
+})
+function handlePresetCommand(command: string) {
+    if (command === 'import') showMiyousheImport.value = true
+    else if (command === 'my-characters') showMyCharacters.value = true
+    else handleClickSaveOptimizeConfig()
+}
 const resultObjectiveLabel=computed(()=>{
     const tf=resultSearchInput.value?.target_function
     return tf?.use_dsl?'DSL 组合目标':tf?ta(targets[tf.name].nameLocale):'优化目标'
@@ -2487,5 +2446,7 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 </style>
 
 <style scoped src="./calculation-workbench.css"></style>
+
+<style src="./calculator-theme.css"></style>
 
 <style scoped src="../../styles/artifact-score.css"></style>
