@@ -444,32 +444,7 @@
                         </el-button-group>
                     </div>
             </calc-drawer>
-            <single-result-workbench v-if="!editorOpen" :character="characterLocale" :skill="reviewSkill"
-                :items="artifactItems" :baseline="comparisonBaseline" :changes="artifactChanges" :baseline-label="reviewBaselineLabel"
-                :analysis="characterDamageAnalysis" :previous="comparisonDamage.value" :panel-data="attributeFromWasm"
-                :count="optimizationResults.length" :index="reviewIndex" :dsl="reviewDsl" :metric-error="comparisonDamage.error"
-                :recharge-min="optimizationMode==='damage'?constraintMinRecharge:0" @candidates="showOptimizationResults=true"
-                :score="displayedPieceScore" :score-label="displayedScoreLabel" :total-label="displayedTotalLabel" :total="displayedScoreTotal"
-                @replace="handleGotoSelectArtifact" @score="i=>{scoreArtifactIndex=i;showArtifactScore=true}"
-                @analysis="handleClickArtifactAnalysis" @panel="jumpToSection('panel-card')" @details="jumpToSection('damage-card')"
-                @equipment="jumpToSection('artifacts-card')" @curve="showOptimalGainCurve=true">
-                <template #preset><preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" /></template>
-                <template #scoring><artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" /></template>
-                <template v-if="useNewScore" #score-basis><el-button v-if="dynamicScore" size="small" @click="openScoreBasis">评分依据</el-button><span v-else-if="dynamicScoreState.running" role="status">{{ dynamicScoreState.status }}</span><span v-else-if="dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span></template>
-                <template #baseline><artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
-                    v-model:history-id="comparisonHistoryId" :history="comparisonHistory" @save="saveComparisonHistory" />
-                    <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
-                </template>
-            </single-result-workbench>
-            <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
-                :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
-                @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
-            <el-button v-if="editorOpen && optimizationResults.length" class="return-to-result" @click="showResult">返回配装结果</el-button>
-            <div v-show="editorOpen" ref="workspace" class="calc-workspace">
-                <div class="calc-editor">
-                    <section class="calc-card identity-card setup-section">
-                            <header class="card-heading"><h3><i-ep-user-filled aria-hidden="true"/>角色与武器</h3></header>
-                        <div class="identity-row">
+            <calc-drawer v-model="characterDrawerOpen" title="角色">
                         <section class="config-character setup-section">
                             <div class="character-fields">
                                 <div class="calc-field"><span>{{ t('misc.character') }}</span><select-character v-model="characterName" :aria-label="t('misc.character')" /></div>
@@ -493,6 +468,8 @@
                                 ></item-config>
                             </div>
                         </section>
+            </calc-drawer>
+            <calc-drawer v-model="weaponDrawerOpen" title="武器">
                         <section class="config-weapon setup-section">
                             <div class="weapon-fields">
                                 <div class="calc-field"><span>{{ t('misc.weapon') }}</span><select-weapon :type="characterWeaponType" v-model="weaponName" :aria-label="t('misc.weapon')" /></div>
@@ -508,9 +485,9 @@
                                 ></item-config>
                             </div>
                         </section>
-                        </div>
-                    </section>
-                        <section class="calc-card artifacts-card equipment-section">
+            </calc-drawer>
+            <calc-drawer v-model="artifactsDrawerOpen" title="圣遗物">
+                        <section class="drawer-section artifacts-card">
                             <header class="card-heading"><h3><i-ep-collection aria-hidden="true"/>{{ t("misc.artifact") }}</h3>
                                 <artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" />
                                 <div class="artifact-grade-summary" aria-label="角色圣遗物评分">
@@ -523,6 +500,7 @@
                                     v-for="(id, index) in artifactIds"
                                     :key="index"
                                     class="artifact-item-or-button"
+                                    :data-slot="index"
                                 >
                                     <span class="slot-name"><img :src="slotIcons[positions[index]]" alt="" />{{ t("misc", positions[index]) }}</span>
                                     <artifact-display
@@ -603,6 +581,49 @@
                                 ></item-config>
                             </div>
                         </section>
+            </calc-drawer>
+            <calc-drawer v-model="attributesDrawerOpen" title="全部属性">
+                    <el-alert v-if="comparisonAttribute.error" :title="comparisonAttribute.error" type="warning" :closable="false" />
+                    <attribute-panel v-if="!betaCalculationError"
+                        :attribute="attributeFromWasm"
+                        :baseline="comparisonAttribute.value"
+                    ></attribute-panel>
+                    <div class="panel-actions">
+                        <el-button type="primary" :icon="IconEpHistogram" @click="showOptimalGainCurve = true" :disabled="!!betaCalculationError">最优收益曲线 · 0～20 条</el-button>
+                        <el-button
+                            :icon="IconEpHistogram"
+                            @click="handleClickAttributeAnalysis"
+                        >{{ t("calcPage.statCurve") }}</el-button>
+                    </div>
+            </calc-drawer>
+            <single-result-workbench v-if="!editorOpen" :character="characterLocale" :skill="reviewSkill"
+                :items="artifactItems" :baseline="comparisonBaseline" :changes="artifactChanges" :baseline-label="reviewBaselineLabel"
+                :analysis="characterDamageAnalysis" :previous="comparisonDamage.value" :panel-data="attributeFromWasm"
+                :count="optimizationResults.length" :index="reviewIndex" :dsl="reviewDsl" :metric-error="comparisonDamage.error"
+                :recharge-min="optimizationMode==='damage'?constraintMinRecharge:0" @candidates="showOptimizationResults=true"
+                :score="displayedPieceScore" :score-label="displayedScoreLabel" :total-label="displayedTotalLabel" :total="displayedScoreTotal"
+                @replace="handleGotoSelectArtifact" @score="i=>{scoreArtifactIndex=i;showArtifactScore=true}"
+                @analysis="handleClickArtifactAnalysis" @panel="jumpToSection('panel-card')" @details="jumpToSection('damage-card')"
+                @equipment="jumpToSection('artifacts-card')" @curve="showOptimalGainCurve=true">
+                <template #preset><preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" /></template>
+                <template #scoring><artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" /></template>
+                <template v-if="useNewScore" #score-basis><el-button v-if="dynamicScore" size="small" @click="openScoreBasis">评分依据</el-button><span v-else-if="dynamicScoreState.running" role="status">{{ dynamicScoreState.status }}</span><span v-else-if="dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span></template>
+                <template #baseline><artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
+                    v-model:history-id="comparisonHistoryId" :history="comparisonHistory" @save="saveComparisonHistory" />
+                    <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
+                </template>
+            </single-result-workbench>
+            <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
+                :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
+                @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
+            <el-button v-if="editorOpen && optimizationResults.length" class="return-to-result" @click="showResult">返回配装结果</el-button>
+            <div v-show="editorOpen" ref="workspace" class="calc-workspace">
+                <character-hero-card class="hero-row" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
+                    :element-label="t('ele', scoreCharacters[characterName].element)" :avatar="scoreCharacters[characterName].avatar"
+                    :splash="scoreCharacters[characterName].splash" :level="characterLevel" :constellation="characterConstellation"
+                    :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon" :slots="heroSlots"
+                    :score="heroScore" :stats="heroStats" @open="openHeroSection" />
+                <div class="calc-editor">
                         <section class="calc-card damage-card equipment-section">
                             <header class="card-heading"><h3><i-ep-data-analysis aria-hidden="true"/>{{ t("calcPage.dmg") }}</h3>
                                 <div class="card-actions">
@@ -679,32 +700,6 @@
                             </selected-buff-groups>
                         </section>
                 </div>
-                <aside class="calc-card panel-card">
-                    <header class="panel-cover">
-                        <div class="panel-identity">
-                            <img class="panel-portrait" :src="scoreCharacters[characterName].avatar" alt="" />
-                            <div class="panel-name">
-                                <h3>{{ t("calcPage.panel") }}</h3>
-                                <strong>{{ characterLocale }}</strong>
-                                <div class="panel-badges"><span>Lv.{{ characterLevel }}</span><span>C{{ characterConstellation }}</span><span>R{{ weaponRefine }}</span></div>
-                            </div>
-                        </div>
-                        <img v-if="elementIcons[scoreCharacters[characterName].element]" class="panel-seal"
-                            :src="elementIcons[scoreCharacters[characterName].element]" :alt="t('ele',scoreCharacters[characterName].element)" />
-                    </header>
-                    <el-alert v-if="comparisonAttribute.error" :title="comparisonAttribute.error" type="warning" :closable="false" />
-                    <attribute-panel v-if="!betaCalculationError"
-                        :attribute="attributeFromWasm"
-                        :baseline="comparisonAttribute.value"
-                    ></attribute-panel>
-                    <div class="panel-actions">
-                        <el-button type="primary" :icon="IconEpHistogram" @click="showOptimalGainCurve = true" :disabled="!!betaCalculationError">最优收益曲线 · 0～20 条</el-button>
-                        <el-button
-                            :icon="IconEpHistogram"
-                            @click="handleClickAttributeAnalysis"
-                        >{{ t("calcPage.statCurve") }}</el-button>
-                    </div>
-                </aside>
             </div>
         </div>
     </div>
@@ -777,6 +772,9 @@ import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.m
 import DslGenerator from './DslGenerator.vue'
 import CalcTopBar from './CalcTopBar.vue'
 import CalcDrawer from './CalcDrawer.vue'
+import CharacterHeroCard from './CharacterHeroCard.vue'
+import {weaponData} from '@weapon'
+import {attributeComparison} from '@/algorithms/attribute-comparison.mjs'
 import {useScreen} from '@/composables/screen'
 import {generateDsl} from '@/algorithms/dsl-generator.mjs'
 import {useTargetFunction} from "@/composables/targetFunction"
@@ -829,11 +827,34 @@ const editorOpen = ref(true)
 function showResult() { editorOpen.value=false; mobileCalcTab.value='equipment'; window.scrollTo(0,0) }
 function activateTab(tab:string) { mobileCalcTab.value=tab;editorOpen.value=true;window.scrollTo(0,0) }
 const optimizeSettingsOpen = ref(false)
-onDeactivated(() => { optimizeSettingsOpen.value = false })
+const characterDrawerOpen = ref(false)
+const weaponDrawerOpen = ref(false)
+const artifactsDrawerOpen = ref(false)
+const attributesDrawerOpen = ref(false)
+onDeactivated(() => {
+    optimizeSettingsOpen.value = characterDrawerOpen.value = weaponDrawerOpen.value = false
+    artifactsDrawerOpen.value = attributesDrawerOpen.value = false
+})
+// 角色卡上点哪一块就打开哪个抽屉；空槽位直接选圣遗物，有圣遗物的槽位打开圣遗物抽屉并定位到该部位
+async function openHeroSection(section: string, slot?: number) {
+    if (section === 'character') characterDrawerOpen.value = true
+    else if (section === 'weapon') weaponDrawerOpen.value = true
+    else if (section === 'attributes') attributesDrawerOpen.value = true
+    else if (slot !== undefined && !artifactItems.value[slot]) handleGotoSelectArtifact(slot)
+    else {
+        artifactsDrawerOpen.value = true
+        if (slot === undefined) return
+        await nextTick()
+        document.querySelector(`.calc-drawer [data-slot="${slot}"]`)?.scrollIntoView({ block: 'nearest' })
+    }
+}
 const { width: screenWidth } = useScreen()
 const narrowCalc = computed(() => screenWidth.value <= 820)
 const workspace = ref<HTMLElement | null>(null)
 async function jumpToSection(name: string) {
+    // 圣遗物和面板已移进抽屉
+    if (name === 'artifacts-card') { artifactsDrawerOpen.value = true; return }
+    if (name === 'panel-card') { attributesDrawerOpen.value = true; return }
     mobileCalcTab.value=name==='panel-card'?'panel':name.startsWith('config-')&&name!=='config-weapon'?'character':'equipment'
     editorOpen.value=true
     await nextTick()
@@ -1646,6 +1667,46 @@ const reviewIndex=computed(()=>{
     if(current&&matches(current))return optimizationResultIndex.value
     return optimizationResults.value.findIndex(matches)+1
 })
+// 角色卡数据
+const ELEMENT_BONUS: Record<string, [string, string]> = {
+    Pyro: ['bonus_pyro', 'stat.fireBonus'], Hydro: ['bonus_hydro', 'stat.waterBonus'], Dendro: ['bonus_dendro', 'stat.dendroBonus'],
+    Electro: ['bonus_electro', 'stat.thunderBonus'], Anemo: ['bonus_anemo', 'stat.windBonus'], Cryo: ['bonus_cryo', 'stat.iceBonus'],
+    Geo: ['bonus_geo', 'stat.rockBonus'],
+}
+const heroStats = computed(() => {
+    const attribute: any = attributeFromWasm.value
+    if (betaCalculationError.value || !attribute) return []
+    const baseline: any = comparisonAttribute.value.value
+    const element = ELEMENT_BONUS[scoreCharacters[characterName.value].element] ?? ['bonus_physical', 'stat.physicalBonus']
+    const rows: [string, string, boolean, boolean][] = [
+        ['hp', 'stat.lifeStatic', false, false], ['atk', 'stat.attackStatic', false, false], ['def', 'stat.defendStatic', false, false],
+        ['elemental_mastery', 'stat.elementalMastery', false, false], ['critical', 'stat.critical', true, true],
+        ['critical_damage', 'stat.criticalDamage', true, true], ['recharge', 'stat.recharge', true, false],
+        [element[0], element[1], true, false],
+    ]
+    return rows.map(([key, label, percentage, highlight]) => {
+        const c = attributeComparison(attribute[key], baseline?.[key], percentage)
+        return { key, label: t(label), current: String(c.current), before: c.before === null ? null : String(c.before), direction: c.direction, highlight }
+    })
+})
+const heroWeapon = computed(() => {
+    const data = weaponData[weaponName.value]
+    const effect = data.effect ? String(ta(data.effect)).replace(/<[^>]+>/g, '').split(/[。；]/)[0] : ''
+    return { name: weaponLocale.value, icon: data.url, level: weaponLevel.value, refine: weaponRefine.value, effect }
+})
+const heroSlots = computed(() => positions.map((position, i) => {
+    const item: any = artifactItems.value[i]
+    const piece = item ? artifactsData[item.setName]?.[position] : null
+    return {
+        position, label: t('misc', position), icon: slotIcons[position], image: piece?.url ?? null,
+        title: piece ? ta(piece.text) : '', level: item?.level ?? null, changed: !!artifactChanges.value[i],
+    }
+}))
+const heroScore = computed(() => useNewScore.value
+    ? { value: String(displayedScoreTotal.value), label: '新评分 · 单件合计', grade: dynamicTotalGrade.value }
+    : { value: artifactBuildScore.value.total === null ? '—' : artifactBuildScore.value.total.toFixed(1),
+        label: '喵喵总分 · ' + artifactBuildScore.value.grade, grade: artifactBuildScore.value.grade })
+
 // 顶部条「配装目标」按钮上显示的名字
 const optimizeTargetLabel = computed(() => {
     if (optimizationMode.value === 'panel') return '面板配装'
@@ -2210,7 +2271,7 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .calc-mobile-tabs { display: none; }
 .calc-mobile-tabs .compact-name { display: none; }
 /* Configure from top to bottom while the live panel stays in view. */
-.calc-workspace { --side-width: clamp(280px,24cqi,420px); display: grid; grid-template-columns: minmax(0,1fr) var(--side-width); gap: 14px; align-items: start; }
+.calc-workspace { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
 .calc-editor, .identity-row { min-width: 0; display: grid; gap: 14px; align-content: start; }
 .calc-editor { grid-template-columns: minmax(0,1fr); }
 .identity-row { grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr); align-items: start; gap: 20px; }
