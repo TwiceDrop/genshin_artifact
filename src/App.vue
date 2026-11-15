@@ -1,4 +1,6 @@
 <template>
+    <!-- Element 组件自带的默认文字（暂无数据、无匹配数据等）跟随界面语言，原来没设置时一律是英文 -->
+    <el-config-provider :locale="elementLocale">
     <main-page></main-page>
     <usage-stats-notice></usage-stats-notice>
     <el-dialog v-model="updateVisible" title="发现新版本" width="600px" custom-class="release-update-dialog"
@@ -47,11 +49,13 @@
             </el-button>
         </template>
     </el-dialog>
+    </el-config-provider>
 </template>
 
 <script setup>
 import {onMounted, onBeforeUnmount, ref, computed} from 'vue'
 import {ElMessage} from 'element-plus'
+import {elementLocale} from '@/i18n/element-locale'
 import MainPage from "@page/MainPage"
 import UsageStatsNotice from "@/components/UsageStatsNotice.vue"
 import {recordUsage} from "@/usage-stats/index.mjs"
