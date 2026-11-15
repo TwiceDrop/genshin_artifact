@@ -72,7 +72,7 @@
             <el-button @click="$emit('close')">{{ t('misc.cancel') }}</el-button>
             <el-button type="primary" @click="save">保存</el-button>
         </template>
-        <el-dialog :model-value="selectSlot !== null" :title="t('calcPage.selectArt')" width="min(1000px, 96vw)"
+        <el-dialog :model-value="selectSlot !== null" :title="t('calcPage.selectArt')" width="min(1000px, 96vw)" custom-class="cx-scope"
             append-to-body destroy-on-close @update:model-value="value => { if (!value) selectSlot = null }">
             <select-artifact v-if="selectSlot !== null" :position="positions[selectSlot]" @select="handleSelectArtifact" />
         </el-dialog>

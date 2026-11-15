@@ -15,13 +15,12 @@
         </div>
 
         <div class="artifacts" v-show="artifactListDisplayed.length > 0">
-            <artifact-display
+            <artifact-card
                 v-for="artifact in artifactListDisplayed"
                 :key="artifact.id"
                 :item="artifact"
-                selectable
-                @click="$emit('select', artifact.id)"
-            ></artifact-display>
+                @open="$emit('select', artifact.id)"
+            ></artifact-card>
         </div>
         <div v-show="artifactListDisplayed.length === 0" class="no-artifacts">
             <el-empty></el-empty>
@@ -42,7 +41,7 @@ import { deviceIsPC } from "@util/device"
 
 import SelectArtifactMainStat from "@c/select/SelectArtifactMainStat"
 import SelectArtifactSet from "@c/select/SelectArtifactSet"
-import ArtifactDisplay from "@c/display/ArtifactDisplay"
+import ArtifactCard from "@/components/display/ArtifactCard.vue"
 import type {ArtifactMainStatName, ArtifactPosition, ArtifactSetName, IArtifact} from "@/types/artifact"
 import {useArtifactStore} from "@/store/pinia/artifact"
 import {defaultArtifactSortFunction} from "@/utils/artifacts"
@@ -115,18 +114,21 @@ const { t } = useI18n()
 </script>
 
 <style lang="scss" scoped>
+// 候选圣遗物用圣遗物页的卡片；弹窗本身是卡片底色（cx-scope），卡片再深一层
 .artifacts {
-    //display: flex;
-    //gap: 16px;
-    //flex-wrap: wrap;
-    //margin: 16px 0;
-    //
-
-    margin: 16px 0;
+    margin: 14px 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
     grid-auto-rows: max-content;
-    gap: 4px;
+    gap: 10px;
+
+    :deep(.art-card) {
+        background: var(--cx-step);
+    }
+
+    :deep(.art-main) {
+        background: var(--cx-step-2);
+    }
 }
 
 .no-artifacts {

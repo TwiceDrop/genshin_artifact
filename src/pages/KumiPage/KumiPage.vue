@@ -2,6 +2,7 @@
     <div class="kumi-page cx-scope">
         <el-dialog
             v-model="showSelectArtifactDialog"
+            custom-class="cx-scope"
             :title="t('kumiPage.selectArt')"
             :width="deviceIsPC ? '80%' : '90%'"
         >

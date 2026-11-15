@@ -13,6 +13,7 @@
         </el-dialog>
 
         <el-dialog
+            custom-class="cx-scope"
             title="选择圣遗物"
             :width="deviceIsPC ? '80%' : '90%'"
             v-model="showSelectArtifactDialog"

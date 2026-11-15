@@ -34,6 +34,7 @@
         <el-dialog
             :title="t('calcPage.selectArt')"
             :width="deviceIsPC ? '80%' : '90%'"
+            custom-class="cx-scope"
             v-model="showSelectArtifactDialog"
         >
             <select-artifact

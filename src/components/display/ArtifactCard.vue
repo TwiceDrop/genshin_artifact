@@ -168,7 +168,10 @@ const subs = computed(() => props.item.normalTags.map(tag => {
         color: var(--cx-dim);
     }
 
+    // 数值不换行，窄卡片里让词条名省略
     b {
+        flex: none;
+        white-space: nowrap;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
     }
