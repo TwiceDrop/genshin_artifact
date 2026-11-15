@@ -558,6 +558,7 @@
                         </section>
             </calc-drawer>
             <calc-drawer v-model="attributesDrawerOpen" title="全部属性">
+                <div class="attributes-body">
                     <el-alert v-if="comparisonAttribute.error" :title="comparisonAttribute.error" type="warning" :closable="false" />
                     <attribute-panel v-if="!betaCalculationError"
                         :attribute="attributeFromWasm"
@@ -570,6 +571,7 @@
                             @click="handleClickAttributeAnalysis"
                         >{{ t("calcPage.statCurve") }}</el-button>
                     </div>
+                </div>
             </calc-drawer>
             <calc-drawer v-model="buffDrawerOpen" title="BUFF">
                 <template #actions><el-button :icon="IconEpPlus" @click="handleClickAddBuff">添加BUFF</el-button></template>
@@ -2191,30 +2193,26 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 
 <style lang="scss" scoped>
 @media(max-width:700px){
- .review-mode .calc-toolbar .preset-actions{max-width:54%}
- .review-mode .preset-actions :deep(.m-button-group){display:flex;flex-wrap:nowrap;align-items:center;gap:2px}
- .review-mode .preset-actions :deep(.m-button-group button){min-width:0;min-height:36px;min-inline-size:0;margin:0;padding:0 8px;white-space:nowrap}
-}
+   }
 
 .calc-content {
     container: single-calculator / inline-size;
     padding: clamp(10px, 1.3vw, 18px);
-    border-radius: 16px;
-    background: #f6f8fb;
-    color: #303849;
+    border-radius: var(--cx-radius);
+    background: var(--cx-ground);
+    color: var(--cx-letter);
     font-family: system-ui, "Microsoft YaHei", sans-serif;
     font-variant-numeric: tabular-nums;
     --el-component-size: 36px;
 }
-.calc-toolbar, .card-heading, .card-actions, .panel-actions {
+.card-heading, .card-actions, .panel-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px 12px;
 }
-.calc-toolbar, .card-heading { justify-content: space-between; }
-.calc-toolbar { padding-bottom: 14px; border-bottom: 1px solid #e4e9f2; }
-.calc-toolbar h2, .card-heading h3 {
+.card-heading { justify-content: space-between; }
+.card-heading h3 {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -2223,10 +2221,9 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
     letter-spacing: .02em;
     line-height: 1.35;
 }
-.calc-toolbar h2 { font-size: 25px; }
 .card-heading { margin-bottom: 16px; }
 .card-heading h3 { font-size: 20px; }
-.calc-toolbar h2 svg, .card-heading h3 svg { color: #568de0; width: 1.1em; height: 1.1em; }
+.card-heading h3 svg { color: #568de0; width: 1.1em; height: 1.1em; }
 .preset-actions, .preset-actions :deep(.el-dropdown), .preset-actions :deep(.el-button-group) { min-width: 0; max-width: 100%; }
 .preset-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
 .preset-actions :deep(.el-dropdown) { flex:1; }
@@ -2247,13 +2244,9 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .calc-top-bar .preset-actions :deep(.el-button-group) { width: 100%; }
 .calc-top-bar .preset-actions :deep(.el-button-group > .el-button:first-child) { flex: 1; }
 .calc-workspace { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
-.calc-editor, .identity-row { min-width: 0; display: grid; gap: 14px; align-content: start; }
-.identity-row { grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr); align-items: start; gap: 20px; }
+.calc-editor { min-width: 0; display: grid; gap: 14px; align-content: start; }
 .config-character, .config-weapon { min-width: 0; }
 .config-weapon { border-left: 1px solid var(--hairline); padding-left: 20px; }
-.config-buff { container: buff-board / inline-size; display: flex; flex-direction: column; max-height: min(600px,70dvh); box-sizing: border-box; }
-.config-buff > .card-heading { flex-shrink: 0; }
-.config-buff .buffs { min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; padding-right: 8px; }
 .config-weapon { container: single-weapon / inline-size; }
 .config-weapon :deep(.detail-body) { min-width: 0; }
 .config-weapon :deep(.detail .image) { flex-shrink: 0; }
@@ -2263,8 +2256,6 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .config-character .constellation-line > span { grid-column: 1/-1; }
 .config-character .constellation-line button { min-width: 0; min-height: 40px; padding-inline: 0; }
 .artifacts-card { container: single-gear / inline-size; }
-.damage-analysis-div :deep(.el-table .cell) { padding-inline: 4px; }
-.calc-card { min-width: 0; padding: 18px; background: white; border: 1px solid #e2e7ef; border-radius: 14px; box-shadow: 0 8px 24px #24395708; scroll-margin-top: 58px; }
 .calc-field { display: flex; flex-direction: column; min-width: 0; gap: 6px; }
 .calc-field > span, .constellation-line > span { font-size: 15px; font-weight: 600; color: #5d6b81; }
 .character-fields, .weapon-fields { display: grid; gap: 12px; align-items: start; }
@@ -2285,21 +2276,16 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 @container enemy-infusion (max-width: 410px) {
     .enemy-infusion :deep(.el-radio-group) { grid-template-columns: repeat(4,minmax(0,1fr)); }
 }
-.damage-skill { margin-bottom: 14px; }
-.enemy-infusion .common-title2, .damage-skill .common-title2 { margin-top: 0; }
-.calc-field > :last-child, .damage-skill :deep(.el-select) { width: 100%; min-width: 0; }
-.constellation-line, .panel-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.enemy-infusion .common-title2 { margin-top: 0; }
+.calc-field > :last-child { width: 100%; min-width: 0; }
+.constellation-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .constellation-line { border-top: 1px solid #e9edf3; padding-top: 12px; }
 .constellation-line > span { margin-right: 5px; }
 .constellation-line button { font: inherit; font-size: 15px; font-weight: 600; background: #fff; border: 1px solid #dce4ef; color: #637690; border-radius: 8px; min-width: 38px; min-height: 36px; cursor: pointer; }
 .constellation-line button[aria-pressed=true] { color: #356da9; background: #e7f1ff; border-color: #88afe0; }
 .character-extra-config, .weapon-extra-config { margin-top: 14px; }
-.calc-card :deep(.config-root) { background: #f4f8fe; border: 1px solid #e1eaf5; border-radius: 10px; }
-.calc-card :deep(.el-table) { --el-table-header-bg-color: #f6f8fc; --el-table-row-hover-bg-color: #f0f6ff; }
-.calc-card :deep(.el-input__wrapper) { border-radius: 8px; }
 .calc-content .el-button + .el-button { margin-left: 0; }
 .card-actions :deep(.el-button-group), .artifact-tool :deep(.el-button-group), .optimization-actions :deep(.el-button-group) { display: flex; flex-wrap: wrap; gap: 6px; }
-.calc-card .el-button { border-radius: 8px; }
 .optimization-actions { border-top: 1px solid #e9edf3; padding-top: 14px; }
 .artifacts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit,minmax(min(100%,200px),1fr)); grid-auto-rows: minmax(64px,auto); }
 @container single-gear (min-width: 555px) { .artifacts { grid-template-columns: repeat(3,minmax(0,1fr)); } }
@@ -2315,38 +2301,25 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .artifacts :deep(.artifact .up .name) { font-size: 13px; }
 .artifacts .add-button { flex: 1; min-height: 64px; }
 .artifact-item-or-button .add-button, .artifact-item-or-button .artifact-display { box-sizing: border-box; width: 100%; }
-.panel-identity { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.panel-identity img { width: 48px; height: 48px; object-fit: cover; border: 1px solid #ccdae9; border-radius: 50%; background: #f2f6fc; }
-.panel-identity strong { font-size: 20px; }
-.panel-badges { margin-top: 5px; }
-.panel-badges span { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 12px; color: #526f96; background: #edf3fb; }
-.panel-card { position: sticky; top: 54px; max-height: calc(100dvh - 64px); overflow-y: auto; box-sizing: border-box; }
 .panel-actions { gap: 8px; margin-top: 14px; }
-.panel-card :deep(.class) { color: #536680; margin: 12px 0 4px; font-size: 16px; }
-.panel-card :deep(.attribute-item) { padding: 4px 0; line-height: 1.45; border-bottom: 1px solid #edf0f5; }
-.panel-card :deep(.attribute-item .title) { color: #65758a; font-weight: 500; }
-.panel-card :deep(.attribute-item .value) { font-weight: 650; }
+.attributes-body :deep(.class) { color: #536680; margin: 12px 0 4px; font-size: 16px; }
+.attributes-body :deep(.attribute-item) { padding: 4px 0; line-height: 1.45; border-bottom: 1px solid #edf0f5; }
+.attributes-body :deep(.attribute-item .title) { color: #65758a; font-weight: 500; }
+.attributes-body :deep(.attribute-item .value) { font-weight: 650; }
 @container single-weapon (max-width: 480px) {
     .weapon-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .weapon-fields > :first-child { grid-column: 1/-1; }
 }
 @container single-calculator (max-width: 820px) {
-    .calc-run { min-height: 42px; padding-inline: 12px; }
     .calc-workspace { grid-template-columns: minmax(0,1fr); }
-    .calc-card { padding: 14px; }
-    .panel-card { position: static; max-height: none; overflow: visible; }
-    .identity-row { grid-template-columns: minmax(0,1fr); }
     .config-weapon { border-left: 0; padding: 16px 0 0; border-top: 1px solid var(--hairline); }
 }
 @container single-calculator (max-width: 520px) {
-    .calc-toolbar h2 { font-size: 22px; }
-    .calc-toolbar { flex-direction:column; align-items:stretch; }
-    .calc-toolbar .preset-actions, .review-mode .calc-toolbar .preset-actions { max-width:100%; width:100%; }
     .card-heading h3 { font-size: 18px; }
     .constellation-line > span { width: 100%; }
     .constellation-line button { flex: 1; min-width: 30px; min-height: 40px; padding: 0 3px; }
 
-    .panel-card :deep(.attribute-item .value > span) { white-space: normal; }
+    .attributes-body :deep(.attribute-item .value > span) { white-space: normal; }
 }
 
 .transformative-damage{margin-top:24px}.transformative-damage summary{cursor:pointer}
@@ -2377,7 +2350,7 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
     .polestar-field-stacks { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 14px; }
     .el-input-number { width: 100%; }
 }
-.config-target-function {
+.calc-drawer-body {
     .target-function-detail {
         display: flex;
         //align-items: top;
