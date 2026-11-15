@@ -9,7 +9,7 @@
         direction="ltr"
         size="min(82%, 300px)"
         :with-header="false"
-        class="sb-drawer"
+        custom-class="sb-drawer"
         v-if="!geSmall"
     >
         <side-bar
