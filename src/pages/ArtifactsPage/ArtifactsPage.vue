@@ -173,22 +173,12 @@ import {type ArtifactPosition, ArtifactSetName, ArtifactStatName, IArtifactConte
 // import {ElLoading, ElMessage, ElMessageBox, ElNotification} from "element-plus"
 // import {ElMessage} from "element-plus"
 
-import IconEpPlus from "~icons/ep/plus"
-import IconEpUnlock from "~icons/ep/unlock"
-import IconFa6Lightbulb from "~icons/fa6-regular/lightbulb"
-import IconEpMore from "~icons/ep/more"
-import IconEpDelete from "~icons/ep/delete"
-import IconFa6PaperPlane from "~icons/fa6-regular/paper-plane"
-import IconFa6SolidUpload from "~icons/fa6-solid/upload"
-import IconFa6SolidShareNodes from "~icons/fa6-solid/share-nodes"
-import IconFa6SolidDownload from "~icons/fa6-solid/download"
 import {useI18n} from "@/i18n/i18n"
 
 import "element-plus/es/components/message/style/css"
 
 // i18n
 const { t } = useI18n()
-const mobileUI = process.env.MONA_MOBILE
 
 
 const tabs = [
@@ -694,6 +684,10 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
     width: 200px;
 }
 
+.art-filter :deep(.el-select) {
+    width: 100%;
+}
+
 .art-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -727,6 +721,11 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
         display: none;
     }
 
+    // 手机顶栏已显示页面标题
+    .art-title {
+        display: none;
+    }
+
     .art-filter {
         width: calc(50% - 5px);
     }
@@ -736,111 +735,6 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
     }
 }
 
-.score-sort {
-    width: 240px;
-
-    .el-select {
-        width: 100%;
-    }
-}
-
-.artifact-score {
-    display: flex;
-    justify-content: space-between;
-    padding: 6px 8px;
-    border-top: 1px solid var(--el-border-color-lighter);
-    font-size: 12px;
-    color: var(--el-text-color-secondary);
-
-    strong {
-        color: var(--el-color-primary);
-    }
-}
-
-@media only screen and (min-width: 992px) {
-    .filter {
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-
-        .filter-item {
-            display: inline-block;
-            vertical-align: top;
-        }
-
-        .show-only-16 {
-            margin-left: 16px;
-        }
-    }
-}
-
-@media only screen and (max-width: 992px) {
-    .filter {
-        margin-bottom: 12px;
-
-        .score-sort {
-            width: 100%;
-            margin-top: 4px;
-        }
-
-        .filter-item {
-            .el-select {
-                width: 100%;
-            }
-        }
-
-        .show-only-16 {
-            margin-top: 4px;
-        }
-    }
-
-
-}
-
-.toolbar-mobile {
-    position: relative;
-    .m-center {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-        top: 50%;
-        //top: 0;
-        font-size: 12px;
-        color: #606166;
-    }
-}
-
-.icon {
-    padding: 0 12px;
-}
-
-.artifacts-div {
-    box-sizing: border-box;
-    //height: 100vh;
-    display: grid;
-    gap: 4px;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    grid-auto-columns: 1fr;
-    grid-auto-rows: min-content;
-
-    .artifact-item {
-        width: 100%;
-        box-sizing: border-box;
-        //width: 20%;
-        //width: 200px;
-    }
-}
-
-.tool-bar {
-    margin-bottom: 16px;
-    margin-top: 16px;
-}
-
-.tool-bar .tool-right {
-    float: right;
-}
 </style>
 
 <style scoped src="../../styles/artifact-score.css"></style>
