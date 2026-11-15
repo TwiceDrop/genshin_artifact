@@ -23,6 +23,14 @@ export function changedAffixes(oldItem, newItem) {
     return lines
 }
 
+// 一行变动词条是多了还是少了：同一词条比数值，新增算多、消失算少；主词条换了种类无从比较。
+export function affixTrend({old,now}) {
+    if(!old&&now)return 'up'
+    if(old&&!now)return 'down'
+    if(!old||!now||old.name!==now.name)return ''
+    return now.value>old.value?'up':now.value<old.value?'down':''
+}
+
 // Read the DSL VM's actual result variable (the program may already print other
 // values); never substitute the selected hit or a search rank ratio for it.
 export function dslObjective(mona,input,artifacts) {

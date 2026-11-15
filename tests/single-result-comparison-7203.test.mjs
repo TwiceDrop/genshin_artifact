@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {sameHitBaseline,changedAffixes,percentChange} from '../src/algorithms/single-result-comparison.mjs'
+import {sameHitBaseline,changedAffixes,affixTrend,percentChange} from '../src/algorithms/single-result-comparison.mjs'
 import {compareEquipment} from '../src/composables/artifactComparison.mjs'
 
 test('only the same skill branch, element and outcome kind provide a hit baseline',()=>{
@@ -30,3 +30,13 @@ test('old and new affixes align by identity, including replaced main, addition a
  assert.equal(compareEquipment([a],[{...a,id:77}])[0],'已替换')
 })
 
+
+test('a changed affix line rises or falls only when the same stat is compared',()=>{
+ const stat=(name,value)=>({name,value})
+ assert.equal(affixTrend({kind:'副词条',old:stat('critical',.031),now:stat('critical',.066)}),'up')
+ assert.equal(affixTrend({kind:'副词条',old:stat('critical',.066),now:stat('critical',.031)}),'down')
+ assert.equal(affixTrend({kind:'副词条',old:undefined,now:stat('critical',.031)}),'up')
+ assert.equal(affixTrend({kind:'副词条',old:stat('lifeStatic',508),now:undefined}),'down')
+ assert.equal(affixTrend({kind:'主词条',old:stat('attackPercentage',.466),now:stat('recharge',.518)}),'')
+ assert.equal(affixTrend({kind:'主词条',old:stat('attackPercentage',.35),now:stat('attackPercentage',.466)}),'up')
+})

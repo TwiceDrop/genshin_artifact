@@ -501,6 +501,20 @@
                                     <span v-if="!artifactItems[index] && artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span>
                                 </div>
                             </div>
+                            <div v-if="artifactDiffs.length" class="artifact-diffs">
+                                <section v-for="diff in artifactDiffs" :key="diff.index" class="artifact-diff">
+                                    <table>
+                                        <caption>{{ t("misc", positions[diff.index]) }} · 装备差异</caption>
+                                        <thead><tr><th scope="col">变动词条</th><th scope="col">旧件 · {{ diff.oldTitle }}</th><th scope="col">新件 · {{ diff.newTitle }}</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="(row, n) in diff.rows" :key="n">
+                                                <th scope="row">{{ row.label }}</th><td>{{ row.old }}</td><td :class="row.trend">{{ row.now }}</td>
+                                            </tr>
+                                            <tr v-if="!diff.rows.length"><td colspan="3">装备不同，主副词条一致</td></tr>
+                                        </tbody>
+                                    </table>
+                                </section>
+                            </div>
                             <div class="artifact-tool">
                                 <preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" />
                                 <el-button-group>
@@ -657,7 +671,7 @@
 
 <script setup lang="ts">
 import targets from '@/assets/_gen_tf'
-import {dslObjective} from '@/algorithms/single-result-comparison.mjs'
+import {dslObjective, changedAffixes, affixTrend} from '@/algorithms/single-result-comparison.mjs'
 import DynamicArtifactScore from '@/components/display/DynamicArtifactScore.vue'
 import ArtifactScoreMode from '@/components/display/ArtifactScoreMode.vue'
 import PresetPicker from '@/components/preset/PresetPicker.vue'
@@ -749,7 +763,7 @@ import type {IPreset, ITeamContextSource} from "@/types/preset"
 import {RandomIDProvider} from "@/utils/idProvider"
 import {use5Artifacts} from "@/composables/artifact"
 import {positions} from "@/constants/artifact"
-import {positionToIndex} from "@/utils/artifacts"
+import {positionToIndex, displayedTag, displayedTagParts} from "@/utils/artifacts"
 import {useMona} from "@/wasm/mona"
 import {useKumiStore} from "@/store/pinia/kumi"
 import SimpleLoading from "@/components/loading/SimpleLoading.vue"
@@ -1750,6 +1764,25 @@ const {
     baseline: comparisonBaseline, changes: artifactChanges, record: recordComparisonHistory,
     begin: beginArtifactComparison, restore: restoreSessionBaseline, reset: resetComparisonBaseline,
 } = useArtifactComparison({ storage: comparisonStorage, settings: miyousheStore.comparisonSettings, key: comparisonKey, items: artifactItems, gameBaseline: gameEquipment })
+// 抽屉里的「装备差异」：只列与对比基准相比换了的部位，每行一条变动词条（旧值 → 新值）
+const artifactDiffs = computed(() => {
+    const baseline = comparisonBaseline.value
+    if (!baseline) return []
+    const title = (a: IArtifact | null) => a ? ta((artifactsData as any)[a.setName][a.position].text) + ' +' + a.level : '未装备'
+    const shown = (s: any, kind: string) => s ? (kind === '主词条' ? displayedTag(s.name, s.value) : displayedTagParts(s.name, s.value)[1]) : '—'
+    return artifactChanges.value.flatMap((change: string, i: number) => {
+        if (!change) return []
+        const old = baseline[i] ?? null, now = artifactItems.value[i] ?? null
+        const rows = changedAffixes(old, now).map((line: any) => {
+            const stat = line.old || line.now
+            return {
+                label: line.kind === '副词条' ? '副词条 · ' + displayedTagParts(stat.name, stat.value)[0] : '主词条',
+                old: shown(line.old, line.kind), now: shown(line.now, line.kind), trend: affixTrend(line),
+            }
+        })
+        return [{ index: i, oldTitle: title(old), newTitle: title(now), rows }]
+    })
+})
 const reviewSkill = computed(() => {
     const c = scoreCharacters[characterName.value]
     for (const [k,label] of [['skillMap1','普通攻击'],['skillMap2','元素战技'],['skillMap3','元素爆发']]) {
@@ -2342,6 +2375,18 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .artifact-grade-summary>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:14px}.artifact-grade-summary strong{font-size:20px;color:var(--el-color-primary)}.artifact-grade-summary b{font-size:19px;color:var(--el-color-primary)}
 .artifact-piece-score{padding:7px 8px;border-top:1px solid var(--el-border-color-lighter);font-size:12px;color:var(--el-color-primary);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
 .artifact-change-marker{display:inline-block;border-radius:3px;padding:2px 6px;background:var(--el-color-warning-light-9);color:var(--el-color-warning-dark-2);font-size:12px;line-height:1.4}
+/* 装备差异：换了的部位各一张小表；数值变多用 --cx-up、变少用 --cx-down（与伤害涨跌同色） */
+.artifact-diffs { display: grid; gap: 8px; margin-top: 12px; }
+.artifact-diff { padding: 10px 12px; border-radius: 12px; background: var(--cx-step); }
+.artifact-diff table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; line-height: 1.5; }
+.artifact-diff caption { text-align: left; padding-bottom: 6px; color: var(--cx-letter); font-size: 13px; font-weight: 700; }
+.artifact-diff th, .artifact-diff td { padding: 3px 4px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.artifact-diff thead th { color: var(--cx-dim); font-weight: 400; }
+.artifact-diff tbody th { color: var(--cx-dim); font-weight: 400; }
+.artifact-diff tbody td { color: var(--cx-letter); font-variant-numeric: tabular-nums; }
+.artifact-diff tbody tr + tr { box-shadow: 0 -1px 0 var(--cx-step-2); }
+.artifact-diff td.up { color: var(--cx-up); font-weight: 600; }
+.artifact-diff td.down { color: var(--cx-down); font-weight: 600; }
 .polestar-field-control {
     padding: 12px;
     margin-bottom: 12px;
