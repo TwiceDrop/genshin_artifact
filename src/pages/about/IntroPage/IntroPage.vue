@@ -1,86 +1,55 @@
 <template>
-    <div class="page-root">
-        <p
-            class="title"
-        >
-            <span class="mona">{{ webTitle }}</span>
-            V{{ version }}
-        </p>
+    <div class="welcome">
+        <star-field />
 
-        <div class="update-controls">
-            <el-button type="primary" plain @click="requestManualUpdateCheck">{{ t('intro.checkForUpdates') }}</el-button>
-            <el-switch v-model="automaticUpdates" :active-text="t('intro.automaticUpdateCheck')"
-                       @change="changeAutomaticUpdates" />
+        <div class="welcome-emblem">
+            <astrolabe-dial class="welcome-dial" />
+            <img class="welcome-icon" :src="welcomeIcon" alt="" />
         </div>
 
-<!--        <el-button @click="handleTest"></el-button>-->
+        <div class="welcome-lockup">
+            <h1 class="welcome-name">{{ webTitle }}</h1>
 
-        <el-row :gutter="16">
-            <el-col :sm="8" :xs="24" class="mb16">
-                <use-case-item :text="t('intro.useCase1')" url="/calculate" :icon="IconFa6SolidCalculator"
-                    :description="t('intro.useCase1Description')"
-                ></use-case-item>
-            </el-col>
-            <el-col :sm="8" :xs="24" class="mb16">
-                <use-case-item :text="t('intro.useCase2')" url="/team-optimization" :icon="IconFa6SolidUserGroup"
-                               :description="t('intro.useCase2Description')"
-                ></use-case-item>
-            </el-col>
-            <el-col :sm="8" :xs="24" class="mb16">
-                <use-case-item :text="t('intro.useCase4')" url="/help/export-tools" :icon="IconFa6SolidFileExport"
-                               :description="t('intro.useCase4Description')"
-                ></use-case-item>
-            </el-col>
-        </el-row>
+            <nav class="welcome-links" aria-label="GitHub">
+                <a v-for="link in githubLinks" :key="link.name" class="welcome-link"
+                   :href="link.url" target="_blank" rel="noopener">
+                    <icon-fa6-brands-github aria-hidden="true" />
+                    <span>{{ link.name }}</span>
+                </a>
+            </nav>
+        </div>
 
-        <h2>{{ t("intro.opensource") }}</h2>
-        <el-row :gutter="16">
-            <el-col :xs="24" :sm="8" class="mb16">
-                <use-case-item text="MONA" :icon="IconFa6BrandsGithub"
-                               :description="t('intro.opensourceMonaDescription')"
-                               @click="newPage('https://github.com/TwiceDrop/genshin_artifact')"
-                ></use-case-item>
-
-            </el-col>
-            <el-col :xs="24" :sm="8" class="mb16">
-                <use-case-item text="Yas" :icon="IconFa6BrandsGithub"
-                               :description="t('intro.opensourceYasDescription')"
-                               @click="newPage('https://github.com/1803233552/yas')"
-                ></use-case-item>
-            </el-col>
-            <el-col :xs="24" :sm="8" class="mb16">
-                <use-case-item text="GOODScanner" :icon="IconFa6BrandsGithub"
-                               @click="newPage('https://github.com/Anyrainel/GOODScanner')"
-                ></use-case-item>
-            </el-col>
-        </el-row>
-
+        <span class="welcome-version">V{{ version }}</span>
+        <div class="welcome-update">
+            <el-button link @click="requestManualUpdateCheck">{{ t('intro.checkForUpdates') }}</el-button>
+            <el-switch v-model="automaticUpdates" size="small" :active-text="t('intro.automaticUpdateCheck')"
+                       @change="changeAutomaticUpdates" />
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-
-import IconFa6SolidUserGroup from "~icons/fa6-solid/user-group"
-import IconFa6SolidFileExport from "~icons/fa6-solid/file-export"
-import IconFa6SolidCalculator from "~icons/fa6-solid/calculator"
 import IconFa6BrandsGithub from "~icons/fa6-brands/github"
+import AstrolabeDial from "./AstrolabeDial.vue"
+import StarField from "./StarField.vue"
 
-import UseCaseItem from "./UseCaseItem.vue"
-import {useRouter} from "vue-router"
 import {onActivated, onBeforeUnmount, onMounted, ref} from "vue"
 import {ElMessage} from "element-plus"
 import {useI18n} from "@/i18n/i18n"
 import {AUTOMATIC_UPDATE_CHANGED_EVENT, isAutomaticUpdateEnabled,
     requestManualUpdateCheck, setAutomaticUpdateEnabled} from "@/platform/release-update.mjs"
 
-
 const version = process.env.MONA_VERSION
 const webTitle = process.env.MONA_TITLE
-const buildDate = process.env.MONA_BUILD_DATE
-const host = location.hostname
 
+// 临时用米游社的莫娜头像（角色数据里的头像同样从这里加载），开发者提供正式图标后替换；
+// 底图接在 .welcome 的 --wl-art 上。
+const welcomeIcon = "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Mona.png"
 
-const router = useRouter()
+const githubLinks = [
+    { name: "TwiceDrop", url: "https://github.com/TwiceDrop" },
+    { name: "SuperWoNiu12138", url: "https://github.com/SuperWoNiu12138" },
+]
 
 const { t } = useI18n()
 const automaticUpdates = ref(isAutomaticUpdateEnabled())
@@ -94,108 +63,307 @@ function changeAutomaticUpdates(enabled: boolean) {
         ElMessage.error('无法保存更新偏好，请检查浏览器存储设置')
     }
 }
-
-function navigateTo(r: any) {
-    router.push(r)
-}
-
-function newPage(url: string) {
-    window.open(url, "_blank")
-}
-
-
 </script>
 
 <style lang="scss" scoped>
-.page-root {
-    //height: 100%;
-    overflow: auto;
-
-    -ms-overflow-style: none;
+// 龙藏体（OFL-1.1，许可见 src/assets/fonts/OFL.long-cang.txt），只含「莫娜占卜铺」五个字
+@font-face {
+    font-family: "Mona Welcome Title";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("~@/assets/fonts/long-cang-title.woff2") format("woff2");
 }
 
-.page-root::-webkit-scrollbar {
-    display: none;
+// 欢迎页自带浅色和深色两套颜色。变量名避开 script/postcss-mona-colors.cjs 识别的
+// 角色词（background、text、line、edge、accent 等），否则深色模式下会被它再映射一次。
+.welcome {
+    --wl-ground: #eef0f6;
+    --wl-glow: #ffffff;
+    --wl-letter: #111633;
+    --wl-dim: #586180;
+    --wl-gold: #9c7428;
+    --wl-gold-stroke: rgba(156, 116, 40, .55);
+    --wl-gold-faint: rgba(156, 116, 40, .24);
+    --wl-star: #6f7ca6;
+    --wl-medal: #ffffff;
+    --wl-sheen-1: #1c2266;
+    --wl-sheen-2: #5a3a9e;
+    --wl-sheen-3: #a8782a;
+    --wl-chip: rgba(17, 22, 51, .06);
+    --wl-chip-hover: #111633;
+    --wl-chip-hover-on: #f4efe4;
+    --wl-art: none;
+    --wl-gap: 28px;
+    --wl-dial: clamp(560px, min(78cqi, 104vh), 1000px);
+
+    container-type: inline-size;
+    position: relative;
+    isolation: isolate;
+    // 图标落在正中，星盘完整居中；店名和链接排在图标下方
+    display: grid;
+    grid-template-rows: 1fr auto 1fr;
+    justify-items: center;
+    // 抵消 .main 的内边距，让欢迎页铺满工作区
+    margin: -24px -24px 0;
+    min-height: calc(100vh - 48px);
+    padding: 56px var(--wl-gap) 104px;
+    box-sizing: border-box;
+    overflow: hidden;
+    color: var(--wl-letter);
+    background:
+        radial-gradient(circle at 50% 30%, var(--wl-glow) 0, transparent 46%),
+        var(--wl-art) center / cover no-repeat,
+        var(--wl-ground);
 }
 
-.build-info {
-    font-size: 12px;
-
+html[data-color-mode="dark"] .welcome {
+    --wl-ground: #080c1a;
+    --wl-glow: #1a2350;
+    --wl-letter: #f4efe4;
+    --wl-dim: #8e97b4;
+    --wl-gold: #e2c078;
+    --wl-gold-stroke: rgba(226, 192, 120, .5);
+    --wl-gold-faint: rgba(226, 192, 120, .2);
+    --wl-star: #e8e6ff;
+    --wl-medal: #1c2550;
+    --wl-sheen-1: #fbeecb;
+    --wl-sheen-2: #e6bd6a;
+    --wl-sheen-3: #b996ee;
+    --wl-chip: rgba(244, 239, 228, .07);
+    --wl-chip-hover: #e2c078;
+    --wl-chip-hover-on: #151005;
 }
 
-.mb16 {
-    margin-bottom: 16px;
+.welcome-emblem {
+    grid-row: 2;
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: calc(var(--wl-dial) * .15);
+    aspect-ratio: 1;
 }
 
-.update-controls {
+.welcome-lockup {
+    grid-row: 3;
+    align-self: start;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: calc(var(--wl-dial) * .07);
+}
+
+.welcome-dial {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: -1;
+    width: var(--wl-dial);
+    height: var(--wl-dial);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: wl-dial-in 1.6s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.welcome-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--wl-medal);
+    animation: wl-rise .8s cubic-bezier(.2, .7, .2, 1) .2s both;
+}
+
+.welcome-name {
+    margin: 0;
+    font-family: "Mona Welcome Title", "KaiTi", "STKaiti", serif;
+    font-weight: 400;
+    font-size: clamp(56px, 12vw, 220px);
+    line-height: 1;
+    letter-spacing: .04em;
+    // 末字后的字距会让整体偏左，补回同样的量
+    padding-left: .04em;
+    white-space: nowrap;
+    color: var(--wl-letter);
+    animation: wl-rise .9s cubic-bezier(.2, .7, .2, 1) .32s both;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .welcome-name {
+        background: linear-gradient(110deg, var(--wl-sheen-1) 8%, var(--wl-sheen-2) 52%, var(--wl-sheen-3) 96%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+@supports (font-size: 1cqi) {
+    .welcome-name {
+        font-size: clamp(56px, 15cqi, 220px);
+    }
+}
+
+.welcome-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 44px;
+    animation: wl-rise .9s cubic-bezier(.2, .7, .2, 1) .44s both;
+}
+
+.welcome-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 999px;
+    background: var(--wl-chip);
+    color: var(--wl-letter);
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color .2s ease, color .2s ease, transform .2s ease;
+
+    svg {
+        font-size: 18px;
+        color: var(--wl-gold);
+        transition: color .2s ease;
+    }
+
+    &:hover {
+        background: var(--wl-chip-hover);
+        color: var(--wl-chip-hover-on);
+
+        svg {
+            color: inherit;
+        }
+    }
+
+    &:active {
+        transform: scale(.97);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--wl-gold);
+        outline-offset: 3px;
+    }
+}
+
+.welcome-version,
+.welcome-update {
+    position: absolute;
+    bottom: var(--wl-gap);
+    font-size: 13px;
+    color: var(--wl-dim);
+}
+
+.welcome-version {
+    left: var(--wl-gap);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .06em;
+}
+
+.welcome-update {
+    right: var(--wl-gap);
     display: flex;
     align-items: center;
     gap: 16px;
-    flex-wrap: wrap;
-    margin: -8px 0 24px;
+
+    :deep(.el-button.is-link) {
+        --el-button-text-color: var(--wl-dim);
+        --el-button-hover-link-text-color: var(--wl-letter);
+        font-size: 13px;
+    }
+
+    :deep(.el-switch) {
+        --el-switch-on-color: var(--wl-gold);
+    }
+
+    :deep(.el-switch__label) {
+        color: var(--wl-dim);
+    }
+
+    :deep(.el-switch__label.is-active) {
+        color: var(--wl-letter);
+    }
 }
 
-.title {
-    font-size: 3rem;
-    margin: 0;
-    margin-bottom: 24px;
-    padding: 0;
+@keyframes wl-rise {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
 }
 
+@keyframes wl-dial-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.92) rotate(-12deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .welcome-dial,
+    .welcome-icon,
+    .welcome-name,
+    .welcome-links {
+        animation: none;
+    }
+
+    .welcome-link {
+        transition: none;
+
+        &:active {
+            transform: none;
+        }
+    }
+}
+
+// 窄屏：.main 有顶栏和底部导航，内边距也更小
 @media (max-width: 767px) {
-    .title { font-size: clamp(24px, 7vw, 32px); line-height: 1.5; }
-}
+    .welcome {
+        --wl-gap: 16px;
+        --wl-dial: 580px;
+        margin: -14px -12px 0;
+        // mobile.scss 给 .main-view 的子元素限了 max-width: 100%，负边距需要解开它
+        max-width: none;
+        min-height: calc(100vh - 48px - 80px);
+        grid-template-rows: 1fr auto auto 1fr auto auto;
+        padding-top: 40px;
+        padding-bottom: 24px;
+    }
 
-.item {
-    cursor: pointer;
-}
+    .welcome-lockup {
+        padding-bottom: 32px;
+    }
 
-.item-title {
-    font-weight: bold;
-    font-size: 1.2rem;
-    padding: 0;
-    margin: 16px 0 0 0;
-}
+    // 角落放不下，排在页面底部
+    .welcome-version {
+        grid-row: 5;
+    }
 
-.icon {
-    font-size: 1.5rem;
-}
+    .welcome-update {
+        grid-row: 6;
+    }
 
-.card-title {
-    font-size: 1.2rem;
-    margin: 0 0 16px 0;
-}
+    .welcome-links {
+        margin-top: 32px;
+    }
 
-.big-card-title {
-    margin: 0;
-    padding: 0 0 16px 0;
-    font-size: 1.5rem;
-}
+    // 角落放不下，改成页面底部依次排列
+    .welcome-version,
+    .welcome-update {
+        position: static;
+    }
 
-.data-source {
-    margin: 0;
-    margin-right: 10px;
-    margin-top: 10px;
-}
-
-.mona {
-    background: rgb(86,72,132);
-    border-radius: 3px;
-    color: white;
-    padding: 0 8px;
-}
-
-.source-code-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 15vh;
-    border: 1px solid #00000011;
-    cursor: pointer;
-
-    &:hover {
-        background: rgb(251, 249, 255);
+    .welcome-update {
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 8px;
     }
 }
 </style>

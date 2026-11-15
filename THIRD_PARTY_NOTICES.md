@@ -44,6 +44,8 @@ Windows 安装器的简体中文界面使用 Inno Setup 社区翻译 `installer/
 
 前端依赖及版本在 `package-lock.json` 中记录，包含 Vue、Element Plus、ECharts、Monaco Editor 等。各依赖按其自身许可证提供；构建时生成的许可证文件随对应资源一同分发。图标、字体及其他第三方素材按各自许可证提供。
 
+欢迎页标题使用龙藏体（Long Cang），Copyright 2018 The Long Cang Project Authors，SIL Open Font License 1.1。`src/assets/fonts/long-cang-title.woff2` 是 Google Fonts 生成的子集，只含「莫娜占卜铺」五个字，许可全文见 `src/assets/fonts/OFL.long-cang.txt`。
+
 游戏图片、角色/武器/圣遗物名称及资料属于相应权利人，本项目 MIT 许可不覆盖这些权利。
 
 ## 本次测试服扩展
