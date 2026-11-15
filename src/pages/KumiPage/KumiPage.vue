@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="kumi-page cx-scope">
         <el-dialog
             v-model="showSelectArtifactDialog"
             :title="t('kumiPage.selectArt')"
@@ -11,141 +11,65 @@
             ></select-artifact>
         </el-dialog>
 
-        <div class="m-toolbar hidden-md-and-up">
-            <el-dropdown trigger="click" @command="handleCommand">
-                <el-button :icon="IconEpMore" size="small" aria-label="收藏夹操作">操作</el-button>
+        <div class="kumi-layout">
+            <aside class="kumi-folders" aria-label="收藏夹">
+                <button type="button" class="kumi-new-folder" @click="handleNewDir">＋ 新建收藏夹</button>
+                <nav class="kumi-folder-list">
+                    <button v-for="dir in dirItems" :key="dir.index" type="button" :aria-pressed="currentDirId === dir.index"
+                            @click="currentDirId = dir.index">
+                        <icon-ep-folder aria-hidden="true" />
+                        <span>{{ dir.title }}</span>
+                        <small>{{ kumiStore.kumisByDirId.value[dir.index]?.length ?? 0 }}</small>
+                    </button>
+                </nav>
+            </aside>
 
-                <template #dropdown>
-                    <el-dropdown-menu>
-                        <el-dropdown-item command="add" :icon="IconEpFolderAdd">{{ t("kumiPage.newFolder") }}</el-dropdown-item>
-                        <el-dropdown-item command="clear" :icon="IconEpBrush">{{ t("misc.clear") }}</el-dropdown-item>
-                        <el-dropdown-item command="addKumi" :icon="IconEpPlus">{{ t("kumiPage.newKumi") }}</el-dropdown-item>
-                        <el-dropdown-item command="delete" v-if="currentDirId !== 0 && currentDirId !== 1" :icon="IconEpDelete">{{ t("misc.del") }}"{{ currentDirTitle }}"</el-dropdown-item>
-                        <el-dropdown-item command="rename" v-if="currentDirId !== 0 && currentDirId !== 1" :icon="IconEpEdit">{{ t("misc.rename") }}</el-dropdown-item>
-                        <el-dropdown-item
-                            v-for="(item, index) in dirItems"
-                            :key="item.index"
-                            :divided="index === 0"
-                            :command="'use ' + item.index"
-                            :icon="IconEpFolder"
-                        >{{ item.title }}</el-dropdown-item>
-                    </el-dropdown-menu>
-                </template>
-            </el-dropdown>
-
-            <div class="m-middle">
-                {{ currentDirTitle }}
-            </div>
-        </div>
-
-        <div class="pc-container">
-            <div class="left mona-scroll-hidden hidden-sm-and-down">
-                <div class="toolbar">
-                    <el-button type="primary" :icon="IconEpPlus" @click="handleNewDir">
-                        {{ t("kumiPage.newFolder") }}
-                    </el-button>
-                </div>
-
-                <div class="mona-scroll-hidden left-list">
-                    <my-list
-                        v-model="currentDirId"
-                        :items="dirItems"
-                    ></my-list>
-                </div>
-            </div>
-            <div class="right mona-scroll-hidden">
-                <div class="hidden-md-and-up">
-                    <el-input
-                        v-model="searchString"
-                        style="margin-bottom: 12px"
-                        :placeholder="t('misc.search')"
-                    >
-                        <template #append>
-                            <i-ep-search />
-                        </template>
+            <section class="kumi-main">
+                <header class="kumi-bar">
+                    <h2>{{ currentDirTitle }}</h2>
+                    <span class="kumi-count">{{ currentKumiList.length }} 组</span>
+                    <span class="kumi-spacer"></span>
+                    <el-input v-model="searchString" class="kumi-search" :placeholder="t('misc.search')" clearable>
+                        <template #prefix><icon-ep-search aria-hidden="true" /></template>
                     </el-input>
+                    <el-dropdown trigger="click" @command="handleCommand">
+                        <button type="button" class="kumi-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
+                        <template #dropdown><el-dropdown-menu>
+                            <el-dropdown-item command="add" class="kumi-narrow-only">新建收藏夹</el-dropdown-item>
+                            <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="rename">重命名</el-dropdown-item>
+                            <el-dropdown-item command="clear">清空</el-dropdown-item>
+                            <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="delete" divided>删除收藏夹</el-dropdown-item>
+                        </el-dropdown-menu></template>
+                    </el-dropdown>
+                    <button type="button" class="kumi-add" @click="handleNewKumi">＋ 新建套装</button>
+                </header>
+
+                <div v-if="filteredKumiList.length > 0" class="kumi-grid">
+                    <kumi-item
+                        v-for="kumi in filteredKumiList"
+                        :key="kumi.id"
+                        :data="kumi"
+                        @delete="handleDeleteKumi(kumi.id)"
+                        @edit="handleEditKumi(kumi.id)"
+                        @click="handleClickPosition(kumi.id, $event)"
+                        @deleteArtifact="handleDeleteArtifact(kumi.id, $event)"
+                    ></kumi-item>
                 </div>
-                <div class="toolbar2 hidden-sm-and-down">
-                    <div class="button-left">
-                        <el-button
-                            type="primary"
-                            :icon="IconEpPlus"
-                            @click="handleNewKumi"
-                        >{{ t("kumiPage.newKumi") }}</el-button>
-                        <el-input
-                            v-model="searchString"
-                            style="margin-left: 16px"
-                            :placeholder="t('misc.search')"
-                        >
-                            <template #append>
-                                <el-icon><i-ep-search /></el-icon>
-                            </template>
-                        </el-input>
-                    </div>
-
-                    <div class="button-right">
-                        <el-button-group>
-                            <el-button
-                                v-if="currentDirId !== 0 && currentDirId !== 1"
-                                :icon="IconEpEdit"
-                                @click="handleRenameDir(currentDirId)"
-                            >{{ t("misc.rename") }}</el-button>
-                            <el-button
-                                :icon="IconEpBrush"
-                                @click="handleClearDir(currentDirId)"
-                            >{{ t("misc.clear") }}</el-button>
-                            <el-button
-                                type="danger"
-                                @click="handleDeleteDir(currentDirId)"
-                                v-if="currentDirId !== 0 && currentDirId !== 1"
-                                :title="t('kumiPage.deleteFolder')"
-                                :icon="IconEpDelete"
-                            ></el-button>
-
-                        </el-button-group>
-
-                    </div>
-                </div>
-
-                <div class="items mona-scroll-hidden">
-                    <div v-if="filteredKumiList.length > 0">
-                        <kumi-item
-                            v-for="kumi in filteredKumiList"
-                            :key="kumi.id"
-                            :data="kumi"
-                            @delete="handleDeleteKumi(kumi.id)"
-                            @edit="handleEditKumi(kumi.id)"
-                            @click="handleClickPosition(kumi.id, $event)"
-                            @deleteArtifact="handleDeleteArtifact(kumi.id, $event)"
-                        ></kumi-item>
-                    </div>
-                    <div v-else>
-                        <el-empty></el-empty>
-                    </div>
-                </div>
-            </div>
+                <el-empty v-else></el-empty>
+            </section>
         </div>
-        
     </div>
 </template>
 
 <script setup lang="ts">
 import Fuse from "fuse.js"
 
-import MyList from "@/components/misc/MyList"
 import KumiItem from "./KumiItem"
 import SelectArtifact from "@/components/select/SelectArtifact"
 import {useKumiStore} from "@/store/pinia/kumi"
 import type {KumiItem as TypeKumiItem} from "@/types/kumi"
 import {deviceIsPC} from "@/utils/device"
 
-import IconEpPlus from "~icons/ep/plus"
-import IconEpDelete from "~icons/ep/delete"
-import IconEpEdit from "~icons/ep/edit"
-import IconEpMore from "~icons/ep/more"
-import IconEpFolder from "~icons/ep/folder"
-import IconEpFolderAdd from "~icons/ep/folder-add"
-import IconEpBrush from "~icons/ep/brush"
 import type {ArtifactPosition} from "@/types/artifact"
 import {useI18n} from "@/i18n/i18n";
 
@@ -320,6 +244,229 @@ function handleCommand(command: string) {
 </script>
 
 <style scoped lang="scss">
+// 圣遗物套装页（夜空风格）：颜色读 src/styles/content-theme.css 的 --cx-*
+.kumi-page {
+    min-height: calc(100vh - 48px);
+    padding: 16px clamp(10px, 1.3vw, 18px) 18px;
+    box-sizing: border-box;
+    border-radius: var(--cx-radius);
+    background: var(--cx-ground);
+    color: var(--cx-letter);
+}
+
+.kumi-layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.kumi-folders {
+    position: sticky;
+    top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.kumi-new-folder {
+    height: 42px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
+    }
+}
+
+.kumi-folder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 42px;
+        padding: 8px 12px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--cx-dim);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+
+        span {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        small {
+            font-variant-numeric: tabular-nums;
+        }
+
+        &:hover {
+            background: var(--cx-step);
+            color: var(--cx-letter);
+        }
+
+        &[aria-pressed=true] {
+            background: var(--cx-card);
+            color: var(--cx-letter);
+            font-weight: 600;
+
+            svg {
+                color: var(--cx-gold);
+            }
+        }
+    }
+}
+
+.kumi-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+
+    h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+    }
+}
+
+.kumi-count {
+    color: var(--cx-dim);
+}
+
+.kumi-spacer {
+    flex: 1;
+}
+
+.kumi-search {
+    width: 220px;
+}
+
+.kumi-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
+    }
+}
+
+.kumi-add {
+    height: 42px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+        filter: brightness(1.08);
+    }
+}
+
+.kumi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 14px;
+}
+
+.kumi-page button:focus-visible {
+    outline: 2px solid var(--cx-gold);
+    outline-offset: 2px;
+}
+
+// 「新建收藏夹」菜单项只在手机上出现（宽屏有左栏按钮）；菜单挂在 body 上，用全局选择器
+:global(.kumi-narrow-only) {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    :global(.kumi-narrow-only) {
+        display: flex !important;
+    }
+
+    .kumi-page {
+        padding-top: 12px;
+    }
+
+    .kumi-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    // 收藏夹变成横向滑动的标签
+    .kumi-folders {
+        position: static;
+    }
+
+    .kumi-new-folder {
+        display: none;
+    }
+
+    .kumi-folder-list {
+        flex-direction: row;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        button {
+            flex: none;
+            min-height: 38px;
+            border-radius: 999px;
+            background: var(--cx-card);
+
+            &[aria-pressed=true] {
+                background: var(--cx-gold);
+                color: var(--cx-gold-on);
+
+                svg {
+                    color: var(--cx-gold-on);
+                }
+            }
+        }
+    }
+
+    .kumi-bar h2 {
+        display: none;
+    }
+
+    .kumi-search {
+        order: 5;
+        width: 100%;
+    }
+
+    .kumi-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .m-toolbar {
     margin-bottom: 12px;
     position: relative;

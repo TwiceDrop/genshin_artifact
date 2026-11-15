@@ -31,7 +31,7 @@ import {artifactsData} from "@/assets/artifacts"
 import {displayedTagParts} from "@/utils/artifacts"
 import {useI18n} from "@/i18n/i18n"
 import type {IArtifact} from "@/types/artifact"
-import ArtifactIcon from "./ArtifactIcon.vue"
+import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
 
 const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string, selected?: boolean }>()
 const emit = defineEmits<{ (e: "open"): void }>()
