@@ -29,6 +29,8 @@
 
 <script setup lang="ts">
 import ExportToolItem from "./ExportToolItem.vue"
+import IconEpArrowRight from "~icons/ep/arrow-right"
+import IconEpWarningFilled from "~icons/ep/warning-filled"
 
 import IconFa6BrandsGithub from "~icons/fa6-brands/github"
 

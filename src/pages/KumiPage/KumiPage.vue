@@ -63,6 +63,9 @@
 
 <script setup lang="ts">
 import Fuse from "fuse.js"
+import IconEpFolder from "~icons/ep/folder"
+import IconEpSearch from "~icons/ep/search"
+import IconEpArrowDown from "~icons/ep/arrow-down"
 
 import KumiItem from "./KumiItem"
 import SelectArtifact from "@/components/select/SelectArtifact"

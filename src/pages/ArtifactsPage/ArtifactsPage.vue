@@ -152,6 +152,7 @@ import {useArtifactStore} from "@/store/pinia/artifact"
 import { isNative, saveText } from '@/platform/native.mjs'
 import {usePresetStore} from "@/store/pinia/preset"
 import {getArtifactsRecommendation} from "@/utils/artifactRecommendation"
+import IconEpArrowDown from "~icons/ep/arrow-down"
 
 import flowerIcon from '@image/misc/flower.png';
 import featherIcon from '@image/misc/feather.png';

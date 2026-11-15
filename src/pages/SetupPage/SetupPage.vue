@@ -51,6 +51,7 @@ import localforage from "localforage"
 import {colorMode,setColorMode} from "@/styles/color-mode.mjs"
 import {useI18n} from "@/i18n/i18n"
 import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent, refreshUsageStatsConsent, recordUsage} from "@/usage-stats/index.mjs"
+import IconEpDelete from "~icons/ep/delete"
 
 // 外观选项：值与 color-mode.mjs 一致，文字沿用 setupPage 的 i18n
 const modes = [
