@@ -1,5 +1,6 @@
 <template>
     <el-dialog :model-value="true" :title="creating ? '新建自定义预设' : '编辑角色预设'"
+        custom-class="cx-scope preset-editor-dialog"
         width="min(960px, 96vw)" @update:model-value="value => { if (!value) $emit('close') }" :close-on-click-modal="false">
         <div class="preset-editor">
             <label class="preset-name"><span>预设名称</span><el-input v-model="name" :disabled="!creating" aria-label="预设名称" /></label>

@@ -1,6 +1,6 @@
 <template>
     <el-button @click="open = true" aria-haspopup="dialog">{{ title }} <i-ep-arrow-down aria-hidden="true" /></el-button>
-    <el-dialog v-model="open" :title="title" width="min(640px, 94vw)" destroy-on-close>
+    <el-dialog v-model="open" :title="title" width="min(640px, 94vw)" custom-class="cx-scope" destroy-on-close>
         <preset-browser v-if="open" v-model="source" :character="character" @select="select" />
         <template v-if="apply" #footer>
             <el-button @click="open = false; $emit('create')" type="primary">新建自定义预设</el-button>

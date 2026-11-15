@@ -69,3 +69,10 @@ html[data-color-mode] .side-drawer .el-button--primary {
     --el-button-active-bg-color: var(--cx-gold);
     --el-button-active-border-color: var(--cx-gold);
 }
+
+/* 套用新配色的弹窗（如计算预设的编辑弹窗）：底色跟随内容区卡片 */
+.el-dialog.cx-scope {
+    --el-dialog-bg-color: var(--cx-card);
+    --el-bg-color: var(--cx-card);
+    background: var(--cx-card);
+}

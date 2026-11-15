@@ -1,69 +1,37 @@
 <template>
-    <div class="item br-3" @click="$emit('click')">
-        <div class="header">
-            <span class="fs-12">{{ props.name }}</span>
-            <div v-if="toolbar" class="buttons flex-row">
-<!--                <el-button-->
-<!--                    v-if="props.calculateIcon"-->
-<!--                    :icon="IconEpCPU"-->
-<!--                    text-->
-<!--                    size="small"-->
-<!--                    circle-->
-<!--                    @click.stop="$emit('cpu')"-->
-<!--                    class="button"-->
-<!--                    title="快速计算"-->
-<!--                ></el-button>-->
-                <el-button
-                    :icon="IconEpDelete"
-                    text
-                    size="small"
-                    circle
-                    @click.stop="$emit('delete')"
-                    class="button"
-                    :title="t('misc.del')"
-                ></el-button>
-                <el-button
-                    :icon="IconFa6SolidDownload"
-                    text
-                    size="small"
-                    circle
-                    @click.stop="$emit('download')"
-                    class="button"
-                    :title="t('misc.export')"
-                ></el-button>
+    <div class="preset-card" @click="$emit('click')">
+        <div class="preset-head">
+            <img class="preset-avatar" :src="characterAvatar" alt="" />
+            <div class="preset-title">
+                <b>{{ props.name }}</b>
+                <small>{{ ta(characterLocaleIndex) }}</small>
             </div>
+            <el-dropdown v-if="toolbar" trigger="click" @command="handleCommand" @click.stop>
+                <button type="button" class="preset-menu" :aria-label="`${props.name} 的操作`" @click.stop @keydown.enter.stop>
+                    <icon-ep-more-filled aria-hidden="true" />
+                </button>
+                <template #dropdown><el-dropdown-menu>
+                    <el-dropdown-item command="download">{{ t('misc.export') }}</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>{{ t('misc.del') }}</el-dropdown-item>
+                </el-dropdown-menu></template>
+            </el-dropdown>
         </div>
-        <div class="body">
-            <div class="detail-div fs-12">
-                <img :src="characterAvatar" class="c-avatar br-50p">
-<!--                <span>{{ characterChs }}</span>-->
-                <span>{{ ta(characterLocaleIndex) }}</span>
-            </div>
-            <div class="detail-div fs-12">
-                <img :src="wData.url" class="w-avatar br-50p">
-<!--                <span>{{ wData.chs }}</span>-->
-                <span>{{ ta(weaponNameIndex) }}</span>
-            </div>
-            <div class="detail-div fs-12">
-                <img :src="tfData.badge" class="tf-avatar br-50p">
-<!--                <span>{{ tfData.chs }}</span>-->
-                <span>{{ ta(tfNameIndex) }}</span>
-            </div>
+        <div class="preset-rows">
+            <span class="preset-row"><img :src="wData.url" alt="" /><span>{{ ta(weaponNameIndex) }}</span></span>
+            <span class="preset-row"><img :src="tfData.badge" alt="" /><span>{{ ta(tfNameIndex) }}</span></span>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+// 计算预设卡片：角色、预设名、武器、计算目标；「…」菜单导出 / 删除。props 与事件和改版前一致。
 import { characterData } from "@character"
 import { weaponData } from "@weapon"
 import { targetFunctionData } from "@targetFunction"
-
-import IconFa6SolidDownload from "~icons/fa6-solid/download"
-import IconEpDelete from "~icons/ep/delete"
-import IconEpCPU from "~icons/ep/cpu"
+import IconEpMoreFilled from "~icons/ep/more-filled"
+import {computed} from "vue"
 import {IPreset} from "@/types/preset"
-import {useI18n} from "@/i18n/i18n";
-
+import {useI18n} from "@/i18n/i18n"
 
 const { t, ta } = useI18n()
 
@@ -73,108 +41,138 @@ interface Props {
     toolbar?: boolean,
     calculateIcon?: boolean,
 }
-
 const props = withDefaults(defineProps<Props>(), {
     toolbar: true,
     calculateIcon: true,
     name: "name",
 })
+const emit = defineEmits(["click", "delete", "download", "cpu"])
 
-const characterName = computed(() => {
-    return props.item.character.name
-})
+const characterLocaleIndex = computed(() => characterData[props.item.character.name].nameLocale)
+const characterAvatar = computed(() => characterData[props.item.character.name].avatar)
+const wData = computed(() => weaponData[props.item.weapon.name])
+const weaponNameIndex = computed(() => wData.value.nameLocale)
+const tfData = computed(() => targetFunctionData[props.item.targetFunction.name])
+const tfNameIndex = computed(() => tfData.value.nameLocale)
 
-const characterLocaleIndex = computed(() => {
-    return characterData[characterName.value].nameLocale
-})
-
-const characterAvatar = computed(() => {
-    const data = characterData[characterName.value]
-    return data.avatar
-})
-
-const characterChs = computed(() => {
-    const data = characterData[characterName.value]
-    return data.chs
-})
-
-// const cData = computed(() => {
-//     return characterData[characterName]
-// })
-
-const wData = computed(() => {
-    return weaponData[props.item.weapon.name]
-})
-
-const weaponNameIndex = computed(() => {
-    return wData.value.nameLocale
-})
-
-const tfData = computed(() => {
-    return targetFunctionData[props.item.targetFunction.name]
-})
-
-const tfNameIndex = computed(() => {
-    return tfData.value.nameLocale
-})
+function handleCommand(command: string) {
+    if (command === "download") emit("download")
+    else emit("delete")
+}
 </script>
 
 <style lang="scss" scoped>
-.item {
-    border: 1px solid #00000011;
-    display: inline-block;
-    transition: 300ms;
+.preset-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
 
     &:hover {
-        background-color: #00000008;
-        cursor: pointer;
+        transform: translateY(-2px);
+        box-shadow: 0 0 0 2px var(--cx-step-2);
     }
 
-    .header {
-        height: 32px;
-        border-bottom: 1px solid #00000011;
-
-        span {
-            line-height: 32px;
-            padding: 4px 8px;
-            color: #123456;
-        }
-
-        .buttons {
-            float: right;
-            height: 32px;
-
-            .button {
-                margin: 0;
-            }
-        }
+    &:focus-visible {
+        outline: 2px solid var(--cx-gold);
+        outline-offset: 2px;
     }
-
-    .body {
-        padding: 8px;
-        //display: flex;
-        display: grid;
-        gap: 4px;
-        grid-template-columns: repeat(3, 1fr);
-
-        .detail-div {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-
-            span {
-                padding-top: 8px;
-            }
-        }
-    }
-    
 }
 
-.c-avatar, .w-avatar, .tf-avatar {
-    display: block;
-    height: 64px;
-    width: 64px;
-    border: 1px solid #e9e9e9;
+.preset-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.preset-avatar {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--cx-step-2);
+    object-fit: cover;
+}
+
+.preset-title {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+
+    b {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 15px;
+    }
+
+    small {
+        color: var(--cx-dim);
+        font-size: 12px;
+    }
+}
+
+.preset-menu {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--cx-step);
+    color: var(--cx-dim);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
+        color: var(--cx-letter);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cx-gold);
+        outline-offset: 2px;
+    }
+}
+
+.preset-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.preset-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: var(--cx-step);
+    font-size: 13px;
+
+    img {
+        flex: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+    }
+
+    span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .preset-card {
+        transition: none;
+    }
 }
 </style>

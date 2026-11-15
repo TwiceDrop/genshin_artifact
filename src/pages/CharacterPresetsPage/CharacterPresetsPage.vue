@@ -1,12 +1,12 @@
 <template>
-    <div>
-        <div class="toolbar">
-            <el-button-group>
-                <el-button :icon="IconFa6SolidDownload" @click="handleExportAll">{{ t('presetPage.exportAll') }}</el-button>
-                <el-button :icon="IconFa6SolidUpload" @click="showImportDialog = true">{{ t('misc.import') }}</el-button>
-            </el-button-group>
-            <el-button type="primary" @click="editPreset()">新建自定义预设</el-button>
-        </div>
+    <div class="presets-page cx-scope">
+        <header class="presets-bar">
+            <h2>{{ t('nav.preset') }}</h2>
+            <span class="presets-spacer"></span>
+            <button type="button" class="presets-btn" @click="showImportDialog = true">{{ t('misc.import') }}</button>
+            <button type="button" class="presets-btn" @click="handleExportAll">{{ t('presetPage.exportAll') }}</button>
+            <button type="button" class="presets-add" @click="editPreset()">新建自定义预设</button>
+        </header>
         <preset-browser v-model="source">
             <template #default="{entry}">
                 <preset-item :item="entry.item" :name="entry.name" :calculate-icon="false"
@@ -35,8 +35,6 @@ import PresetItem from '@/components/display/PresetItem.vue'
 import PresetBrowser from '@/components/preset/PresetBrowser.vue'
 import PresetEditor from '@/components/preset/PresetEditor.vue'
 import ImportBlock from '@/components/misc/ImportBlock'
-import IconFa6SolidUpload from '~icons/fa6-solid/upload'
-import IconFa6SolidDownload from '~icons/fa6-solid/download'
 
 const {t} = useI18n(), presetStore = usePresetStore()
 const showImportDialog = ref(false), source = ref('game'), editorOpen = ref(false)
@@ -62,5 +60,15 @@ async function handleExportAll() {
 }
 </script>
 <style scoped>
-.toolbar{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:20px}
+/* 计算预设页（夜空风格）：颜色读 src/styles/content-theme.css 的 --cx-* */
+.presets-page{min-height:calc(100vh - 48px);padding:16px clamp(10px,1.3vw,18px) 18px;box-sizing:border-box;border-radius:var(--cx-radius);background:var(--cx-ground);color:var(--cx-letter)}
+.presets-bar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.presets-bar h2{margin:0;font-size:20px;font-weight:700}
+.presets-spacer{flex:1}
+.presets-btn{height:40px;padding:0 16px;border:0;border-radius:10px;background:var(--cx-card);color:var(--cx-letter);font:inherit;cursor:pointer}
+.presets-btn:hover{background:var(--cx-step-2)}
+.presets-add{height:42px;padding:0 20px;border:0;border-radius:999px;background:var(--cx-gold);color:var(--cx-gold-on);font:inherit;font-weight:700;cursor:pointer}
+.presets-add:hover{filter:brightness(1.08)}
+.presets-bar button:focus-visible{outline:2px solid var(--cx-gold);outline-offset:2px}
+@media(max-width:767px){.presets-bar h2{display:none}.presets-spacer{display:none}.presets-add{margin-left:auto}}
 </style>
