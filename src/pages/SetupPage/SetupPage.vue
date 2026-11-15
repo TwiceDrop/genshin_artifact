@@ -36,7 +36,8 @@
 
             <div class="setup-row">
                 <span class="setup-row-label">{{ t("setupPage.storage") }}</span>
-                <el-popconfirm @confirm="handleClearLocalStorage" :title="t('setupPage.confirmClear')">
+                <el-popconfirm @confirm="handleClearLocalStorage" :title="t('setupPage.confirmClear')"
+                               :confirm-button-text="t('misc.clear')" :cancel-button-text="t('misc.cancel')">
                     <template #reference>
                         <button type="button" class="setup-danger"><icon-ep-delete aria-hidden="true" />{{ t("setupPage.clear") }}</button>
                     </template>

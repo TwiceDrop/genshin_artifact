@@ -70,6 +70,8 @@
                 <el-popconfirm
                     v-else
                     :title="t('accountPage.confirmDelete')"
+                    :confirm-button-text="t('accountPage.delete')"
+                    :cancel-button-text="t('misc.cancel')"
                     @confirm="handleDeleteAccount(id)"
                 >
                     <template #reference>
