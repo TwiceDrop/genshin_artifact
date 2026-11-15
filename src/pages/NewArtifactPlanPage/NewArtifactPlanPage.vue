@@ -624,34 +624,12 @@
                     :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon" :slots="heroSlots"
                     :score="heroScore" :stats="heroStats" @open="openHeroSection" />
                 <div class="calc-editor">
-                        <section class="calc-card damage-card equipment-section">
-                            <header class="card-heading"><h3><i-ep-data-analysis aria-hidden="true"/>{{ t("calcPage.dmg") }}</h3>
-                                <div class="card-actions">
-                                    <el-button-group>
-                                        <el-button
-                                            :icon="IconEpHistogram"
-                                            @click="handleDisplayAnalysis"
-                                        >{{ t("calcPage.detail") }}</el-button>
-                                        <el-button
-                                            :icon="IconEpTools"
-                                            @click="handleClickEnemyConfig"
-                                        >{{ t("calcPage.setupEnemy") }}</el-button>
-                                    </el-button-group>
-                                </div>
-                            </header>
-                            <div class="damage-skill">
-                                <h3 class="common-title2">{{ t("calcPage.skill") }}</h3>
-                                <select-character-skill
-                                    v-model="characterSkillIndex"
-                                    :character-name="characterName"
-                                />
-                            </div>
-                            <div class="damage-analysis-div">
-                                <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
-                                <damage-panel v-if="!betaCalculationError && characterDamageAnalysis"
-                                    :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
-                                ></damage-panel>
-                            </div>
+                        <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" @details="handleDisplayAnalysis">
+                            <template #actions><button type="button" class="damage-enemy-link" @click="handleClickEnemyConfig">{{ t("calcPage.setupEnemy") }}</button></template>
+                            <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
+                            <damage-panel v-if="!betaCalculationError && characterDamageAnalysis" layout="feature"
+                                :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
+                            ></damage-panel>
                             <div v-if="characterNeedSkillConfig" style="margin-bottom: 16px;">
                                 <h3 class="common-title2">{{ t("calcPage.skillConfig") }}</h3>
                                 <item-config
@@ -667,7 +645,7 @@
                                     :data="characterTransformativeDamage"
                                 ></transformative-damage>
                             </details>
-                        </section>
+                        </damage-result-card>
                         <section class="calc-card config-buff setup-section">
                             <header class="card-heading"><h3><i-ep-magic-stick aria-hidden="true"/>BUFF</h3><el-button :icon="IconEpPlus" @click="handleClickAddBuff" title="添加BUFF">添加BUFF</el-button></header>
                             <selected-buff-groups class="buffs" :buffs="otherBuffs">
@@ -743,7 +721,6 @@ import SelectCharacterLevel from "@/components/select/SelectCharacterLevel.vue"
 import SelectWeapon from "@/components/select/SelectWeapon.vue"
 import SelectWeaponLevel from "@/components/select/SelectWeaponLevel.vue"
 import SelectTargetFunction from "@/components/select/SelectTargetFunction.vue"
-import SelectCharacterSkill from "@/components/select/SelectCharacterSkill.vue"
 import SelectBuff from "@/components/select/SelectBuff.vue"
 import ArtifactDisplay from "@c/display/ArtifactDisplay"
 import slotIcons from "@/assets/artifacts/icons"
@@ -773,6 +750,9 @@ import DslGenerator from './DslGenerator.vue'
 import CalcTopBar from './CalcTopBar.vue'
 import CalcDrawer from './CalcDrawer.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
+import DamageResultCard from './DamageResultCard.vue'
+import {characterData} from '@character'
+import {characterSkillGroups} from '@/utils/character-skill-groups'
 import {weaponData} from '@weapon'
 import {attributeComparison} from '@/algorithms/attribute-comparison.mjs'
 import {useScreen} from '@/composables/screen'
@@ -1707,6 +1687,9 @@ const heroScore = computed(() => useNewScore.value
     : { value: artifactBuildScore.value.total === null ? '—' : artifactBuildScore.value.total.toFixed(1),
         label: '喵喵总分 · ' + artifactBuildScore.value.grade, grade: artifactBuildScore.value.grade })
 
+// 伤害卡左侧的技能列表
+const damageSkillGroups = computed(() => characterSkillGroups(characterData[characterName.value], ta))
+
 // 顶部条「配装目标」按钮上显示的名字
 const optimizeTargetLabel = computed(() => {
     if (optimizationMode.value === 'panel') return '面板配装'
@@ -2271,6 +2254,7 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .calc-mobile-tabs { display: none; }
 .calc-mobile-tabs .compact-name { display: none; }
 /* Configure from top to bottom while the live panel stays in view. */
+.damage-enemy-link { padding: 0; border: 0; background: none; color: var(--cx-dim); font: inherit; font-size: 13px; cursor: pointer; }
 .calc-workspace { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
 .calc-editor, .identity-row { min-width: 0; display: grid; gap: 14px; align-content: start; }
 .calc-editor { grid-template-columns: minmax(0,1fr); }

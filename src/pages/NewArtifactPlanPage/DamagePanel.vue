@@ -1,6 +1,27 @@
 <template>
     <div>
+        <!-- 计算器伤害卡用的大字布局：第一行（直伤或治疗）放大，其余反应行列在下面 -->
+        <div v-if="layout === 'feature' && tableData.length" class="damage-feature">
+            <div class="feature-main">
+                <span class="feature-label">{{ t('dmg.expect') }}</span>
+                <span v-if="tableData[0].expectation.before !== null" class="feature-before">{{ tableData[0].expectation.before }} →</span>
+                <span class="feature-number" :class="tableData[0].expectation.direction">{{ tableData[0].expectation.current }}</span>
+                <span v-if="tableData[0].expectation.before !== null" class="feature-change" :class="tableData[0].expectation.direction">{{ tableData[0].expectation.delta }}（{{ tableData[0].expectation.percent }}）</span>
+                <span class="feature-tag">{{ tableData[0].name }}</span>
+            </div>
+            <div class="feature-sub">
+                <div v-for="key in ['critical', 'nonCritical']" :key="key">
+                    <span>{{ t(key === 'critical' ? 'dmg.crit' : 'dmg.nonCrit') }}</span>
+                    <b :class="tableData[0][key].direction"><template v-if="tableData[0][key].before !== null"><s>{{ tableData[0][key].before }}</s> → </template>{{ tableData[0][key].current }}</b>
+                </div>
+            </div>
+            <div v-for="row in tableData.slice(1)" :key="row.name" class="feature-row">
+                <span class="feature-row-name">{{ row.name }}</span>
+                <span v-for="column in damageColumns" :key="column.key"><small>{{ t(column.label) }}</small><b :class="row[column.key].direction"><template v-if="row[column.key].before !== null"><s>{{ row[column.key].before }}</s> → </template>{{ row[column.key].current }}</b></span>
+            </div>
+        </div>
         <el-table
+            v-else
             :data="tableData"
         >
             <el-table-column
@@ -40,7 +61,9 @@ export default {
     name: "DamageList",
     props: {
         analysisFromWasm: {},
-        baseline: {}
+        baseline: {},
+        // table：原来的表格；feature：计算器伤害卡的大字布局
+        layout: { type: String, default: "table" },
     },
     data: () => ({ damageColumns: [{ key: "expectation", label: "dmg.expect" }, { key: "critical", label: "dmg.crit" }, { key: "nonCritical", label: "dmg.nonCrit" }] }),
     computed: {
@@ -96,6 +119,22 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.damage-feature { display: flex; flex-direction: column; gap: 18px; font-variant-numeric: tabular-nums; }
+.feature-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.feature-label { flex-basis: 100%; color: var(--cx-dim); }
+.feature-before { color: var(--cx-dim); font-size: 22px; }
+.feature-number { font: 800 72px/1 "Noto Serif SC", "Source Han Serif SC", serif; letter-spacing: -.01em; color: var(--cx-letter); }
+.feature-change { font-size: 16px; font-weight: 600; }
+.feature-tag { align-self: center; height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--cx-step-2); color: var(--cx-dim); font-size: 12px; }
+.feature-sub { display: flex; flex-wrap: wrap; gap: 12px 40px; }
+.feature-sub span { display: block; color: var(--cx-dim); font-size: 13px; }
+.feature-sub b { font-size: 28px; color: var(--cx-letter); }
+.feature-sub s, .feature-row s { color: var(--cx-dim); text-decoration: none; font-weight: 400; font-size: .75em; }
+.feature-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px; padding: 12px 16px; border-radius: 12px; background: var(--cx-step); }
+.feature-row-name { min-width: 6em; font-weight: 600; }
+.feature-row small { margin-right: 6px; color: var(--cx-dim); }
+.damage-feature .increase { color: var(--cx-up); }
+.damage-feature .decrease { color: var(--cx-down); }
 .damage-values { display: inline-flex; flex-direction: column; max-width: 100%; color: #000; font-variant-numeric: tabular-nums; }
 .damage-values.expected { font-weight: 650; color: #396ba9; }
 .value-line, .change-line { display: flex; flex-wrap: wrap; gap: 0 4px; align-items: baseline; }

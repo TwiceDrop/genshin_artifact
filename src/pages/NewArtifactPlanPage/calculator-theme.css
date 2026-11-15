@@ -13,8 +13,9 @@
     --cx-dim: #5a6380;
     --cx-gold: #8a6420;
     --cx-gold-on: #ffffff;
-    --cx-up: #2f8a5b;
-    --cx-down: #c0474f;
+    /* 沿用现有约定：涨红跌绿 */
+    --cx-up: #c0474f;
+    --cx-down: #2f8a5b;
     --cx-radius: 18px;
 }
 
@@ -28,8 +29,8 @@ html[data-color-mode="dark"] .calc-drawer {
     --cx-dim: #a3abc6;
     --cx-gold: #e2c078;
     --cx-gold-on: #17120a;
-    --cx-up: #6fcf97;
-    --cx-down: #ef8f95;
+    --cx-up: #ef8f95;
+    --cx-down: #6fcf97;
 }
 
 /* 内容区里的 Element Plus 控件用金色做主色 */
