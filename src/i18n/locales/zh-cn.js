@@ -162,6 +162,7 @@ export default {
         exportMona: "导出莫娜JSON",
         shareLink: "分享链接",
         confirmClear: "确定清除吗，将会同时清除圣遗物套装数据",
+        confirmDelete: "确定删除吗？",
         monaJSON: "莫娜JSON",
         show16: "只显示16级以上",
         copied: "复制成功",

@@ -299,8 +299,15 @@ function startEditArtifact() {
     nextTick(() => editArtifactComponent.value?.setId(openedArtifactId.value))
 }
 function deleteOpenedArtifact() {
-    deleteArtifact(openedArtifactId.value)
-    detailOpen.value = false
+    const id = openedArtifactId.value
+    ElMessageBox.confirm(t("artPage.confirmDelete"), t("misc.hint"), {
+        confirmButtonText: t("misc.del"),
+        cancelButtonText: t("misc.cancel"),
+        type: "warning"
+    }).then(() => {
+        deleteArtifact(id)
+        detailOpen.value = false
+    }).catch(() => {})
 }
 watch(detailOpen, open => { if (!open) openedArtifactId.value = -1 })
 

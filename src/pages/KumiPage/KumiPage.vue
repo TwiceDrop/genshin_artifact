@@ -174,7 +174,13 @@ function handleNewKumi() {
 }
 
 function handleDeleteKumi(id: number) {
-    kumiStore.deleteKumi(id)
+    ElMessageBox.confirm(t("kumiPage.confirmDelete"), t("misc.hint"), {
+        confirmButtonText: t("misc.del"),
+        cancelButtonText: t("misc.cancel"),
+        type: "warning"
+    }).then(() => {
+        kumiStore.deleteKumi(id)
+    }).catch(() => {})
 }
 
 function handleEditKumi(id: number) {

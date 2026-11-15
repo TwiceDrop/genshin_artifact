@@ -162,6 +162,7 @@ export default {
         exportMona: "export Mona JSON",
         shareLink: "share link",
         confirmClear: "continue to clear? Will also clear artifact sets",
+        confirmDelete: "Sure to delete?",
         monaJSON: "Mona JSON",
         show16: "Show only lvl > 16",
         copied: "Copied!",
