@@ -1,5 +1,7 @@
 import {actionTime} from './rule-utils.mjs';
 import {TEAM_ACTION_CATALOG} from './action-catalog.mjs';
+// Editor precision: convert the measured 60fps clock to tenths of a second.
+export const castDurationMs=frames=>Math.round(frames/6)*100;
 export function actionAxisTimeline(c,profiles){
  const slots=c.members.map(m=>m.slot);
  return c.timeline.map((a,order)=>({...a,order})).filter(a=>!a.when||(profiles?.[slots.indexOf(a.when.slot??a.actor)].character.constellation??0)>=a.when.constellationAtLeast).sort((a,b)=>a.timeMs-b.timeMs||a.order-b.order);

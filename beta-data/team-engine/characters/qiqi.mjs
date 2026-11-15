@@ -5,6 +5,9 @@ import {eventKey} from '../event-order.mjs';
 import {hitTargets} from '../hit-targets.mjs';
 import {observeProcHit} from '../proc-outcomes.mjs';
 import {createQiqiRuntime,qiqiApplication,qiqiSnapshot} from './qiqi-runtime.mjs';
+import {percent} from '../buff-preview-format.mjs';
+
+const c6AttackRatio=6,c6Uses=4;
 
 export const qiqi={
  id:'Qiqi',element:'Cryo',weaponType:'Sword',panelIndex:12,reactionStatIndex:0,usesElementalApplications:true,
@@ -23,9 +26,10 @@ export const qiqi={
   {id:'charged',label:'重击',endOffsetMs:50},{id:'plunge',label:'高空下落攻击'},{id:'plunge.low',label:'低空下落攻击'},{id:'plunge.collision',label:'下落期间伤害'}],
  modeled:['QiqiTalent2StellarConduct','QiqiC6StellarConduct'],
  normalize:p=>{p.character.params={Qiqi:{stellar_conduct_state:false}};},
+ previewBuffDetails:key=>key==='qiqi.c6'?[`星超导伤害定额提高：七七攻击力 × ${percent(c6AttackRatio)}`,`最多生效 ${c6Uses} 次`]:[],
  effects:profile=>profile.character.constellation>=6?[{
-  id:'qiqi.c6',label:'七七·洞玄',stage:'damage',target:'otherOnField',trigger:{kind:'cast',action:'burst'},duration:12,uses:4,
-  filter:{damageModel:'reaction.stellarConduct'},reads:{attack:{stat:'atk',stage:'attack',timing:'live'}},value:({m,read})=>({StellarConductFlat:m.mul(6,read('attack'))}),
+  id:'qiqi.c6',label:'七七·洞玄',stage:'damage',target:'otherOnField',trigger:{kind:'cast',action:'burst'},duration:12,uses:c6Uses,
+  filter:{damageModel:'reaction.stellarConduct'},reads:{attack:{stat:'atk',stage:'attack',timing:'live'}},value:({m,read})=>({StellarConductFlat:m.mul(c6AttackRatio,read('attack'))}),
  }]:[],
  expand({actions,hit,heals,periodic,activeRole}){
   for(const a of actions){

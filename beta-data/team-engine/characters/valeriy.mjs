@@ -1,6 +1,8 @@
 import {effect,numericSum} from '../rule-utils.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {createValeriyRuntime,VALERIY_TIMING} from './valeriy-runtime.mjs';
+import {percent} from '../buff-preview-format.mjs';
+const c2Mastery=100,c6Critical=.1,c6StellarCriticalDamage=.4;
 export const valeriy={
  id:'Valeriy',element:'Electro',weaponType:'Sword',panelIndex:8,reactionStatIndex:0,usesElementalApplications:true,
  nativeBackend:'extension',constellationTalents:{3:'skill1',5:'skill2'},defaultWeapon:'FavoniusSword',previewWeapon:'DullBlade',
@@ -12,9 +14,10 @@ export const valeriy={
  modeled:['ValeriyDirective','ValeriyC2','ValeriyC6'],
  normalize:p=>{p.character.params={Valeriy:{radiance:false,directive:false,momentum:0,shield_overflow:0,c2_active:false,c6_active:false,on_field:false}};},
  expand({actions,hit}){for(const a of actions)if(a.action.startsWith('plunge'))hit(a,{index:{plunge:7,'plunge.low':6,'plunge.collision':5}[a.action],category:'plunge',element:'Physical',application:null,label:'下落攻击'});},
+ previewBuffDetails:key=>key==='valeriy.c2'?[`元素精通提高 ${c2Mastery}`]:key==='valeriy.c6'?[`雷元素伤害暴击率提高 ${percent(c6Critical)}`,`星超导伤害暴击伤害提高 ${percent(c6StellarCriticalDamage)}`]:[],
  effects:({character:c})=>[
-  ...(c.constellation>=2?[{id:'valeriy.c2',label:'瓦列里·伴随冲阵的队型',stage:'attack',target:'team',trigger:{kind:'cast',action:'skill'},duration:18,reads:{},value:()=>({ElementalMastery:100})}]:[]),
-  ...(c.constellation>=6?[{id:'valeriy.c6',label:'瓦列里·穿透敌阵的威能',stage:'damage',target:'team',targetScope:'hitTargets',trigger:{kind:'hit',index:[4,11]},duration:7,filter:{element:'Electro'},reads:{},value:()=>({CriticalElectro:.1,StellarConductCritDamage:.4})}]:[]),
+  ...(c.constellation>=2?[{id:'valeriy.c2',label:'瓦列里·伴随冲阵的队型',stage:'attack',target:'team',trigger:{kind:'cast',action:'skill'},duration:18,reads:{},value:()=>({ElementalMastery:c2Mastery})}]:[]),
+  ...(c.constellation>=6?[{id:'valeriy.c6',label:'瓦列里·穿透敌阵的威能',stage:'damage',target:'team',targetScope:'hitTargets',trigger:{kind:'hit',index:[4,11]},duration:7,filter:{element:'Electro'},reads:{},value:()=>({CriticalElectro:c6Critical,StellarConductCritDamage:c6StellarCriticalDamage})}]:[]),
  ],
  createTimeline:createValeriyRuntime,createCombat:createValeriyRuntime,
  create({role,profiles,rotation,math:m,settings}){

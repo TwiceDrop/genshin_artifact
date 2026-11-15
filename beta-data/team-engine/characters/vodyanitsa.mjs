@@ -3,8 +3,13 @@ import {effect} from '../rule-utils.mjs';
 import {eventBefore} from '../event-order.mjs';
 import {defineActionRecipes} from '../action-recipes.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
+import {percent} from '../buff-preview-format.mjs';
 
 const timing={horn:{start:3,interval:3,duration:16},healing:{start:0,interval:1.5,duration:15}};
+const skillResistance=[.165,.18,.195,.21,.225,.24,.255,.27,.285,.3,.318,.336,.354,.372,.39];
+const songBurstBonus=[.48,.516,.552,.6,.636,.672,.72,.768,.816,.864,.912,.96,1.02,1.08,1.14];
+const tearsong={threshold:40000,ordinaryRatio:.14,ordinaryCap:3500,stellarRatio:.26,stellarCap:6500,frontUses:25,backUses:10};
+const c1AttackRatio=.008,c2CriticalDamage=.5,c2StellarCriticalDamage=.6,c6Bonus=.6,c6StellarElevation=.25;
 const isSwirl=e=>['direct.stellarSwirl','reaction.stellarSwirl'].includes(e.damageModel);
 const ordinary=e=>['Hydro','Cryo'].includes(e.element)&&['normal','charged','plunge','skill','burst'].includes(e.category)&&!isSwirl(e);
 const mode=({rotation,event})=>rotation.reactionAt?.(event).wanderingActive??0;
@@ -16,7 +21,7 @@ const actions=defineActionRecipes([
   const duration=16+(character.constellation>=2?9:0);
   return [
    {kind:'window',key:'vodySong',duration},
-   {kind:'window',key:'vodyFlat',duration:30,values:{frontUses:25,backUses:10}},
+   {kind:'window',key:'vodyFlat',duration:30,values:{frontUses:tearsong.frontUses,backUses:tearsong.backUses}},
    {kind:'hit',index:8,category:'skill',parts:1,element:'Hydro',application:application(1,'vodyanitsa.skill',3,2.5),label:'晨声纷流·施放'},
    {kind:'hit',key:'horn',repeat:{...timing.horn,duration},index:9,category:'skill',parts:1,element:'Hydro',application:application(1,'vodyanitsa.skill',3,2.5),label:'唤春角笛'},
    {kind:'heal',recipients:'active',repeat:{...timing.healing,duration}},
@@ -40,31 +45,46 @@ export const vodyanitsa={
  defaultWeapon:'HymnOfTheMaelstrom',previewWeapon:'ApprenticesNotes',
  capabilities:{energy:60,shield:false,nightsoul:false,arkhe:false},
  ...actions,
+ // The raw window and both independent usage pools describe one visible buff.
+ previewWindowEffects:{vodyFlat:{label:'十二弦的泪歌',effects:['vodyanitsa.a4.front','vodyanitsa.a4.back']}},
+ previewBuffDetails(key,{profile}){
+  const c=profile.character;
+  if(key==='vodySong')return [`效果：元素爆发的生命值倍率提高 ${percent(songBurstBonus[c.skill3])}`,...(c.constellation>=6?[`水元素与冰元素伤害提高 ${percent(c6Bonus)}`,`星扩散反应伤害擢升 ${percent(c6StellarElevation)}`]:[])];
+  if(key==='vodyanitsa.skill.resistance')return [`效果：水元素与冰元素抗性降低 ${percent(skillResistance[c.skill2])}`];
+  if(key==='vodyanitsa.c1')return [`效果：攻击力提高，数值为沃雅妮莎生命值上限的 ${percent(c1AttackRatio)}`];
+  if(key==='vodyanitsa.c2')return [`效果：水元素与冰元素伤害暴击伤害提高 ${percent(c2CriticalDamage)}`,`存在流荡风旋或其引爆后5秒内，改为星扩散反应伤害暴击伤害提高 ${percent(c2StellarCriticalDamage)}`];
+  if(key==='vodyFlat'||key==='vodyanitsa.a4.front'||key==='vodyanitsa.a4.back')return [
+   `效果：水元素与冰元素伤害定额加值为沃雅妮莎生命值上限超过 ${tearsong.threshold} 的部分 × ${percent(tearsong.ordinaryRatio)}，最多 ${tearsong.ordinaryCap}`,
+   `存在流荡风旋或其引爆后5秒内，改为星扩散反应伤害定额加值，系数为 ${percent(tearsong.stellarRatio)}，最多 ${tearsong.stellarCap}`,
+   `领唱初始 ${tearsong.frontUses} 层，重唱初始 ${tearsong.backUses} 层，前后台分别消耗`,
+  ];
+  return [];
+ },
  createTimeline:createVodyanitsaRuntime,createCombat:createVodyanitsaRuntime,
  effects:profile=>[{
   id:'vodyanitsa.skill.resistance',label:'沃雅妮莎·宣叙·晨声纷流',stage:'damage',target:'team',targetScope:'hitTargets',
   trigger:{kind:'hit',index:[8,9]},duration:6,filter:{element:['Hydro','Cryo']},reads:{},
-  value:()=>({ResMinusBase:[.165,.18,.195,.21,.225,.24,.255,.27,.285,.3,.318,.336,.354,.372,.39][profile.character.skill2]}),
+  value:()=>({ResMinusBase:skillResistance[profile.character.skill2]}),
  },...(profile.character.constellation>=2?[{
   id:'vodyanitsa.c2',label:'沃雅妮莎·二命',stage:'damage',target:profile.character.constellation>=6?'team':'teamOnField',
   trigger:{kind:'hit',index:9},duration:5,reads:{},
   condition:ctx=>isSwirl(ctx.event)?mode(ctx):['Hydro','Cryo'].includes(ctx.event.element)?ctx.m.choose(mode(ctx),0,1):0,
-  value:({event})=>isSwirl(event)?{StellarSwirlCritDamage:.6}:{CriticalDamageBase:.5},
+  value:({event})=>isSwirl(event)?{StellarSwirlCritDamage:c2StellarCriticalDamage}:{CriticalDamageBase:c2CriticalDamage},
  }]:[]),...(profile.character.constellation>=1?[{
   id:'vodyanitsa.c1',label:'沃雅妮莎·一命',stage:'attack',target:'team',
   trigger:{kind:'heal',healing:null},duration:5,
   reads:{maxHP:{stat:'hp',stage:'base',timing:'live'}},
-  value:({m,read})=>({ATKFixed:m.mul(.008,read('maxHP'))}),
+  value:({m,read})=>({ATKFixed:m.mul(c1AttackRatio,read('maxHP'))}),
   // Legacy event axes supply coverage facts rather than action lifecycles.
   legacy:(rotation,event)=>({active:event.time<rotation.lastCast(profile.role,'skill',event.time)+16?1:0}),
  }]:[]),...(teamTalentUnlocked(profile.character,4)?[
-  ['front','teamOnField',25],['back','teamOffField',10],
+  ['front','teamOnField',tearsong.frontUses],['back','teamOffField',tearsong.backUses],
  ].map(([pool,target,uses])=>({
   id:'vodyanitsa.a4.'+pool,label:'沃雅妮莎·十二弦的泪歌',stage:'damage',target,
   trigger:{kind:'cast',action:'skill'},duration:30,uses,targetAggregation:'linearFlat',reactionDamage:true,
   condition:ctx=>isSwirl(ctx.event)?mode(ctx):ordinary(ctx.event)?ctx.m.choose(mode(ctx),0,1):0,
   reads:{maxHP:{stat:'hp',stage:'base',timing:'live'}},
-  value:({m,read,event})=>isSwirl(event)?{StellarSwirlFlat:m.min(6500,m.mul(m.max(0,m.sub(read('maxHP'),40000)),.26))}:{ExtraDmgBase:m.min(3500,m.mul(m.max(0,m.sub(read('maxHP'),40000)),.14))},
+  value:({m,read,event})=>isSwirl(event)?{StellarSwirlFlat:m.min(tearsong.stellarCap,m.mul(m.max(0,m.sub(read('maxHP'),tearsong.threshold)),tearsong.stellarRatio))}:{ExtraDmgBase:m.min(tearsong.ordinaryCap,m.mul(m.max(0,m.sub(read('maxHP'),tearsong.threshold)),tearsong.ordinaryRatio))},
   legacy:(_rotation,event)=>({active:event.vodyFlat?1:0,usage:{used:event.vodyTargets??0}}),
  })):[])],
  modeled:['VodyanitsaE','VodyanitsaA1','VodyanitsaA4','VodyanitsaC1','VodyanitsaC2','VodyanitsaC6','VodyanitsaSignature'],
@@ -83,13 +103,13 @@ export const vodyanitsa={
     // Only resolved heals may grant this HP-dependent attribute effect.
     params.c4_stacks=c.constellation>=4?m.min(3,rotation().heals.filter(h=>h.hpRatiosBefore&&h.role===role&&!h.healing&&eventBefore(h,e)&&e.time<h.time+6).reduce((n,h)=>m.add(n,m.choose(h.enabled??1,h.recipients.reduce((gate,j)=>m.max(gate,m.ge(h.hpRatiosBefore[j],.4)),0),0)),0)):0;
    },
-   hpRatioMultiplier:e=>e.index===11&&active(e)?1+[.48,.516,.552,.6,.636,.672,.72,.768,.816,.864,.912,.96,1.02,1.08,1.14][c.skill3]:1,
+   hpRatioMultiplier:e=>e.index===11&&active(e)?1+songBurstBonus[c.skill3]:1,
    damageBuffs(r,e,panels){
     const out=[],add=(label,values)=>out.push(effect(label,values));
     if(e.element==='Anemo'&&teamTalentUnlocked(c,1))add('沃雅妮莎·最后的塑诗者',{ResMinusBase:m.mul(.35,rotation().reactionAt?.(e).wanderingAnemoShred??0)});
-    if(active(e)&&c.constellation>=6&&isSwirl(e))add('沃雅妮莎·六命',{StellarSwirlElevation:.25});
+    if(active(e)&&c.constellation>=6&&isSwirl(e))add('沃雅妮莎·六命',{StellarSwirlElevation:c6StellarElevation});
     if(active(e)&&['Hydro','Cryo'].includes(e.element)){
-     if(c.constellation>=6)add('沃雅妮莎·六命',{BonusBase:.6});
+     if(c.constellation>=6)add('沃雅妮莎·六命',{BonusBase:c6Bonus});
     }
     return out;
    },

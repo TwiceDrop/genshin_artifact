@@ -3,24 +3,22 @@ import {compileActionAxis} from './timeline.mjs';
 import {normalizeTeamProfiles,createCharacterRules} from './registry.mjs';
 import {scalarMath} from '../team-dps-numeric-rules.mjs';
 import {normalizeEnemy} from '../enemy-interface.mjs';
-import {characterPackages} from './character-packages.mjs';
 import {scaleTalentPart} from './rule-utils.mjs';
 import {isStellarConduct,isStellarSwirl} from './native-damage-fields.mjs';
 import {transformativeReaction} from './transformative-reactions.mjs';
 import {normalizeNativeDamage} from './native-bindings.mjs';
+import {createSkillPreviewProfiles,actionCastTimings} from './action-cast-preview.mjs';
+import {createBuffWindowPreview} from './buff-window-preview.mjs';
 
 const stats=['atk','hp','def','em'];
 const total=values=>Object.values(values||{}).reduce((a,b)=>a+b,0);
 const empty=()=>Object.fromEntries(stats.map(key=>[key,0]));
 // This preview measures character skill coefficients, without equipment or
 // HP-consumption amplification. Conditional damage additions stay in scoring.
-export function createSkillMultiplierPreview(api,axis,characters){
+export function createSkillMultiplierPreview(api,axis,characters,includeEffects=false,buffConstellations){
  validateActionAxis(axis);
- const profiles=normalizeTeamProfiles(axis.members.map(({character},r)=>({
-  character:structuredClone(characters?.[r]??{name:character,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9}),
-  weapon:{name:characterPackages[character].previewWeapon,level:1,ascend:false,refine:1,params:'NoConfig'},
-  artifacts:[],artifact_config:{},buffs:[],
- })));
+ const rawProfiles=createSkillPreviewProfiles(axis,characters);
+ const profiles=normalizeTeamProfiles(rawProfiles);
  const rotation=compileActionAxis(axis,profiles),charactersRules=createCharacterRules(profiles,()=>rotation,scalarMath,{});
  for(const e of rotation.events)if(e.salonKey)rotation.salonCounts.set(e.salonKey,0);
  const cache=new Map(),roles=profiles.map(p=>({character:p.character,hits:[],base:empty(),effective:empty()}));
@@ -54,5 +52,10 @@ export function createSkillMultiplierPreview(api,axis,characters){
   roles[role].hits.push(hit);
   for(const stat of stats){roles[role].base[stat]+=base[stat];roles[role].effective[stat]+=effective[stat];}
  }
- return {duration:rotation.duration,endHit:axis.endHit,roles};
+ // Constellation overrides belong exclusively to the BUFF observation context.
+ // Coefficients, cast widths and the caller's saved profiles keep their values.
+ const buffProfiles=buffConstellations===undefined?rawProfiles:rawProfiles.map((p,r)=>({...p,character:{...p.character,constellation:buffConstellations[r]}}));
+ const windows=includeEffects?createBuffWindowPreview(api,axis,buffProfiles):Object.entries(rotation.windows).flatMap(([key,rows])=>rows.filter(w=>w.enabled!==0&&w.end>w.start).map(w=>({key,role:w.role,start:w.start,end:w.end})));
+ const casts=actionCastTimings(rotation,profiles);
+ return {duration:rotation.duration,endHit:axis.endHit,roles,windows,casts};
 }

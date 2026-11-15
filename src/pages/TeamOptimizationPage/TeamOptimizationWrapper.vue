@@ -23,7 +23,8 @@
        <el-tab-pane label="动作时间轴" name="timeline">
         <template v-if="actionDraft">
          <div class="timeline-toolbar"><el-button @click="addAction">添加动作</el-button><el-button @click="draft.timeline.sort((a,b)=>a.timeMs-b.timeMs)">按时间排序</el-button><el-button @click="openTimelineJson">编辑 JSON</el-button><el-button @click="openMultiplierPreview">倍率预览</el-button></div>
-         <el-table :data="draft.timeline" row-key="id" class="action-timeline" max-height="min(55vh, 560px)" scrollbar-always-on>
+         <team-action-timeline v-if="windowsTimeline" :axis="draft" :characters="draftCharacters" :disabled="saving" @update:timeline="draft.timeline=$event"/>
+         <el-table v-else :data="draft.timeline" row-key="id" class="action-timeline" max-height="min(55vh, 560px)" scrollbar-always-on>
           <el-table-column label="时间（秒）" width="125"><template #default="{row}"><el-input-number :model-value="row.timeMs/1000" :min="0" :step="0.1" :controls="false" @update:model-value="row.timeMs=$event*1000"/></template></el-table-column>
           <el-table-column label="角色" width="115"><template #default="{row}"><el-select popper-class="team-dps-popper" v-model="row.actor" @change="changeActor(row)"><el-option v-for="m in draft.members" :key="m.slot" :value="m.slot" :label="locale[characterData[m.character].nameLocale]"/></el-select></template></el-table-column>
           <el-table-column label="类型" width="110"><template #default="{row}"><el-select popper-class="team-dps-popper" v-model="row.kind" @change="changeKind(row)"><el-option value="action" label="动作"/><el-option value="switch" label="切换至"/></el-select></template></el-table-column>
@@ -69,6 +70,7 @@ import {ElMessage} from 'element-plus'
 import 'element-plus/es/components/message/style/css'
 import TeamDpsPage from './TeamDpsPage.vue'
 import TeamMultiplierPreview from './TeamMultiplierPreview.vue'
+import TeamActionTimeline from './TeamActionTimeline.vue'
 import SimpleLoading from '@/components/loading/SimpleLoading.vue'
 import {useAccountStore} from '@/store/pinia/account'
 import {useMiyousheStore} from '@/store/pinia/miyoushe'
@@ -86,6 +88,8 @@ const tasks=shallowRef<Record<string,any>>({})
 const route=useRoute(),historyDetail=shallowRef<any>(null),historyId=ref(0)
 const jsonDialog=ref(false),actionDraft=computed(()=>draft.value?.format==='mona-action-axis')
 const multiplierPreview=ref<any>(null)
+const windowsTimeline=/Windows NT/.test(navigator.userAgent)
+const draftCharacters=computed(()=>editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields.members.map((m:any)=>m.character))
 function openMultiplierPreview(){try{validateTeamDpsConfiguration(currentDraft());const fields=editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields;multiplierPreview.value=JSON.parse(JSON.stringify({axis:currentDraft(),characters:fields?.members.map((m:any)=>m.character)}));error.value=''}catch(e){fail(e)}}
 const draftDurationMs=computed(()=>actionDraft.value?actionAxisDurationMs(draft.value,editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields.members):draft.value?.durationMs)
 const selectingMembers=ref(false),newMembers=ref<string[]>([]),characterSearch=ref('')
