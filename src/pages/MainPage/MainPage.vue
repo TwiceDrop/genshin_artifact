@@ -99,7 +99,8 @@ const { t } = useI18n()
 </script>
 
 <style lang="scss">
-// 外框（侧栏、手机顶栏、抽屉、底部导航）在浅色和深色模式下都用夜空色。变量名避开
+// 外框（侧栏、手机顶栏、抽屉、底部导航）和计算器角色卡：深色模式用夜空色，浅色模式用淡紫灰
+// （2026-11-15 开发者觉得浅色模式下夜空色对比太强）。变量名避开
 // script/postcss-mona-colors.cjs 识别的角色词，否则深色模式下会被它再映射一次。
 :root {
     --sh-night: #0b1124;
@@ -114,6 +115,23 @@ const { t } = useI18n()
     --sh-sheen-1: #fbeecb;
     --sh-sheen-2: #e6bd6a;
     --sh-sheen-3: #b996ee;
+    --sh-glow: #1d2750;
+}
+
+html[data-color-mode="light"] {
+    --sh-night: #f4f2fa;
+    --sh-foot: #ebe8f5;
+    --sh-hover: #e6e2f3;
+    --sh-raised: #ddd8ef;
+    --sh-letter: #1b1838;
+    --sh-dim: #5c5878;
+    --sh-quiet: #8a86a3;
+    --sh-gold: #9a6f22;
+    --sh-gold-faint: rgba(154, 111, 34, .35);
+    --sh-sheen-1: #3a2f7a;
+    --sh-sheen-2: #7a4fb0;
+    --sh-sheen-3: #a8782a;
+    --sh-glow: #ffffff;
 }
 
 .sb-drawer .el-drawer__body {

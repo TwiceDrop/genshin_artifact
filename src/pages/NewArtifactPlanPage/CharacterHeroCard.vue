@@ -175,7 +175,7 @@ const portraitSrc = computed(() => {
 }
 
 .hero-result-error {
-    color: #ef8f95;
+    color: var(--cx-up);
     font-size: 13px;
 }
 
@@ -203,7 +203,7 @@ const portraitSrc = computed(() => {
 .hero-art {
     position: relative;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 36%, var(--sh-raised) 0, transparent 64%);
+    background: radial-gradient(circle at 50% 36%, var(--sh-glow) 0, transparent 64%);
 
     img {
         position: absolute;
@@ -356,6 +356,12 @@ const portraitSrc = computed(() => {
     filter: invert(1);
 }
 
+// 部位图标本身是深色线条，浅色模式下不用反色
+html[data-color-mode="light"] .hero-slot-icon {
+    filter: none;
+    opacity: .45;
+}
+
 .hero-slot-art {
     width: 52px;
     height: 52px;
@@ -464,11 +470,11 @@ const portraitSrc = computed(() => {
 
     // 沿用现有约定：涨红跌绿
     em.increase {
-        color: #ef8f95;
+        color: var(--cx-up);
     }
 
     em.decrease {
-        color: #6fcf97;
+        color: var(--cx-down);
     }
 }
 
