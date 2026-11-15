@@ -1,75 +1,91 @@
 <template>
     <section class="mys-import">
         <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
-        <el-button v-if="verificationNeeded && loggedIn && !isNative" type="primary" :disabled="busy" @click="startVerification">完成验证</el-button>
-        <miyoushe-verification v-if="verification" :verification="verification" :submitting="submittingVerification" @complete="finishVerification" @cancel="cancelVerification" />
-        <div class="mys-section-title"><h3>Cookie 账号管理</h3><span>{{ savedAccounts.length }} 个账号</span></div>
-        <div class="mys-roster">
-            <div v-for="account in savedAccounts" :key="account.id" class="mys-character">
-                <div><strong>{{ account.roles[0]?.nickname || `${platformName(account.platform)} ${account.accountUid}` }}{{ activeId === account.id ? ' · 当前' : '' }}</strong>
-                    <small>{{ platformName(account.platform) }} ID {{ account.accountUid }} · Cookie {{ account.cookieVersion }} · {{ account.status === 'expired' ? '需要更新' : account.status === 'error' ? '上次读取失败' : '已保存' }}</small>
-                    <small>{{ account.roles.map(r => `${r.uid} ${r.regionName || ''}`).join(' / ') || '待读取绑定角色' }}</small>
-                    <small v-if="account.lastError" class="mys-warnings">{{ account.lastError }}</small>
+        <div class="mys-layout">
+            <section class="mys-card mys-account" aria-label="Cookie 账号管理">
+                <div class="mys-section-title"><h3>Cookie 账号管理</h3><span>{{ savedAccounts.length }} 个账号</span></div>
+                <el-button v-if="verificationNeeded && loggedIn && !isNative" type="primary" round :disabled="busy" @click="startVerification">完成验证</el-button>
+                <miyoushe-verification v-if="verification" :verification="verification" :submitting="submittingVerification" @complete="finishVerification" @cancel="cancelVerification" />
+                <div v-if="savedAccounts.length" class="mys-roster">
+                    <div v-for="account in savedAccounts" :key="account.id" class="mys-character" :class="{ active: activeId === account.id }">
+                        <div><strong>{{ account.roles[0]?.nickname || `${platformName(account.platform)} ${account.accountUid}` }}{{ activeId === account.id ? ' · 当前' : '' }}</strong>
+                            <small>{{ platformName(account.platform) }} ID {{ account.accountUid }} · Cookie {{ account.cookieVersion }} · {{ account.status === 'expired' ? '需要更新' : account.status === 'error' ? '上次读取失败' : '已保存' }}</small>
+                            <small>{{ account.roles.map(r => `${r.uid} ${r.regionName || ''}`).join(' / ') || '待读取绑定角色' }}</small>
+                            <small v-if="account.lastError" class="mys-warnings">{{ account.lastError }}</small>
+                        </div>
+                        <div class="mys-account-buttons">
+                            <el-button size="small" round :disabled="busy" @click="selectAccount(account.id)">使用</el-button>
+                            <el-button size="small" round type="danger" plain :disabled="busy" @click="deleteAccount(account.id)">删除 Cookie</el-button>
+                        </div>
+                    </div>
                 </div>
-                <div class="mys-account-buttons">
-                    <el-button size="small" :disabled="busy" @click="selectAccount(account.id)">使用</el-button>
-                    <el-button size="small" type="danger" plain :disabled="busy" @click="deleteAccount(account.id)">删除 Cookie</el-button>
+                <div class="mys-login">
+                    <div v-if="qrImage && !loggedIn" class="mys-qr">
+                        <img :src="qrImage" alt="米游社登录二维码" width="200" height="200" />
+                        <p>{{ qrStatus }}</p>
+                        <span>{{ secondsLeft }} 秒</span>
+                        <el-button v-if="isNative" round @click="saveQr">保存登录二维码</el-button>
+                    </div>
+                    <div class="mys-actions">
+                        <template v-if="!loggedIn || loginChoice">
+                            <el-button type="primary" round :disabled="busy" @click="login('miyoushe')">使用米游社登录</el-button>
+                            <el-button round :disabled="busy" @click="login('hoyolab')">使用 HoYoLAB 登录</el-button>
+                        </template>
+                        <template v-if="loggedIn">
+                            <el-select v-model="selectedUid" placeholder="选择原神账号" :disabled="busy">
+                                <el-option v-for="r in roles" :key="r.uid" :value="r.uid" :label="`${r.nickname} · ${r.uid} · ${r.regionName}`" />
+                            </el-select>
+                            <el-button type="primary" round :loading="busy" :disabled="!selectedUid" @click="sync">同步全部角色</el-button>
+                            <el-button v-if="busy" round @click="cancelSync">取消同步</el-button>
+                            <el-button v-else round @click="refreshRoles">刷新绑定角色</el-button>
+                        </template>
+                        <el-button v-if="loggedIn" round :disabled="busy" @click="loginChoice = !loginChoice">添加 / 更新账号</el-button>
+                        <el-button round :disabled="busy" @click="manualOpen = !manualOpen">手动录入 Cookie</el-button>
+                    </div>
+                    <p v-if="webLoginPending" class="mys-pending">请在 HoYoLAB 官方窗口完成登录。<el-button size="small" round @click="cancelLogin">取消登录</el-button></p>
+                    <div v-if="manualOpen" class="mys-manual">
+                        <el-select v-model="loginPlatform" aria-label="Cookie 平台"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
+                        <el-input v-model="manualCookie" type="password" autocomplete="off" placeholder="粘贴完整 Cookie（支持 v1 / v2）" aria-label="完整 Cookie" />
+                        <el-button round :loading="busy" :disabled="!manualCookie.trim()" @click="addCookie">验证并保存 Cookie</el-button>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="mys-login">
-            <div v-if="qrImage && !loggedIn" class="mys-qr">
-                <img :src="qrImage" alt="米游社登录二维码" width="200" height="200" />
-                <p>{{ qrStatus }}</p>
-                <span>{{ secondsLeft }} 秒</span>
-                <el-button v-if="isNative" @click="saveQr">保存登录二维码</el-button>
-            </div>
-            <div class="mys-actions">
-                <template v-if="!loggedIn || loginChoice">
-                    <el-button type="primary" :disabled="busy" @click="login('miyoushe')">使用米游社登录</el-button>
-                    <el-button :disabled="busy" @click="login('hoyolab')">使用 HoYoLAB 登录</el-button>
-                </template>
-                <template v-if="loggedIn">
-                    <el-select v-model="selectedUid" placeholder="选择原神账号" :disabled="busy">
-                        <el-option v-for="r in roles" :key="r.uid" :value="r.uid" :label="`${r.nickname} · ${r.uid} · ${r.regionName}`" />
-                    </el-select>
-                    <el-button type="primary" :loading="busy" :disabled="!selectedUid" @click="sync">同步全部角色</el-button>
-                    <el-button v-if="busy" @click="cancelSync">取消同步</el-button>
-                    <el-button v-else @click="refreshRoles">刷新绑定角色</el-button>
-                </template>
-                <el-button v-if="loggedIn" :disabled="busy" @click="loginChoice = !loginChoice">添加 / 更新账号</el-button>
-                <el-button :disabled="busy" @click="manualOpen = !manualOpen">手动录入 Cookie</el-button>
-            </div>
-            <p v-if="webLoginPending">请在 HoYoLAB 官方窗口完成登录。<el-button @click="cancelLogin">取消登录</el-button></p>
-            <div v-if="manualOpen" class="mys-manual">
-                <el-select v-model="loginPlatform" aria-label="Cookie 平台"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
-                <el-input v-model="manualCookie" type="password" autocomplete="off" placeholder="粘贴完整 Cookie（支持 v1 / v2）" aria-label="完整 Cookie" />
-                <el-button :loading="busy" :disabled="!manualCookie.trim()" @click="addCookie">验证并保存 Cookie</el-button>
-            </div>
-        </div>
-        <el-progress v-if="busy && loggedIn" :percentage="progress.total ? Math.round(progress.completed / progress.total * 100) : 0" />
-        <p v-if="result" class="mys-result">已保存 {{ result.imported }} 名角色；新增 {{ result.added }} 件、复用 {{ result.reused }} 件圣遗物。{{ result.rejected ? `${result.rejected} 名角色待适配，原始数据已保留。` : '' }}</p>
-        <ul v-if="result?.warnings?.length" class="mys-warnings"><li v-for="(w, i) in result.warnings" :key="i">{{ w }}</li></ul>
-        <div class="mys-section-title"><h3>已保存的角色</h3><span>{{ store.uidGroups.value.length }} 个 UID · 共 {{ entries.length }} 名</span></div>
-        <miyoushe-character-picker :disabled="busy" @apply="name => emit('apply', name)" />
-        <div class="mys-backup">
-            <el-button type="primary" :disabled="!store.selectedUid.value || busy" @click="exportUid">导出此 UID 到手机 / 电脑</el-button>
-            <el-checkbox v-model="includeInventory">附带未标记 UID 的仓库圣遗物（归入此 UID）</el-checkbox>
-            <el-button size="small" :disabled="!Object.keys(store.data.value.snapshots).length || busy" @click="exportSnapshots">导出角色快照</el-button>
-            <el-button size="small" :disabled="busy" @click="fileInput?.click()">导入 UID 数据包 / 角色快照</el-button>
-            <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
-        </div>
-        <div class="mys-section-title"><h3>导入记录</h3><span>保存在当前莫娜账号 · {{ importRecords.length }} 条</span></div>
-        <p v-if="undoResult" class="mys-result">{{ undoResult }}</p>
-        <el-empty v-if="!importRecords.length" description="暂无导入记录" :image-size="65" />
-        <div v-else class="mys-import-history">
-            <div v-for="record in importRecords" :key="record.id" class="mys-import-record">
-                <div><strong>{{ record.source }}</strong><small>UID {{ record.uids.join('、') }} · {{ new Date(record.time).toLocaleString() }}</small>
-                    <small>{{ record.characters }} 名角色新增／更新 · 新增 {{ record.added }} 件圣遗物</small>
-                    <small v-if="record.status === 'undone'">已撤销 · {{ new Date(record.undoneAt).toLocaleString() }}{{ record.retained ? ` · 保留 ${record.retained} 项后续修改／引用` : '' }}</small>
+                <el-progress v-if="busy && loggedIn" :percentage="progress.total ? Math.round(progress.completed / progress.total * 100) : 0" />
+                <p v-if="result" class="mys-result">已保存 {{ result.imported }} 名角色；新增 {{ result.added }} 件、复用 {{ result.reused }} 件圣遗物。{{ result.rejected ? `${result.rejected} 名角色待适配，原始数据已保留。` : '' }}</p>
+                <ul v-if="result?.warnings?.length" class="mys-warnings"><li v-for="(w, i) in result.warnings" :key="i">{{ w }}</li></ul>
+            </section>
+
+            <section class="mys-card mys-characters" aria-label="已保存的角色">
+                <div class="mys-section-title"><h3>已保存的角色</h3><span>{{ store.uidGroups.value.length }} 个 UID · 共 {{ entries.length }} 名</span></div>
+                <miyoushe-character-picker :disabled="busy" @apply="name => emit('apply', name)" />
+            </section>
+
+            <section class="mys-card mys-transfer" aria-label="手机互传">
+                <div class="mys-section-title"><h3>手机互传</h3></div>
+                <div class="mys-backup">
+                    <el-button type="primary" round :disabled="!store.selectedUid.value || busy" @click="exportUid">导出此 UID 到手机 / 电脑</el-button>
+                    <el-checkbox v-model="includeInventory">附带未标记 UID 的仓库圣遗物（归入此 UID）</el-checkbox>
+                    <div class="mys-backup-more">
+                        <el-button size="small" round :disabled="!Object.keys(store.data.value.snapshots).length || busy" @click="exportSnapshots">导出角色快照</el-button>
+                        <el-button size="small" round :disabled="busy" @click="fileInput?.click()">导入 UID 数据包 / 角色快照</el-button>
+                    </div>
+                    <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
                 </div>
-                <el-button :disabled="busy || record.status === 'undone'" size="small" type="danger" plain @click="undoImport(record.id)">{{ record.status === 'undone' ? '已撤销' : '撤销导入' }}</el-button>
-            </div>
+            </section>
+
+            <section class="mys-card mys-records" aria-label="导入记录">
+                <div class="mys-section-title"><h3>导入记录</h3><span>保存在当前莫娜账号 · {{ importRecords.length }} 条</span></div>
+                <p v-if="undoResult" class="mys-result">{{ undoResult }}</p>
+                <p v-if="!importRecords.length" class="mys-empty">暂无导入记录</p>
+                <div v-else class="mys-import-history">
+                    <div v-for="record in importRecords" :key="record.id" class="mys-import-record">
+                        <div><strong>{{ record.source }}</strong><small>UID {{ record.uids.join('、') }} · {{ new Date(record.time).toLocaleString() }}</small>
+                            <small>{{ record.characters }} 名角色新增／更新 · 新增 {{ record.added }} 件圣遗物</small>
+                            <small v-if="record.status === 'undone'">已撤销 · {{ new Date(record.undoneAt).toLocaleString() }}{{ record.retained ? ` · 保留 ${record.retained} 项后续修改／引用` : '' }}</small>
+                        </div>
+                        <el-button :disabled="busy || record.status === 'undone'" size="small" round type="danger" plain @click="undoImport(record.id)">{{ record.status === 'undone' ? '已撤销' : '撤销导入' }}</el-button>
+                    </div>
+                </div>
+            </section>
         </div>
     </section>
 </template>
@@ -347,8 +363,63 @@ onBeforeUnmount(() => {
 })
 </script>
 <style scoped>
-.mys-import-history{max-height:420px;overflow:auto}.mys-import-record{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--el-border-color-light)}.mys-import-record strong{overflow-wrap:anywhere}.mys-import-record small{display:block;color:var(--el-text-color-secondary);margin-top:5px}.mys-import-record .el-button{flex-shrink:0}
+/* 米游社导入（夜空风格）：UID 数据页和计算器的「导入我的角色」弹窗共用，颜色读 --cx-*（外层带 cx-scope）。
+   按自身宽度排版：宽时左栏放账号、互传、导入记录，右侧放角色；窄时角色在最前，其余三块依次在下。 */
+.mys-import { display: grid; gap: 14px; color: var(--cx-letter); container: mys / inline-size; }
+.mys-layout { display: grid; gap: 14px; align-items: start; }
+@container mys (min-width: 900px) {
+    .mys-layout { grid-template-columns: clamp(320px, 30%, 380px) minmax(0, 1fr); grid-template-rows: auto auto 1fr; }
+    .mys-account { grid-column: 1; grid-row: 1; }
+    .mys-transfer { grid-column: 1; grid-row: 2; }
+    .mys-records { grid-column: 1; grid-row: 3; }
+    .mys-characters { grid-column: 2; grid-row: 1 / span 3; }
+}
+/* 窄时角色排在最前，账号、互传、导入记录依次在下方 */
+@container mys (max-width: 899px) {
+    .mys-characters { order: -1; }
+}
+.mys-card { min-width: 0; display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; background: var(--cx-card); }
+.mys-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.mys-section-title h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.mys-section-title span { color: var(--cx-dim); font-size: 13px; }
+.mys-import .el-button + .el-button { margin-left: 0; }
 
-.mys-account-buttons{display:flex;flex-direction:column;gap:8px}.mys-account-buttons .el-button{margin-left:0}.mys-manual{display:flex;gap:10px;margin-top:14px}
-.mys-import{color:var(--el-text-color-primary)}.mys-login{background:var(--el-fill-color-light);border:1px solid var(--el-border-color-light);border-radius:12px;padding:18px;margin:18px 0}.mys-qr{text-align:center;margin-bottom:18px}.mys-qr img{border-radius:10px}.mys-qr p{margin:8px 0}.mys-qr small{color:var(--el-text-color-secondary)}.mys-actions,.mys-backup{display:flex;gap:10px;flex-wrap:wrap}.mys-actions .el-button+.el-button{margin-left:0}.mys-section-title{display:flex;align-items:center;justify-content:space-between}.mys-section-title span{color:var(--el-text-color-secondary);font-size:13px}.mys-roster{max-height:340px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}.mys-character{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px;background:var(--el-fill-color-light);border-radius:8px}.mys-character small{display:block;font-size:11px;color:var(--el-text-color-secondary);margin-top:5px;line-height:1.5}.mys-result{color:#218354}.mys-warnings{color:#a46410!important;font-size:12px;line-height:1.7;max-height:150px;overflow:auto}.mys-backup{border-top:1px solid var(--el-border-color-light);padding-top:15px}@media(max-width:600px){.mys-roster{grid-template-columns:1fr}}
+/* 账号 */
+.mys-roster { max-height: 340px; overflow: auto; display: grid; gap: 8px; }
+.mys-character { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: var(--cx-step); }
+.mys-character.active { box-shadow: inset 3px 0 var(--cx-gold); }
+.mys-character strong { overflow-wrap: anywhere; }
+.mys-character small { display: block; font-size: 12px; color: var(--cx-dim); margin-top: 4px; line-height: 1.5; overflow-wrap: anywhere; }
+.mys-account-buttons { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.mys-login { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--cx-step); }
+.mys-qr { display: grid; justify-items: center; gap: 6px; }
+.mys-qr img { border-radius: 12px; }
+.mys-qr p { margin: 0; }
+.mys-qr span { color: var(--cx-dim); font-size: 13px; font-variant-numeric: tabular-nums; }
+.mys-actions, .mys-backup-more { display: flex; gap: 8px; flex-wrap: wrap; }
+.mys-actions .el-select { flex: 1 1 200px; }
+.mys-pending { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--cx-dim); font-size: 13px; }
+.mys-manual { display: flex; flex-wrap: wrap; gap: 8px; }
+.mys-manual .el-select { width: 120px; }
+.mys-manual .el-input { flex: 1 1 200px; }
+.mys-result { margin: 0; color: var(--cx-down); font-size: 13px; line-height: 1.6; }
+.mys-warnings { margin: 0; padding-left: 18px; color: var(--cx-gold) !important; font-size: 12px; line-height: 1.7; max-height: 150px; overflow: auto; }
+
+/* 互传 */
+.mys-backup { display: grid; gap: 10px; justify-items: start; }
+.mys-backup .el-checkbox { height: auto; white-space: normal; }
+.mys-backup :deep(.el-checkbox__label) { color: var(--cx-dim); line-height: 1.5; }
+
+/* 导入记录 */
+.mys-import-history { max-height: 420px; overflow: auto; display: grid; gap: 8px; }
+.mys-import-record { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: var(--cx-step); }
+.mys-import-record strong { overflow-wrap: anywhere; }
+.mys-import-record small { display: block; color: var(--cx-dim); font-size: 12px; margin-top: 4px; line-height: 1.5; }
+.mys-import-record .el-button { flex-shrink: 0; }
+.mys-empty { margin: 0; padding: 18px 0; text-align: center; color: var(--cx-dim); font-size: 13px; }
+</style>
+<style>
+/* 放在弹窗里时弹窗本身就是卡片底色，各块去掉底色，只靠间距分开（选择器要带弹窗祖先，写在非 scoped 块里） */
+.el-dialog .mys-import .mys-card { padding: 0; background: transparent; }
+.el-dialog .mys-import .mys-layout { gap: 22px; }
 </style>

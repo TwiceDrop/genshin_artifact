@@ -296,10 +296,10 @@
             ></artifact-config>
         </el-dialog>
 
-        <el-dialog v-model="showMiyousheImport" title="导入我的角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+        <el-dialog v-model="showMiyousheImport" custom-class="cx-scope" title="导入我的角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
             <miyoushe-import v-if="showMiyousheImport" @apply="name => { usePreset(name); showMiyousheImport = false }" />
         </el-dialog>
-        <el-dialog v-model="showMyCharacters" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+        <el-dialog v-model="showMyCharacters" custom-class="cx-scope" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />

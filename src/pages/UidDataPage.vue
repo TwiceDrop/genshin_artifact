@@ -1,5 +1,5 @@
 <template>
-    <div class="uid-data-page">
+    <div class="uid-data-page cx-scope">
         <h2>我的 UID 数据</h2>
         <miyoushe-import @apply="name => router.push({ path: '/calculate', query: { preset: name } })" />
     </div>
@@ -10,5 +10,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 </script>
 <style scoped>
-.uid-data-page{max-width:1100px;margin:auto}.uid-data-page h2{font-size:23px;margin:8px 0 12px}
+/* UID 数据页外框（夜空风格），内容见 MiyousheImport */
+.uid-data-page { box-sizing: border-box; min-height: calc(100vh - 48px); padding: 16px clamp(10px, 1.3vw, 18px) 18px; border-radius: var(--cx-radius); background: var(--cx-ground); color: var(--cx-letter); }
+.uid-data-page h2 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
 </style>

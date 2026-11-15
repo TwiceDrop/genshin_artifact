@@ -9,29 +9,28 @@
             </button>
         </div>
         <p v-if="selectedUid" class="character-uid-summary">UID {{ selectedUid }} · 已保存 {{ uidEntries.length }} 名角色</p>
-        <el-tabs v-model="element" class="character-element-tabs">
-            <el-tab-pane label="全部" name="all" />
-            <el-tab-pane v-for="(name, key) in ELEMENT_NAMES" :key="key" :name="key">
-                <template #label><span class="element-tab"><img :src="elementIcons[key]" alt="" />{{ name }}</span></template>
-            </el-tab-pane>
-        </el-tabs>
+        <div class="character-element-tabs" role="group" aria-label="按元素筛选">
+            <button type="button" :aria-pressed="element === 'all'" @click="element = 'all'">全部</button>
+            <button v-for="(name, key) in ELEMENT_NAMES" :key="key" type="button" :aria-pressed="element === key" @click="element = key">
+                <img :src="elementIcons[key]" alt="" />{{ name }}
+            </button>
+        </div>
         <div class="character-picker-list">
             <button v-for="entry in visibleEntries" :key="entry.key" type="button" class="character-picker-row"
                 :disabled="disabled || !!entry.error" :aria-label="`选择${entry.label}，${entry.uid}`" @click="emit('apply', entry.presetName)">
-                <div class="character-picker-left">
-                    <img v-if="entry.splash" class="character-art" :src="entry.splash" :alt="`${entry.label}立绘`" loading="lazy" />
-                    <div class="character-identity">
-                        <div class="character-identity-line"><strong>{{ entry.label }}</strong><span class="character-element"><img v-if="elementIcons[entry.element]" :src="elementIcons[entry.element]" :alt="`${entry.elementLabel}元素`" />{{ entry.elementLabel }}</span><span>{{ entry.weaponType }}</span><span>{{ entry.constellation }}命</span></div>
-                        <small v-if="multipleUids">UID {{ entry.uid }}</small>
-                        <small v-if="entry.error" class="character-warning">{{ entry.error }}</small>
-                        <small v-else-if="entry.warning" class="character-warning">{{ entry.warning }}</small>
-                    </div>
-                </div>
-                <div class="character-equipment">
-                    <p>{{ entry.talents }}</p>
-                    <p>圣遗物套装：{{ entry.set }}</p>
-                    <p>{{ entry.weapon }}</p>
-                </div>
+                <span class="character-art-frame"><img v-if="entry.splash" class="character-art" :src="entry.splash" :alt="`${entry.label}立绘`" loading="lazy" /></span>
+                <span class="character-body">
+                    <span class="character-identity-line"><strong>{{ entry.label }}</strong><span class="character-element"><img v-if="elementIcons[entry.element]" :src="elementIcons[entry.element]" :alt="`${entry.elementLabel}元素`" />{{ entry.elementLabel }}</span></span>
+                    <span class="character-tags"><b>{{ entry.constellation }}命</b><span>{{ entry.weaponType }}</span></span>
+                    <small v-if="multipleUids">UID {{ entry.uid }}</small>
+                    <small v-if="entry.error" class="character-warning">{{ entry.error }}</small>
+                    <small v-else-if="entry.warning" class="character-warning">{{ entry.warning }}</small>
+                    <span class="character-equipment">
+                        <span>{{ entry.weapon }}</span>
+                        <span>圣遗物套装：{{ entry.set }}</span>
+                        <span>{{ entry.talents }}</span>
+                    </span>
+                </span>
             </button>
             <p v-if="!visibleEntries.length" class="character-picker-empty">{{ entries.length ? '暂无该元素的已导入角色' : '暂无已导入角色，请先同步账号或恢复角色快照' }}</p>
         </div>
@@ -63,20 +62,39 @@ const uidEntries = computed(() => entries.value.filter(e => String(e.uid) === se
 const visibleEntries = computed(() => uidEntries.value.filter(e => element.value === 'all' || e.element === element.value))
 </script>
 <style scoped>
-.mys-character-picker{color:var(--el-text-color-primary)}
-.character-uid-list{display:flex;gap:10px;overflow-x:auto;padding:4px 0 10px}
-.character-uid{display:flex;flex-direction:column;gap:6px;flex-shrink:0;padding:12px 16px;border:1px solid var(--el-border-color);border-radius:8px;background:var(--el-fill-color-light);color:inherit;font:inherit;text-align:left;cursor:pointer}
-.character-uid.active{border-color:var(--el-color-primary);background:var(--el-color-primary-light-9);color:var(--el-color-primary)}
-.character-uid span,.character-uid-summary{font-size:13px;color:var(--el-text-color-secondary)}
-.character-uid:focus-visible{outline:2px solid var(--el-color-primary);outline-offset:1px}
-.character-element-tabs :deep(.el-tabs__header){margin-bottom:0}
-.element-tab{display:inline-flex;align-items:center;gap:6px}.element-tab img{width:20px;height:20px;object-fit:contain}
-.character-picker-list{max-height:58vh;overflow:auto}
-.character-picker-row{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(230px,1fr);gap:24px;width:100%;padding:12px 16px 12px 0;border:0;border-bottom:1px solid var(--el-border-color-lighter);background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;align-items:center}
-.character-picker-row:hover:not(:disabled){background:var(--el-fill-color-light)}.character-picker-row:focus-visible{outline:2px solid var(--el-color-primary);outline-offset:-2px}.character-picker-row:disabled{cursor:default}
-.character-picker-left{display:flex;align-items:center;gap:12px;min-width:0}.character-art{width:100px;height:112px;object-fit:contain;flex-shrink:0}
-.character-identity{min-width:0}.character-identity-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;line-height:1.8}.character-identity-line strong{font-size:17px;font-weight:600}
-.character-element{display:inline-flex;align-items:center;gap:3px}.character-element img{width:20px;height:20px;object-fit:contain}.character-identity small{display:block;color:var(--el-text-color-secondary);margin-top:5px;font-size:12px}
-.character-equipment{font-size:14px;line-height:1.8}.character-equipment p{margin:3px 0;overflow-wrap:anywhere}.character-warning{color:var(--el-color-warning)!important}.character-picker-empty{text-align:center;padding:35px 12px;color:var(--el-text-color-secondary);font-size:14px}
-@media(max-width:650px){.character-picker-row{grid-template-columns:1fr;gap:4px;padding-right:8px}.character-art{width:76px;height:86px}.character-equipment{padding-left:88px;font-size:13px}.character-identity-line{gap:6px}}
+/* 已保存的角色：UID 胶囊、元素胶囊、角色卡片网格。颜色读 --cx-*。 */
+.mys-character-picker { display: grid; gap: 12px; color: var(--cx-letter); }
+.character-uid-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
+.character-uid { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; padding: 10px 16px; border: 0; border-radius: 14px; background: var(--cx-step); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.character-uid:hover:not(:disabled) { background: var(--cx-step-2); }
+.character-uid.active { background: var(--cx-gold); color: var(--cx-gold-on); }
+.character-uid span { font-size: 12px; color: var(--cx-dim); }
+.character-uid.active span { color: inherit; opacity: .8; }
+.character-uid-summary { margin: 0; font-size: 13px; color: var(--cx-dim); }
+.character-element-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.character-element-tabs button { display: inline-flex; align-items: center; gap: 5px; flex: none; height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--cx-step); color: var(--cx-dim); font: inherit; font-size: 13px; cursor: pointer; }
+.character-element-tabs button:hover { background: var(--cx-step-2); color: var(--cx-letter); }
+.character-element-tabs button[aria-pressed=true] { background: var(--cx-gold); color: var(--cx-gold-on); font-weight: 600; }
+.character-element-tabs img { width: 18px; height: 18px; object-fit: contain; }
+.character-picker-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 10px; }
+.character-picker-row { display: flex; gap: 12px; min-width: 0; padding: 10px 14px 10px 10px; border: 0; border-radius: 16px; background: var(--cx-step); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+.character-picker-row:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--cx-step-2); }
+.character-picker-row:disabled { cursor: default; opacity: .7; }
+.character-uid:focus-visible, .character-element-tabs button:focus-visible, .character-picker-row:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+.character-art-frame { flex: none; width: 84px; height: 104px; border-radius: 12px; overflow: hidden; background: var(--cx-step-2); }
+.character-art { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.character-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.character-identity-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.character-identity-line strong { font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.character-element { display: inline-flex; align-items: center; gap: 3px; flex: none; color: var(--cx-dim); font-size: 12px; }
+.character-element img { width: 18px; height: 18px; object-fit: contain; }
+.character-tags { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cx-dim); }
+.character-tags b { padding: 1px 8px; border-radius: 999px; background: var(--cx-step-2); color: var(--cx-gold); }
+.character-body small { color: var(--cx-dim); font-size: 12px; }
+.character-equipment { display: grid; gap: 2px; margin-top: auto; font-size: 12px; line-height: 1.5; color: var(--cx-dim); }
+.character-equipment span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.character-equipment span:first-child { color: var(--cx-letter); }
+.character-warning { color: var(--cx-gold) !important; }
+.character-picker-empty { grid-column: 1 / -1; margin: 0; text-align: center; padding: 35px 12px; color: var(--cx-dim); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .character-picker-row { transition: none; } }
 </style>
