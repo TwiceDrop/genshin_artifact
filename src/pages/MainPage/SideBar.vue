@@ -45,7 +45,6 @@ import IconEpBox from "~icons/ep/box"
 import IconEpCollection from "~icons/ep/collection"
 import IconEpTickets from "~icons/ep/tickets"
 import IconEpIphone from "~icons/ep/iphone"
-import IconEpMonitor from "~icons/ep/monitor"
 import IconEpDownload from "~icons/ep/download"
 import IconEpUser from "~icons/ep/user"
 import IconEpSetting from "~icons/ep/setting"
@@ -84,7 +83,6 @@ const groups = computed(() => [
         { path: "/uid-data", label: "UID 数据 / 手机互传", icon: IconEpIphone },
     ] },
     { key: "other", title: t("nav.other"), items: [
-        { path: "/playground", label: t("nav.playground"), icon: IconEpMonitor },
         { path: "/help/export-tools", label: t("nav.exportTool"), icon: IconEpDownload },
     ] },
 ])
