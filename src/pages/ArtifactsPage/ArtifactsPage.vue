@@ -31,13 +31,19 @@
             </template>
         </el-dialog>
 
-        <el-drawer :title="t('artPage.edit')" v-model="showEditArtifactDrawer" direction="rtl" :size="deviceIsPC ? '30%' : '100%'">
+        <!-- 圣遗物详情；编辑在同一个抽屉里切换成原来的编辑表单 -->
+        <side-drawer v-model="detailOpen" :title="detailMode === 'edit' ? t('artPage.edit') : '圣遗物详情'">
+            <artifact-detail v-if="openedArtifact && detailMode === 'view'" :item="openedArtifact" :score="openedScore"
+                :score-label="scoreCharacter" :grade="openedScore === null ? undefined : getMarkClass(openedScore)"
+                @edit="startEditArtifact" @toggle-lock="toggleArtifact(openedArtifact.id)"
+                @delete="deleteOpenedArtifact" @score="showScore = true" />
             <edit-artifact
+                v-show="detailMode === 'edit'"
                 ref="editArtifactComponent"
                 @confirm="handleConfirmEdit"
-                @cancel="showEditArtifactDrawer = false"
+                @cancel="detailMode = 'view'"
             ></edit-artifact>
-        </el-drawer>
+        </side-drawer>
 
         <el-drawer :title="t('artPage.recommend')" v-model="showArtifactRecommendationDrawer" :size="deviceIsPC ? '30%' : '100%'">
             <el-empty v-if="recommendationList.length === 0"></el-empty>
@@ -158,6 +164,8 @@ import SelectArtifactSet from '@c/select/SelectArtifactSet';
 import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
 import ArtifactDisplay from '@c/display/ArtifactDisplay';
 import ArtifactCard from './ArtifactCard.vue';
+import ArtifactDetail from './ArtifactDetail.vue';
+import SideDrawer from '@/components/misc/SideDrawer.vue';
 import {useScreen} from '@/composables/screen';
 import EditArtifact from './EditArtifact';
 import ImportBlock from '@c/misc/ImportBlock';
@@ -282,13 +290,28 @@ const artifactToBeDisplayed = computed(() => {
 const pagedArtifacts = computed(() => artifactToBeDisplayed.value.slice((page.value - 1) * pageSize, page.value * pageSize))
 watch([activeName, filterSet, filterMainStat, filterGe16, scoreCharacter], () => { page.value = 1 }, { deep: true })
 
-// 点卡片：打开详情（详情抽屉见 03，暂时打开评分弹窗）
+// 点卡片：打开详情抽屉
 const openedArtifactId = ref(-1)
+const detailOpen = ref(false)
+const detailMode = ref<'view' | 'edit'>('view')
+const openedArtifact = computed(() => artifactStore.artifacts.value.get(openedArtifactId.value))
+const openedScore = computed(() => openedArtifact.value && scoreCharacter.value
+    ? scoreBuild([openedArtifact.value], rankingContext(scoreCharacter.value)).artifacts[0].score : null)
 function openArtifact(id: number) {
     openedArtifactId.value = id
     scoreArtifactId.value = id
-    showScore.value = true
+    detailMode.value = 'view'
+    detailOpen.value = true
 }
+function startEditArtifact() {
+    detailMode.value = 'edit'
+    nextTick(() => editArtifactComponent.value?.setId(openedArtifactId.value))
+}
+function deleteOpenedArtifact() {
+    deleteArtifact(openedArtifactId.value)
+    detailOpen.value = false
+}
+watch(detailOpen, open => { if (!open) openedArtifactId.value = -1 })
 
 
 ///////////////////////////////////////////////////////////////////
@@ -429,18 +452,8 @@ async function handleOutputJsonClicked() {
 
 ///////////////////////////////////////////////////////////////////
 // edit artifacts
-const showEditArtifactDrawer = ref(false)
 const editArtifactComponent: Ref<InstanceType<typeof EditArtifact> | null> = ref(null)
 
-function handleClickEditArtifact(id: number) {
-    showEditArtifactDrawer.value = true;
-
-    nextTick(() => {
-        if (editArtifactComponent.value) {
-            editArtifactComponent.value.setId(id)
-        }
-    });
-}
 
 function handleConfirmEdit(id: number) {
     if (editArtifactComponent.value) {
@@ -448,7 +461,7 @@ function handleConfirmEdit(id: number) {
         artifactStore.updateArtifact(id, newArtifact)
     }
 
-    showEditArtifactDrawer.value = false
+    detailMode.value = 'view'
 }
 
 

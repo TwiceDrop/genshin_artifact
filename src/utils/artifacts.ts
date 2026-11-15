@@ -353,6 +353,13 @@ export function displayedTag(name: ArtifactStatName, value: number) {
     }
 }
 
+// displayedTag 返回「攻击力+9.9%」这样的一串，这里在最后一个「+」处拆成名称和数值，供圣遗物卡片和详情使用
+export function displayedTagParts(name: ArtifactStatName, value: number): [string, string] {
+    const text = displayedTag(name, value)
+    const at = text.lastIndexOf("+")
+    return [text.slice(0, at), text.slice(at + 1)]
+}
+
 export function positionToIndex(p: ArtifactPosition): number {
     switch (p) {
         case "flower": return 0

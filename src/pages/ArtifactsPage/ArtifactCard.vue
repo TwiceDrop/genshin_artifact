@@ -2,10 +2,7 @@
     <button type="button" class="art-card" :class="{ selected }" :aria-label="`${setLabel} · ${slotLabel} +${item.level}`" @click="emit('open')">
         <span v-if="item.omit" class="art-lock" title="已锁定"><icon-ep-lock aria-hidden="true" /></span>
         <span class="art-head">
-            <span class="art-icon" :data-star="item.star">
-                <img :src="image" alt="" />
-                <span class="art-level">+{{ item.level }}</span>
-            </span>
+            <artifact-icon :item="item" />
             <span class="art-name">
                 <b>{{ setLabel }}</b>
                 <small>{{ slotLabel }}</small>
@@ -31,9 +28,10 @@
 import IconEpLock from "~icons/ep/lock"
 import {computed} from "vue"
 import {artifactsData} from "@/assets/artifacts"
-import {displayedTag} from "@/utils/artifacts"
+import {displayedTagParts} from "@/utils/artifacts"
 import {useI18n} from "@/i18n/i18n"
 import type {IArtifact} from "@/types/artifact"
+import ArtifactIcon from "./ArtifactIcon.vue"
 
 const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string, selected?: boolean }>()
 const emit = defineEmits<{ (e: "open"): void }>()
@@ -42,17 +40,10 @@ const { t, ta } = useI18n()
 const set = computed(() => (artifactsData as any)[props.item.setName])
 const setLabel = computed(() => ta(set.value.nameLocale))
 const slotLabel = computed(() => t("misc", props.item.position))
-const image = computed(() => set.value[props.item.position]?.url)
 
-// displayedTag 返回「攻击力+9.9%」这样的一串，在最后一个「+」处拆成名称和数值
-function split(name: any, value: number): [string, string] {
-    const text = displayedTag(name, value)
-    const at = text.lastIndexOf("+")
-    return [text.slice(0, at), text.slice(at + 1)]
-}
-const main = computed(() => split(props.item.mainTag.name, props.item.mainTag.value))
+const main = computed(() => displayedTagParts(props.item.mainTag.name, props.item.mainTag.value))
 const subs = computed(() => props.item.normalTags.map(tag => {
-    const [label, value] = split(tag.name, tag.value)
+    const [label, value] = displayedTagParts(tag.name, tag.value)
     return { label, value, crit: tag.name === "critical" || tag.name === "criticalDamage" }
 }))
 </script>
@@ -107,47 +98,6 @@ const subs = computed(() => props.item.normalTags.map(tag => {
     align-items: center;
     gap: 12px;
     padding-right: 28px;
-}
-
-.art-icon {
-    position: relative;
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 58px;
-    height: 58px;
-    border-radius: 12px;
-    // 品级底色；变量名避开 postcss-mona-colors.cjs 的角色词，深色模式下不被改色
-    --rarity-a: #8a5a2b;
-    --rarity-b: #c9893d;
-    background: linear-gradient(160deg, var(--rarity-a), var(--rarity-b));
-
-    &[data-star="4"] {
-        --rarity-a: #5a4a8a;
-        --rarity-b: #9a76c9;
-    }
-
-    &[data-star="3"] {
-        --rarity-a: #3a5a8a;
-        --rarity-b: #5b8ec9;
-    }
-
-    img {
-        width: 54px;
-        height: 54px;
-    }
-}
-
-.art-level {
-    position: absolute;
-    right: -4px;
-    bottom: -4px;
-    padding: 0 5px;
-    border-radius: 6px;
-    background: var(--sh-night);
-    color: var(--sh-letter);
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
 }
 
 .art-name {
