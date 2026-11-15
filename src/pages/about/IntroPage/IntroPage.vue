@@ -4,7 +4,7 @@
 
         <div class="welcome-emblem">
             <astrolabe-dial class="welcome-dial" />
-            <img class="welcome-icon" :src="welcomeIcon" alt="" />
+            <mona-portrait class="welcome-icon" />
         </div>
 
         <div class="welcome-lockup">
@@ -32,6 +32,7 @@
 import IconFa6BrandsGithub from "~icons/fa6-brands/github"
 import AstrolabeDial from "./AstrolabeDial.vue"
 import StarField from "./StarField.vue"
+import MonaPortrait from "@/components/misc/MonaPortrait.vue"
 
 import {onActivated, onBeforeUnmount, onMounted, ref} from "vue"
 import {ElMessage} from "element-plus"
@@ -42,9 +43,7 @@ import {AUTOMATIC_UPDATE_CHANGED_EVENT, isAutomaticUpdateEnabled,
 const version = process.env.MONA_VERSION
 const webTitle = process.env.MONA_TITLE
 
-// 临时用米游社的莫娜头像（角色数据里的头像同样从这里加载），开发者提供正式图标后替换；
-// 底图接在 .welcome 的 --wl-art 上。
-const welcomeIcon = "https://upload-bbs.mihoyo.com/game_record/genshin/character_icon/UI_AvatarIcon_Mona.png"
+// 底图接在 .welcome 的 --wl-art 上，开发者提供后替换。
 
 const githubLinks = [
     { name: "TwiceDrop", url: "https://github.com/TwiceDrop" },
@@ -66,15 +65,6 @@ function changeAutomaticUpdates(enabled: boolean) {
 </script>
 
 <style lang="scss" scoped>
-// 龙藏体（OFL-1.1，许可见 src/assets/fonts/OFL.long-cang.txt），只含「莫娜占卜铺」五个字
-@font-face {
-    font-family: "Mona Welcome Title";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("~@/assets/fonts/long-cang-title.woff2") format("woff2");
-}
-
 // 欢迎页自带浅色和深色两套颜色。变量名避开 script/postcss-mona-colors.cjs 识别的
 // 角色词（background、text、line、edge、accent 等），否则深色模式下会被它再映射一次。
 .welcome {
@@ -86,7 +76,6 @@ function changeAutomaticUpdates(enabled: boolean) {
     --wl-gold-stroke: rgba(156, 116, 40, .55);
     --wl-gold-faint: rgba(156, 116, 40, .24);
     --wl-star: #6f7ca6;
-    --wl-medal: #ffffff;
     --wl-sheen-1: #1c2266;
     --wl-sheen-2: #5a3a9e;
     --wl-sheen-3: #a8782a;
@@ -126,7 +115,6 @@ html[data-color-mode="dark"] .welcome {
     --wl-gold-stroke: rgba(226, 192, 120, .5);
     --wl-gold-faint: rgba(226, 192, 120, .2);
     --wl-star: #e8e6ff;
-    --wl-medal: #1c2550;
     --wl-sheen-1: #fbeecb;
     --wl-sheen-2: #e6bd6a;
     --wl-sheen-3: #b996ee;
@@ -140,7 +128,7 @@ html[data-color-mode="dark"] .welcome {
     position: relative;
     display: grid;
     place-items: center;
-    width: calc(var(--wl-dial) * .15);
+    width: calc(var(--wl-dial) * .2);
     aspect-ratio: 1;
 }
 
@@ -170,15 +158,12 @@ html[data-color-mode="dark"] .welcome {
 .welcome-icon {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    background: var(--wl-medal);
     animation: wl-rise .8s cubic-bezier(.2, .7, .2, 1) .2s both;
 }
 
 .welcome-name {
     margin: 0;
-    font-family: "Mona Welcome Title", "KaiTi", "STKaiti", serif;
+    font-family: "Mona Brand", "KaiTi", "STKaiti", serif;
     font-weight: 400;
     font-size: clamp(56px, 12vw, 220px);
     line-height: 1;

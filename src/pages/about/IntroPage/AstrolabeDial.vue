@@ -32,12 +32,12 @@
         <g class="dial-hand" :style="{ transform: `rotate(${handAngle}deg)` }">
             <!-- 不可见的整圆让这一组的包围盒以圆心为中心，旋转才绕圆心 -->
             <circle r="420" class="dial-pivot" />
-            <line x1="0" y1="-96" x2="0" y2="-396" class="dial-ring dial-hand-line" />
+            <line x1="0" y1="-122" x2="0" y2="-396" class="dial-ring dial-hand-line" />
             <path d="M0 -418 L7 -400 L0 -392 L-7 -400 Z" class="dial-star" />
         </g>
 
-        <circle r="96" class="dial-ring" />
-        <circle r="86" class="dial-ring dial-faint" />
+        <circle r="122" class="dial-ring" />
+        <circle r="110" class="dial-ring dial-faint" />
     </svg>
 </template>
 

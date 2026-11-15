@@ -5,18 +5,17 @@
     </aside>
 
     <el-drawer
-        :title="t('nav.nav')"
         v-model="drawerVisible"
         direction="ltr"
-        size="80%"
+        size="min(82%, 300px)"
+        :with-header="false"
+        class="sb-drawer"
         v-if="!geSmall"
     >
-        <div style="height: 100%; overflow: auto">
-            <side-bar
-                :do-route="false"
-                @select="handleSelect"
-            ></side-bar>
-        </div>
+        <side-bar
+            :do-route="false"
+            @select="handleSelect"
+        ></side-bar>
     </el-drawer>
 
     <div class="header" v-if="!geSmall">
@@ -25,7 +24,7 @@
                 aria-label="打开全部功能"
                 :icon="IconEpMenu"
                 @click="drawerVisible = true"
-                style="color: white"
+                class="header-menu"
                 link
             ></el-button>
             <span class="header-title">{{ $route.meta.title }}</span>
@@ -99,14 +98,39 @@ function handleSelect(index: string) {
 const { t } = useI18n()
 </script>
 
+<style lang="scss">
+// 外框（侧栏、手机顶栏、抽屉、底部导航）在浅色和深色模式下都用夜空色。变量名避开
+// script/postcss-mona-colors.cjs 识别的角色词，否则深色模式下会被它再映射一次。
+:root {
+    --sh-night: #0b1124;
+    --sh-foot: #0e1530;
+    --sh-hover: #141c3a;
+    --sh-raised: #1d2750;
+    --sh-letter: #eeeaf6;
+    --sh-dim: #a3abc6;
+    --sh-quiet: #6c7596;
+    --sh-gold: #e2c078;
+    --sh-gold-faint: rgba(226, 192, 120, .35);
+    --sh-sheen-1: #fbeecb;
+    --sh-sheen-2: #e6bd6a;
+    --sh-sheen-3: #b996ee;
+}
+
+.sb-drawer .el-drawer__body {
+    padding: 0;
+    background: var(--sh-night);
+}
+</style>
+
 <style scoped lang="scss">
 $contentPadding: 24px;
-$side-bar-width: 15%;
+$side-bar-width: unquote("clamp(224px, 15vw, 256px)");
 $header-height: 48px;
-.local-badge{margin-left:auto;margin-right:16px;color:#fff;font-size:11px;opacity:.85}
-.mobile-bottom-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid #e6eaf0;padding-bottom:env(safe-area-inset-bottom);z-index:1900;box-shadow:0 -3px 16px #26364d08}
-.mobile-bottom-nav button{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;height:60px;border:0;background:transparent;color:#778299;font-size:12px}
-.mobile-bottom-nav button svg{font-size:21px}.mobile-bottom-nav button.active{color:#409eff;font-weight:600}
+.local-badge{margin-left:auto;margin-right:16px;color:var(--sh-dim);font-size:11px}
+.mobile-bottom-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:var(--sh-night);padding-bottom:env(safe-area-inset-bottom);z-index:1900}
+.mobile-bottom-nav button{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;height:60px;border:0;background:transparent;color:var(--sh-quiet);font-size:12px;transition:color .15s ease}
+.mobile-bottom-nav button svg{font-size:21px}.mobile-bottom-nav button.active{color:var(--sh-gold);font-weight:600}
+.mobile-bottom-nav button:focus-visible{outline:2px solid var(--sh-gold);outline-offset:-4px}
 
 .nav-bar {
     width: $side-bar-width;
@@ -119,17 +143,26 @@ $header-height: 48px;
 
 .header {
     height: $header-height;
-    background-color: #409EFF;
-    padding-left: 16px;
+    display: flex;
+    align-items: center;
+    background-color: var(--sh-night);
+    padding-left: 12px;
     box-sizing: border-box;
     position: fixed;
     top: 0;
     width: 100vw;
     z-index: 2000;
 
+    .header-menu {
+        color: var(--sh-letter);
+        font-size: 20px;
+    }
+
     .header-title {
-        color: white;
-        margin-left: 16px;
+        color: var(--sh-letter);
+        margin-left: 12px;
+        font-size: 16px;
+        font-weight: 600;
     }
 }
 

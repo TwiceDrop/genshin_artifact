@@ -1,0 +1,9 @@
+/* 龙藏体（Long Cang，OFL-1.1，许可见 src/assets/fonts/OFL.long-cang.txt）。
+   文件只含「莫娜占卜铺」五个字，只用于店名。 */
+@font-face {
+  font-family: "Mona Brand";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/long-cang-title.woff2") format("woff2");
+}
