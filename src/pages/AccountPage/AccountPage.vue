@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="account-page cx-scope">
 <!--        <el-dialog-->
 <!--            :title="t('accountPage.chooseSyncBase')"-->
 <!--            width="30%"-->
@@ -44,61 +44,40 @@
 <!--            <el-divider></el-divider>-->
 <!--        </div>-->
 
-        <div class="toolbar">
-            <el-button
-                type="primary"
-                :icon="IconEpPlus"
+        <header class="account-bar">
+            <h2>账号</h2>
+            <button type="button" class="account-add" @click="addAccount"><icon-ep-plus aria-hidden="true" />{{ t('accountPage.addAccount') }}</button>
+        </header>
 
-                @click="addAccount"
-            >
-                {{ t('accountPage.addAccount') }}
-            </el-button>
-        </div>
-
-        <div class="body">
+        <div class="account-grid">
             <div
                 v-for="{id, name} in accountStore.allAccounts"
                 :key="id"
-                class="item is-active"
+                class="account-card"
                 :class="{ active: id === accountStore.currentAccountId.value }"
+                :aria-current="id === accountStore.currentAccountId.value ? 'true' : undefined"
                 @click="handleChangeAccount(id)"
             >
+                <span class="account-avatar" aria-hidden="true">{{ (name || '?').slice(0, 1).toUpperCase() }}</span>
                 <click-edit-label
                     :value="name"
                     @input="newName => handleChangeName(id, name, newName)"
                     fontsize="16px"
                     :editable="true"
-                    style="display: inline-block;"
+                    class="account-name"
                 ></click-edit-label>
-                <div class="buttons">
-                    <el-popconfirm
-                        :title="t('accountPage.confirmDelete')"
-                        @confirm="handleDeleteAccount(id)"
-                    >
-                        <template #reference>
-                            <el-button
-                                v-show="id !== accountStore.currentAccountId.value"
-                                :icon="IconEpDelete"
-                                type="danger"
-                                link
-                                size="default"
-                                circle
-                                class="button"
-                                :title="t('accountPage.delete')"
-                                @click.stop=""
-                            ></el-button>
-                        </template>
-                    </el-popconfirm>
-                    <!-- <el-button
-                        icon="el-icon-download"
-                        type="text"
-                        size="medium"
-                        circle
-                        @click="handleDownload(name, item)"
-                        class="button"
-                        title="导出"
-                    ></el-button> -->
-                </div>
+                <icon-ep-circle-check-filled v-if="id === accountStore.currentAccountId.value" class="account-check" aria-hidden="true" />
+                <el-popconfirm
+                    v-else
+                    :title="t('accountPage.confirmDelete')"
+                    @confirm="handleDeleteAccount(id)"
+                >
+                    <template #reference>
+                        <button type="button" class="account-delete" :title="t('accountPage.delete')" :aria-label="t('accountPage.delete') + ' ' + name" @click.stop="">
+                            <icon-ep-delete aria-hidden="true" />
+                        </button>
+                    </template>
+                </el-popconfirm>
             </div>
         </div>
     </div>
@@ -107,10 +86,11 @@
 <script setup lang="ts">
 import { ElMessage } from "element-plus"
 import ClickEditLabel from "@c/misc/ClickEditLabel"
-import IconEpPlus from "~icons/ep/plus"
 import IconEpSort from "~icons/ep/sort"
-import IconEpDelete from "~icons/ep/delete"
 import {useI18n} from "@/i18n/i18n"
+import IconEpPlus from "~icons/ep/plus"
+import IconEpCircleCheckFilled from "~icons/ep/circle-check-filled"
+import IconEpDelete from "~icons/ep/delete"
 
 import { useAccountStore, deleteAccount, changeAccount, reload } from "@/store/pinia/account"
 import storeBackend, { BackendMeta } from "@/store/backend"
@@ -222,43 +202,149 @@ async function handleSync() {
 </script>
 
 <style lang="scss" scoped>
-.body {
+// 账号页（夜空风格）：颜色读 src/styles/content-theme.css 的 --cx-*
+.account-page {
+    box-sizing: border-box;
+    min-height: calc(100vh - 48px);
+    padding: 16px clamp(10px, 1.3vw, 18px) 18px;
+    border-radius: var(--cx-radius);
+    background: var(--cx-ground);
+    color: var(--cx-letter);
+}
+
+.account-bar {
     display: flex;
-    flex-wrap: wrap;
-}
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
 
-.toolbar {
-    margin-bottom: 20px;
-}
-
-$height: 60px;
-
-.item {
-    height: $height;
-    width: 100%;
-    padding-left: 20px;
-    padding-right: 20px;
-    cursor: pointer;
-    line-height: $height;
-    color: #303133;
-    transition: 200ms;
-
-    &.active {
-        color: #409EFF;
-        background: #ecf5ff;
+    h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
     }
+}
+
+.account-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
 
     &:hover {
-        background: #ecf5ff;
+        filter: brightness(1.08);
+    }
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    gap: 12px;
+}
+
+.account-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 14px 14px 14px 16px;
+    border-radius: 16px;
+    background: var(--cx-card);
+    cursor: pointer;
+    transition: box-shadow .15s ease;
+
+    &:hover {
+        box-shadow: 0 0 0 2px var(--cx-step-2);
     }
 
-    .buttons {
-        float: right;
-        height: $height;
+    &.active {
+        box-shadow: 0 0 0 2px var(--cx-gold);
+        cursor: default;
+    }
+}
 
-        .button {
-            margin: 0;
+.account-avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--cx-step-2);
+    color: var(--cx-dim);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.account-card.active .account-avatar {
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+}
+
+// 名称可点击改名（ClickEditLabel，只有这一页在用）
+.account-name {
+    flex: 1;
+    min-width: 0;
+
+    :deep(input) {
+        padding: 6px 8px;
+        border-radius: 8px;
+        color: var(--cx-letter);
+        font-weight: 600;
+        cursor: text;
+
+        &:focus {
+            background: var(--cx-step);
         }
+    }
+
+    :deep(.border) {
+        background: var(--cx-gold);
+    }
+}
+
+.account-check {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    color: var(--cx-gold);
+}
+
+.account-delete {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--cx-step);
+    color: var(--cx-up);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
+    }
+}
+
+.account-add:focus-visible,
+.account-delete:focus-visible {
+    outline: 2px solid var(--cx-gold);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .account-card {
+        transition: none;
     }
 }
 </style>
