@@ -1,5 +1,18 @@
 <template>
-    <section class="hero" aria-label="角色">
+    <section class="hero" :class="{ 'has-result': result }" aria-label="角色">
+        <div v-if="result" class="hero-result" role="group" aria-label="配装结果">
+            <span class="hero-result-title">✦ 配装结果</span>
+            <span class="hero-result-nav">
+                <button type="button" aria-label="上一套" :disabled="result.index <= 1" @click="emit('result', 'prev')">‹</button>
+                <span class="hero-result-count">{{ result.index ? `第 ${result.index} / ${result.count} 套` : `原装备 · 共 ${result.count} 套` }}</span>
+                <button type="button" aria-label="下一套" :disabled="result.index >= result.count" @click="emit('result', 'next')">›</button>
+            </span>
+            <span class="hero-result-note">{{ result.note }}</span>
+            <span v-if="result.error" class="hero-result-error" role="alert">{{ result.error }}</span>
+            <span class="hero-result-spacer"></span>
+            <button type="button" class="hero-result-btn" @click="emit('result', 'compare')">对比候选</button>
+            <button v-if="result.canRestore" type="button" class="hero-result-btn ghost" @click="emit('result', 'restore')">恢复原装备</button>
+        </div>
         <div class="hero-art" aria-hidden="true">
             <img :key="portraitSrc" :src="portraitSrc" alt="" @error="portraitFailed = true" />
         </div>
@@ -76,8 +89,13 @@ const props = defineProps<{
     slots: Slot[]
     score: { value: string, label: string, grade?: string }
     stats: Stat[]
+    // 有配装结果时显示结果条；index 为 0 表示当前不是任何一套候选（如已恢复原装备）
+    result?: { index: number, count: number, note: string, error?: string, canRestore: boolean } | null
 }>()
-const emit = defineEmits<{ (e: "open", section: "character" | "weapon" | "artifacts" | "attributes", slot?: number): void }>()
+const emit = defineEmits<{
+    (e: "open", section: "character" | "weapon" | "artifacts" | "attributes", slot?: number): void
+    (e: "result", action: "prev" | "next" | "compare" | "restore"): void
+}>()
 
 // 立绘：米游社头像地址 .../character_icon/UI_AvatarIcon_X.png 对应透明底立绘
 // .../character_image/UI_AvatarIcon_X@2x.png；不是这种地址的角色用自带 splash，
@@ -102,6 +120,84 @@ const portraitSrc = computed(() => {
     overflow: hidden;
     background: var(--sh-night);
     color: var(--sh-letter);
+}
+
+.hero.has-result {
+    grid-template-rows: auto 1fr;
+}
+
+.hero-result {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px 20px;
+    background: linear-gradient(90deg, var(--sh-gold-faint), transparent 70%);
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-result-title {
+    color: var(--sh-gold);
+    font-weight: 700;
+}
+
+.hero-result-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    button {
+        width: 30px;
+        height: 30px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--sh-raised);
+        color: var(--sh-letter);
+        font: inherit;
+        cursor: pointer;
+
+        &:disabled {
+            opacity: .35;
+            cursor: default;
+        }
+    }
+}
+
+.hero-result-count {
+    min-width: 6.5em;
+    text-align: center;
+}
+
+.hero-result-note {
+    color: var(--sh-dim);
+    font-size: 13px;
+}
+
+.hero-result-error {
+    color: #ef8f95;
+    font-size: 13px;
+}
+
+.hero-result-spacer {
+    flex: 1;
+}
+
+.hero-result-btn {
+    height: 32px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--sh-raised);
+    color: var(--sh-letter);
+    font: inherit;
+    cursor: pointer;
+
+    &.ghost {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px var(--sh-gold-faint);
+        color: var(--sh-gold);
+    }
 }
 
 .hero-art {

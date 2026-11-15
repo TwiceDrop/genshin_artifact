@@ -1,5 +1,5 @@
 <template>
-    <div class="calculator-page" :class="[`mobile-section-${mobileCalcTab}`, {'review-mode':!editorOpen,'has-candidates':optimizationResults.length>1}]">
+    <div class="calculator-page" :class="`mobile-section-${mobileCalcTab}`">
         <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog">
             <el-progress :percentage="Math.round((optimizationProgress.percent ?? 0) * 10) / 10" :indeterminate="optimizationProgress.percent === null" :status="optimizationRunning ? undefined : optimizationCancelled ? 'warning' : 'success'" />
             <div class="optimization-progress-stats">
@@ -622,33 +622,15 @@
                 v-model="enemyConfig"
             ></enemy-config-component>
             </calc-drawer>
-            <single-result-workbench v-if="!editorOpen" :character="characterLocale" :skill="reviewSkill"
-                :items="artifactItems" :baseline="comparisonBaseline" :changes="artifactChanges" :baseline-label="reviewBaselineLabel"
-                :analysis="characterDamageAnalysis" :previous="comparisonDamage.value" :panel-data="attributeFromWasm"
-                :count="optimizationResults.length" :index="reviewIndex" :dsl="reviewDsl" :metric-error="comparisonDamage.error"
-                :recharge-min="optimizationMode==='damage'?constraintMinRecharge:0" @candidates="showOptimizationResults=true"
-                :score="displayedPieceScore" :score-label="displayedScoreLabel" :total-label="displayedTotalLabel" :total="displayedScoreTotal"
-                @replace="handleGotoSelectArtifact" @score="i=>{scoreArtifactIndex=i;showArtifactScore=true}"
-                @analysis="handleClickArtifactAnalysis" @panel="jumpToSection('panel-card')" @details="jumpToSection('damage-card')"
-                @equipment="jumpToSection('artifacts-card')" @curve="showOptimalGainCurve=true">
-                <template #preset><preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" /></template>
-                <template #scoring><artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" /></template>
-                <template v-if="useNewScore" #score-basis><el-button v-if="dynamicScore" size="small" @click="openScoreBasis">评分依据</el-button><span v-else-if="dynamicScoreState.running" role="status">{{ dynamicScoreState.status }}</span><span v-else-if="dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span></template>
-                <template #baseline><artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
-                    v-model:history-id="comparisonHistoryId" :history="comparisonHistory" @save="saveComparisonHistory" />
-                    <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
-                </template>
-            </single-result-workbench>
             <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
                 :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
                 @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
-            <el-button v-if="editorOpen && optimizationResults.length" class="return-to-result" @click="showResult">返回配装结果</el-button>
-            <div v-show="editorOpen" ref="workspace" class="calc-workspace">
+            <div ref="workspace" class="calc-workspace">
                 <character-hero-card class="hero-row" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
                     :element-label="t('ele', scoreCharacters[characterName].element)" :avatar="scoreCharacters[characterName].avatar"
                     :splash="scoreCharacters[characterName].splash" :level="characterLevel" :constellation="characterConstellation"
                     :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon" :slots="heroSlots"
-                    :score="heroScore" :stats="heroStats" @open="openHeroSection" />
+                    :score="heroScore" :stats="heroStats" :result="heroResult" @open="openHeroSection" @result="handleResultAction" />
                 <div class="calc-editor">
                         <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" @details="handleDisplayAnalysis">
                             <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
@@ -683,7 +665,6 @@ import targets from '@/assets/_gen_tf'
 import {dslObjective} from '@/algorithms/single-result-comparison.mjs'
 import DynamicArtifactScore from '@/components/display/DynamicArtifactScore.vue'
 import ArtifactScoreMode from '@/components/display/ArtifactScoreMode.vue'
-import SingleResultWorkbench from './SingleResultWorkbench.vue'
 import PresetPicker from '@/components/preset/PresetPicker.vue'
 import TeamBuffSources from '@/components/preset/TeamBuffSources.vue'
 import {applyPresetIdentity, restorePresetConfiguration} from '@/utils/preset-view'
@@ -800,9 +781,9 @@ const showMiyousheImport = ref(false)
 const MiyousheCharacterPicker = defineAsyncComponent(() => import('@/components/import/MiyousheCharacterPicker.vue'))
 const showMyCharacters = ref(false)
 const mobileCalcTab = ref('equipment')
-const editorOpen = ref(true)
-function showResult() { editorOpen.value=false; mobileCalcTab.value='equipment'; window.scrollTo(0,0) }
-function activateTab(tab:string) { mobileCalcTab.value=tab;editorOpen.value=true;window.scrollTo(0,0) }
+function activateTab(tab:string) { mobileCalcTab.value=tab;window.scrollTo(0,0) }
+// 配装前穿着的五件（圣遗物 ID），供「恢复原装备」使用；从计算历史恢复的结果没有这份记录
+const preOptimizationIds = ref<number[] | null>(null)
 const optimizeSettingsOpen = ref(false)
 const characterDrawerOpen = ref(false)
 const weaponDrawerOpen = ref(false)
@@ -836,7 +817,6 @@ async function jumpToSection(name: string) {
     if (name === 'artifacts-card') { artifactsDrawerOpen.value = true; return }
     if (name === 'panel-card') { attributesDrawerOpen.value = true; return }
     mobileCalcTab.value=name==='panel-card'?'panel':name.startsWith('config-')&&name!=='config-weapon'?'character':'equipment'
-    editorOpen.value=true
     await nextTick()
     workspace.value?.querySelector('.' + name)?.scrollIntoView({block: 'start'})
 }
@@ -1834,6 +1814,7 @@ function saveComparisonHistory() {
 }
 function resetArtifactComparison() {
     resetComparisonBaseline()
+    preOptimizationIds.value = null
     artifactSnapshot.value = null
     restoredTeamContext.value = null
     panelResultSnapshot.value = null
@@ -1842,8 +1823,31 @@ function resetArtifactComparison() {
 }
 watch(characterName, resetArtifactComparison)
 
+const heroResult = computed(() => {
+    const count = optimizationResults.value.length
+    if (!count) return null
+    const changed = artifactChanges.value.filter(Boolean).length
+    const parts = ['目标：' + (panelResultSnapshot.value ? '面板配装' : resultObjectiveLabel.value)]
+    parts.push(changed ? `换了 ${changed} 件` : '五件未变')
+    parts.push('对比：' + reviewBaselineLabel.value)
+    const dsl = reviewDsl.value
+    if (dsl && Number.isFinite(dsl.current)) parts.push('目标值 ' + (Number.isFinite(dsl.before) ? `${dsl.before.toFixed(1)} → ` : '') + dsl.current.toFixed(1))
+    const rechargeMin = optimizationMode.value === 'damage' ? constraintMinRecharge.value : 0
+    if (rechargeMin > 1) parts.push(`充能要求 ≥ ${(rechargeMin * 100).toFixed(1)}%`)
+    return { index: reviewIndex.value, count, note: parts.join(' · '), error: dsl?.error || comparisonDamage.value.error,
+        canRestore: !!preOptimizationIds.value }
+})
+async function handleResultAction(action: string) {
+    if (action === 'compare') showOptimizationResults.value = true
+    else if (action === 'restore' && preOptimizationIds.value) artifactIds.value = [...preOptimizationIds.value]
+    else if (action === 'prev' || action === 'next') {
+        const current = reviewIndex.value || (action === 'next' ? 0 : 2)
+        await applyReviewCandidate(current + (action === 'next' ? 1 : -1))
+    }
+}
 async function applyReviewCandidate(n: number) { await handleUseNthOptimizationResult(n);showCalculatedEquipment() }
-function showCalculatedEquipment(){if(useNewScore.value)jumpToSection('artifacts-card');else showResult()}
+// 配装结果直接显示在角色卡上，回到页面顶部即可看到
+function showCalculatedEquipment(){window.scrollTo(0,0)}
 
 async function handleUseNthOptimizationResult(n: number) {
     const result = optimizationResults.value[n - 1]
@@ -2019,6 +2023,7 @@ function handleOptimizeArtifact() {
 
     const start = new Date()
     const originalEquipment = snapshotEquipment(artifactItems.value)
+    const originalIds = [...artifactIds.value]
     const originalKey = comparisonKey.value, originalAccount = accountStore.currentAccountId.value
     const originalOwnershipFilter = ownershipFilterKey.value
     const panelMode = optimizationMode.value === 'panel'
@@ -2086,6 +2091,7 @@ function handleOptimizeArtifact() {
         artifactSnapshot.value = null
         panelResultSnapshot.value = panelMode ? panelSnapshot : null
         beginArtifactComparison(originalEquipment)
+        preOptimizationIds.value = originalIds
         await handleUseNthOptimizationResult(1)
         if (controller.signal.aborted) { optimizationCancelled.value=true; return }
         if (optimizationInBackground || !calculationPageActive) return
@@ -2192,7 +2198,8 @@ async function restoreCalculationHistory(id:string) {
             if (panelResultSnapshot.value) artifactSingleConfig.value=deepCopy(panelResultSnapshot.value.input.artifact_config)
             optimizationResultIndex.value=1
         }
-        showResult()
+        preOptimizationIds.value=null
+        showCalculatedEquipment()
         await nextTick()
     } catch(error:any) { ElMessage.error('读取计算历史失败：'+error.message) }
     finally { restoringHistory=false }
@@ -2201,8 +2208,6 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 </script>
 
 <style lang="scss" scoped>
-.return-to-result{margin:0 0 10px}
-.calculator-page.review-mode.has-candidates .calc-command .calc-run{background:#fff;color:#305472;border:1px solid #a6bfd5}
 @media(max-width:700px){
  .review-mode .calc-toolbar .preset-actions{max-width:54%}
  .review-mode .preset-actions :deep(.m-button-group){display:flex;flex-wrap:nowrap;align-items:center;gap:2px}
