@@ -1,10 +1,11 @@
 import {ref,computed,watchEffect} from 'vue';
 
 // A preview URL is temporary. A deliberate Settings choice is remembered.
+// Without either, the app opens dark (2026-11-15 developer decision).
 const requested=new URLSearchParams(location.search).get('theme');
 const preference=matchMedia('(prefers-color-scheme: dark)');
 const systemDark=ref(preference.matches);
-export const colorMode=ref(requested||localStorage.getItem('mona_color_mode')||'auto');
+export const colorMode=ref(requested||localStorage.getItem('mona_color_mode')||'dark');
 export const darkMode=computed(()=>colorMode.value==='dark'||colorMode.value==='auto'&&systemDark.value);
 watchEffect(()=>{
  document.documentElement.dataset.colorMode=darkMode.value?'dark':'light';
