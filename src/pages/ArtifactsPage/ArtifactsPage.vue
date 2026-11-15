@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="art-page cx-scope">
         <artifact-score-dialog v-if="showScore" v-model="showScore" :item="scoreItem" :initial-character="scoreCharacter" />
         <!-- new artifact dialog -->
         <add-artifact-dialog
@@ -53,162 +53,79 @@
             </div>
         </el-drawer>
 
-        <el-breadcrumb class="hidden-sm-and-down">
-            <el-breadcrumb-item>{{ t("misc.artifact") }}（{{ artifactStore.artifactsCount }}）</el-breadcrumb-item>
-        </el-breadcrumb>
-
-        <div class="toolbar-mobile hidden-md-and-up" style="margin-bottom: 12px">
-            <el-button-group>
-                <el-button
-                    @click="handleClickAddArtifact"
-                    type="primary"
-                    :icon="IconEpPlus"
-                    size="small"
-                 :aria-label="t('artPage.newArt')">{{ t("artPage.newArt") }}</el-button>
-
-                <el-dropdown @command="handleDropdownCommand" trigger="click">
-                    <el-button size="small" :icon="IconEpMore" aria-label="仓库操作">操作</el-button>
-                    <template #dropdown>
-                        <el-dropdown-menu>
-                            <el-dropdown-item command="deleteAll" :icon="IconEpDelete">{{ t("misc.clear") }}</el-dropdown-item>
-                            <el-dropdown-item divided command="unlockAll" :icon="IconEpUnlock">{{ t("artPage.unlockAll") }}</el-dropdown-item>
-                            <el-dropdown-item divided command="recommend" :icon="IconFa6Lightbulb">{{ t("misc.recommend") }}</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </template>
+        <header class="art-bar">
+            <div class="art-row">
+                <h2 class="art-title">{{ t("misc.artifact") }}</h2>
+                <span class="art-count">共 {{ artifactStore.artifactsCount }} 件</span>
+                <span class="art-spacer"></span>
+                <button type="button" class="art-btn art-wide" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
+                <el-dropdown class="art-wide" trigger="click" @command="handleOutputCommand">
+                    <button type="button" class="art-btn">{{ t("misc.export") }} <icon-ep-arrow-down aria-hidden="true" /></button>
+                    <template #dropdown><el-dropdown-menu>
+                        <el-dropdown-item command="monaJson">{{ t("artPage.monaJSON") }}</el-dropdown-item>
+                        <el-dropdown-item command="share">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
+                    </el-dropdown-menu></template>
                 </el-dropdown>
-
                 <el-dropdown trigger="click" @command="handleDropdownCommand">
-                    <el-button size="small" :icon="IconFa6PaperPlane" aria-label="导入与导出">导入 / 导出</el-button>
-
-                    <template #dropdown>
-                        <el-dropdown-menu>
-                            <el-dropdown-item command="importJson" :icon="IconFa6SolidUpload">{{ t("misc.import") }}</el-dropdown-item>
-
-                            <el-dropdown-item divided command="exportJson" :icon="IconFa6SolidDownload">{{ t("artPage.exportMona") }}</el-dropdown-item>
-                            <el-dropdown-item command="exportShare" :icon="IconFa6SolidShareNodes">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
-                        </el-dropdown-menu>
-                    </template>
-                </el-dropdown>
-            </el-button-group>
-
-            <div class="m-center">{{ t("misc.total") }}：{{ artifactStore.artifactsCount }}</div>
-        </div>
-
-        <div class="tool-bar hidden-sm-and-down">
-            <el-button-group>
-                <el-button
-                    @click="handleClickAddArtifact"
-                    type="primary"
-                    :icon="IconEpPlus"
-                    size="small"
-                ></el-button>
-
-                <el-popconfirm
-                    :title="t('artPage.confirmClear')"
-                    @confirm="deleteAllArtifacts"
-                    style="margin-right: 8px"
-                >
-                    <template #reference>
-                        <el-button size="small" :icon="IconEpDelete" type="danger" :title="t('misc.clear')">
-                            {{ t("misc.clear") }}
-                        </el-button>
-                    </template>
-
-                </el-popconfirm>
-
-                <el-button size="small" :icon="IconEpUnlock" :title="t('artPage.unlockAll')" @click="unlockAllArtifacts">
-                    {{ t("artPage.unlockAll") }}</el-button>
-
-                <el-button size="small" :icon="IconFa6Lightbulb" @click="handleClickRecommendation">{{ t("misc.recommend") }}</el-button>
-            </el-button-group>
-
-
-            <div class="tool-right">
-                <el-button-group>
-                    <el-button @click="handleImportJsonClicked" size="small" type="primary">{{ t("misc.import") }}</el-button>
-
-                    <el-dropdown split-button size="small" @click="handleOutputJsonClicked" @command="handleOutputCommand">
-                        {{ t("misc.export") }}
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item command="monaJson">{{ t("artPage.monaJSON") }}</el-dropdown-item>
-                                <el-dropdown-item command="share">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
-                            </el-dropdown-menu>
+                    <button type="button" class="art-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
+                    <template #dropdown><el-dropdown-menu>
+                        <template v-if="narrowArt">
+                            <el-dropdown-item command="importJson">{{ t("misc.import") }}</el-dropdown-item>
+                            <el-dropdown-item command="exportJson">{{ t("artPage.exportMona") }}</el-dropdown-item>
+                            <el-dropdown-item command="exportShare">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
                         </template>
-                    </el-dropdown>
-                </el-button-group>
-
-<!--                <el-button @click="handleOutputJsonClicked" size="small"> 导出 </el-button>-->
-
-
-            </div>
-        </div>
-
-        <!-- </div> -->
-        <div class="filter">
-            <div class="filter-item">
-                <select-artifact-set v-model="filterSet" :multiple="true" :multiple-limit="1000"
-                    :placeholder="t('misc.artifactSet')"
-                ></select-artifact-set>
+                        <el-dropdown-item command="unlockAll" :divided="narrowArt">{{ t("artPage.unlockAll") }}</el-dropdown-item>
+                        <el-dropdown-item command="recommend">{{ t("misc.recommend") }}</el-dropdown-item>
+                        <el-dropdown-item command="deleteAll" divided class="art-danger">{{ t("misc.clear") }}</el-dropdown-item>
+                    </el-dropdown-menu></template>
+                </el-dropdown>
+                <button type="button" class="art-add" @click="handleClickAddArtifact">＋ 新增圣遗物</button>
             </div>
 
-            <div class="filter-item">
-                <select-artifact-main-stat
-                    v-model="filterMainStat"
-                    :include-any="false"
-                    :multiple="true"
-                    :placeholder="t('misc.mainStat')"
-                ></select-artifact-main-stat>
-            </div>
+            <nav class="art-slots" aria-label="部位">
+                <button v-for="tab in slotTabs" :key="tab.name" type="button" :aria-pressed="activeName === tab.name" @click="activeName = tab.name">
+                    <img v-if="tab.icon" :src="tab.icon" alt="" />
+                    <b>{{ tab.label }}</b>
+                    <small>{{ tab.count }}</small>
+                </button>
+            </nav>
 
-            <div class="filter-item score-sort">
-                <el-select v-model="scoreCharacter" filterable clearable
-                    placeholder="喵喵评分排序：选择角色" aria-label="喵喵评分排序角色">
-                    <el-option v-for="name in scoreCharacterOptions" :key="name" :label="name" :value="name" />
-                </el-select>
-            </div>
-
-            <el-checkbox v-model="filterGe16" class="show-only-16">{{ t("artPage.show16") }}</el-checkbox>
-        </div>
-
-        <!-- artifacts display -->
-        <el-tabs v-model="activeName">
-            <el-tab-pane v-for="tab in tabs" :key="tab.name" class="panel" :name="tab.name">
-                <template #label>
-                    <img :src="tab.icon" class="icon" :alt="t('misc', tab.name)" :aria-hidden="mobileUI" />
-                    <span v-if="mobileUI" class="mobile-slot-label">{{ t("misc", tab.name) }}</span>
-                </template>
-
-                <div v-if="filteredArtifacts.length > 0 && activeName === tab.name">
-                    <div class="artifacts-div mona-scroll-hidden">
-                        <artifact-display
-                            class="artifact-item"
-                            v-for="{ item, score } in artifactToBeDisplayed"
-                            :key="item.id"
-                            :item="item"
-                            :buttons="true"
-                            :delete-button="true"
-                            :edit-button="true"
-                            selectable
-                            @click="scoreArtifactId = item.id; showScore = true"
-                            @delete="deleteArtifact(item.id)"
-                            @toggle="toggleArtifact(item.id)"
-                            @edit="handleClickEditArtifact(item.id)"
-                        >
-                            <template v-if="score !== null" #footer>
-                                <div class="artifact-score">
-                                    <span>喵喵评分</span>
-                                    <strong class="miao-score" :data-grade="getMarkClass(score)">{{ score.toFixed(1) }} {{ getMarkClass(score) }}</strong>
-                                </div>
-                            </template>
-                        </artifact-display>
-                    </div>
+            <div class="art-filters">
+                <div class="art-filter">
+                    <select-artifact-set v-model="filterSet" :multiple="true" :multiple-limit="1000"
+                        :placeholder="t('misc.artifactSet')"
+                    ></select-artifact-set>
                 </div>
-                <div v-else>
-                    <el-empty></el-empty>
+                <div class="art-filter">
+                    <select-artifact-main-stat
+                        v-model="filterMainStat"
+                        :include-any="false"
+                        :multiple="true"
+                        :placeholder="t('misc.mainStat')"
+                    ></select-artifact-main-stat>
                 </div>
-            </el-tab-pane>
-        </el-tabs>
+                <div class="art-filter">
+                    <el-select v-model="scoreCharacter" filterable clearable
+                        placeholder="评分角色" aria-label="喵喵评分排序角色">
+                        <el-option v-for="name in scoreCharacterOptions" :key="name" :label="name" :value="name" />
+                    </el-select>
+                </div>
+                <el-checkbox v-model="filterGe16">{{ t("artPage.show16") }}</el-checkbox>
+            </div>
+        </header>
+
+        <div v-if="pagedArtifacts.length" class="art-grid">
+            <artifact-card v-for="{ item, score } in pagedArtifacts" :key="item.id" :item="item" :score="score"
+                :score-label="scoreCharacter" :grade="score === null ? undefined : getMarkClass(score)"
+                :selected="item.id === openedArtifactId" @open="openArtifact(item.id)" />
+        </div>
+        <el-empty v-else></el-empty>
+
+        <div v-if="artifactToBeDisplayed.length > pageSize" class="art-pager">
+            <el-pagination v-model:current-page="page" :page-size="pageSize" :total="artifactToBeDisplayed.length"
+                layout="prev, pager, next" :pager-count="narrowArt ? 5 : 7" />
+            <span>每页 {{ pageSize }} 件</span>
+        </div>
     </div>
 </template>
 
@@ -240,6 +157,8 @@ import AddArtifactDialog from './AddArtifactDialog';
 import SelectArtifactSet from '@c/select/SelectArtifactSet';
 import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
 import ArtifactDisplay from '@c/display/ArtifactDisplay';
+import ArtifactCard from './ArtifactCard.vue';
+import {useScreen} from '@/composables/screen';
 import EditArtifact from './EditArtifact';
 import ImportBlock from '@c/misc/ImportBlock';
 import {type ArtifactPosition, ArtifactSetName, ArtifactStatName, IArtifactContentOnly} from "@/types/artifact"
@@ -272,9 +191,11 @@ const tabs = [
     { icon: headIcon, name: 'head' },
 ];
 Object.freeze(tabs);
-const activeName = ref("flower" as ArtifactPosition)
+const activeName = ref<ArtifactPosition | 'all'>("flower")
 
-const pageSize = 20;
+// 每页件数；切换部位或改筛选后回到第 1 页
+const pageSize = 60
+const page = ref(1)
 
 const artifactStore = useArtifactStore()
 const presetStore = usePresetStore()
@@ -314,8 +235,17 @@ const scoreCharacter = ref('')
 const scoreCharacterOptions = [...scoreCharacterNames].sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
 const artifactsCurrentSlot = computed(() => {
+    if (activeName.value === 'all') return positions.flatMap(p => artifactStore.artifactsByPosition.value[p])
     return artifactStore.artifactsByPosition.value[activeName.value];
 })
+// 部位按钮：全部 + 五个部位，带件数
+const slotTabs = computed(() => [
+    { name: 'all' as const, label: '全部', icon: '', count: artifactStore.artifactsCount.value },
+    ...tabs.map(tab => ({ name: tab.name as ArtifactPosition, label: t('misc', tab.name), icon: tab.icon,
+        count: artifactStore.artifactsByPosition.value[tab.name as ArtifactPosition].length })),
+])
+const { width: screenWidth } = useScreen()
+const narrowArt = computed(() => screenWidth.value <= 820)
 
 const filteredArtifacts = computed(() => {
     let results = [];
@@ -349,6 +279,16 @@ const artifactToBeDisplayed = computed(() => {
     }))
     return context ? rows.sort((a, b) => b.score! - a.score!) : rows
 })
+const pagedArtifacts = computed(() => artifactToBeDisplayed.value.slice((page.value - 1) * pageSize, page.value * pageSize))
+watch([activeName, filterSet, filterMainStat, filterGe16, scoreCharacter], () => { page.value = 1 }, { deep: true })
+
+// 点卡片：打开详情（详情抽屉见 03，暂时打开评分弹窗）
+const openedArtifactId = ref(-1)
+function openArtifact(id: number) {
+    openedArtifactId.value = id
+    scoreArtifactId.value = id
+    showScore.value = true
+}
 
 
 ///////////////////////////////////////////////////////////////////
@@ -596,6 +536,193 @@ function handleOutputCommand(command: string) {
 </script>
 
 <style scoped lang="scss">
+// 圣遗物页（夜空风格）：颜色读 src/styles/content-theme.css 的 --cx-* 和外框的 --sh-*
+// 和计算器一样：整页是一块内容区底色的圆角区域
+.art-page {
+    min-height: calc(100vh - 48px);
+    padding: 0 clamp(10px, 1.3vw, 18px) 18px;
+    box-sizing: border-box;
+    border-radius: var(--cx-radius);
+    background: var(--cx-ground);
+    color: var(--cx-letter);
+}
+
+.art-bar {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 6px;
+    padding: 16px 0 12px;
+    background: var(--cx-ground);
+}
+
+.art-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.art-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.art-count {
+    color: var(--cx-dim);
+}
+
+.art-spacer {
+    flex: 1;
+}
+
+.art-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
+    }
+}
+
+.art-add {
+    height: 42px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+        filter: brightness(1.08);
+    }
+}
+
+.art-slots {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    button {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--cx-card);
+        color: var(--cx-dim);
+        font: inherit;
+        cursor: pointer;
+
+        img {
+            width: 20px;
+            height: 20px;
+            opacity: .7;
+        }
+
+        b {
+            color: var(--cx-letter);
+            font-weight: 600;
+        }
+
+        small {
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        &[aria-pressed=true] {
+            background: var(--cx-gold);
+            color: var(--cx-gold-on);
+
+            b {
+                color: var(--cx-gold-on);
+            }
+
+            img {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+// 部位图标是深色线条，深色模式下反色
+html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
+    filter: invert(1);
+}
+
+.art-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.art-filter {
+    width: 200px;
+}
+
+.art-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+}
+
+.art-pager {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    color: var(--cx-dim);
+    font-size: 13px;
+}
+
+.art-btn:focus-visible,
+.art-add:focus-visible,
+.art-slots button:focus-visible {
+    outline: 2px solid var(--cx-gold);
+    outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+    .art-bar {
+        top: 48px;
+        padding: 12px 0 10px;
+    }
+
+    .art-wide {
+        display: none;
+    }
+
+    .art-filter {
+        width: calc(50% - 5px);
+    }
+
+    .art-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .score-sort {
     width: 240px;
 
