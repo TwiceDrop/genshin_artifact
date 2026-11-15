@@ -67,11 +67,13 @@
                     class="account-name"
                 ></click-edit-label>
                 <icon-ep-circle-check-filled v-if="id === accountStore.currentAccountId.value" class="account-check" aria-hidden="true" />
+                <!-- 确认气泡渲染在卡片里（:teleported="false" 才能取到配色），点击不能冒泡到卡片去切换账号 -->
+                <span v-else class="account-delete-wrap" @click.stop>
                 <el-popconfirm
-                    v-else
                     :title="t('accountPage.confirmDelete')"
                     :confirm-button-text="t('accountPage.delete')"
                     :cancel-button-text="t('misc.cancel')"
+                    :teleported="false"
                     @confirm="handleDeleteAccount(id)"
                 >
                     <template #reference>
@@ -80,6 +82,7 @@
                         </button>
                     </template>
                 </el-popconfirm>
+                </span>
             </div>
         </div>
     </div>
@@ -319,6 +322,11 @@ async function handleSync() {
     width: 22px;
     height: 22px;
     color: var(--cx-gold);
+}
+
+.account-delete-wrap {
+    flex: none;
+    display: flex;
 }
 
 .account-delete {
