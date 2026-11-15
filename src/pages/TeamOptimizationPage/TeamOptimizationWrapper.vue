@@ -1,5 +1,5 @@
 <template>
- <div class="team-configurations">
+ <div class="team-configurations cx-scope">
   <header class="toolbar">
    <div class="toolbar-title"><h2><i-ep-data-analysis/>{{ managing?'管理计算配置':'多人优化' }}</h2><span v-if="!managing" class="technical-credit">技术支持：<a href="https://www.gensri.wiki/" target="_blank" rel="noopener noreferrer">强度研究院</a></span></div>
    <div v-if="managing"><el-button @click="managing=false">返回计算</el-button><el-button :disabled="loading||saving" @click="createDraft">新建动作轴</el-button><el-button type="primary" :disabled="loading||saving" @click="fileInput?.click()">导入</el-button></div>
@@ -48,12 +48,12 @@
    <div v-else class="empty"><el-button type="primary" size="large" :disabled="saving" @click="createDraft">新建动作轴</el-button><el-button size="large" :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
   </template>
   <team-multiplier-preview v-if="multiplierPreview" :axis="multiplierPreview.axis" :characters="multiplierPreview.characters" @close="multiplierPreview=null"/>
-  <el-dialog v-model="jsonDialog" title="动作时间轴 JSON" width="min(850px,94vw)" custom-class="team-dps-dialog">
+  <el-dialog v-model="jsonDialog" title="动作时间轴 JSON" width="min(850px,94vw)" custom-class="team-dps-dialog cx-scope">
    <el-alert v-if="error" :title="error" type="error" :closable="false"/>
    <el-input v-model="timelineText" type="textarea" :rows="20" aria-label="动作时间轴 JSON"/>
    <template #footer><el-button @click="jsonDialog=false">取消</el-button><el-button type="primary" @click="applyTimelineJson">应用</el-button></template>
   </el-dialog>
-  <el-dialog v-model="selectingMembers" title="选择队伍角色" width="min(720px,94vw)" custom-class="team-dps-dialog">
+  <el-dialog v-model="selectingMembers" title="选择队伍角色" width="min(720px,94vw)" custom-class="team-dps-dialog cx-scope">
    <el-input v-model="characterSearch" placeholder="搜索角色" clearable/>
    <div class="member-picker"><button v-for="name in selectableCharacters" :key="name" :class="{selected:newMembers.includes(name)}" :disabled="newMembers.length===4&&!newMembers.includes(name)" :aria-pressed="newMembers.includes(name)" @click="toggleMember(name)"><img :src="characterData[name].avatar" alt=""/><strong>{{ locale[characterData[name].nameLocale] }}</strong><span v-if="newMembers.includes(name)">{{ newMembers.indexOf(name)+1 }}</span></button></div>
    <template #footer><span class="member-count">{{ newMembers.length }}/4</span><el-button @click="selectingMembers=false">取消</el-button><el-button type="primary" :disabled="newMembers.length!==4" @click="confirmMembers">创建动作轴</el-button></template>
@@ -62,6 +62,7 @@
 </template>
 <script setup lang="ts">
 import './team-dps-theme.css'
+import './team-dps-night.css'
 import {ref,shallowRef,computed,watch,onBeforeUnmount,onActivated} from 'vue'
 import {useRoute} from 'vue-router'
 import {calculationHistory} from '@/store/calculation-history'

@@ -1,5 +1,5 @@
 <template>
- <el-dialog :model-value="true" title="技能倍率预览" width="min(1120px,96vw)" custom-class="team-dps-dialog" @close="$emit('close')">
+ <el-dialog :model-value="true" title="技能倍率预览" width="min(1120px,96vw)" custom-class="team-dps-dialog cx-scope" @close="$emit('close')">
   <p class="preview-description">按单目标汇总当前轴内的技能倍率，包含形态、资源、命座追加和角色独立倍率。生命消耗增幅、装备效果及定额加值在正式伤害计算中结算。</p>
   <el-alert v-if="error" :title="error" type="error" :closable="false"/>
   <simple-loading v-else-if="!preview"/>

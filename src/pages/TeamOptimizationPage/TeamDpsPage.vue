@@ -90,7 +90,7 @@
    </el-collapse-item></el-collapse>
    </template>
   </template>
-  <el-dialog custom-class="team-dps-dialog" v-model="showHitAnalysis" title="伤害构成" width="94%" destroy-on-close>
+  <el-dialog custom-class="team-dps-dialog cx-scope" v-model="showHitAnalysis" title="伤害构成" width="94%" destroy-on-close>
    <template v-if="activeHit">
     <p>{{ labels[activeHit.hit.role] }} · {{ number(activeHit.hit.time) }}秒 · {{ activeHit.hit.label }} · 第{{ activeHit.hit.part+1 }}段</p>
     <p v-if="activeHit.probability!==undefined">该事件状态概率 {{ teamProbabilityText(activeHit.probability) }}</p>
@@ -99,7 +99,7 @@
     <damage-analysis ref="hitAnalysisComponent" :enemy-config="activeHit.enemy" :character-level="activeHit.character.level" :character-name="activeHit.character.name"/>
    </template>
   </el-dialog>
-  <el-dialog custom-class="team-dps-dialog" v-model="showMemberSettings" :title="labels[settingsRole]+' · 配装设置'" width="min(720px, 94vw)">
+  <el-dialog custom-class="team-dps-dialog cx-scope" v-model="showMemberSettings" :title="labels[settingsRole]+' · 配装设置'" width="min(720px, 94vw)">
    <el-form label-position="top" :disabled="busy" class="member-settings">
     <el-tabs v-model="settingsTab">
      <el-tab-pane label="配装限制" name="constraints">
@@ -111,7 +111,7 @@
     </el-tabs>
    </el-form>
   </el-dialog>
-  <el-dialog custom-class="team-dps-dialog" v-model="showEnemy" title="敌人设置" width="650px">
+  <el-dialog custom-class="team-dps-dialog cx-scope" v-model="showEnemy" title="敌人设置" width="650px">
    <enemy-config v-model="enemyConfig"/>
    <div class="controls">
     <el-checkbox v-model="frozen" :disabled="busy">敌人可冻结</el-checkbox>
@@ -119,7 +119,7 @@
     <label>统计目标 <el-select popper-class="team-dps-popper" v-model="damageScope" :disabled="busy"><el-option value="single" label="单个敌人"/><el-option value="all" label="全部敌人"/></el-select></label>
    </div>
   </el-dialog>
-  <el-dialog custom-class="team-dps-dialog" :model-value="busy&&showProgress" title="计算进度" width="560px" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
+  <el-dialog custom-class="team-dps-dialog cx-scope" :model-value="busy&&showProgress" title="计算进度" width="560px" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
    <el-progress :percentage="progressPercent" :indeterminate="teamDpsProgressIndeterminate(progress)" :show-text="!teamDpsProgressIndeterminate(progress)"/>
    <p class="team-progress-phase">{{ teamDpsProgressText(progress) }} · {{ progress.total_teams }}组评估预算</p><p>已评估 {{ progress.evaluated_teams }} 组　剩余预算 {{ progress.remaining_teams }} 组</p>
    <p v-if="progress.visited_nodes">已访问 {{ progress.visited_nodes }} 个节点 · 剪枝 {{ progress.pruned_nodes }} 个分支</p>

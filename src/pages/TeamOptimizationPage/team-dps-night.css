@@ -1,0 +1,219 @@
+/* 多人优化页的夜空配色：在 team-dps-theme.css 之后加载，只换颜色，不改布局。
+   颜色读 src/styles/content-theme.css 的 --cx-*（页面根和弹窗都带 cx-scope）。
+   用 html[data-color-mode] 前缀压过组件里 scoped 的原色值。 */
+
+html[data-color-mode] .team-configurations {
+    background: var(--cx-ground);
+    color: var(--cx-letter);
+}
+
+html[data-color-mode] .team-configurations .toolbar {
+    border-bottom: 0;
+}
+
+html[data-color-mode] .team-configurations .technical-credit {
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .technical-credit a,
+html[data-color-mode] .team-configurations .card-heading h3 svg,
+html[data-color-mode] .team-configurations .toolbar-title h2 svg {
+    color: var(--cx-gold);
+}
+
+/* 卡片：去掉细边框和阴影，用色阶区分层次 */
+html[data-color-mode] .team-configurations .dps-card {
+    background: var(--cx-card);
+    border: 0;
+    box-shadow: none;
+    border-radius: var(--cx-radius);
+}
+
+html[data-color-mode] .team-configurations .setting-field > label,
+html[data-color-mode] .team-configurations .el-form-item__label,
+html[data-color-mode] .team-dps-dialog .el-form-item__label {
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .role-chip {
+    border: 0;
+    background: var(--cx-step-2);
+    color: var(--cx-gold);
+}
+
+html[data-color-mode] .team-configurations .axis-duration,
+html[data-color-mode] .team-configurations .duration-value {
+    color: var(--cx-gold);
+}
+
+html[data-color-mode] .team-configurations .duration-value {
+    border: 0;
+    background: var(--cx-step);
+}
+
+/* 队伍成员 */
+html[data-color-mode] .team-configurations .roster-member {
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .roster-member > span {
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .roster-member:hover {
+    background: var(--cx-step);
+}
+
+html[data-color-mode] .team-configurations .roster-member.active {
+    background: var(--cx-step-2);
+    border-color: transparent;
+    color: var(--cx-letter);
+}
+
+html[data-color-mode] .team-configurations .roster-member img,
+html[data-color-mode] .team-configurations .panel-identity > img {
+    background: var(--cx-step-2);
+    border-color: var(--cx-step-2);
+}
+
+html[data-color-mode] .team-configurations .roster-member.active img,
+html[data-color-mode] .team-configurations .panel-identity > img {
+    border-color: var(--cx-gold);
+}
+
+/* 命座按钮 */
+html[data-color-mode] .team-configurations .constellation-line > span {
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .constellation-line button {
+    border-color: transparent;
+    background: var(--cx-step);
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .constellation-line button.active {
+    border-color: var(--cx-gold);
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+    box-shadow: none;
+}
+
+/* 武器、面板 */
+html[data-color-mode] .team-configurations .weapon-choice > img {
+    background: var(--cx-step);
+}
+
+html[data-color-mode] .team-configurations .panel-badges span {
+    border-color: transparent;
+    background: var(--cx-step);
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .panel-stats > div {
+    border-bottom: 0;
+    border-radius: 8px;
+}
+
+html[data-color-mode] .team-configurations .panel-stats > div:nth-child(even) {
+    background: var(--cx-step);
+}
+
+html[data-color-mode] .team-configurations .panel-stats dt {
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .panel-stats dd {
+    color: var(--cx-letter);
+}
+
+html[data-color-mode] .team-configurations .action-effect,
+html[data-color-mode] .team-configurations .timeline-toolbar span {
+    color: var(--cx-dim);
+}
+
+/* Element Plus 控件 */
+html[data-color-mode] .team-configurations .el-slider__runway {
+    background: var(--cx-step-2);
+}
+
+html[data-color-mode] .team-configurations .el-slider__bar {
+    background: var(--cx-gold);
+}
+
+html[data-color-mode] .team-configurations .el-slider__button {
+    background: var(--cx-gold);
+    border-color: var(--cx-gold);
+    box-shadow: none;
+}
+
+html[data-color-mode] .team-configurations .el-input-number__decrease,
+html[data-color-mode] .team-configurations .el-input-number__increase,
+html[data-color-mode] .team-dps-dialog .el-input-number__decrease,
+html[data-color-mode] .team-dps-dialog .el-input-number__increase {
+    background: var(--cx-step);
+    color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .el-table,
+html[data-color-mode] .team-dps-dialog .el-table {
+    --el-table-bg-color: var(--cx-card);
+    --el-table-tr-bg-color: var(--cx-card);
+    --el-table-header-bg-color: var(--cx-step);
+    --el-table-row-hover-bg-color: var(--cx-step-2);
+    --el-table-border-color: var(--cx-step-2);
+    --el-table-text-color: var(--cx-letter);
+    --el-table-header-text-color: var(--cx-dim);
+}
+
+html[data-color-mode] .team-configurations .el-collapse-item__header {
+    color: var(--cx-letter);
+}
+
+html[data-color-mode] .team-configurations .el-collapse-item__content {
+    color: var(--cx-dim);
+}
+
+/* 弹窗 */
+html[data-color-mode] .team-dps-dialog {
+    border: 0;
+}
+
+html[data-color-mode] .team-dps-dialog .member-picker button {
+    border-color: transparent;
+    background: var(--cx-step);
+    color: var(--cx-letter);
+}
+
+html[data-color-mode] .team-dps-dialog .member-picker button.selected {
+    border-color: var(--cx-gold);
+    background: var(--cx-step-2);
+}
+
+html[data-color-mode] .team-dps-dialog .member-picker button span {
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+}
+
+html[data-color-mode] .team-dps-dialog .member-count {
+    color: var(--cx-dim);
+}
+
+/* 配装结果里的圣遗物小卡片 */
+html[data-color-mode] .team-dps .gear .artifact {
+    border-color: transparent;
+    background: var(--cx-step);
+}
+
+html[data-color-mode] .team-dps .gear .artifact .up {
+    border-color: transparent;
+    background: var(--cx-step-2);
+}
+
+html[data-color-mode] .team-dps .builds-card .result-member .gear .artifact .up .name {
+    color: var(--cx-letter);
+}
+
+html[data-color-mode] .team-dps .builds-card .result-member .gear .artifact .down .sec-tag {
+    color: var(--cx-dim);
+}
