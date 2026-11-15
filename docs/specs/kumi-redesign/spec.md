@@ -1,6 +1,6 @@
 # 圣遗物套装页重做
 
-Status: ready-for-agent
+Status: done
 
 2026-11-15 与开发者对齐：布局选「左栏收藏夹 + 套装卡片」。视觉沿用圣遗物页（`docs/specs/artifacts-redesign/`），不另做样稿，实现后在浏览器里给开发者看。任务在 `issues/`。
 
