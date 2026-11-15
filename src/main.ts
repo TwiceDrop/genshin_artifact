@@ -1,6 +1,7 @@
 import "./styles/color-mode.mjs";
 import "./styles/mona-theme.css";
 import "./styles/brand-font.css";
+import "./styles/content-theme.css";
 import "./styles/global.scss";
 import "./styles/select.css";
 import './styles/mobile.scss'

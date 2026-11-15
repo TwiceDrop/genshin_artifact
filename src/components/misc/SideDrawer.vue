@@ -6,24 +6,24 @@
         :size="narrow ? '100%' : 'min(440px, 92vw)'"
         :with-header="false"
         append-to-body
-        :custom-class="narrow ? 'calc-drawer narrow' : 'calc-drawer'"
+        :custom-class="narrow ? 'side-drawer narrow' : 'side-drawer'"
     >
-        <header class="calc-drawer-head">
+        <header class="side-drawer-head">
             <h3>{{ title }}</h3>
             <slot name="actions" />
-            <button type="button" class="calc-drawer-close" :aria-label="`关闭${title}`" @click="emit('update:modelValue', false)">
+            <button type="button" class="side-drawer-close" :aria-label="`关闭${title}`" @click="emit('update:modelValue', false)">
                 <icon-ep-close aria-hidden="true" />
             </button>
         </header>
-        <div class="calc-drawer-body">
+        <div class="side-drawer-body">
             <slot />
         </div>
     </el-drawer>
 </template>
 
 <script setup lang="ts">
-// 计算器的编辑抽屉外壳：桌面从右侧滑出，窄屏（820px 以下）从底部升起占满高度。
-// 关闭、Esc 和焦点回到触发按钮由 el-drawer 负责。Element Plus 2.2 的抽屉只认 custom-class，不认 class。挂到 body 上，配色变量见 calculator-theme.css。
+// 编辑与详情抽屉外壳（计算器、圣遗物页共用）：桌面从右侧滑出，窄屏（820px 以下）从底部升起占满高度。
+// 关闭、Esc 和焦点回到触发按钮由 el-drawer 负责。Element Plus 2.2 的抽屉只认 custom-class，不认 class。挂到 body 上，配色变量见 src/styles/content-theme.css。
 import IconEpClose from "~icons/ep/close"
 import {computed} from "vue"
 import {useScreen} from "@/composables/screen"
@@ -36,8 +36,8 @@ const narrow = computed(() => width.value <= 820)
 </script>
 
 <style lang="scss">
-// el-drawer 的根节点不带本组件的 scoped 标记，样式写成不带 scoped 的，用 .calc-drawer 限定
-.calc-drawer {
+// el-drawer 的根节点不带本组件的 scoped 标记，样式写成不带 scoped 的，用 .side-drawer 限定
+.side-drawer {
     background: var(--cx-card);
     color: var(--cx-letter);
 
@@ -52,7 +52,7 @@ const narrow = computed(() => width.value <= 820)
     }
 }
 
-.calc-drawer-head {
+.side-drawer-head {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -65,7 +65,7 @@ const narrow = computed(() => width.value <= 820)
     }
 }
 
-.calc-drawer-close {
+.side-drawer-close {
     display: grid;
     place-items: center;
     width: 34px;
@@ -86,7 +86,7 @@ const narrow = computed(() => width.value <= 820)
     }
 }
 
-.calc-drawer-body {
+.side-drawer-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -97,7 +97,7 @@ const narrow = computed(() => width.value <= 820)
 }
 
 // 窄屏时底部导航在抽屉遮罩之下，抽屉占满高度后底部仍留出安全区
-.calc-drawer.narrow .calc-drawer-body {
+.side-drawer.narrow .side-drawer-body {
     padding-bottom: calc(32px + env(safe-area-inset-bottom));
 }
 </style>

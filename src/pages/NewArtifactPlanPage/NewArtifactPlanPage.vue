@@ -303,7 +303,7 @@
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />
-        <div class="calc-content" data-theme="mist">
+        <div class="calc-content cx-scope" data-theme="mist">
             <calc-top-bar :target-label="optimizeTargetLabel" :running="optimizationRunning || dynamicScoreState.running"
                 @target="optimizeSettingsOpen = true" @import="showMiyousheImport = true" @my-characters="showMyCharacters = true"
                 @run="optimizeSettingsOpen = false; handleOptimizeArtifact()">
@@ -324,7 +324,7 @@
                     </div>
                 </template>
             </calc-top-bar>
-            <calc-drawer v-model="optimizeSettingsOpen" title="配装设置">
+            <side-drawer v-model="optimizeSettingsOpen" title="配装设置">
                     <el-radio-group v-model="optimizationMode" aria-label="配装模式">
                         <el-radio-button label="damage">伤害配装</el-radio-button>
                         <el-radio-button label="panel">面板配装</el-radio-button>
@@ -418,8 +418,8 @@
                             >{{ t("calcPage.setupArt") }}</el-button>
                         </el-button-group>
                     </div>
-            </calc-drawer>
-            <calc-drawer v-model="characterDrawerOpen" title="角色">
+            </side-drawer>
+            <side-drawer v-model="characterDrawerOpen" title="角色">
                         <section class="config-character setup-section">
                             <div class="character-fields">
                                 <div class="calc-field"><span>{{ t('misc.character') }}</span><select-character v-model="characterName" :aria-label="t('misc.character')" /></div>
@@ -443,8 +443,8 @@
                                 ></item-config>
                             </div>
                         </section>
-            </calc-drawer>
-            <calc-drawer v-model="weaponDrawerOpen" title="武器">
+            </side-drawer>
+            <side-drawer v-model="weaponDrawerOpen" title="武器">
                         <section class="config-weapon setup-section">
                             <div class="weapon-fields">
                                 <div class="calc-field"><span>{{ t('misc.weapon') }}</span><select-weapon :type="characterWeaponType" v-model="weaponName" :aria-label="t('misc.weapon')" /></div>
@@ -460,8 +460,8 @@
                                 ></item-config>
                             </div>
                         </section>
-            </calc-drawer>
-            <calc-drawer v-model="artifactsDrawerOpen" title="圣遗物">
+            </side-drawer>
+            <side-drawer v-model="artifactsDrawerOpen" title="圣遗物">
                         <section class="drawer-section artifacts-card">
                             <header class="card-heading"><h3><i-ep-collection aria-hidden="true"/>{{ t("misc.artifact") }}</h3>
                                 <artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" />
@@ -556,8 +556,8 @@
                                 ></item-config>
                             </div>
                         </section>
-            </calc-drawer>
-            <calc-drawer v-model="attributesDrawerOpen" title="全部属性">
+            </side-drawer>
+            <side-drawer v-model="attributesDrawerOpen" title="全部属性">
                 <div class="attributes-body">
                     <el-alert v-if="comparisonAttribute.error" :title="comparisonAttribute.error" type="warning" :closable="false" />
                     <attribute-panel v-if="!betaCalculationError"
@@ -572,8 +572,8 @@
                         >{{ t("calcPage.statCurve") }}</el-button>
                     </div>
                 </div>
-            </calc-drawer>
-            <calc-drawer v-model="buffDrawerOpen" title="BUFF">
+            </side-drawer>
+            <side-drawer v-model="buffDrawerOpen" title="BUFF">
                 <template #actions><el-button :icon="IconEpPlus" @click="handleClickAddBuff">添加BUFF</el-button></template>
                             <selected-buff-groups class="buffs" :buffs="otherBuffs">
                                 <template #default="{ buff }">
@@ -592,8 +592,8 @@
                                 </label>
                                 </template>
                             </selected-buff-groups>
-            </calc-drawer>
-            <calc-drawer v-model="teammateDrawerOpen" title="队友">
+            </side-drawer>
+            <side-drawer v-model="teammateDrawerOpen" title="队友">
                             <team-buff-sources v-model="teamContextSources" v-model:stellar-mode="teamContextStellarMode"
                                 :character="characterName" :preset-name="miscCurrentPresetName" :issues="teamContextResult.issues" />
                             <div class="polestar-field-control">
@@ -603,8 +603,8 @@
                                     <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
                                 </div>
                             </div>
-            </calc-drawer>
-            <calc-drawer v-model="enemyDrawerOpen" :title="t('calcPage.setupEnemy')">
+            </side-drawer>
+            <side-drawer v-model="enemyDrawerOpen" :title="t('calcPage.setupEnemy')">
             <div class="enemy-infusion">
                 <h3 class="common-title2">{{ t("calcPage.fumo") }}</h3>
                 <select-element-type
@@ -616,7 +616,7 @@
             <enemy-config-component
                 v-model="enemyConfig"
             ></enemy-config-component>
-            </calc-drawer>
+            </side-drawer>
             <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
                 :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
                 @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
@@ -719,7 +719,7 @@ import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
 import DslGenerator from './DslGenerator.vue'
 import CalcTopBar from './CalcTopBar.vue'
-import CalcDrawer from './CalcDrawer.vue'
+import SideDrawer from '@/components/misc/SideDrawer.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
 import DamageResultCard from './DamageResultCard.vue'
 import CalcConditionsCard from './CalcConditionsCard.vue'
@@ -799,7 +799,7 @@ async function openHeroSection(section: string, slot?: number) {
         artifactsDrawerOpen.value = true
         if (slot === undefined) return
         await nextTick()
-        document.querySelector(`.calc-drawer [data-slot="${slot}"]`)?.scrollIntoView({ block: 'nearest' })
+        document.querySelector(`.side-drawer [data-slot="${slot}"]`)?.scrollIntoView({ block: 'nearest' })
     }
 }
 const { width: screenWidth } = useScreen()
@@ -2350,7 +2350,7 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
     .polestar-field-stacks { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 14px; }
     .el-input-number { width: 100%; }
 }
-.calc-drawer-body {
+.side-drawer-body {
     .target-function-detail {
         display: flex;
         //align-items: top;
@@ -2444,6 +2444,5 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 
 <style scoped src="./calculation-workbench.css"></style>
 
-<style src="./calculator-theme.css"></style>
 
 <style scoped src="../../styles/artifact-score.css"></style>
