@@ -312,14 +312,18 @@ html[data-color-mode="dark"] .welcome {
 @media (max-width: 767px) {
     .welcome {
         --wl-gap: 16px;
-        --wl-dial: 580px;
-        margin: -14px -12px 0;
+        // 星盘随屏幕高度放大，高屏手机上不再挤在上半截
+        --wl-dial: clamp(560px, 68vh, 720px);
+        // 向下延伸到底部导航后面（.main 底部留了 80px，导航只有 60px，不延伸会露出一条外框底色）；
+        // 底部内边距让版本号和更新开关仍停在导航上方
+        margin: -14px -12px -80px;
         // mobile.scss 给 .main-view 的子元素限了 max-width: 100%，负边距需要解开它
         max-width: none;
-        min-height: calc(100vh - 48px - 80px);
-        grid-template-rows: 1fr auto auto 1fr auto auto;
+        min-height: calc(100vh - 48px);
+        // 上方留白略多于下方，星盘和店名整体稍往下，和底部的版本号更均衡
+        grid-template-rows: 2fr auto auto 1fr auto auto;
         padding-top: 40px;
-        padding-bottom: 24px;
+        padding-bottom: calc(24px + 80px);
     }
 
     .welcome-lockup {

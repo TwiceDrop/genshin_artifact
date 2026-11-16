@@ -64,7 +64,8 @@
 <!--            <router-view v-if="!$route.meta.keepAlive" class="router-view"></router-view>-->
 <!--            <router-view class="router-view"></router-view>-->
 
-        <mona-footer style="margin-top: 24px"></mona-footer>
+        <!-- 欢迎页自己显示版本号，且要铺满一屏；页脚放在它下面只会多出一截滚动和底色条 -->
+        <mona-footer v-if="$route.name !== 'home'" style="margin-top: 24px"></mona-footer>
     </div>
     <nav v-if="!geSmall" class="mobile-bottom-nav" aria-label="手机主导航">
         <button :class="{ active: $route.path === '/calculate' }" @click="router.push('/calculate')"><i-ep-cpu /><span>计算</span></button>
