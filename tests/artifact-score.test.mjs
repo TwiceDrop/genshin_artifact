@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import data, { calcArtifactScore } from '../src/algorithms/artifact-score/vendor/miao.mjs'
-import { toScoreArtifact, scoreRanking, scoreBuild, scoreDetails, getMarkClass, panelScoreAttributes, scoreSetNames, rankingContext, VESNA_SCORE_TEMPLATES } from '../src/algorithms/artifact-score/score.mjs'
+import facts from '../src/algorithms/artifact-score/vendor/character-facts.mjs'
+import { toScoreArtifact, scoreRanking, scoreBuild, scoreDetails, getMarkClass, panelScoreAttributes, scoreSetNames, rankingContext, scoreCharacterNames, VESNA_SCORE_TEMPLATES } from '../src/algorithms/artifact-score/score.mjs'
 
 const piece = (position = 'flower', mainTag = { name: 'lifeStatic', value: 4780 }) => ({
     position, mainTag, star: 5, level: 20, setName: 'test',
@@ -101,4 +102,52 @@ test('Vesna fixed templates distinguish normal Anemo damage and direct Stellar S
     assert.equal(scoreBuild(five, normal).supported, true)
     assert.equal(rankingContext('薇斯纳·星扩散').options.scoreMode, 'stellar')
     assert.ok(scoreRanking(windCup).characters.some(x => x.name === '薇斯纳·星扩散'))
+})
+
+test('Mitya is registered for panel scoring and character selection with pinned source facts', () => {
+    // miao-plugin fbabcc0c0952c01212c8491b0af9ec3b252a4ba2, 米提亚/data.json.
+    assert.deepEqual(facts.baseAttrMap['米提亚'], { hp: 12460.48, atk: 322.29, def: 847.87 })
+    assert.equal(rankingContext('米提亚').options.elem, 'electro')
+    assert.equal(scoreCharacterNames.filter(name => name === '米提亚').length, 1)
+    assert.deepEqual(data.usefulAttr['米提亚'], {
+        hp: 0, atk: 0, def: 0, cpct: 100, cdmg: 100, mastery: 100, dmg: 0, phy: 0, recharge: 40, heal: 0
+    })
+})
+
+test('Mitya scores crit and mastery with an independent expected value and keeps attack ineffective', () => {
+    const context = rankingContext('米提亚'), item = piece()
+    const result = scoreBuild([item], context)
+    assert.equal(result.supported, true)
+    // Flower: no main-stat points; ideal substat weight sum is 6×100+100+100+40=840.
+    const expected = Math.round((10.5 + 21.8 / 2 + 23 / 6) * 100 / 3.885 / 840 * 66 * 10) / 10
+    assert.equal(result.total, expected)
+    assert.equal(result.grade, '未齐装')
+    const details = scoreDetails(item, context)
+    assert.equal(details.score, expected)
+    assert.equal(details.subs.find(row => row.name === 'attackPercentage').score, 0)
+    for (const key of ['critical', 'criticalDamage', 'elementalMastery']) {
+        assert.ok(details.subs.find(row => row.name === key).score > 0)
+    }
+    const emCup = piece('cup', { name: 'elementalMastery', value: 187 })
+    emCup.normalTags = emCup.normalTags.filter(tag => tag.name !== 'elementalMastery')
+    const electroCup = { ...emCup, mainTag: { name: 'thunderBonus', value: .466 } }
+    assert.ok(scoreDetails(emCup, context).main > 0)
+    assert.equal(scoreDetails(electroCup, context).main, 0)
+})
+
+test('Mitya build, detail and ranked scores agree, including missing pieces and high constellation', () => {
+    const context = { ...rankingContext('米提亚'), options: { elem: 'electro', cons: 6 } }
+    const result = scoreBuild(five, context)
+    assert.equal(result.supported, true)
+    assert.equal(result.complete, true)
+    assert.ok(Number.isFinite(result.total) && result.total > 0)
+    assert.notEqual(result.grade, '待适配')
+    for (const item of five) {
+        assert.equal(scoreDetails(item, context, five).score, result.artifacts.find(row => row.pos === toScoreArtifact(item).pos).score)
+    }
+    const rows = scoreRanking(five[0]).characters.filter(row => row.name === '米提亚')
+    assert.equal(rows.length, 1)
+    assert.equal(rows[0].score, scoreDetails(five[0], rankingContext('米提亚')).score)
+    assert.equal(scoreBuild([], context).total, 0)
+    assert.equal(scoreBuild([], context).grade, '未齐装')
 })
