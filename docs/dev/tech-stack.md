@@ -9,7 +9,6 @@
 | 前端框架 | Vue 3、Vue Router 4、Pinia 2、vue-i18n 9，TypeScript 4.5 与 JS 混写 | `package.json`、`package-lock.json` |
 | 前端构建 | Vue CLI 5（webpack 5）、Babel、Sass | `package.json`、`vue.config.js` |
 | 桌面 UI | Element Plus 2、unplugin 自动导入、ECharts 5、Monaco Editor | `package.json` |
-| 新移动 UI | radix-vue、Tailwind CSS 3、class-variance-authority | `mobile/package.json` |
 | 浏览器存储 | localforage（IndexedDB）与 localStorage | `package.json` |
 | 原始发布内核、效果桥接内核 | 上游 v5.33.58 的 WASM；桥接内核用 Python 加 WABT 改写 WAT 生成 | `THIRD_PARTY_NOTICES.md`、`mona_wasm/pkg/release.json` |
 | 扩展内核 | Rust nightly-2024-10-10、wasm-bindgen 0.2.92、pest、askama | `rust-toolchain.toml`、`mona_wasm/Cargo.lock`、`beta-tools/compiler-source.json` |
@@ -19,7 +18,7 @@
 | Windows Tauri 封装 | Tauri 2（Rust），内嵌网页产物和 Node.js | `tauri-exe/Cargo.lock` |
 | Android | Capacitor 8、Gradle 8、compileSdk 36、minSdk 24 | `package.json`、`android/variables.gradle` |
 | 在线账号服务 | Node.js 24、PostgreSQL 17（`pg`）、nodemailer、Docker Compose、Caddy 2 | `online-service/package-lock.json`、`online-service/compose.yaml` |
-| 测试 | `node --test`；移动 UI 用 jsdom 与 Playwright；Android 用 JUnit 仪器测试；在线服务用 PGlite | `package.json`、`mobile/package.json` |
+| 测试 | `node --test`；页面组件测试用 jsdom；Android 用 JUnit 仪器测试；在线服务用 PGlite | `package.json` |
 | 构建脚本 | PowerShell、Node、Python 3 | `script/`、`beta-tools/` |
 
 ## 语言分布

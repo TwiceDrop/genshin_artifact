@@ -1,19 +1,18 @@
 <template>
-    <component :is="mobileUI ? 'button' : 'div'" :type="mobileUI ? 'button' : undefined" class="root" @click="$emit('click')" :aria-label="mobileUI ? '选择圣遗物' : undefined">
+    <div class="root" @click="$emit('click')">
         <img v-if="back !== ''" :src="back" >
         <span class="s1"></span>
         <span class="s2"></span>
         <span class="s3"></span>
         <span class="s4"></span>
-        + <b v-if="mobileUI" class="mobile-add-label">选择圣遗物</b>
-    </component>
+        +
+    </div>
 </template>
 
 <script>
 export default {
     name: "AddButton",
     emits: ["click"],
-    data: () => ({ mobileUI: process.env.MONA_MOBILE }),
     props: {
         back: { default: "" }
     }

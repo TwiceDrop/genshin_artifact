@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart TD
-    UI[前端页面<br/>src/pages、src/components、src/mobile]
+    UI[前端页面<br/>src/pages、src/components]
     Worker[配装与四人轴 Worker<br/>src/workers、src/wasm]
     Entry[浏览器入口 mona_wasm/pkg/index.js<br/>Node 入口 beta-tools/runtime.mjs]
     Adapter[适配层 beta-data/*.mjs]
@@ -26,7 +26,7 @@ flowchart TD
 
 | 层 | 职责 | 改动时注意 |
 | --- | --- | --- |
-| 前端页面 | 输入角色、装备、BUFF、敌人和目标，展示结果；数据存在浏览器存储 | 桌面 UI 与新移动 UI 共用页面逻辑，构建时把 `element-plus` 替换成 `src/mobile/index.js` |
+| 前端页面 | 输入角色、装备、BUFF、敌人和目标，展示结果；数据存在浏览器存储 | 桌面和手机共用一套页面（Element Plus），按宽度自适应 |
 | Worker | 把配装、词条收益、四人轴搜索放到后台线程，支持进度和取消 | Worker 通过 `import('mona')` 拿到与页面同一个入口 |
 | 入口 | 加载三个内核和数据，交给 `beta-data/compose-kernel-api.mjs` 套上适配层的各个包装，导出九个接口对象 | 包装顺序只在组合模块里改；浏览器入口用 fetch 加载带进度的内核，Node 入口读文件 |
 | 适配层 | BUFF 规则、参数转换、作用域、新角色和新武器的效果 | 公共入口的五条路径要得到一致结果 |
@@ -50,8 +50,7 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | Windows 安装包、ZIP 便携包 | 用户的默认浏览器 | 托盘启动器拉起随包的 Node.js 运行本机服务，端口 4174 | 浏览器加 `http://127.0.0.1:4174` | `script/build-web-package.ps1`、`script/build-windows.ps1` |
 | 开发时本机运行 | 浏览器 | `npm start`，端口 4183 | 浏览器加 `http://127.0.0.1:4183` | `npm run build:local` |
-| Android（Element Plus） | Capacitor WebView | `MonaLocalPlugin` 等原生插件 | 应用 ID `com.mona.artifact.local` | `script/build-android.ps1 -Ui elementplus` |
-| Android（新移动 UI） | Capacitor WebView | 同上 | 应用 ID 加 `.mobiletest` 后缀 | `script/build-android.ps1 -Ui mobiletest` |
+| Android | Capacitor WebView | `MonaLocalPlugin` 等原生插件 | 应用 ID `com.mona.artifact.local` | `script/build-android.ps1` |
 | Windows Tauri 封装 | WebView2 窗口 | 内嵌的 Node.js 运行同一套本机服务，端口 47504 | 应用标识 `com.mona.artifact.tauri` 下的 WebView 目录 | 仓库里没有构建脚本，载荷由 `tauri-exe/prepare-payload.py` 生成 |
 
 每种形态各有一份存储，互相不共享，换形态要靠「UID 数据」导出再导入。

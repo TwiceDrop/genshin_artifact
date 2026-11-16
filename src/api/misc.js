@@ -21,11 +21,6 @@ export async function createComputeResult(characterInterface, weaponInterface, b
 let computeResultCache = null
 let lastComputeResultTime = null
 export async function getComputeResultAnalysis() {
-    if (process.env.MONA_MOBILE) {
-        const [{ usePresetStore }, { useArtifactStore }, { convertArtifact }, { localDatabase }] = await Promise.all([
-            import('@/store/pinia/preset'), import('@/store/pinia/artifact'), import('@/utils/converter'), import('@/algorithms/local-database.mjs')])
-        return localDatabase(usePresetStore().presets.value, useArtifactStore().artifacts.value, convertArtifact)
-    }
     const refresh = async () => {
         const response = await client.get("/compute_result/analysis")
         if (response.status !== 200) {

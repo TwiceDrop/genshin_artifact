@@ -2116,7 +2116,7 @@ function handleOptimizeArtifact() {
         showCalculatedEquipment()
 
         // report best result to server, only report player whose 20 artifacts count is above 100
-        if (!panelMode && !debug && !process.env.MONA_MOBILE && artifactStore.artifacts20Count.value >= 100 && process.env.NODE_ENV === 'production') {
+        if (!panelMode && !debug && artifactStore.artifacts20Count.value >= 100 && process.env.NODE_ENV === 'production') {
             let result_artifacts_wasm_format: any[] = []
             let first_result = results[0]
             result_artifacts_wasm_format.push(first_result.flower)

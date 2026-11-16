@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { JSDOM } = require('../mobile/node_modules/jsdom')
+const { JSDOM } = require('jsdom')
 const { parse, compileScript, compileTemplate } = require('@vue/compiler-sfc')
 
 test('online account component completes email login, explicit Cookie upload and snapshot import without touching local profiles', async () => {

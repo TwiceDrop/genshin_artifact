@@ -45,7 +45,7 @@ curl -s -X POST https://api.example.com/v1/usage-stats -H 'Content-Type: applica
 
 ## 5. 构建启用统计的客户端
 
-1. 在 `.env.development.yaml` 和 `.env.mobile.yaml` 里，把 `MONA_USAGE_STATS_URL` 填成 `"https://api.example.com"`。只写 https 根地址，不带路径。
+1. 在 `.env.development.yaml` 里，把 `MONA_USAGE_STATS_URL` 填成 `"https://api.example.com"`。只写 https 根地址，不带路径。
 2. 按 `docs/dev/release-checklist.md` 构建 Windows 和 Android 成品。
 3. 发版前各装一台测试机：
    - **Windows**：打开软件，首次提示里选"知道了"，切换几个页面，然后关闭软件。刷新统计页面，应该多出 1 个 Windows 安装。

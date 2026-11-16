@@ -51,7 +51,7 @@
 
 | 位置 | 内容 |
 | --- | --- |
-| `src/` | Vue 前端，桌面（Element Plus）与新移动 UI 共用；`src/workers/` 是配装 Worker |
+| `src/` | Vue 前端（Element Plus），桌面和手机共用一套页面，按宽度自适应；`src/workers/` 是配装 Worker |
 | `mona_wasm/pkg/` | 原始发布内核、效果桥接内核和浏览器 JS 入口 |
 | `mona_wasm/extension/` | 扩展内核产物；源码在 `mona_core/`、`mona_wasm/src/`、`mona_dsl/` |
 | `beta-data/` | JS 适配层：BUFF 规则、装备规则、单次伤害、配装接口 |
@@ -59,7 +59,7 @@
 | `public/release-assets/` | 从原版发布包解出的图片，`_gen_character.js` 引用，已提交 |
 | `server/` | 本机服务（`npm start`）：米游社导入、软件更新 |
 | `online-service/` | 在线账号服务源码，尚未部署 |
-| `android/`、`mobile/` | Android（Capacitor）与新移动 UI |
+| `android/` | Android（Capacitor），打包的就是 `src/` 这套界面 |
 | `tauri-exe/`、`installer/` | Windows 的 Tauri 2 封装、Inno 安装器和托盘启动器 |
 | `tests/` | `node --test` 测试；`tests/helpers/` 放合成夹具 |
 | `beta-tools/` | 测试依赖的 Node 运行入口、冒烟脚本、证据生成脚本和数据提取脚本 |

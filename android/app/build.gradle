@@ -5,10 +5,7 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.mona.artifact.local"
-        if (project.findProperty('monaUi') == 'mobiletest') {
-            applicationIdSuffix '.mobiletest'
-        }
-        manifestPlaceholders = [monaAppName: project.findProperty('monaUi') == 'mobiletest' ? '莫娜占卜铺 · 新UI测试' : '莫娜占卜铺']
+        manifestPlaceholders = [monaAppName: '莫娜占卜铺']
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 70204

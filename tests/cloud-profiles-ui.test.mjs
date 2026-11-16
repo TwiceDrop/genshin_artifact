@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 const require=createRequire(import.meta.url)
-const {JSDOM}=require('../mobile/node_modules/jsdom')
+const {JSDOM}=require('jsdom')
 const {parse,compileScript,compileTemplate}=require('@vue/compiler-sfc')
 
 test('cloud profile controls enable automatic sync, resolve conflicts and download revisions with bound identity',async()=>{

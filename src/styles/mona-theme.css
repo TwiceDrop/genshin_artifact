@@ -61,8 +61,4 @@ html[data-color-mode="dark"] .el-button--danger.is-plain {--el-button-bg-color:#
 html[data-color-mode="dark"] .constellation-line button[aria-pressed=true],
 html[data-color-mode="dark"] .target-trigger:hover,
 html[data-color-mode="dark"] .target-trigger[aria-expanded=true] {color:#a9cdf7}
-html.mona-mobile[data-color-mode="dark"] .m-tab[data-state=active],
-html.mona-mobile[data-color-mode="dark"] .m-option-selected,
-html.mona-mobile[data-color-mode="dark"] .mobile-slot-label {color:#87b7ed}
-html.mona-mobile[data-color-mode="dark"] .m-button.m-text-foreground:not(.m-bg-background) {background-color:transparent}
 

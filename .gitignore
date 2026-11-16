@@ -3,7 +3,6 @@ node_modules
 .cache/
 .local-data/
 /dist
-/dist-mobile
 /releases
 /android/.gradle
 /android/local.properties
@@ -62,7 +61,6 @@ inspect.js
 /beta-data/skirk-fixture.json
 mona-debug-*.json
 
-/mobile/shadcn.css
 
 # Source-only snapshots: keep generated wrapper payloads local.
 /tauri-exe/payload.tar.gz

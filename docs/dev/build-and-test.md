@@ -7,7 +7,6 @@ npm ci --legacy-peer-deps
 ```
 
 - 需要 Node.js 20 或更高版本和 Git。
-- 要构建新移动 UI，再在 `mobile/` 下执行 `npm ci --legacy-peer-deps`。`radix-vue` 声明了 `vue` 为对等依赖，但构建时 `vue.config.js` 把 `vue` 指到根目录那一份，所以 `mobile/` 不另装 `vue`；不加这个参数，`npm ci` 会因为锁文件里没有 `vue` 而报错。
 - 原始发布内核、浏览器入口和生成的元数据都已提交，新克隆的仓库不需要再提取。
 
 ## 重新提取原始发布内核
@@ -23,8 +22,7 @@ npm ci --legacy-peer-deps
 | 本机服务（米游社导入、更新） | `npm run build:local` 后 `npm start`，打开 `http://127.0.0.1:4183/#/calculate` |
 | 前端开发服务（不含本机服务功能） | `npm run serve` |
 | 桌面网页 | `npm run build:local` |
-| 新移动 UI | `npm run build:mobile` |
-| Android | `script/build-android.ps1 -Ui elementplus` 或 `-Ui mobiletest`，显式传 `-SigningDirectory <原签名目录>` |
+| Android | `script/build-android.ps1`，显式传 `-SigningDirectory <原签名目录>` |
 | Rust 扩展内核 | `npm run build:beta-kernel`，需要先把 `compiler-source.json` 里的 MinGW 解到 `beta-tools/mingw64/`；它只编译和生成绑定，构建后的检查见下文「测试」 |
 | 效果桥接内核 | `npm run build:effect-bridge`（Python） |
 

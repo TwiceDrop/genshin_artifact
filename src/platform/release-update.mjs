@@ -6,7 +6,6 @@ export {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, releaseAsset, compareVe
 export const MANUAL_UPDATE_EVENT = 'mona:check-release-update'
 export const AUTOMATIC_UPDATE_CHANGED_EVENT = 'mona:automatic-release-update-changed'
 const AUTOMATIC_UPDATE_KEY = 'mona.automaticReleaseUpdates'
-const ANDROID_UPDATE_KIND = (process.env.MONA_MOBILE === true || process.env.MONA_MOBILE === 'true') ? 'android-test' : 'android'
 export function isAutomaticUpdateEnabled(storage) {
     try { return (storage || globalThis.localStorage)?.getItem(AUTOMATIC_UPDATE_KEY) !== 'false' }
     catch { return true }
@@ -30,7 +29,7 @@ export function describeRelease(release, currentVersion, native = isNative) {
     const url = officialReleaseUrl(release.html_url)
     if (!url) throw new Error('发布版本地址无效')
     const assets = Array.isArray(release.assets) ? release.assets : []
-    const apk = assets.find(asset => (ANDROID_UPDATE_KIND === 'android-test' ? /_mobiletest_android\.apk$/i : /(?<!_mobiletest)_android\.apk$/i).test(asset.name || '') && officialReleaseUrl(asset.browser_download_url))
+    const apk = assets.find(asset => /(?<!_mobiletest)_android\.apk$/i.test(asset.name || '') && officialReleaseUrl(asset.browser_download_url))
     return {currentVersion, version, newer: difference > 0, url, assets,
         downloadUrl: native && apk ? officialReleaseUrl(apk.browser_download_url) : url,
         notes: String(release.body || '').trim() || '此版本未附更新日志。'}
@@ -72,7 +71,7 @@ export function createReleaseCheckCoordinator(currentVersion, fetchImpl) {
     }
 }
 export async function getUpdatePlatform() {
-    if (isNative) return {kind: ANDROID_UPDATE_KIND, canInstall: true}
+    if (isNative) return {kind: 'android', canInstall: true}
     if (local()) return updateApi('info')
     return {kind: 'portable', canInstall: false}
 }
