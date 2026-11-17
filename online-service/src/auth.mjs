@@ -47,7 +47,7 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
                 return null
             }
             const { rows: [user] } = await db.query(`INSERT INTO users(id,email,created_at) VALUES($1,$2,$3)
-                ON CONFLICT(email) DO UPDATE SET email=EXCLUDED.email RETURNING id,email`, [randomUUID(), challenge.email, now])
+                ON CONFLICT(email) DO UPDATE SET email=EXCLUDED.email RETURNING id,email,username`, [randomUUID(), challenge.email, now])
             const id = randomUUID(), secret = randomBytes(32).toString('base64url')
             const expires = new Date(now.getTime() + config.sessionTtlDays * 86400000)
             await db.query(`INSERT INTO sessions(id,user_id,secret_cipher,device_name,created_at,last_used_at,expires_at)
@@ -61,10 +61,18 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
     async function authenticate(header) {
         const match = /^Bearer ([0-9a-f-]{36})\.([A-Za-z0-9_-]{43})$/i.exec(header || '')
         if (!match || !isUuid(match[1])) throw unauthorized()
-        const { rows: [row] } = await pool.query(`SELECT s.*,u.email FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1`, [match[1]])
+        const { rows: [row] } = await pool.query(`SELECT s.*,u.email,u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1`, [match[1]])
         if (!row || row.expires_at <= clock() || !sameSecret(vault.open(row.secret_cipher, `session:${row.id}`), match[2])) throw unauthorized()
         await pool.query('UPDATE sessions SET last_used_at=$2 WHERE id=$1', [row.id, clock()])
-        return { sessionId: row.id, user: { id: row.user_id, email: row.email } }
+        return { sessionId: row.id, user: { id: row.user_id, email: row.email, username: row.username } }
+    }
+    // 用户名是显示名，可以重名：去掉首尾空格后 2–16 个字，只含中文、字母、数字、下划线和短横线
+    async function setUsername(auth, input) {
+        const username = typeof input?.username === 'string' ? input.username.trim() : ''
+        const length = [...username].length
+        if (length < 2 || length > 16 || !/^[\p{Script=Han}A-Za-z0-9_-]+$/u.test(username)) throw invalid('用户名需为 2–16 个字，只能包含中文、字母、数字、下划线和短横线')
+        const { rows: [user] } = await pool.query('UPDATE users SET username=$2 WHERE id=$1 RETURNING id,email,username', [auth.user.id, username])
+        return { user }
     }
     async function sessions(auth) {
         const { rows } = await pool.query(`SELECT id,device_name AS "deviceName",created_at AS "createdAt",last_used_at AS "lastUsedAt"
@@ -76,5 +84,5 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
         await pool.query('DELETE FROM sessions WHERE id=$1 AND user_id=$2', [id, auth.user.id])
         return { ok: true }
     }
-    return { requestCode, verifyCode, authenticate, sessions, revoke, limit }
+    return { requestCode, verifyCode, authenticate, setUsername, sessions, revoke, limit }
 }

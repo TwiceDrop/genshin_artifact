@@ -62,6 +62,8 @@ export class CloudGateway {
             await this.store.upsert({ id: 'online', url: saved.url, sessionToken: data.sessionToken, user: data.user, expiresAt: data.expiresAt })
             delete data.sessionToken
         }
+        // 读取或修改个人信息（如用户名）后刷新缓存的登录用户，与 Android 的 cloud-mobile.mjs 一致
+        if (response.ok && route === '/v1/me') await this.store.update('online', { user: data.user })
         if ((response.ok && (route === '/v1/auth/logout' || (method === 'DELETE' && route === `/v1/sessions/${saved.sessionToken?.split('.')[0]}`))) || (response.status === 401 && !route.startsWith('/v1/auth/email/'))) {
             await this.store.update('online', { sessionToken: null, user: null, expiresAt: null })
         }

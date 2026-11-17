@@ -28,6 +28,7 @@ test('cloud bridge protects the token, explicitly transfers one vault account an
         if (req.url === '/v1/auth/email/verify') value = {sessionToken:token,user:{id:'synthetic-user',email:'test@example.invalid'},expiresAt:'2099-01-01T00:00:00Z'}
         else if (revoked) {status=401;value={error:{code:'UNAUTHORIZED',message:'会话已过期'}}}
         else if (req.url === '/v1/game-accounts') value={account:{id:'cloud-123',platform:body.platform}}
+        else if (req.url === '/v1/me' && req.method === 'PATCH') value={user:{id:'synthetic-user',email:'test@example.invalid',username:body.username}}
         else if (req.url === '/v1/me') value={user:{id:'synthetic-user',email:'test@example.invalid'}}
         else value={ok:true}
         res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(value))
@@ -59,6 +60,9 @@ test('cloud bridge protects the token, explicitly transfers one vault account an
     assert.equal(login.status,200);assert.equal(login.data.sessionToken,undefined)
     const config=await request('/config')
     assert.equal(config.data.user.email,'test@example.invalid');assert.ok(!JSON.stringify(config).includes('session-secret'))
+    // 改用户名后，本机缓存的登录用户随之更新（设置页和登录门读 config.user）
+    assert.equal((await request('/v1/me','PATCH',{username:'合成用户名'})).status,200)
+    assert.equal((await request('/config')).data.user.username,'合成用户名')
     const localList=await request('/local-accounts')
     assert.equal(localList.data.accounts.length,1);assert.ok(!JSON.stringify(localList).includes('synthetic-cookie'))
     await request('/game-accounts/import-local','POST',{id:'123'})

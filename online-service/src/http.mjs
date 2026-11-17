@@ -73,6 +73,7 @@ export function createApi(options) {
             const identity = await auth.authenticate(request.headers.authorization)
             const userId = identity.user.id
             if (method === 'GET' && path === '/v1/me') return send(200, { user: identity.user })
+            if (method === 'PATCH' && path === '/v1/me') return send(200, await auth.setUsername(identity, await bodyOf(request)))
             if (method === 'POST' && path === '/v1/auth/logout') return send(200, await auth.revoke(identity, identity.sessionId))
             if (method === 'GET' && path === '/v1/sessions') return send(200, await auth.sessions(identity))
             const sessionPath = /^\/v1\/sessions\/([^/]+)$/.exec(path)
