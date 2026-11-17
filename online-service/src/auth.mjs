@@ -66,13 +66,18 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
         await pool.query('UPDATE sessions SET last_used_at=$2 WHERE id=$1', [row.id, clock()])
         return { sessionId: row.id, user: { id: row.user_id, email: row.email, username: row.username } }
     }
-    // 用户名是显示名，可以重名：去掉首尾空格后 2–16 个字，只含中文、字母、数字、下划线和短横线
+    // 用户名全站唯一（不区分大小写，由 users_username_unique 索引保证）：去掉首尾空格后 2–16 个字，只含中文、字母、数字、下划线和短横线
     async function setUsername(auth, input) {
         const username = typeof input?.username === 'string' ? input.username.trim() : ''
         const length = [...username].length
         if (length < 2 || length > 16 || !/^[\p{Script=Han}A-Za-z0-9_-]+$/u.test(username)) throw invalid('用户名需为 2–16 个字，只能包含中文、字母、数字、下划线和短横线')
-        const { rows: [user] } = await pool.query('UPDATE users SET username=$2 WHERE id=$1 RETURNING id,email,username', [auth.user.id, username])
-        return { user }
+        try {
+            const { rows: [user] } = await pool.query('UPDATE users SET username=$2 WHERE id=$1 RETURNING id,email,username', [auth.user.id, username])
+            return { user }
+        } catch (error) {
+            if (error.code === '23505') throw new ApiError(409, 'USERNAME_TAKEN', '用户名已被使用')
+            throw error
+        }
     }
     async function sessions(auth) {
         const { rows } = await pool.query(`SELECT id,device_name AS "deviceName",created_at AS "createdAt",last_used_at AS "lastUsedAt"
