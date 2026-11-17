@@ -7,6 +7,7 @@ import {elementalApplication} from '../ice-electro-reactions.mjs';
 // C6 normal/burst children share their parent attack family's ICD. C1 has
 // its own constellation group; none of these clocks reset on recast.
 export const skirkApplications=Object.fromEntries(['normal','charged','burst','c1'].map(group=>[group,elementalApplication(1,'skirk.'+group,3,2.5)]));
+export const skirkExtinctionUses=10;
 
 // The legacy absorption input is a declared count at its command. Sever's
 // subsequent expiry/consumption belongs to actual candidate events, not to
@@ -70,7 +71,7 @@ export function createSkirkHitRuntime({role,profile,window,windows,covered,hit,e
    if(burstWindows){
     let bonus=0,rifts=0;
     for(const {key,active,qRifts}of burstWindows(e)){
-     const used=uses.get(key)??0,gate=e.sevenPhase?and(e.enabled??1,and(active,m.lt(used,10))):0;
+     const used=uses.get(key)??0,gate=e.sevenPhase?and(e.enabled??1,and(active,m.lt(used,skirkExtinctionUses))):0;
      bonus=m.max(bonus,gate);rifts=m.choose(active,qRifts,rifts);
      if(possible(gate))uses.set(key,m.add(used,m.choose(gate,1,0)));
     }
@@ -78,7 +79,7 @@ export function createSkirkHitRuntime({role,profile,window,windows,covered,hit,e
    }
    const cycle=window('skirkC2',e.time,e.rootOrder),used=uses.get(cycle)??0;
    e.qRifts=windows.skirkC2?.[cycle]?.qRifts??0;
-   const gate=e.sevenPhase&&cycle>=0?m.choose(e.enabled??1,m.lt(used,10),0):0;
+   const gate=e.sevenPhase&&cycle>=0?m.choose(e.enabled??1,m.lt(used,skirkExtinctionUses),0):0;
    e.qBonus=typeof gate==='object'?gate:!!gate;
    if(typeof gate==='object'||gate)uses.set(cycle,m.add(used,m.choose(gate,1,0)));
   },

@@ -1,10 +1,14 @@
 import {createFurinaHitRuntime} from './furina-hit-runtime.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
-import {createTeamNumericRules} from '../../team-dps-numeric-rules.mjs';
+import {createTeamNumericRules,scalarMath} from '../../team-dps-numeric-rules.mjs';
 import {effect,numericSum,actionTime} from '../rule-utils.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
+import {percent} from '../buff-preview-format.mjs';
+import {normalizeEnemy} from '../../enemy-interface.mjs';
 
 const infusedDamage=(category,plungeImpact=false)=>({input})=>({category,plungeImpact,element:input.skill.config.Furina.c6_after_e?'Hydro':'Physical'});
+const fanfareDamage=level=>[.0007,.0009,.0011,.0013,.0015,.0017,.0019,.0021,.0023,.0025,.0027,.0029,.0031,.0033,.0035][level];
+const fanfareHealing=(m,points,level)=>m.mul(m.mul(points,level+1),.0001);
 
 export const furina={
  id:'Furina',element:'Hydro',panelIndex:9,reactionStatIndex:0,usesElementalApplications:true,hpRatioLabel:'芙宁娜·六命始基力追加',
@@ -40,10 +44,28 @@ export const furina={
   {id:'plunge.collision',label:'下落期间伤害'},
  ],
  modeled:['FurinaQ'],
+ previewBuffDetails(key,{profile,api}){
+  const c=profile.character,n=createTeamNumericRules();
+  if(key==='fanfare'){
+   const cap=n.fanfareCap(c.constellation),damage=fanfareDamage(c.skill3),healing=fanfareHealing(scalarMath,1,c.skill3);
+   return [`伤害提高：每层气氛值提高 ${percent(damage)}，最多提高 ${percent(damage*cap)}`,
+    `受治疗加成：每层气氛值提高 ${percent(healing)}，最多提高 ${percent(fanfareHealing(scalarMath,cap,c.skill3))}`,
+    `气氛值：初始 ${n.fanfareStart(c.constellation)} 层，上限 ${cap} 层`,
+    ...(c.constellation>=2?[`气氛值获取量提高 ${percent(n.fanfareGain(0,.01,c.constellation,true)-1)}`,
+     `每层溢出气氛值使生命值上限提高 ${percent(n.furinaHP(1,1))}，最多提高 ${percent(n.furinaHP(1,n.overflow(n.fanfareGain(0,100,c.constellation,true),c.constellation,true)))}`]:[])];
+  }
+  if(key==='furinaSinger'){
+   const native=api.CalculatorInterface.get_damage_analysis({...profile,enemy:normalizeEnemy({level:100}),skill:{index:13,config:furina.skillConfig({},null)}},null);
+   return [`基础治疗量：芙宁娜生命值上限 × ${percent(native.hp_ratio['技能倍率'])} + ${Number(native.extra_damage['技能倍率'].toFixed(2))}`];
+  }
+  return [];
+ },
  normalize:p=>{p.character.params={Furina:{q_enable:false,q_fanfare:0,c2_overflow:0}};},
  skillConfig:(e,rot)=>({Furina:{hp_above50_count:e.hpDrain?rot.salonCounts.get(e.salonKey??e.order):0,c6_after_e:!!e.furinaC6,c6_pneuma:!!e.furinaC6&&e.arkhe==='pneuma'&&!e.arkheStrike&&!e.plungeCollision}}),
  hitElement:e=>['normal','charged','plunge'].includes(e.category)&&!e.furinaC6?'Physical':'Hydro',
  // Mean 60fps clocks and projectile delays from gcsim's measured Salon data.
+ // 60fps animation lengths; see docs/specs/team-timeline-editor/cast-timing.md.
+ castFrames:a=>a.action==='skill'?(a.arkhe==='pneuma'?57:54):a.action==='burst'?121:undefined,
  timing:{salon:{duration:30},bubble:.3,burstHit:2},
  expand(ctx){
   const {actions,hit,addWindow,hpDrains,duration}=ctx;
@@ -91,8 +113,8 @@ export const furina={
   const c=profiles[role].character,sum=numericSum(m);
   return {
    prepare(p,e){p.character.params.Furina.c2_overflow=rotation().healthAt(e).overflow;},
-   damageBuffs(r,e){return [effect('芙宁娜·万众狂欢',{BonusBase:m.mul(rotation().healthAt(e).fanfare,[.0007,.0009,.0011,.0013,.0015,.0017,.0019,.0021,.0023,.0025,.0027,.0029,.0031,.0033,.0035][c.skill3])})];},
-   incoming:e=>m.mul(m.mul(rotation().healthAt(e).fanfare,c.skill3+1),.0001),
+   damageBuffs(r,e){return [effect('芙宁娜·万众狂欢',{BonusBase:m.mul(rotation().healthAt(e).fanfare,fanfareDamage(c.skill3))})];},
+   incoming:e=>fanfareHealing(m,rotation().healthAt(e).fanfare,c.skill3),
    healingBase:(h,p,native)=>h.healing==='furina_singer'?native(13):({amount:h.healing==='furina_c6'?m.mul(.04,sum(p.hp)):0,outgoing:sum(p.healing_bonus)}),
    recipientHealing:(h,j,value,p)=>h.healing==='furina_a1'?m.mul(sum(p.hp),.02):value,
   };

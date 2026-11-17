@@ -3,6 +3,7 @@ import {createMonaRuntime,MONA_BUBBLE_APPLICATION_DELAY,monaBubbleCompletion} fr
 import {scalarMath} from '../../team-dps-numeric-rules.mjs';
 import {defineActionRecipes} from '../action-recipes.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
+import {percent} from '../buff-preview-format.mjs';
 
 const basicActions=defineActionRecipes([
  ...Array.from({length:4},(_,index)=>({id:'normal.'+(index+1),label:'普通攻击·第'+(index+1)+'段',events:[{kind:'hit',index,category:'normal',parts:1,element:'Hydro',application:application(1,'mona.normal',3,2.5)}]})),
@@ -10,6 +11,7 @@ const basicActions=defineActionRecipes([
 ]);
 
 const omenBonus=level=>[.42,.44,.46,.48,.5,.52,.54,.56,.58,.6,.6,.6,.6,.6,.6][level];
+const c2Mastery=80,c4Critical=.15;
 export const mona={
  id:'Mona',element:'Hydro',panelIndex:10,reactionStatIndex:0,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill3',5:'skill2'},
@@ -35,6 +37,12 @@ export const mona={
   ...basicActions.actions,
  ],
  modeled:['MonaQ','MonaC1','MonaC2','MonaMagusGlow'],
+ previewBuffDetails(key,{profile}){
+  if(key==='monaC2')return [`元素精通提高 ${c2Mastery} 点`];
+  if(key==='monaOmen')return [`伤害提高 ${percent(omenBonus(profile.character.skill3))}`,
+   ...(profile.character.constellation>=4?[`四命：暴击率提高 ${percent(c4Critical)}；莫娜自身暴击伤害额外提高 ${percent(c4Critical)}`]:[])];
+  return [];
+ },
  normalize:p=>{p.character.params='NoConfig';},
  skillConfig(e,rotation){
   const omen=e.monaC6Stacks===undefined?0:rotation?.model==='actions'?(rotation.characterState(e.role,e)?.omen[e.targetIds?.[0]??0]??0):e.monaC6Omen??false;
@@ -67,12 +75,12 @@ export const mona={
  create({role,profiles,rotation,math:m=scalarMath}){
   const c=profiles[role].character;
   const omen=e=>rotation().model==='actions'?(rotation().characterState(role,e)?.omen[e.targetIds?.[0]??0]??0):rotation().covered('monaOmen',e.time,e.rootOrder);
-  return {needsIndividualTargets:()=>rotation().model==='actions',attackBuffs(r,e){return c.constellation>=2&&rotation().covered('monaC2',e.time,e.rootOrder)?[effect('莫娜·星月的连珠',{ElementalMastery:80})]:[];},damageBuffs(r,e){
+  return {needsIndividualTargets:()=>rotation().model==='actions',attackBuffs(r,e){return c.constellation>=2&&rotation().covered('monaC2',e.time,e.rootOrder)?[effect('莫娜·星月的连珠',{ElementalMastery:c2Mastery})]:[];},damageBuffs(r,e){
    const active=omen(e);
    return typeof active==='object'||active?[effect('莫娜·星异',{BonusBase:m.mul(active,omenBonus(c.skill3))})]:[];
   },criticalBuffs:e=>{
    const active=omen(e);
-   return c.constellation>=4&&(typeof active==='object'||active)?[effect('莫娜·灭绝的预言',{CriticalBase:m.mul(.15,active),...(e.role===role?{CriticalDamageBase:m.mul(.15,active)}:{})})]:[];
+   return c.constellation>=4&&(typeof active==='object'||active)?[effect('莫娜·灭绝的预言',{CriticalBase:m.mul(c4Critical,active),...(e.role===role?{CriticalDamageBase:m.mul(c4Critical,active)}:{})})]:[];
   }};
  },
 };

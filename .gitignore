@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 .cache/
+# Keep elemental reaction research local and out of project commits.
+/docs/specs/elemental-reactions/
 .local-data/
 /dist
 /releases

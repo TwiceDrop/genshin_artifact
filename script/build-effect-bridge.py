@@ -191,6 +191,9 @@ s=patch_wat(s)
 output.write_text(s)
 target=root/'mona_wasm/pkg/mona_effect_bridge.wasm'
 subprocess.run([str(tools/'wat2wasm.exe'),str(output),'-o',str(target)],check=True)
+# Preserve the original file; fix the shared HP77 data in its derived bridge.
+from weapon_substat_tables import correct_hp77_level90
+target.write_bytes(correct_hp77_level90(target.read_bytes(), row_stride=488))
 subprocess.run([str(tools/'wasm-validate.exe'),str(target)],check=True)
 print('Effect bridge:',target)
 subprocess.run([sys.executable,str(root/'script/build-optimizer-progress.py'),'--wabt',str(tools)],check=True)
