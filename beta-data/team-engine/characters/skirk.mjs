@@ -58,7 +58,8 @@ export const skirk={
  normalize:p=>{p.character.params={Skirk:{death_crossing_stacks:0,team_has_hydro_cryo:false,c2_atk_bonus:false}};},
  // The symbolic binding weights the 50→51 native delta with clamped excess.
  // Direct native calls continue to receive the actual resource balance.
- skillConfig:e=>({Skirk:{cunning_stacks:typeof e.cunningBonus==='object'?e.cunningBonus:e.cunning??50,seven_phase_mode:false,death_crossing_stacks:0,void_rift_count:0}}),
+ // 蛇之狡谋在引擎里按 0.1 点流失，原生内核只收整数点数（每满 1 点算一份加成），向下取整（开发者 2026-11-17 确认）
+ skillConfig:e=>({Skirk:{cunning_stacks:typeof e.cunningBonus==='object'?e.cunningBonus:Math.floor(e.cunning??50),seven_phase_mode:false,death_crossing_stacks:0,void_rift_count:0}}),
  expand(){},
  createTimeline:ctx=>createSkirkRuntime({...ctx,catalog:skirk.actions}),
  createCombat:ctx=>createSkirkRuntime({...ctx,catalog:skirk.actions}),

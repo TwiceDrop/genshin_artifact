@@ -35,3 +35,16 @@ test('preview: same-time exits, conditions, independent summons and C6 additions
  assert.deepEqual(out.roles[1].hits.map(h=>h.label),['荒性泡沫','海薇玛夫人','谢贝蕾妲小姐','乌瑟勋爵']);out.roles[1].hits.forEach((h,i)=>near(h.time,[.3,110/60,131/60,133/60][i]));assert.ok(out.roles[1].hits.every(h=>!h.onField));
  assert.equal(out.roles[1].character.skill2,10);assert.ok(out.roles.every(r=>Object.values(r.effective).every(Number.isFinite)));
 });
+
+test('preview: Skirk burst after hold E passes whole Serpent points to the native kernel',()=>{
+ // 蛇之狡谋按 0.1 点流失：E 点按 +45，七相一闪从 0.2s 起每 0.2s 流失 1.4 点，长按 E 再 +45 并结束流失。
+ // 0s 点按、4.6s 长按：450 − 23×14 + 450 = 578（十分之一点）= 57.8 点。内核按整点计算，向下取整为 57。
+ const config=n=>({Skirk:{cunning_stacks:n,seven_phase_mode:false,death_crossing_stacks:0,void_rift_count:0}});
+ const p=createSkillMultiplierPreview(api,axis([a('e',1,'skill',0),a('h',1,'skill.hold',4600),a('q',1,'burst',5100)]));
+ const slashes=p.roles[0].hits.filter(h=>h.label==='极恶技·灭·斩击');
+ assert.equal(slashes.length,5);
+ const floor=total(native('Skirk',15,config(57)).atk_ratio),round=total(native('Skirk',15,config(58)).atk_ratio);
+ assert.notEqual(floor,round);slashes.forEach(h=>near(h.base.atk,floor));
+ // 原始报错场景（81.6 点，超过加成上限）也不再让内核崩溃
+ assert.doesNotThrow(()=>createSkillMultiplierPreview(api,axis([a('e',1,'skill',0),a('h',1,'skill.hold',1200),a('q',1,'burst',2400)])));
+});
