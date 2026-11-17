@@ -17,6 +17,7 @@ const PAGES = [
     ['page.export-tools-help', '导出工具帮助', '/help/export-tools'],
     ['page.setup', '设置', '/setup'],
     ['page.intro', '介绍页', '/intro'],
+    ['page.login', '登录', '/login'],
 ]
 
 const ACTIONS = [

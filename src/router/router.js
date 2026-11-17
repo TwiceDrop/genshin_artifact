@@ -11,6 +11,7 @@ import {ElMessageBox} from "element-plus"
 import "element-plus/es/components/message-box/style/css"
 import {importMonaJson} from "@/utils/artifacts"
 import {useArtifactStore} from "@/store/pinia/artifact"
+import {needsLogin} from "@/platform/login-gate.mjs"
 
 const IntroPage = () => import(/* webpackChunkName: "intro-page" */ "@page/about/IntroPage")
 const CharacterPresetsPage = () => import(/* webpackChunkName: "character-presets-page" */ "@page/CharacterPresetsPage")
@@ -61,6 +62,15 @@ const routes = [
         component: ExportToolPage,
         meta: {
             title: "导出工具汇总",
+        }
+    },
+    {
+        path: "/login",
+        component: () => import(/* webpackChunkName: "login-page" */ "@page/LoginPage/LoginPage.vue"),
+        name: "login",
+        meta: {
+            title: "登录",
+            bare: true,
         }
     },
     {
@@ -127,6 +137,16 @@ router.beforeEach((to, from, next) => {
     document.title = `${title} | ${webName} ${process.env.MONA_VERSION}`
 
     next();
+})
+
+// 打开软件后的第一次跳转先过登录门：没登录、也没选过离线模式时先到登录页，之后回到原来要去的页面。
+// 分享链接导入（/import）不拦。
+let loginChecked = false
+router.beforeEach(async to => {
+    if (loginChecked || to.name === "login" || to.path === "/import") return true
+    loginChecked = true
+    if (!(await needsLogin())) return true
+    return { name: "login", query: to.fullPath === "/" ? {} : { redirect: to.fullPath } }
 })
 
 router.beforeEach(async (to, from, next) => {

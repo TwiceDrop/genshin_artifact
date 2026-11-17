@@ -1,0 +1,35 @@
+/* 星空页面（欢迎页、登录页）的配色，挂在 .wl-palette 上；星空 StarField 和星盘 AstrolabeDial 读这些变量。
+   变量名避开 script/postcss-mona-colors.cjs 识别的角色词（background、text、line、edge、accent 等），否则深色模式下会被它再映射一次。 */
+.wl-palette {
+    --wl-ground: #eef0f6;
+    --wl-glow: #ffffff;
+    --wl-letter: #111633;
+    --wl-dim: #586180;
+    --wl-gold: #9c7428;
+    --wl-gold-stroke: rgba(156, 116, 40, .55);
+    --wl-gold-faint: rgba(156, 116, 40, .24);
+    --wl-star: #6f7ca6;
+    --wl-sheen-1: #1c2266;
+    --wl-sheen-2: #5a3a9e;
+    --wl-sheen-3: #a8782a;
+    --wl-chip: rgba(17, 22, 51, .06);
+    --wl-chip-hover: #111633;
+    --wl-chip-hover-on: #f4efe4;
+}
+
+html[data-color-mode="dark"] .wl-palette {
+    --wl-ground: #080c1a;
+    --wl-glow: #1a2350;
+    --wl-letter: #f4efe4;
+    --wl-dim: #8e97b4;
+    --wl-gold: #e2c078;
+    --wl-gold-stroke: rgba(226, 192, 120, .5);
+    --wl-gold-faint: rgba(226, 192, 120, .2);
+    --wl-star: #e8e6ff;
+    --wl-sheen-1: #fbeecb;
+    --wl-sheen-2: #e6bd6a;
+    --wl-sheen-3: #b996ee;
+    --wl-chip: rgba(244, 239, 228, .07);
+    --wl-chip-hover: #e2c078;
+    --wl-chip-hover-on: #151005;
+}

@@ -1,6 +1,6 @@
 <template>
 <!--    <div class="root-div">-->
-    <aside class="nav-bar mona-scroll-hidden" v-if="geSmall">
+    <aside class="nav-bar mona-scroll-hidden" v-if="geSmall && !bare">
         <side-bar></side-bar>
     </aside>
 
@@ -10,7 +10,7 @@
         size="min(82%, 300px)"
         :with-header="false"
         custom-class="sb-drawer"
-        v-if="!geSmall"
+        v-if="!geSmall && !bare"
     >
         <side-bar
             :do-route="false"
@@ -18,7 +18,7 @@
         ></side-bar>
     </el-drawer>
 
-    <div class="header" v-if="!geSmall">
+    <div class="header" v-if="!geSmall && !bare">
         <div class="flex-row" style="height: 100%">
             <el-button
                 aria-label="打开全部功能"
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <div class="main" :class="{ mobile: !geSmall, notMobile: geSmall, 'mona-scroll': $route.name !== 'calculate' }">
+    <div class="main" :class="{ mobile: !geSmall && !bare, notMobile: geSmall && !bare, bare, 'mona-scroll': $route.name !== 'calculate' }">
         <div class="main-view">
             <router-view v-slot="{ Component }">
                 <template v-if="Component">
@@ -66,9 +66,9 @@
 <!--            <router-view class="router-view"></router-view>-->
 
         <!-- 欢迎页自己显示版本号，且要铺满一屏；页脚放在它下面只会多出一截滚动和底色条 -->
-        <mona-footer v-if="$route.name !== 'home'" style="margin-top: 24px"></mona-footer>
+        <mona-footer v-if="$route.name !== 'home' && !bare" style="margin-top: 24px"></mona-footer>
     </div>
-    <nav v-if="!geSmall" class="mobile-bottom-nav" aria-label="手机主导航">
+    <nav v-if="!geSmall && !bare" class="mobile-bottom-nav" aria-label="手机主导航">
         <button :class="{ active: $route.path === '/calculate' }" @click="router.push('/calculate')"><i-ep-cpu /><span>计算</span></button>
         <button :class="{ active: $route.path === '/artifacts' }" @click="router.push('/artifacts')"><i-ep-help-filled /><span>圣遗物</span></button>
         <button :class="{ active: $route.path === '/uid-data' }" @click="router.push('/uid-data')"><i-ep-user /><span>UID 数据</span></button>
@@ -81,7 +81,7 @@
 import SideBar from "./SideBar.vue"
 import { default as MonaFooter } from "./Footer.vue"
 import IconEpMenu from "~icons/ep/menu"
-import {useRouter} from "vue-router"
+import {useRoute, useRouter} from "vue-router"
 import {useI18n} from "@/i18n/i18n"
 import {useScreen} from "@/composables/screen"
 import { isNative } from '@/platform/native.mjs'
@@ -91,6 +91,9 @@ const { geSmall } = useScreen()
 const drawerVisible = ref(false)
 
 const router = useRouter()
+// 登录页等整屏页面（路由 meta.bare）不显示外框
+const route = useRoute()
+const bare = computed(() => !!route.meta.bare)
 
 function handleSelect(index: string) {
     drawerVisible.value = false
@@ -207,6 +210,10 @@ $header-height: 48px;
 
 .main {
     padding: $contentPadding;
+
+    &.bare {
+        padding: 0;
+    }
 
     &.mobile {
         margin-top: 48px;

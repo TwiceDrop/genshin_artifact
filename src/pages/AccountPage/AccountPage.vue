@@ -46,7 +46,11 @@
 
         <header class="account-bar">
             <h2>账号</h2>
-            <button type="button" class="account-add" @click="addAccount"><icon-ep-plus aria-hidden="true" />{{ t('accountPage.addAccount') }}</button>
+            <span class="account-actions">
+                <!-- 选过离线模式后，从这里再进登录页（已登录时登录页会直接返回） -->
+                <button type="button" class="account-login" @click="router.push({ name: 'login', query: { redirect: '/account' } })"><icon-ep-user aria-hidden="true" />登录在线账号</button>
+                <button type="button" class="account-add" @click="addAccount"><icon-ep-plus aria-hidden="true" />{{ t('accountPage.addAccount') }}</button>
+            </span>
         </header>
 
         <div class="account-grid">
@@ -93,6 +97,8 @@ import { ElMessage } from "element-plus"
 import ClickEditLabel from "@c/misc/ClickEditLabel"
 import IconEpSort from "~icons/ep/sort"
 import {useI18n} from "@/i18n/i18n"
+import {useRouter} from "vue-router"
+import IconEpUser from "~icons/ep/user"
 import IconEpPlus from "~icons/ep/plus"
 import IconEpCircleCheckFilled from "~icons/ep/circle-check-filled"
 import IconEpDelete from "~icons/ep/delete"
@@ -104,6 +110,7 @@ import storeBackend, { BackendMeta } from "@/store/backend"
 const { t } = useI18n()
 
 const accountStore = useAccountStore()
+const router = useRouter()
 
 function addAccount() {
     accountStore.addAccount(t('accountPage.newAccountName'))
@@ -231,6 +238,31 @@ async function handleSync() {
     }
 }
 
+.account-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.account-login {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
+    }
+}
+
 .account-add {
     display: inline-flex;
     align-items: center;
@@ -346,6 +378,7 @@ async function handleSync() {
     }
 }
 
+.account-login:focus-visible,
 .account-add:focus-visible,
 .account-delete:focus-visible {
     outline: 2px solid var(--cx-gold);

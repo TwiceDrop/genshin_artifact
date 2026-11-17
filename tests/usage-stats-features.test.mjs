@@ -50,7 +50,7 @@ test('feature ids are unique and every feature is complete', () => {
         if (f.category === 'page') assert.match(f.route, /^\//)
         else assert.equal(f.route, undefined)
     }
-    assert.equal(features.filter(f => f.category === 'page').length, 12)
+    assert.equal(features.filter(f => f.category === 'page').length, 13)
     assert.equal(features.filter(f => f.category === 'action').length, 15)
 })
 
