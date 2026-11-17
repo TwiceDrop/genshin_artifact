@@ -12,7 +12,7 @@
 
 
     <script>
-      const mode = new URLSearchParams(location.search).get('theme') || localStorage.getItem('mona_color_mode') || 'auto';
+      const mode = new URLSearchParams(location.search).get('theme') || localStorage.getItem('mona_color_mode') || 'dark';
       const dark = mode === 'dark' || mode !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.colorMode = dark ? 'dark' : 'light';
       document.documentElement.classList.toggle('dark', dark);

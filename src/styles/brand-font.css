@@ -4,6 +4,7 @@
   font-family: "Mona Brand";
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  /* 文件很小且随包附带，短暂等待它加载，避免店名先用系统字体再换字形 */
+  font-display: block;
   src: url("../assets/fonts/long-cang-title.woff2") format("woff2");
 }

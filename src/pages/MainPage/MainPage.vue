@@ -36,7 +36,8 @@
         <div class="main-view">
             <router-view v-slot="{ Component }">
                 <template v-if="Component">
-                    <transition mode="out-in" name="el-fade-in-linear">
+                    <!-- 旧页面直接移除、新页面淡入：out-in 会先等旧页面淡出，中间有一段内容区全空，看起来像抖了一下 -->
+                    <transition name="page-swap">
                         <keep-alive>
                             <component :is="Component"></component>
                         </keep-alive>
@@ -100,6 +101,25 @@ const { t } = useI18n()
 </script>
 
 <style lang="scss">
+// 切页过渡：只有新页面淡入，离开的页面立即隐藏（没有过渡时间，Vue 当帧移除）
+.page-swap-enter-active {
+    transition: opacity .15s ease-out;
+}
+
+.page-swap-enter-from {
+    opacity: 0;
+}
+
+.page-swap-leave-active {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-swap-enter-active {
+        transition: none;
+    }
+}
+
 // 外框（侧栏、手机顶栏、抽屉、底部导航）和计算器角色卡：深色模式用夜空色，浅色模式用淡紫灰
 // （2026-11-15 开发者觉得浅色模式下夜空色对比太强）。变量名避开
 // script/postcss-mona-colors.cjs 识别的角色词，否则深色模式下会被它再映射一次。
