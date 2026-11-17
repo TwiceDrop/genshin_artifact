@@ -7,7 +7,17 @@
             <mona-portrait class="login-portrait" />
             <h1 id="login-title" class="login-name">{{ webTitle }}</h1>
 
-            <form class="login-form" @submit.prevent="verifyCode">
+            <!-- 第一次登录（还没有用户名）时，登录成功后先提示设置用户名，可以稍后在设置页再设 -->
+            <form v-if="namingStep" class="login-form" @submit.prevent="saveUsername">
+                <h2 class="login-step">设置用户名</h2>
+                <el-input v-model="username" size="large" maxlength="16" placeholder="2–16 个字" aria-label="用户名" :disabled="busy" />
+                <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
+                <el-button class="login-submit" type="primary" size="large" round native-type="submit" :loading="busy"
+                           :disabled="!username.trim()">保存</el-button>
+                <el-button class="login-skip" link :disabled="busy" @click="leave">稍后设置</el-button>
+            </form>
+
+            <form v-else class="login-form" @submit.prevent="verifyCode">
                 <el-input v-model="email" type="email" size="large" autocomplete="email" placeholder="邮箱" aria-label="邮箱"
                           :disabled="busy" />
                 <div class="login-code">
@@ -23,7 +33,7 @@
             </form>
         </section>
 
-        <button type="button" class="login-offline" :disabled="busy" @click="continueOffline">
+        <button v-if="!namingStep" type="button" class="login-offline" :disabled="busy" @click="continueOffline">
             以离线模式继续<icon-ep-right aria-hidden="true" />
         </button>
     </main>
@@ -45,6 +55,7 @@ import { chooseOffline, clearOfflineChoice } from '@/platform/login-gate.mjs'
 const webTitle = process.env.MONA_TITLE
 const route = useRoute(), router = useRouter()
 const email = ref(''), code = ref(''), challengeId = ref(''), busy = ref(false), error = ref('')
+const namingStep = ref(false), username = ref('')
 const resendAt = ref(0), now = ref(Date.now())
 const cooldown = computed(() => Math.max(0, Math.ceil((resendAt.value - now.value) / 1000)))
 let timer
@@ -70,8 +81,15 @@ function requestCode() {
 function verifyCode() {
     if (!challengeId.value || code.value.length !== 6) return
     return run(async () => {
-        await cloudApi('v1/auth/email/verify', 'POST', { challengeId: challengeId.value, code: code.value, deviceName: isNative ? 'Android' : 'Windows' })
+        const result = await cloudApi('v1/auth/email/verify', 'POST', { challengeId: challengeId.value, code: code.value, deviceName: isNative ? 'Android' : 'Windows' })
         clearOfflineChoice()
+        if (result.user?.username) leave()
+        else namingStep.value = true
+    })
+}
+function saveUsername() {
+    return run(async () => {
+        await cloudApi('v1/me', 'PATCH', { username: username.value.trim() })
         leave()
     })
 }
@@ -174,6 +192,18 @@ onBeforeUnmount(() => clearInterval(timer))
         flex: none;
         margin: 0;
     }
+}
+
+.login-step {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.login-skip {
+    justify-self: center;
+    color: var(--wl-dim);
 }
 
 .login-submit {
