@@ -130,9 +130,65 @@ watch(()=>props.disabled,value=>{if(value)cancel()})
 onBeforeUnmount(()=>{cancel();previewSession.dispose()})
 </script>
 <style scoped>
-.ghost{will-change:transform;box-shadow:0 3px 8px #31557926}.ghost.snapping{transition:transform 80ms ease-out}@media(prefers-reduced-motion:reduce){.ghost.snapping{transition:none}}
-.snap-guide{position:absolute;top:36px;bottom:0;width:0;border-left:2px dashed #2879d8;z-index:6;pointer-events:none}
-.buff-tooltip-heading{font-weight:600}.buff-tooltip-detail{margin-top:5px}
-.shelf-person{display:flex;flex-direction:column;gap:6px;min-width:128px}.preview-constellation{display:flex;align-items:center;gap:8px;padding-left:38px;font-size:12px}.preview-constellation select{border:1px solid #cbd9eb;border-radius:4px;background:#f2f7ff;color:#315b90;padding:3px;font:inherit}
-.block-editor{--grid:#e8edf5;color:#405673}.skill-shelf{border:1px solid #dce4ef;border-radius:8px;margin-bottom:16px;overflow:hidden}.shelf-row{display:flex;border-bottom:1px solid #edf1f6;padding:10px;gap:12px}.shelf-row:last-child{border:0}.person{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;min-width:128px}.person img{width:30px;height:30px;border-radius:50%}.skills{display:flex;flex-wrap:wrap;gap:6px}.skills button{border:1px solid #cbd9eb;background:#f2f7ff;color:#315b90;border-radius:5px;padding:7px 10px;font:inherit;font-size:12px;cursor:grab;touch-action:none}.skills button:hover{background:#e1edff;border-color:#6095d5}.skills button:disabled{opacity:.5;cursor:default}.timeline-scroll{overflow-x:scroll;overflow-y:auto;max-height:650px;border:1px solid #ccd9e9;border-radius:8px;scrollbar-color:#8ba5c6 #e8eef5;scrollbar-width:auto;overscroll-behavior-x:contain}.timeline-scroll::-webkit-scrollbar{height:15px;width:12px}.timeline-scroll::-webkit-scrollbar-thumb{background:#8ba5c6;border:3px solid #e8eef5;border-radius:8px}.timeline-scroll::-webkit-scrollbar-track{background:#e8eef5}.timeline-canvas{position:relative;background:repeating-linear-gradient(to right,transparent 0,transparent 63px,var(--grid) 63px,var(--grid) 64px);background-position:150px 0}.ruler{height:36px;position:sticky;top:0;background:#f1f5fa;z-index:4;border-bottom:1px solid #dce4ef}.tick{position:absolute;top:8px;font-size:11px;border-left:1px solid #a7b8cf;padding-left:4px}.track-label{position:sticky;left:0;width:150px;box-sizing:border-box;height:100%;padding:10px;background:#f8fafc;border-right:1px solid #dce4ef;z-index:3;display:flex;align-items:center;font-size:12px;overflow:hidden}.action-track{position:relative;border-bottom:1px solid #e2e9f2;min-height:40px}.action-block,.ghost{position:absolute;box-sizing:border-box;height:36px;font-family:inherit;line-height:14px;border:1px solid #7fa3d1;border-left:4px solid #5187cc;border-radius:5px;background:#eaf2ff;color:#315579;text-align:left;padding:3px 7px;cursor:grab;touch-action:none;overflow:hidden}.action-block strong,.ghost strong{display:block;font-size:11px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.action-block span,.ghost span{display:block;font-size:10px;white-space:nowrap}.action-block.selected{outline:2px solid #357bce;outline-offset:1px}.ghost{top:8px;z-index:5;pointer-events:none;background:#cbe0ff;opacity:.85}.buff-bar{position:absolute;height:5px;cursor:help;outline:none}.buff-bar::after{content:"";position:absolute;left:0;right:0;top:1px;height:2px;background:var(--buff-color);border-radius:1px;pointer-events:none}.buff-bar:hover::after{filter:brightness(1.15)}.buff-bar:focus-visible::after{outline:1px solid #355b85;outline-offset:1px}.buff-tooltip{position:fixed;z-index:3000;width:360px;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);overflow-y:auto;box-sizing:border-box;padding:7px 10px;border-radius:5px;background:#30343b;color:#fff;font-size:12px;line-height:1.6;pointer-events:none;overflow-wrap:anywhere}.skill-details{margin-top:12px;padding:12px;background:#f8fafc;border-radius:6px;font-size:12px}.skill-hit{display:grid;grid-template-columns:70px minmax(140px,1fr) 2fr;gap:12px;padding-top:8px}.block-properties{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px}.block-properties label{display:flex;align-items:center;gap:8px;font-size:12px}.block-properties .el-input-number{width:125px}button:focus-visible{outline:2px solid #357bce;outline-offset:2px}
+/* 积木轴（夜空风格）：放在多人优化页的 cx-scope 里，颜色读 src/styles/content-theme.css 的 --cx-*。
+   BUFF 悬停提示挂在 body 上，读外框在 :root 上的 --sh-*。类名和尺寸（轨道、积木、吸附）不变，只换颜色与圆角。 */
+.block-editor{--grid:var(--cx-step-2);color:var(--cx-letter)}
+
+/* 技能栏 */
+.skill-shelf{margin-bottom:16px;border-radius:14px;background:var(--cx-step);overflow:hidden}
+.shelf-row{display:flex;gap:12px;padding:10px 12px}
+.shelf-row+.shelf-row{box-shadow:0 -1px 0 var(--cx-step-2)}
+.shelf-person{display:flex;flex-direction:column;gap:6px;min-width:128px}
+.person{display:flex;align-items:center;gap:8px;min-width:128px;font-size:13px;font-weight:600}
+.person img{width:30px;height:30px;border-radius:50%;background:var(--cx-step-2)}
+.preview-constellation{display:flex;align-items:center;gap:8px;padding-left:38px;color:var(--cx-dim);font-size:12px}
+.preview-constellation select{padding:3px 6px;border:0;border-radius:8px;background:var(--cx-card);color:var(--cx-letter);font:inherit}
+.skills{display:flex;flex-wrap:wrap;gap:6px}
+.skills button{padding:7px 12px;border:0;border-radius:999px;background:var(--cx-card);color:var(--cx-letter);font:inherit;font-size:12px;cursor:grab;touch-action:none}
+.skills button:hover{background:var(--cx-step-2);color:var(--cx-gold)}
+.skills button:disabled{opacity:.5;cursor:default}
+
+/* 时间轴画布 */
+.timeline-scroll{overflow-x:scroll;overflow-y:auto;max-height:650px;border-radius:14px;background:var(--cx-step);overscroll-behavior-x:contain;scrollbar-width:auto;scrollbar-color:var(--cx-step-2) transparent}
+.timeline-scroll::-webkit-scrollbar{height:15px;width:12px}
+.timeline-scroll::-webkit-scrollbar-thumb{background:var(--cx-step-2);border:3px solid var(--cx-step);border-radius:8px}
+.timeline-scroll::-webkit-scrollbar-track{background:var(--cx-step)}
+.timeline-canvas{position:relative;background:repeating-linear-gradient(to right,transparent 0,transparent 63px,var(--grid) 63px,var(--grid) 64px);background-position:150px 0}
+.ruler{position:sticky;top:0;z-index:4;height:36px;background:var(--cx-card);box-shadow:0 1px 0 var(--cx-step-2)}
+.tick{position:absolute;top:8px;padding-left:4px;border-left:1px solid var(--cx-step-2);color:var(--cx-dim);font-size:11px;font-variant-numeric:tabular-nums}
+.track-label{position:sticky;left:0;z-index:3;display:flex;align-items:center;width:150px;height:100%;box-sizing:border-box;padding:10px;background:var(--cx-card);box-shadow:1px 0 0 var(--cx-step-2);color:var(--cx-dim);font-size:12px;overflow:hidden}
+.track-label.person{color:var(--cx-letter)}
+.action-track{position:relative;min-height:40px;box-shadow:inset 0 -1px 0 var(--cx-step-2)}
+
+/* 技能积木和拖动浮块（共用排版） */
+.action-block,.ghost{position:absolute;box-sizing:border-box;height:36px;padding:3px 7px;border:0;border-left:4px solid var(--cx-gold);border-radius:8px;background:var(--cx-card);color:var(--cx-letter);font-family:inherit;line-height:14px;text-align:left;cursor:grab;touch-action:none;overflow:hidden}
+.action-block strong,.ghost strong{display:block;overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.action-block span,.ghost span{display:block;color:var(--cx-dim);font-size:10px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.action-block:hover{background:var(--cx-step-2)}
+.action-block.selected{outline:2px solid var(--cx-gold);outline-offset:1px}
+.ghost{top:8px;z-index:5;background:var(--cx-step-2);opacity:.9;pointer-events:none;will-change:transform;box-shadow:0 4px 12px var(--cx-veil,rgba(0,0,0,.25))}
+.ghost.snapping{transition:transform 80ms ease-out}
+@media(prefers-reduced-motion:reduce){.ghost.snapping{transition:none}}
+.snap-guide{position:absolute;top:36px;bottom:0;z-index:6;width:0;border-left:2px dashed var(--cx-gold);pointer-events:none}
+
+/* BUFF 细条：颜色由脚本按 BUFF 区分；深色底上提亮一些 */
+.buff-bar{position:absolute;height:5px;cursor:help;outline:none}
+.buff-bar::after{content:"";position:absolute;left:0;right:0;top:1px;height:2px;border-radius:1px;background:var(--buff-color);pointer-events:none}
+html[data-color-mode="dark"] .buff-bar::after{filter:brightness(1.6)}
+.buff-bar:hover::after{filter:brightness(1.3)}
+html[data-color-mode="dark"] .buff-bar:hover::after{filter:brightness(1.9)}
+.buff-bar:focus-visible::after{outline:1px solid var(--cx-gold);outline-offset:1px}
+.buff-tooltip{position:fixed;z-index:3000;width:360px;max-width:calc(100vw - 24px);max-height:calc(100vh - 24px);box-sizing:border-box;padding:8px 12px;border:1px solid var(--sh-gold-faint);border-radius:10px;background:var(--sh-raised);color:var(--sh-letter);font-size:12px;line-height:1.6;overflow-y:auto;overflow-wrap:anywhere;pointer-events:none}
+.buff-tooltip-heading{color:var(--sh-gold);font-weight:600}
+.buff-tooltip-detail{margin-top:5px}
+
+/* 选中积木后的倍率与属性 */
+.skill-details{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--cx-step);font-size:12px}
+.skill-details>strong{color:var(--cx-gold)}
+.skill-hit{display:grid;grid-template-columns:70px minmax(140px,1fr) 2fr;gap:12px;padding-top:8px;color:var(--cx-dim)}
+.skill-hit span:nth-child(2){color:var(--cx-letter)}
+.block-properties{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px}
+.block-properties label{display:flex;align-items:center;gap:8px;color:var(--cx-dim);font-size:12px}
+.block-properties .el-input-number{width:125px}
+button:focus-visible{outline:2px solid var(--cx-gold);outline-offset:2px}
 </style>
