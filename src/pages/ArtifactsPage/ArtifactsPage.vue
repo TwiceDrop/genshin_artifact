@@ -125,7 +125,7 @@
                 :score-label="scoreCharacter" :grade="score === null ? undefined : getMarkClass(score)"
                 :selected="item.id === openedArtifactId" @open="openArtifact(item.id)" />
         </div>
-        <el-empty v-else></el-empty>
+        <el-empty v-else class="art-empty"></el-empty>
 
         <div v-if="artifactToBeDisplayed.length > pageSize" class="art-pager">
             <el-pagination v-model:current-page="page" :page-size="pageSize" :total="artifactToBeDisplayed.length"
@@ -700,6 +700,11 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 14px;
+}
+
+// 空状态和上方筛选栏拉开距离
+.art-empty {
+    margin-top: 28px;
 }
 
 .art-pager {
