@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { publicAccount } from '../server/cookie.mjs'
 
-test('cloud mobile keeps sessions in its native vault and only uploads the explicitly selected game account', async () => {
+test('cloud mobile keeps sessions and the derived Cookie key in its native vault and hands the selected Cookie only to the page', async () => {
     let vault = '{}', failMe = false, releaseVerify
     const originalGameVault = JSON.stringify({ version: 1, accounts: [
         { id: '1', accountUid: '1', platform: 'miyoushe', cookie: 'synthetic-cn-cookie', roles: [], device: 'synthetic-device' },
@@ -23,7 +23,7 @@ test('cloud mobile keeps sessions in its native vault and only uploads the expli
                 return { status: 200, data: { sessionToken: token, user, expiresAt: '2026-12-07T00:00:00Z' } }
             }
             if (path === '/v1/me' && failMe) return { status: 401, data: { error: { code: 'UNAUTHORIZED', message: '会话已失效' } } }
-            if (path === '/v1/game-accounts') return { status: 200, data: { account: { id: 'cloud-account' } } }
+            if (path === '/v1/cookie-vaults/hoyolab/2') return { status: 200, data: { vault: { platform: 'hoyolab', accountUid: '2' } } }
             return { status: 200, data: { ok: true, user } }
         } },
     }
@@ -39,9 +39,18 @@ test('cloud mobile keeps sessions in its native vault and only uploads the expli
     assert.equal((await api('config')).sessionToken, undefined)
     const local = await api('local-accounts')
     assert.equal(local.accounts.length, 2); assert.ok(local.accounts.every(account => !('cookie' in account)))
-    await api('game-accounts/import-local', 'POST', { id: 'hoyolab:2' })
-    assert.equal(requests.at(-1).data.cookie, 'synthetic-os-cookie'); assert.equal(requests.at(-1).data.platform, 'hoyolab')
-    assert.equal(requests.at(-1).headers.Authorization, `Bearer ${token}`)
+    // 明文 Cookie 只交给页面加密，不发往在线服务
+    const sent = requests.length
+    assert.deepEqual(await api('local-accounts/cookie', 'POST', { id: 'hoyolab:2' }), { platform: 'hoyolab', accountUid: '2', cookie: 'synthetic-os-cookie' })
+    assert.equal(requests.length, sent)
+    const derived = { key: 'synthetic-key', salt: 'synthetic-salt', kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: 600000 } }
+    assert.deepEqual(await api('cookie-key'), { cookieKey: null })
+    await api('cookie-key', 'PUT', { ...derived, passphrase: 'never-stored' })
+    assert.deepEqual(JSON.parse(vault).cookieKey, { userId: user.id, ...derived })
+    assert.deepEqual(await api('cookie-key'), { cookieKey: derived })
+    assert.equal(requests.length, sent)
+    await api('v1/cookie-vaults/hoyolab/2', 'PUT', { ciphertext: 'sealed', salt: derived.salt, kdf: derived.kdf, version: 1 })
+    assert.equal(requests.at(-1).data.ciphertext, 'sealed'); assert.equal(requests.at(-1).headers.Authorization, `Bearer ${token}`)
     assert.equal(originalGameVault, (await mock.MonaLocal.readVault()).text)
     await api(`v1/sessions/${token.split('.')[0]}`, 'DELETE')
     assert.deepEqual(JSON.parse(vault), { url: 'https://one.example.test' })
