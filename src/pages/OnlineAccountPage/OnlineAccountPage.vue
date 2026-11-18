@@ -98,7 +98,7 @@ import { cloudApi } from '@/platform/cloud.mjs'
 import { isNative } from '@/platform/native.mjs'
 import { mysApi } from '@/platform/mys-api.mjs'
 import { profileSync } from '@/cloud/profile-sync'
-import { deriveCookieKey, encryptCookie, decryptCookie } from '@/cloud/cookie-crypto.mjs'
+import { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase } from '@/cloud/cookie-crypto.mjs'
 import { communityAccount } from '../../../server/cookie.mjs'
 
 const serviceUrl = ref(''), configuredUrl = ref(''), user = ref(null), error = ref(''), busy = ref(false)
@@ -181,7 +181,7 @@ async function upload(account) {
     await cloudApi(vaultPath(account), 'PUT', await encryptCookie(cookieKey.value, account.cookie))
     await loadVaults()
 }
-function setPassphrase() { return run(async () => { await storeKey(await deriveCookieKey(passphrase.value)) }) }
+function setPassphrase() { return run(async () => { await storeKey(await deriveCookieKey(checkNewPassphrase(passphrase.value))) }) }
 // 解密密码输错时 decryptCookie 抛出明确的错误，不改动任何数据。
 function unlock() { return run(async () => {
     const sealed = await readVault(vaults.value[0])
@@ -197,6 +197,7 @@ function forgetPassphrase() { return run(async () => {
 }) }
 // 修改解密密码：旧密钥解密、新密钥加密后整体替换；云端账号集合有变化时服务端返回 409，什么都不改。
 function changePassphrase() { return run(async () => {
+    checkNewPassphrase(passphrase.value)
     const plain = []
     for (const vault of vaults.value) plain.push({ platform: vault.platform, accountUid: vault.accountUid, cookie: await open(await readVault(vault)) })
     const derived = await deriveCookieKey(passphrase.value), sealed = []

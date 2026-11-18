@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
-import { deriveCookieKey, encryptCookie, decryptCookie } from '../src/cloud/cookie-crypto.mjs'
+import { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase } from '../src/cloud/cookie-crypto.mjs'
 import { communityAccount } from '../server/cookie.mjs'
 const require = createRequire(import.meta.url)
 const { JSDOM } = require('jsdom')
@@ -18,7 +18,7 @@ test('online account page encrypts Cookies before upload, unlocks with the passp
     const Vue = require('vue'), ElementPlus = require('element-plus')
     const user = { id: 'user-a', email: 'synthetic@example.test' }
     const localCookie = 'ltuid=123456;ltoken=synthetic-ltoken;cookie_token=synthetic-cookie-token;account_id=123456;'
-    const passphrase = '合成解密密码', nextPassphrase = '新的合成解密密码'
+    const passphrase = '合成测试解密密码', nextPassphrase = '新的合成解密密码'
     const calls = [], vaults = new Map(), mysCalls = []
     let loggedIn = false, storedKey = null, failReplace = false, cookieSync = true
     const fail = (status, code, message) => { throw Object.assign(new Error(message), { status, code }) }
@@ -59,8 +59,8 @@ test('online account page encrypts Cookies before upload, unlocks with the passp
     assert.deepEqual(template.errors, [])
     const scriptCode = script.content.replace(/^import .*\r?\n/gm, '').replace('export default', 'const component =')
     const renderCode = template.code.replace(/import \{([^}]+)\} from "vue"/g, (_, names) => `const {${names.replace(/\s+as\s+/g, ':')}} = Vue`).replace('export function render', 'function render')
-    const component = new Function('Vue', 'cloudApi', 'isNative', 'mysApi', 'profileSync', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'communityAccount',
-        `const {ref,computed,onMounted,onBeforeUnmount,watch}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, false, mysApi, profileSync, deriveCookieKey, encryptCookie, decryptCookie, communityAccount)
+    const component = new Function('Vue', 'cloudApi', 'isNative', 'mysApi', 'profileSync', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'checkNewPassphrase', 'communityAccount',
+        `const {ref,computed,onMounted,onBeforeUnmount,watch}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, false, mysApi, profileSync, deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, communityAccount)
     const app = Vue.createApp(component).use(ElementPlus)
     const button = label => [...document.querySelectorAll('button')].find(item => item.textContent.trim() === label)
     const idle = () => [...document.querySelectorAll('button')].some(item => item.textContent.trim() === '刷新' && !item.disabled) || !button('刷新')

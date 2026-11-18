@@ -6,6 +6,13 @@ export const COOKIE_VAULT_VERSION = 1
 export const KDF_ITERATIONS = 600000
 const SALT_BYTES = 16, IV_BYTES = 12
 
+// 新设或修改解密密码时的长度下限，与登录密码一致（开发者 2026-11-18 确认）；解锁时不检查，按原密码派生。
+export const MIN_PASSPHRASE_LENGTH = 8
+export function checkNewPassphrase(passphrase) {
+    if (typeof passphrase !== 'string' || [...passphrase].length < MIN_PASSPHRASE_LENGTH) throw new Error(`解密密码至少 ${MIN_PASSPHRASE_LENGTH} 位`)
+    return passphrase
+}
+
 const subtle = () => globalThis.crypto.subtle
 const encode = bytes => {
     let text = ''

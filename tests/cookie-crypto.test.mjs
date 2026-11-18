@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { pbkdf2Sync, createCipheriv, createDecipheriv } from 'node:crypto'
-import { deriveCookieKey, encryptCookie, decryptCookie, KDF_ITERATIONS } from '../src/cloud/cookie-crypto.mjs'
+import { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, KDF_ITERATIONS } from '../src/cloud/cookie-crypto.mjs'
 
 // 合成数据。独立预期值用 node:crypto 直接按约定格式计算（PBKDF2-SHA256 → AES-256-GCM，12 字节 IV + 密文 + 16 字节标签，base64url），
 // 不经过被测模块，以免两边共用同一处错误。
@@ -47,4 +47,10 @@ test('a wrong passphrase or tampered ciphertext fails with a clear error, and a 
     await assert.rejects(decryptCookie(derived, { ...sealed, ciphertext: bytes.toString('base64url') }), { code: 'COOKIE_DECRYPT_FAILED' })
     const other = await deriveCookieKey(passphrase)
     await assert.rejects(decryptCookie(other, sealed), { code: 'COOKIE_KEY_STALE' })
+})
+
+// 新设或修改解密密码至少 8 个字符（按字符计，中文算一个），与登录密码一致；开发者 2026-11-18 确认。
+test('a new passphrase needs at least 8 characters', () => {
+    for (const short of ['', '1234567', '七个字的密码啊', undefined]) assert.throws(() => checkNewPassphrase(short), /至少 8 位/)
+    for (const ok of ['12345678', '八个字的解密密码']) assert.equal(checkNewPassphrase(ok), ok)
 })

@@ -6,7 +6,7 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] 加解密模块独立成文件，接口只有加密、解密、派生密钥；密钥派生的迭代次数写进密文元数据，以后可以调高
 - [x] 本机只存派生出的密钥，不存解密密码和明文 Cookie 的副本；存储位置沿用现有 Cookie 的存放方式
@@ -66,3 +66,13 @@
 
 - `CloudProfilesPanel.vue` 引用的 `@/cloud/profile-sync` 在当前代码里不存在（09 已记录）。本页读 Cookie 同步开关也引用了它；这个装配文件补上之前，在线账号页无法构建（页面目前没有挂到路由上）。
 - 浏览器和 Android 真机上的完整流程（WebCrypto 600000 次迭代的耗时、Android 上 `MonaLocal` 写入）需要实测。
+
+### 开发者确认（2026-11-18）
+
+按推荐定稿：
+
+- 上表的界面文案定稿。
+- 新设或修改解密密码至少 8 个字符，和登录密码一致；解锁时不检查长度。规则在 `cookie-crypto.mjs` 的 `checkNewPassphrase`，有测试。
+- 退出登录时清除本机密钥，重新登录后要再输一次解密密码。
+- 「导入本机」只把 Cookie 存成本机账号，不自动拉取角色。
+- `@/cloud/profile-sync` 已补上（`src/cloud/profile-sync.ts`），在线账号页单独构建通过。
