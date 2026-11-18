@@ -4,7 +4,13 @@ import { hashPassword, sameSecret, verifyPassword } from './crypto.mjs'
 import { ApiError, invalid, unauthorized } from './errors.mjs'
 
 export const isUuid = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-const USER_FIELDS = 'id,email,username'
+const USER_FIELDS = 'id,email,username,avatar'
+// 头像是角色英文键名（src/assets/_gen_character.js 的键，如 Mona、AetherAnemo），null 表示清除；服务端只校验格式。
+function avatarFrom(value) {
+    if (value === null) return null
+    if (typeof value !== 'string' || !/^[A-Z][A-Za-z0-9]{0,39}$/.test(value)) throw invalid('头像必须是角色名称')
+    return value
+}
 // 用户名全站唯一（不区分大小写，由 users_username_unique 索引保证）：去掉首尾空格后 2–16 个字，只含中文、字母、数字、下划线和短横线
 function usernameFrom(value) {
     const username = typeof value === 'string' ? value.trim() : ''
@@ -135,10 +141,10 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
     async function authenticate(header) {
         const match = /^Bearer ([0-9a-f-]{36})\.([A-Za-z0-9_-]{43})$/i.exec(header || '')
         if (!match || !isUuid(match[1])) throw unauthorized()
-        const { rows: [row] } = await pool.query(`SELECT s.*,u.email,u.username FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1`, [match[1]])
+        const { rows: [row] } = await pool.query(`SELECT s.*,u.email,u.username,u.avatar FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1`, [match[1]])
         if (!row || row.expires_at <= clock() || !sameSecret(vault.open(row.secret_cipher, `session:${row.id}`), match[2])) throw unauthorized()
         await pool.query('UPDATE sessions SET last_used_at=$2 WHERE id=$1', [row.id, clock()])
-        return { sessionId: row.id, user: { id: row.user_id, email: row.email, username: row.username } }
+        return { sessionId: row.id, user: { id: row.user_id, email: row.email, username: row.username, avatar: row.avatar } }
     }
     // 已登录时再次确认本人：核对当前密码，同一账号每小时最多 10 次。改密码和注销账号共用。
     async function confirmPassword(auth, password) {
@@ -215,10 +221,16 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
         if (!deleted) throw invalidCode()
         return { ok: true }
     }
-    async function setUsername(auth, input) {
-        const username = usernameFrom(input?.username)
+    // PATCH /v1/me：改用户名和／或头像，至少一项，其他字段一律拒绝。
+    async function updateMe(auth, input) {
+        const keys = Object.keys(input || {})
+        if (!keys.length || keys.some(key => !['username', 'avatar'].includes(key))) throw invalid('只能修改用户名或头像')
+        const changes = []
+        if ('username' in input) changes.push(['username', usernameFrom(input.username)])
+        if ('avatar' in input) changes.push(['avatar', avatarFrom(input.avatar)])
         try {
-            const { rows: [user] } = await pool.query('UPDATE users SET username=$2 WHERE id=$1 RETURNING id,email,username', [auth.user.id, username])
+            const { rows: [user] } = await pool.query(`UPDATE users SET ${changes.map(([column], i) => `${column}=$${i + 2}`).join(',')}
+                WHERE id=$1 RETURNING ${USER_FIELDS}`, [auth.user.id, ...changes.map(([, value]) => value)])
             return { user }
         } catch (error) {
             if (error.code === '23505') throw new ApiError(409, 'USERNAME_TAKEN', '用户名已被使用')
@@ -235,5 +247,5 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
         await pool.query('DELETE FROM sessions WHERE id=$1 AND user_id=$2', [id, auth.user.id])
         return { ok: true }
     }
-    return { requestCode, verifyCode, register, passwordLogin, resetPassword, authenticate, changePassword, changeEmail, deleteAccount, setUsername, sessions, revoke, limit }
+    return { requestCode, verifyCode, register, passwordLogin, resetPassword, authenticate, changePassword, changeEmail, deleteAccount, updateMe, sessions, revoke, limit }
 }
