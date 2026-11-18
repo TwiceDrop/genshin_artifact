@@ -1,7 +1,7 @@
 import { createServer } from 'node:http'
 import { ApiError, invalid } from './errors.mjs'
 import { createAuth } from './auth.mjs'
-import { createAccounts } from './accounts.mjs'
+import { createCookieVaults, COOKIE_VAULT_BODY_LIMIT, COOKIE_VAULT_BATCH_LIMIT } from './cookie-vaults.mjs'
 import { createProfiles, SYNC_BODY_LIMIT } from './profiles.mjs'
 import { createUsageStats, USAGE_UPLOAD_LIMITS, USAGE_STATS_PAGE_POLICY, usageStatsPageFile } from './usage-stats.mjs'
 
@@ -32,7 +32,7 @@ async function bodyOf(request, maximumBytes = 32768) {
 }
 export function createApi(options) {
     const { pool, config, onError = logError } = options
-    const auth = createAuth({ ...options, onError }), accounts = createAccounts(options), profiles = createProfiles(options)
+    const auth = createAuth({ ...options, onError }), cookieVaults = createCookieVaults(options), profiles = createProfiles(options)
     const usageStats = createUsageStats(options)
     return createServer(async (request, response) => {
         const send = (status, value) => {
@@ -80,21 +80,20 @@ export function createApi(options) {
             if (method === 'GET' && path === '/v1/sessions') return send(200, await auth.sessions(identity))
             const sessionPath = /^\/v1\/sessions\/([^/]+)$/.exec(path)
             if (sessionPath && method === 'DELETE') return send(200, await auth.revoke(identity, sessionPath[1]))
-            if (path === '/v1/game-accounts' && method === 'GET') return send(200, await accounts.list(userId))
-            if (path === '/v1/game-accounts' && method === 'POST') {
+            if (path === '/v1/cookie-vaults' && method === 'GET') return send(200, await cookieVaults.list(userId))
+            if (path === '/v1/cookie-vaults' && method === 'PUT') {
                 await auth.limit(`bind-user:${userId}`, 600, 20)
-                return send(200, await accounts.save(userId, await bodyOf(request)))
+                return send(200, await cookieVaults.replaceAll(userId, await bodyOf(request, COOKIE_VAULT_BATCH_LIMIT)))
             }
-            const accountPath = /^\/v1\/game-accounts\/([^/]+)(?:\/(sync|snapshots))?$/.exec(path)
-            if (accountPath) {
-                const [, id, action] = accountPath
-                if (!action && method === 'PATCH') return send(200, await accounts.setEnabled(userId, id, await bodyOf(request)))
-                if (!action && method === 'DELETE') return send(200, await accounts.remove(userId, id))
-                if (action === 'sync' && method === 'POST') {
-                    await auth.limit(`sync-user:${userId}`, 60, 20)
-                    return send(200, await accounts.sync(userId, id))
+            const vaultPath = /^\/v1\/cookie-vaults\/([^/]+)\/([^/]+)$/.exec(path)
+            if (vaultPath) {
+                const [, platform, accountUid] = vaultPath
+                if (method === 'GET') return send(200, await cookieVaults.get(userId, platform, accountUid))
+                if (method === 'DELETE') return send(200, await cookieVaults.remove(userId, platform, accountUid))
+                if (method === 'PUT') {
+                    await auth.limit(`bind-user:${userId}`, 600, 20)
+                    return send(200, await cookieVaults.save(userId, platform, accountUid, await bodyOf(request, COOKIE_VAULT_BODY_LIMIT)))
                 }
-                if (action === 'snapshots' && method === 'GET') return send(200, await accounts.snapshots(userId, id))
             }
             if (path === '/v1/profiles' && method === 'POST') return send(200, await profiles.create(userId, await bodyOf(request)))
             if (path === '/v1/profiles' && method === 'GET') return send(200, await profiles.list(userId, url.searchParams))
@@ -110,8 +109,6 @@ export function createApi(options) {
                 if (collection === 'history' && !item && method === 'GET') return send(200, await profiles.history(userId, id, url.searchParams))
                 if (collection === 'history' && item && method === 'GET') return send(200, await profiles.historyEntry(userId, id, item))
             }
-            const jobPath = /^\/v1\/jobs\/([^/]+)$/.exec(path)
-            if (jobPath && method === 'GET') return send(200, await accounts.job(userId, jobPath[1]))
             throw new ApiError(404, 'NOT_FOUND', '接口不存在')
         } catch (error) {
             if (!(error instanceof ApiError)) onError(error)

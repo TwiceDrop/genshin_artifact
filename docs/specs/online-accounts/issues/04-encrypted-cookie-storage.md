@@ -6,16 +6,16 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 只做服务端；客户端的加密、页面、本机服务和 Android 转发归任务 08。
 
 - [x] 列出影响清单，开发者确认（2026-11-18，见下方 Comments）
-- [ ] 迁移 `007`：新增密文表 `cookie_vaults`，按用户 + 平台 + 账号 UID 唯一；删除 `game_accounts`、`sync_jobs`、`game_snapshots`
-- [ ] 接口：上传或覆盖、列出（不带密文）、读取、删除，加一个整体替换该用户全部密文的批量接口（改解密密码用，原子）；密文大小设上限；`kdf` 迭代次数不低于 600000
-- [ ] 删除 `game-client.mjs`、`accounts.mjs` 的托管和同步部分、`/sync`、`/snapshots`、`PATCH`、`/v1/jobs` 路由、游戏错误映射，以及同步相关配置
-- [ ] worker 只保留清理（验证码、会话、限流、使用统计），改名 `maintenance`；同步修改 `compose.yaml`、`.env.example`、`DEPLOY.md`
-- [ ] 测试：服务端存取的是不透明数据，不解析内容；用户只能读到自己的数据；`backend.test.mjs` 里旧的托管用例删除，按新接口重写，`helpers.mjs` 去掉假 `gameClient`
+- [x] 迁移 `007`：新增密文表 `cookie_vaults`，按用户 + 平台 + 账号 UID 唯一；删除 `game_accounts`、`sync_jobs`、`game_snapshots`
+- [x] 接口：上传或覆盖、列出（不带密文）、读取、删除，加一个整体替换该用户全部密文的批量接口（改解密密码用，原子）；密文大小设上限；`kdf` 迭代次数不低于 600000
+- [x] 删除 `game-client.mjs`、`accounts.mjs` 的托管和同步部分、`/sync`、`/snapshots`、`PATCH`、`/v1/jobs` 路由、游戏错误映射，以及同步相关配置
+- [x] worker 只保留清理（验证码、会话、限流、使用统计），改名 `maintenance`；同步修改 `compose.yaml`、`.env.example`、`DEPLOY.md`
+- [x] 测试：服务端存取的是不透明数据，不解析内容；用户只能读到自己的数据；`backend.test.mjs` 里旧的托管用例删除，按新接口重写，`helpers.mjs` 去掉假 `gameClient`
 
 ## Comments
 
@@ -62,3 +62,37 @@
 - 批量替换接口。
 
 建议密文上限 8 KB、body 上限 16 KB，实现时用合成的长 Cookie 量一下再定。
+
+### 实现记录（2026-11-18）
+
+**接口**（模块为 `online-service/src/cookie-vaults.mjs`）：
+
+| 方法与路径 | 作用 |
+| --- | --- |
+| `GET /v1/cookie-vaults` | 列出账号，不带密文 |
+| `PUT /v1/cookie-vaults` | 整体替换 |
+| `GET /v1/cookie-vaults/:platform/:accountUid` | 读取一条 |
+| `PUT /v1/cookie-vaults/:platform/:accountUid` | 上传或覆盖一条 |
+| `DELETE /v1/cookie-vaults/:platform/:accountUid` | 删除一条 |
+
+单条请求体为 `{ciphertext, salt, kdf: {name: 'PBKDF2', hash: 'SHA-256', iterations}, version}`，字段用 base64url 编码。
+
+**格式约定和限制：**
+- 影响清单漏了 AES-GCM 的 IV。约定由客户端把 IV 拼在 `ciphertext` 里，服务端仍不解析。
+- `ciphertext` 最长 8192 个字符；`salt` 至少 16 字节；迭代次数不少于 600000。
+- 单条请求体上限 16 KB，整体替换上限 512 KB。上传和整体替换共用 `bind-user` 限流（每 10 分钟 20 次）。
+- 整体替换只接受与云端完全相同的账号集合，不同时返回 409 `VAULT_SET_CHANGED`，任何数据都不改。这样可以防止另一台设备刚上传的 Cookie 被旧列表覆盖或删掉。
+
+**maintenance：**
+- 由 `src/maintenance.mjs` 和 `maintenance-main.mjs` 实现，只做清理，不再需要 `vault_key`。
+- 间隔配置改为 `MAINTENANCE_POLL_MS`，默认 60 秒。原来的 2 秒是为了及时领取拉取任务，现在没有任务了。
+
+**测试：**
+- 新增 `tests/cookie-vaults.test.mjs`。
+- `backend.test.mjs` 去掉托管相关断言和整个任务队列用例。
+- `usage-stats-*` 测试改为调用 `f.maintenance.run()`。
+
+**遗留：**
+- 客户端（`OnlineAccountPage.vue`、`server/cloud.mjs`、`src/platform/cloud-mobile.mjs`）仍调用已删除的 `/v1/game-accounts`，由任务 08 改。
+- `online-service/Dockerfile` 仍把 `server/hoyolab.mjs`、`mys.mjs`、`cookie.mjs`、`device-fp.mjs` 和 vendor 目录拷进镜像。在线服务已经不用它们，可以另外清理。
+- `tests/usage-stats-summary.test.mjs` 断言功能总数为 27，但 `f1a342d` 新增登录页时把功能列表加到了 28。这个失败在本任务之前就存在，没有处理。

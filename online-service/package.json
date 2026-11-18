@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node src/main.mjs",
-    "worker": "node src/worker-main.mjs",
+    "maintenance": "node src/maintenance-main.mjs",
     "migrate": "node src/migrate.mjs",
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
     "test:profiles": "node --test --test-concurrency=1 tests/profiles.test.mjs"

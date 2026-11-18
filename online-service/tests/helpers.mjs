@@ -5,7 +5,7 @@ import { once } from 'node:events'
 import { migrate } from '../src/migrate.mjs'
 import { createVault } from '../src/crypto.mjs'
 import { createApi } from '../src/http.mjs'
-import { createWorker } from '../src/worker.mjs'
+import { createMaintenance } from '../src/maintenance.mjs'
 
 async function database() {
     if (process.env.TEST_DATABASE_URL) {
@@ -37,31 +37,16 @@ async function database() {
     return { pool, close: () => instance.close() }
 }
 export const SYNTHETIC_PASSWORD = 'synthetic-password'
-export const syntheticCookie ='account_id=123456789;cookie_token=SYNTHETIC_COOKIE;ltoken=SYNTHETIC_LOGIN;'
-export function snapshot(role, value = 'first') {
-    return { version: 1, source: 'miyoushe', role, importedAt: '2026-11-07T00:00:00.000Z', total: 1,
-        characters: [{ base: { id: 10000001 }, synthetic: value }], failures: [], scope: 'owned-characters-equipped-artifacts' }
-}
 export async function fixture() {
     const db = await database()
     await migrate(db.pool)
     await migrate(db.pool)
     let now = Date.parse('2026-11-07T00:00:00.000Z')
-    const emails = [], errors = [], state = { failure: null, gate: null, mailFailure: false, calls: 0, value: 'first' }
-    const config = { otpTtlSeconds: 600, otpResendSeconds: 60, sessionTtlDays: 30, syncIntervalMinutes: 360,
-        jobLeaseSeconds: 120, workerPollMs: 100, allowedOrigins: ['http://localhost:43199'], trustProxy: false }
+    const emails = [], errors = [], state = { mailFailure: false }
+    const config = { otpTtlSeconds: 600, otpResendSeconds: 60, sessionTtlDays: 30,
+        maintenancePollMs: 100, allowedOrigins: ['http://localhost:43199'], trustProxy: false }
     const vault = createVault(randomBytes(32))
-    const gameClient = (platform, credential) => ({ ...credential, device: credential.device || 'synthetic-device',
-        deviceSeed: credential.deviceSeed || 'abcdef0123456789', deviceFp: credential.deviceFp || 'syntheticfp123',
-        roles: [{ uid: '100000001', region: platform === 'hoyolab' ? 'os_asia' : 'cn_gf01', nickname: '合成角色' }],
-        async getRoles() { state.calls++; if (state.failure?.stage === 'roles') throw state.failure; return this.roles },
-        async snapshot(uid) {
-            if (state.gate) await state.gate
-            if (state.failure) throw state.failure
-            return snapshot(this.roles.find(role => role.uid === uid), state.value)
-        },
-    })
-    const options = { pool: db.pool, config, vault, clock: () => new Date(now), gameClient,
+    const options = { pool: db.pool, config, vault, clock: () => new Date(now),
         sendCode: async message => { if (state.mailFailure) throw Object.assign(new Error('SYNTHETIC_SMTP_ERROR'), { code: 'EAUTH', command: 'AUTH', responseCode: 535 }); emails.push(message) },
         onError: (error, event) => errors.push({ code: error.code, event }) }
     const server = createApi(options)
@@ -84,6 +69,6 @@ export async function fixture() {
         if (verified.status !== 200) throw new Error(`Synthetic login failed: ${JSON.stringify(verified)}`)
         return { ...verified.body, challengeId: challenge.body.challengeId, code: emails.at(-1).code }
     }
-    return { ...options, ...db, base, request, login, emails, errors, state, advance: milliseconds => { now += milliseconds }, worker: createWorker(options),
+    return { ...options, ...db, base, request, login, emails, errors, state, advance: milliseconds => { now += milliseconds }, maintenance: createMaintenance(options),
         close: async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await db.close() } }
 }

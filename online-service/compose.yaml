@@ -33,9 +33,7 @@ x-app: &app
     OTP_TTL_SECONDS: ${OTP_TTL_SECONDS:-600}
     OTP_RESEND_SECONDS: ${OTP_RESEND_SECONDS:-60}
     SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
-    SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-360}
-    WORKER_POLL_MS: ${WORKER_POLL_MS:-2000}
-    JOB_LEASE_SECONDS: ${JOB_LEASE_SECONDS:-120}
+    MAINTENANCE_POLL_MS: ${MAINTENANCE_POLL_MS:-60000}
   secrets:
     - database_url
     - vault_key
@@ -99,9 +97,9 @@ services:
       retries: 3
       start_period: 15s
 
-  worker:
+  maintenance:
     <<: *app
-    command: ["node", "src/worker-main.mjs"]
+    command: ["node", "src/maintenance-main.mjs"]
     restart: unless-stopped
     stop_grace_period: 30s
     depends_on:

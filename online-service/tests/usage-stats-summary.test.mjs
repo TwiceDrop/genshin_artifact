@@ -85,7 +85,7 @@ test('platform and version filters narrow every number', async t => {
 
 test('cleanup removes day rows older than 400 days and keeps cumulative counts', async t => {
     const f = await seeded(t)
-    await f.worker.recover()
+    await f.maintenance.run()
     const days = (await f.pool.query('SELECT day::text AS day FROM usage_stats_days ORDER BY day')).rows.map(r => r.day)
     assert.equal(days.length, 7)
     assert.equal(days[0], '2026-10-01')
