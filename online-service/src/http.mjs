@@ -62,6 +62,8 @@ export function createApi(options) {
                 ? request.headers['x-forwarded-for'].split(',')[0].trim() : request.socket.remoteAddress || 'unknown'
             if (method === 'POST' && path === '/v1/auth/email/request') return send(200, await auth.requestCode(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/auth/email/verify') return send(200, await auth.verifyCode(await bodyOf(request), ip))
+            if (method === 'POST' && path === '/v1/auth/register') return send(200, await auth.register(await bodyOf(request), ip))
+            if (method === 'POST' && path === '/v1/auth/password/login') return send(200, await auth.passwordLogin(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/usage-stats') return send(200, await usageStats.ingest(await bodyOf(request, USAGE_UPLOAD_LIMITS.bodyBytes), ip))
             if (method === 'GET' && path === '/v1/usage-stats/summary') return send(200, await usageStats.summary(url.searchParams, request.headers.authorization))
             const pageFile = method === 'GET' && path.startsWith('/admin/') ? await usageStatsPageFile(path) : null

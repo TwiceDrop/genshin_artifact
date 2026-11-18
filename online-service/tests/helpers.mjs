@@ -36,7 +36,8 @@ async function database() {
     }
     return { pool, close: () => instance.close() }
 }
-export const syntheticCookie = 'account_id=123456789;cookie_token=SYNTHETIC_COOKIE;ltoken=SYNTHETIC_LOGIN;'
+export const SYNTHETIC_PASSWORD = 'synthetic-password'
+export const syntheticCookie ='account_id=123456789;cookie_token=SYNTHETIC_COOKIE;ltoken=SYNTHETIC_LOGIN;'
 export function snapshot(role, value = 'first') {
     return { version: 1, source: 'miyoushe', role, importedAt: '2026-11-07T00:00:00.000Z', total: 1,
         characters: [{ base: { id: 10000001 }, synthetic: value }], failures: [], scope: 'owned-characters-equipped-artifacts' }
@@ -72,10 +73,14 @@ export async function fixture() {
             ...(body ? { body: JSON.stringify(body) } : {}) })
         return { status: result.status, body: await result.json() }
     }
+    // 验证码登录不再自动建号：邮箱未注册时用同一个验证码注册，用户名取邮箱 @ 前的部分。
     async function login(email = 'synthetic-a@example.test') {
         const challenge = await request('/v1/auth/email/request', { method: 'POST', body: { email } })
         if (challenge.status !== 200) throw new Error(`Synthetic code request failed: ${JSON.stringify(challenge)}`)
-        const verified = await request('/v1/auth/email/verify', { method: 'POST', body: { challengeId: challenge.body.challengeId, code: emails.at(-1).code, deviceName: '合成测试设备' } })
+        const proof = { challengeId: challenge.body.challengeId, code: emails.at(-1).code, deviceName: '合成测试设备' }
+        let verified = await request('/v1/auth/email/verify', { method: 'POST', body: proof })
+        if (verified.status === 404) verified = await request('/v1/auth/register', { method: 'POST',
+            body: { ...proof, username: email.split('@')[0].slice(0, 16), password: SYNTHETIC_PASSWORD } })
         if (verified.status !== 200) throw new Error(`Synthetic login failed: ${JSON.stringify(verified)}`)
         return { ...verified.body, challengeId: challenge.body.challengeId, code: emails.at(-1).code }
     }
