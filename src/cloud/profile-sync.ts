@@ -28,7 +28,7 @@ async function capture(accountId: number) {
     return data
 }
 
-export const profileSync = createProfileSync({
+const core = createProfileSync({
     api: cloudApi,
     storage: backend,
     capture,
@@ -47,3 +47,6 @@ export const profileSync = createProfileSync({
     makeReactive: reactive,
     state: reactive({ bindings: [], profiles: [], busy: false, error: '' }),
 })
+
+// 同步在打开软件时就会启动（登录门），内核初始化会读账号名，所以先等本地账号仓库加载完。
+export const profileSync = { ...core, start: async () => { await accountReady; return core.start() } }
