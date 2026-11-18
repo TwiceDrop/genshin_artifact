@@ -3,6 +3,9 @@ import { MonaLocal } from './native.mjs'
 import { publicAccount } from '../../server/cookie.mjs'
 
 let queue = Promise.resolve()
+// 这些接口成功时返回新会话：本机保存令牌，不交给页面，与桌面 server/cloud.mjs 一致
+const sessionPaths = new Set(['v1/auth/email/verify', 'v1/auth/register', 'v1/auth/password/login'])
+const publicKey = value => ({ key: value.key, salt: value.salt, kdf: value.kdf })
 const publicConfig = config => ({ url: config.url || '', user: config.user || null, expiresAt: config.expiresAt || null })
 function serviceUrl(value) {
     const url = new URL(value)
@@ -20,13 +23,19 @@ async function execute(path, method, body, expectedContext) {
         return publicConfig(config)
     }
     if (path === 'local-accounts' && method === 'GET') return { accounts: JSON.parse((await MonaLocal.readVault()).text).accounts.map(publicAccount) }
-    if (!config.url) throw new Error('请先设置在线服务地址')
-    if (path === 'game-accounts/import-local' && method === 'POST') {
+    if (path === 'local-accounts/cookie' && method === 'POST') {
         const saved = JSON.parse((await MonaLocal.readVault()).text).accounts.find(account => account.id === body.id)
         if (!saved) throw new Error('未找到已保存 Cookie')
-        path = 'v1/game-accounts'
-        body = Object.fromEntries(['platform', 'cookie', 'device', 'deviceSeed', 'deviceFp'].filter(key => saved[key] !== undefined).map(key => [key, saved[key]]))
-        body.platform ||= 'miyoushe'
+        const { platform, accountUid } = publicAccount(saved)
+        return { platform, accountUid, cookie: saved.cookie }
+    }
+    if (!config.url) throw new Error('请先设置在线服务地址')
+    // 本机只存解密密码派生出的密钥，随在线账号保存、退出登录时清除，与桌面 server/cloud.mjs 一致
+    if (path === 'cookie-key') {
+        if (!config.user) throw Object.assign(new Error('请先登录在线账号'), { status: 401, code: 'UNAUTHORIZED' })
+        if (method === 'GET') return { cookieKey: config.cookieKey?.userId === config.user.id ? publicKey(config.cookieKey) : null }
+        if (method === 'PUT') { await write({ ...config, cookieKey: { userId: config.user.id, ...publicKey(body) } }); return { ok: true } }
+        if (method === 'DELETE') { const { cookieKey, ...rest } = config; await write(rest); return { ok: true } }
     }
     const response = await CapacitorHttp.request({
         url: `${serviceUrl(config.url)}/${path}`, method,
@@ -39,13 +48,13 @@ async function execute(path, method, body, expectedContext) {
         if (response.status === 401 && !path.startsWith('v1/auth/email/')) await write({ url: config.url })
         throw Object.assign(new Error(data.error?.message || data.error || `在线服务 HTTP ${response.status}`), { ...(typeof data.error === 'object' ? data.error : {}), status: response.status, retryAfterSeconds: data.error?.retryAfterSeconds || data.retryAfterSeconds })
     }
-    if (path === 'v1/auth/email/verify' && method === 'POST') {
+    if (sessionPaths.has(path) && method === 'POST') {
         await write({ url: config.url, sessionToken: data.sessionToken, user: data.user, expiresAt: data.expiresAt })
         const { sessionToken, ...result } = data
         return result
     }
-    if (path === 'v1/me') await write({ ...config, user: data.user })
-    if (path === 'v1/auth/logout' || (method === 'DELETE' && path === `v1/sessions/${config.sessionToken?.split('.')[0]}`)) await write({ url: config.url })
+    if ((path === 'v1/me' && method !== 'DELETE') || path === 'v1/me/email') await write({ ...config, user: data.user })
+    if (path === 'v1/auth/logout' || (method === 'DELETE' && path === 'v1/me') || (method === 'DELETE' && path === `v1/sessions/${config.sessionToken?.split('.')[0]}`)) await write({ url: config.url })
     return data
 }
 export function mobileCloudApi(path, method = 'GET', body, expectedContext) {

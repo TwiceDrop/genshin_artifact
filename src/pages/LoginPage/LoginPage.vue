@@ -7,41 +7,88 @@
             <mona-portrait class="login-portrait" />
             <h1 id="login-title" class="login-name">{{ webTitle }}</h1>
 
-            <!-- 第一次登录（还没有用户名）时，登录成功后先提示设置用户名，可以稍后在设置页再设 -->
-            <form v-if="namingStep" class="login-form" @submit.prevent="saveUsername">
+            <!-- 还没有用户名的老账号登录后，先提示设置用户名，可以稍后在设置页再设 -->
+            <form v-if="mode === 'naming'" class="login-form" @submit.prevent="saveUsername">
                 <h2 class="login-step">设置用户名</h2>
                 <el-input v-model="username" size="large" maxlength="16" placeholder="2–16 个字" aria-label="用户名" :disabled="busy" />
                 <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
                 <el-button class="login-submit" type="primary" size="large" round native-type="submit" :loading="busy"
                            :disabled="!username.trim()">保存</el-button>
-                <el-button class="login-skip" link :disabled="busy" @click="leave">稍后设置</el-button>
+                <el-button class="login-link login-center" link :disabled="busy" @click="leave">稍后设置</el-button>
             </form>
 
-            <form v-else class="login-form" @submit.prevent="verifyCode">
-                <el-input v-model="email" type="email" size="large" autocomplete="email" placeholder="邮箱" aria-label="邮箱"
-                          :disabled="busy" />
-                <div class="login-code">
-                    <el-input v-model="code" size="large" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
-                              placeholder="验证码" aria-label="邮箱验证码" :disabled="busy" />
-                    <el-button size="large" round :disabled="busy || !email.trim() || cooldown > 0" @click="requestCode">
-                        {{ cooldown ? `${cooldown} 秒后重发` : '发送验证码' }}
-                    </el-button>
+            <template v-else>
+                <div v-if="mode === 'password' || mode === 'code'" class="login-tabs" role="tablist" aria-label="登录方式">
+                    <button v-for="tab in tabs" :key="tab.mode" type="button" role="tab" class="login-tab"
+                            :class="{ active: mode === tab.mode }" :aria-selected="mode === tab.mode" :disabled="busy"
+                            @click="switchMode(tab.mode)">{{ tab.label }}</button>
                 </div>
-                <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
-                <el-button class="login-submit" type="primary" size="large" round native-type="submit" :loading="busy"
-                           :disabled="!challengeId || code.length !== 6">注册／登录</el-button>
-            </form>
+                <h2 v-else class="login-step">{{ mode === 'register' ? '注册账号' : '重设密码' }}</h2>
+
+                <form class="login-form" @submit.prevent="submit">
+                    <template v-if="mode === 'password'">
+                        <el-input v-model="account" size="large" autocomplete="username" placeholder="邮箱或用户名"
+                                  aria-label="邮箱或用户名" :disabled="busy" />
+                        <el-input v-model="password" type="password" show-password size="large" autocomplete="current-password"
+                                  placeholder="密码" aria-label="密码" :disabled="busy" />
+                    </template>
+
+                    <template v-else>
+                        <el-input v-model="email" type="email" size="large" autocomplete="email" placeholder="邮箱" aria-label="邮箱"
+                                  :disabled="busy" />
+                        <div class="login-code">
+                            <el-input v-model="code" size="large" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+                                      placeholder="验证码" aria-label="邮箱验证码" :disabled="busy" />
+                            <el-button size="large" round :disabled="busy || !email.trim() || cooldown > 0" @click="requestCode">
+                                {{ cooldown ? `${cooldown} 秒后重发` : '发送验证码' }}
+                            </el-button>
+                        </div>
+                        <el-input v-if="mode === 'register'" v-model="username" size="large" maxlength="16" autocomplete="username"
+                                  placeholder="用户名（2–16 个字）" aria-label="用户名" :disabled="busy" />
+                        <template v-if="mode === 'register' || mode === 'reset'">
+                            <el-input v-model="password" type="password" show-password size="large" autocomplete="new-password"
+                                      :placeholder="mode === 'reset' ? '新密码（8–64 个字符）' : '密码（8–64 个字符）'"
+                                      :aria-label="mode === 'reset' ? '新密码' : '密码'" :disabled="busy" />
+                            <el-input v-model="confirmPassword" type="password" show-password size="large" autocomplete="new-password"
+                                      placeholder="再次输入密码" aria-label="再次输入密码" :disabled="busy" />
+                        </template>
+                    </template>
+
+                    <el-alert v-if="notice" :title="notice" type="success" :closable="false" show-icon />
+                    <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
+                    <el-button class="login-submit" type="primary" size="large" round native-type="submit" :loading="busy"
+                               :disabled="!ready">{{ submitLabel }}</el-button>
+
+                    <p v-if="mode !== 'reset'" class="login-terms">
+                        登录或注册即表示同意<a :href="legal('terms')" target="_blank" rel="noopener">《用户协议》</a>和<a
+                            :href="legal('privacy')" target="_blank" rel="noopener">《隐私政策》</a>
+                    </p>
+
+                    <div class="login-links">
+                        <template v-if="mode === 'password' || mode === 'code'">
+                            <el-button v-if="mode === 'password'" class="login-link" link :disabled="busy"
+                                       @click="switchMode('reset')">忘记密码</el-button>
+                            <el-button class="login-link" link :disabled="busy" @click="switchMode('register')">注册账号</el-button>
+                        </template>
+                        <el-button v-else class="login-link" link :disabled="busy" @click="switchMode('password')">
+                            {{ mode === 'register' ? '已有账号，去登录' : '返回登录' }}
+                        </el-button>
+                    </div>
+                </form>
+            </template>
         </section>
 
-        <button v-if="!namingStep" type="button" class="login-offline" :disabled="busy" @click="continueOffline">
+        <button v-if="mode !== 'naming'" type="button" class="login-offline" :disabled="busy" @click="continueOffline">
             以离线模式继续<icon-ep-right aria-hidden="true" />
         </button>
     </main>
 </template>
 
 <script setup>
-// 登录页（2026-11-17 与开发者约定）：进入软件先到这里；邮箱验证码登录，或「以离线模式继续」（即游客，选择记在本机）。
-// 登录接口沿用在线服务的邮箱验证码流程，与在线账号页相同；服务地址和设备名称不在这里填写。
+// 登录页（2026-11-17 与开发者约定，任务 06 补充密码登录和注册）：进入软件先到这里；
+// 可用「邮箱或用户名 + 密码」或邮箱验证码登录，也可以注册、重设密码，或「以离线模式继续」（即游客，选择记在本机）。
+// 验证码登录遇到未注册的邮箱时直接转到注册，沿用同一个验证码（服务端不会消耗它）。
+// 服务地址和设备名称不在这里填写；服务端的错误原样显示，只在本机核对两次密码是否一致。
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import IconEpRight from '~icons/ep/right'
@@ -53,23 +100,48 @@ import { isNative } from '@/platform/native.mjs'
 import { chooseOffline, clearOfflineChoice } from '@/platform/login-gate.mjs'
 
 const webTitle = process.env.MONA_TITLE
+const deviceName = isNative ? 'Android' : 'Windows'
+const legal = name => `${process.env.BASE_URL}legal/${name}.html`
+const tabs = [{ mode: 'password', label: '密码登录' }, { mode: 'code', label: '验证码登录' }]
 const route = useRoute(), router = useRouter()
-const email = ref(''), code = ref(''), challengeId = ref(''), busy = ref(false), error = ref('')
-const namingStep = ref(false), username = ref('')
+
+// mode：password 密码登录 / code 验证码登录 / register 注册 / reset 重设密码 / naming 登录后设置用户名
+const mode = ref('password')
+const account = ref(''), password = ref(''), confirmPassword = ref('')
+const email = ref(''), code = ref(''), challengeId = ref(''), username = ref('')
+const busy = ref(false), error = ref(''), notice = ref('')
 const resendAt = ref(0), now = ref(Date.now())
 const cooldown = computed(() => Math.max(0, Math.ceil((resendAt.value - now.value) / 1000)))
 let timer
 watch(email, () => { challengeId.value = ''; code.value = '' })
 
+const codeReady = computed(() => !!challengeId.value && code.value.length === 6)
+const ready = computed(() => ({
+    password: !!account.value.trim() && !!password.value,
+    code: codeReady.value,
+    register: codeReady.value && !!username.value.trim() && !!password.value && !!confirmPassword.value,
+    reset: codeReady.value && !!password.value && !!confirmPassword.value,
+})[mode.value])
+const submitLabel = computed(() => ({ password: '登录', code: '登录', register: '注册', reset: '重设密码' })[mode.value])
+
+function switchMode(next) {
+    mode.value = next
+    error.value = ''; notice.value = ''; password.value = ''; confirmPassword.value = ''
+}
 function leave() {
     const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/'
     router.replace(redirect)
 }
 async function run(action) {
-    busy.value = true; error.value = ''
+    busy.value = true; error.value = ''; notice.value = ''
     try { await action() }
     catch (e) { error.value = e.message }
     finally { busy.value = false }
+}
+function signedIn(result) {
+    clearOfflineChoice()
+    if (result.user?.username) leave()
+    else { username.value = ''; mode.value = 'naming' }
 }
 function requestCode() {
     return run(async () => {
@@ -78,13 +150,38 @@ function requestCode() {
         now.value = Date.now(); resendAt.value = now.value + result.resendAfterSeconds * 1000
     })
 }
-function verifyCode() {
-    if (!challengeId.value || code.value.length !== 6) return
+function passwordsMatch() {
+    if (password.value === confirmPassword.value) return true
+    error.value = '两次输入的密码不一致'; notice.value = ''
+    return false
+}
+function submit() {
+    if (!ready.value) return
+    if (mode.value === 'password') return run(async () => {
+        signedIn(await cloudApi('v1/auth/password/login', 'POST', { account: account.value.trim(), password: password.value, deviceName }))
+    })
+    if (mode.value === 'code') return run(async () => {
+        try {
+            signedIn(await cloudApi('v1/auth/email/verify', 'POST', { challengeId: challengeId.value, code: code.value, deviceName }))
+        } catch (e) {
+            if (e.code !== 'ACCOUNT_NOT_FOUND') throw e
+            // 未注册的邮箱：转到注册，邮箱、challengeId 和验证码原样带过去
+            switchMode('register')
+            notice.value = '该邮箱尚未注册，设置用户名和密码即可完成注册'
+        }
+    })
+    if (!passwordsMatch()) return
+    if (mode.value === 'register') return run(async () => {
+        signedIn(await cloudApi('v1/auth/register', 'POST', {
+            challengeId: challengeId.value, code: code.value, username: username.value.trim(), password: password.value, deviceName,
+        }))
+    })
     return run(async () => {
-        const result = await cloudApi('v1/auth/email/verify', 'POST', { challengeId: challengeId.value, code: code.value, deviceName: isNative ? 'Android' : 'Windows' })
-        clearOfflineChoice()
-        if (result.user?.username) leave()
-        else namingStep.value = true
+        await cloudApi('v1/auth/password/reset', 'POST', { challengeId: challengeId.value, code: code.value, newPassword: password.value })
+        const resetEmail = email.value.trim()
+        switchMode('password')
+        account.value = resetEmail
+        notice.value = '密码已重设，请用新密码登录'
     })
 }
 function saveUsername() {
@@ -201,9 +298,77 @@ onBeforeUnmount(() => clearInterval(timer))
     text-align: center;
 }
 
-.login-skip {
-    justify-self: center;
+.login-link {
+    margin: 0;
     color: var(--wl-dim);
+
+    &:hover:not(:disabled) {
+        color: var(--wl-gold);
+    }
+}
+
+.login-center {
+    justify-self: center;
+}
+
+.login-links {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+}
+
+// 密码登录 / 验证码登录切换
+.login-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    padding: 4px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--wl-chip);
+}
+
+.login-tab {
+    padding: 8px 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--wl-dim);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+
+    &.active {
+        background: var(--wl-ground);
+        color: var(--wl-gold);
+        font-weight: 700;
+    }
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--wl-gold);
+        outline-offset: 2px;
+    }
+}
+
+.login-terms {
+    margin: 0;
+    color: var(--wl-dim);
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+
+    a {
+        color: var(--wl-gold);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
 }
 
 .login-submit {

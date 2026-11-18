@@ -10,13 +10,5 @@
 !online-service/static/
 !online-service/static/**
 !server/
-!server/hoyolab.mjs
-!server/mys.mjs
-!server/cookie.mjs
-!server/device-fp.mjs
 !server/usage-stats-features.mjs
 !server/usage-stats-characters.mjs
-!server/vendor/
-!server/vendor/twicedrop/
-!server/vendor/twicedrop/mihoyo-api.mjs
-!server/vendor/twicedrop/LICENSE

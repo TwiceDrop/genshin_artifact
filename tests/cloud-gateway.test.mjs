@@ -9,7 +9,7 @@ import { CloudGateway } from '../server/cloud.mjs'
 import { createLocalServer } from '../server/local.mjs'
 
 // Synthetic credentials only. Real DPAPI verifies persistence across bridge instances.
-test('cloud bridge protects the token, explicitly transfers one vault account and isolates service changes', {skip:process.platform !== 'win32'}, async t => {
+test('cloud bridge protects the token, hands one saved Cookie only to the page, keeps the derived key per user and isolates service changes', {skip:process.platform !== 'win32'}, async t => {
     // Existing update-only consumers inject a minimal credential store.
     const unrelated = createLocalServer({ credentialStore: {} })
     await new Promise(resolve => unrelated.close(resolve))
@@ -27,7 +27,7 @@ test('cloud bridge protects the token, explicitly transfers one vault account an
         let value = {}, status = 200
         if (req.url === '/v1/auth/email/verify') value = {sessionToken:token,user:{id:'synthetic-user',email:'test@example.invalid'},expiresAt:'2099-01-01T00:00:00Z'}
         else if (revoked) {status=401;value={error:{code:'UNAUTHORIZED',message:'会话已过期'}}}
-        else if (req.url === '/v1/game-accounts') value={account:{id:'cloud-123',platform:body.platform}}
+        else if (req.url === '/v1/cookie-vaults/miyoushe/123') value={vault:{platform:'miyoushe',accountUid:'123'}}
         else if (req.url === '/v1/me' && req.method === 'PATCH') value={user:{id:'synthetic-user',email:'test@example.invalid',username:body.username}}
         else if (req.url === '/v1/me') value={user:{id:'synthetic-user',email:'test@example.invalid'}}
         else value={ok:true}
@@ -65,8 +65,19 @@ test('cloud bridge protects the token, explicitly transfers one vault account an
     assert.equal((await request('/config')).data.user.username,'合成用户名')
     const localList=await request('/local-accounts')
     assert.equal(localList.data.accounts.length,1);assert.ok(!JSON.stringify(localList).includes('synthetic-cookie'))
-    await request('/game-accounts/import-local','POST',{id:'123'})
-    assert.equal(sent.at(-1).body.cookie,cookie);assert.equal(sent.at(-1).body.platform,'miyoushe');assert.equal(sent.at(-1).authorization,`Bearer ${token}`)
+    // 明文 Cookie 只交给页面加密，不发往在线服务；旧的托管接口已不再转发
+    const forwarded=sent.length
+    assert.deepEqual((await request('/local-accounts/cookie','POST',{id:'123'})).data,{platform:'miyoushe',accountUid:'123',cookie})
+    assert.equal((await request('/game-accounts/import-local','POST',{id:'123'})).status,404)
+    assert.equal((await request('/v1/game-accounts')).status,404)
+    const derived={key:'synthetic-key',salt:'synthetic-salt',kdf:{name:'PBKDF2',hash:'SHA-256',iterations:600000}}
+    assert.deepEqual((await request('/cookie-key')).data,{cookieKey:null})
+    await request('/cookie-key','PUT',{...derived,passphrase:'never-stored'})
+    assert.deepEqual((await request('/cookie-key')).data,{cookieKey:derived})
+    assert.ok(!(await readFile(file)).includes(Buffer.from('never-stored')))
+    assert.equal(sent.length,forwarded)
+    await request('/v1/cookie-vaults/miyoushe/123','PUT',{ciphertext:'sealed',salt:derived.salt,kdf:derived.kdf,version:1})
+    assert.equal(sent.at(-1).body.ciphertext,'sealed');assert.equal(sent.at(-1).authorization,`Bearer ${token}`)
     assert.deepEqual(await readFile(game.file),original)
     assert.ok(!(await readFile(file)).includes(Buffer.from('session-secret')))
     const restarted=gateway()
@@ -75,6 +86,7 @@ test('cloud bridge protects the token, explicitly transfers one vault account an
     revoked=true
     assert.equal((await restarted.handle('/v1/me','GET')).status,401)
     assert.equal((await restarted.handle('/config','GET')).data.user,null)
+    assert.equal((await restarted.store.get('online')).cookieKey,null)
     revoked=false
     await restarted.handle('/v1/auth/email/verify','POST',{})
     await restarted.handle(`/v1/sessions/${token.split('.')[0]}`,'DELETE')

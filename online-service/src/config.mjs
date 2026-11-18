@@ -24,9 +24,7 @@ export function loadConfig(env = process.env, { mailRequired = true, vaultRequir
         otpTtlSeconds: integer(env, 'OTP_TTL_SECONDS', 600, 60, 3600),
         otpResendSeconds: integer(env, 'OTP_RESEND_SECONDS', 60, 30, 600),
         sessionTtlDays: integer(env, 'SESSION_TTL_DAYS', 30, 1, 365),
-        syncIntervalMinutes: integer(env, 'SYNC_INTERVAL_MINUTES', 360, 15, 43200),
-        workerPollMs: integer(env, 'WORKER_POLL_MS', 2000, 100, 60000),
-        jobLeaseSeconds: integer(env, 'JOB_LEASE_SECONDS', 120, 30, 3600),
+        maintenancePollMs: integer(env, 'MAINTENANCE_POLL_MS', 60000, 1000, 3600000),
         smtp: {
             host: env.SMTP_HOST, port: integer(env, 'SMTP_PORT', 587, 1, 65535),
             secure: env.SMTP_SECURE === 'true', requireTLS: env.SMTP_REQUIRE_TLS !== 'false',

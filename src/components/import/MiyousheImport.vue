@@ -106,6 +106,7 @@ import { watchContent as presetsContent } from '@/store/pinia/preset'
 import { useAccountStore } from '@/store/pinia/account'
 import backend from '@/store/backend'
 import { isNative, MonaLocal, saveText } from '@/platform/native.mjs'
+import { mysApi } from '@/platform/mys-api.mjs'
 import { captureImportState, appendImportRecord, undoImportRecord } from '@/import/import-history.mjs'
 import { useKumiStore } from '@/store/pinia/kumi'
 import { exportUidPackage, importUidPackage } from '@/import/uid-package.mjs'
@@ -145,16 +146,7 @@ async function undoImport(id) {
     finally { busy.value = false }
 }
 let generation = 0, timer, clock, progressTimer, disposed = false
-async function api(path, method = 'GET', body) {
-    if (isNative) return (await import('@/platform/mys-mobile.mjs')).mobileMysApi(path, method, body)
-    let response
-    try { response = await fetch(`/api/mys/${path}`, { method, headers: { 'X-Mona-Local': '1', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}), credentials: 'same-origin' }) }
-    catch { throw new Error('本机服务连接失败，请在项目目录运行 npm start，并打开 http://127.0.0.1:4174') }
-    if (!response.headers.get('Content-Type')?.includes('application/json')) throw new Error('扫码登录需要本机服务。请运行 npm start，打开 http://127.0.0.1:4174')
-    const data = await response.json()
-    if (!response.ok) throw Object.assign(new Error(data.error || '同步失败'), { retcode: data.retcode })
-    return data
-}
+const api = mysApi
 function stopTimers() { clearTimeout(timer); clearInterval(clock); clearInterval(progressTimer) }
 async function saveQr() {
     try { await MonaLocal.saveFile({ base64: qrImage.value.split(',')[1], mimeType: 'image/png', filename: 'mona-login-qr.png' }) }

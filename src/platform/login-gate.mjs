@@ -17,6 +17,25 @@ export function clearOfflineChoice() {
     try { localStorage.removeItem(OFFLINE_KEY) } catch (error) { console.error('无法清除离线模式选择', error) }
 }
 
+// 云档案同步跟随登录状态：已登录时启动，退出登录或会话失效后停止。
+// 登录、注册、退出等接口成功后 cloudApi 会发出 mona-cloud-context-change，这里据此重新确认。
+// 返回首次确认的 Promise；确认或启动失败照实报错，不改变当前状态。
+export function followCloudSession(sync, { api = cloudApi, events = globalThis.window } = {}) {
+    let running = false, queue = Promise.resolve()
+    const check = () => {
+        queue = queue.then(async () => {
+            let user
+            try { user = (await api('config')).user } catch (error) { console.error('确认在线账号登录状态失败，云档案同步保持原状', error); return }
+            if (user && !running) {
+                try { await sync.start(); running = true } catch (error) { console.error('启动云档案同步失败', error) }
+            } else if (!user && running) { sync.stop(); running = false }
+        })
+        return queue
+    }
+    events?.addEventListener('mona-cloud-context-change', check)
+    return check()
+}
+
 export async function needsLogin() {
     if (isOfflineChosen()) return false
     try { return !(await cloudApi('config')).user }

@@ -68,7 +68,7 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
                     const expectedContext = req.headers['x-mona-cloud-url'] || req.headers['x-mona-cloud-user']
                         ? { url: decodeURIComponent(req.headers['x-mona-cloud-url'] || ''), userId: req.headers['x-mona-cloud-user'] } : undefined
                     const result = await cloud.handle(url.pathname.slice('/api/cloud'.length) + url.search, req.method,
-                        ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : 20000), expectedContext)
+                        ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : url.pathname === '/api/cloud/v1/cookie-vaults' ? 524288 : 20000), expectedContext)
                     return json(result.data, result.status)
                 }
                 if (url.pathname.startsWith('/api/update/')) {

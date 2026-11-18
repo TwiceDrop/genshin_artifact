@@ -24,7 +24,7 @@ const RETENTION_DAYS = 400, DAILY_DAYS = 90
 const utcDay = date => date.toISOString().slice(0, 10)
 
 // Day rows older than 400 days go; the cumulative rows stay, so totals do not drop.
-// The worker ticks every few seconds, so this deletes only when the UTC day has changed since the last run.
+// Maintenance runs every minute, so this deletes only when the UTC day has changed since the last run.
 export function createUsageStatsPruner() {
     let prunedDay = null
     return async (db, now) => {

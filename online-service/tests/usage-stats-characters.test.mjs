@@ -76,6 +76,6 @@ test('the summary ranks characters by installs that ran them, per action and win
     assert.deepEqual(android.characters.map(c => [c.name, c.counts['action.single-optimize'].total]), [['Mona', 1]])
     // Day rows past 400 days go with the feature rows; cumulative rows stay.
     await f.pool.query(`INSERT INTO usage_stats_character_days VALUES($1,'Qiqi','action.team-dps','2025-01-01','windows','7.2.04')`, [C])
-    await f.worker.recover()
+    await f.maintenance.run()
     assert.equal((await f.pool.query(`SELECT count(*)::int AS n FROM usage_stats_character_days WHERE character='Qiqi'`)).rows[0].n, 0)
 })

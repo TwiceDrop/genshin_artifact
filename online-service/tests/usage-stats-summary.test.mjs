@@ -53,7 +53,7 @@ test('the summary counts each install once per feature and window', async t => {
     const calculate = body.features.find(x => x.id === 'page.calculate')
     assert.equal(calculate.name, '配装计算')
     assert.equal(calculate.category, 'page')
-    assert.equal(body.features.length, 27)
+    assert.equal(body.features.length, 28)                       // server/usage-stats-features.mjs; f1a342d added page.login
     assert.deepEqual(body.platforms, ['windows', 'android'])
     assert.deepEqual(body.versions, ['7.2.04', '7.2.05'])
     // 90 days ending today; A on 11-07 in two versions is one install.
@@ -85,7 +85,7 @@ test('platform and version filters narrow every number', async t => {
 
 test('cleanup removes day rows older than 400 days and keeps cumulative counts', async t => {
     const f = await seeded(t)
-    await f.worker.recover()
+    await f.maintenance.run()
     const days = (await f.pool.query('SELECT day::text AS day FROM usage_stats_days ORDER BY day')).rows.map(r => r.day)
     assert.equal(days.length, 7)
     assert.equal(days[0], '2026-10-01')
