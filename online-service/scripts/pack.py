@@ -15,8 +15,7 @@ fixed = [
     "online-service/compose.yaml", "online-service/Caddyfile",
     "online-service/.env.example", "online-service/.gitignore", "online-service/DEPLOY.md",
     "online-service/scripts/init-secrets.mjs", "online-service/scripts/backup.sh", "online-service/scripts/pack.py",
-    "server/hoyolab.mjs", "server/mys.mjs", "server/cookie.mjs", "server/device-fp.mjs", "server/usage-stats-features.mjs", "server/usage-stats-characters.mjs",
-    "server/vendor/twicedrop/mihoyo-api.mjs", "server/vendor/twicedrop/LICENSE",
+    "server/usage-stats-features.mjs", "server/usage-stats-characters.mjs",
 ]
 files = [source / name for name in fixed]
 files += sorted((service / "src").rglob("*.mjs"))
