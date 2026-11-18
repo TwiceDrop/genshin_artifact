@@ -11,7 +11,8 @@ import {ElMessageBox} from "element-plus"
 import "element-plus/es/components/message-box/style/css"
 import {importMonaJson} from "@/utils/artifacts"
 import {useArtifactStore} from "@/store/pinia/artifact"
-import {needsLogin} from "@/platform/login-gate.mjs"
+import {followCloudSession, needsLogin} from "@/platform/login-gate.mjs"
+import {profileSync} from "@/cloud/profile-sync"
 
 const IntroPage = () => import(/* webpackChunkName: "intro-page" */ "@page/about/IntroPage")
 const CharacterPresetsPage = () => import(/* webpackChunkName: "character-presets-page" */ "@page/CharacterPresetsPage")
@@ -142,6 +143,12 @@ router.beforeEach((to, from, next) => {
 // 打开软件后的第一次跳转先过登录门：没登录、也没选过离线模式时先到登录页，之后回到原来要去的页面。
 // 分享链接导入（/import）不拦。
 let loginChecked = false
+// 云档案同步跟随登录状态（已登录时启动、退出后停止），打开软件后开始跟随，不阻塞跳转
+let syncFollowed = false
+router.beforeEach(() => {
+    if (!syncFollowed) { syncFollowed = true; followCloudSession(profileSync) }
+    return true
+})
 router.beforeEach(async to => {
     if (loginChecked || to.name === "login" || to.path === "/import") return true
     loginChecked = true
