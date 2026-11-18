@@ -17,7 +17,7 @@ export async function cloudApi(path, method = 'GET', body, expectedContext) {
     const changed = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event('mona-cloud-context-change')) }
     try {
         const result = await request(path, method, body, expectedContext)
-        if ((path === 'config' && method === 'PUT') || path === 'v1/auth/email/verify' || path === 'v1/auth/logout' || (path.startsWith('v1/sessions/') && method === 'DELETE')) changed()
+        if ((path === 'config' && method === 'PUT') || path === 'v1/auth/email/verify' || path === 'v1/auth/logout' || (path === 'v1/me' && method === 'DELETE') || (path.startsWith('v1/sessions/') && method === 'DELETE')) changed()
         return result
     } catch (error) { if (error.status === 401 || error.code === 'CLOUD_CONTEXT_CHANGED') changed(); throw error }
 }

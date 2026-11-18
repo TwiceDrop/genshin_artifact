@@ -9,7 +9,7 @@ export function cloudServiceUrl(value) {
 }
 const publicKey = value => ({ key: value.key, salt: value.salt, kdf: value.kdf })
 const publicConfig = saved => ({ url: saved?.url || '', user: saved?.user || null, expiresAt: saved?.expiresAt || null })
-const remoteRoute = /^\/v1\/(?:auth\/email\/(?:request|verify)|auth\/logout|me|sessions(?:\/[a-zA-Z0-9-]+)?|cookie-vaults(?:\/(?:miyoushe|hoyolab)\/[0-9]{1,20})?|profiles(?:\/[a-zA-Z0-9-]+(?:\/(?:revisions(?:\/[0-9]+)?|history(?:\/[a-zA-Z0-9-]+)?))?)?)$/
+const remoteRoute = /^\/v1\/(?:auth\/email\/(?:request|verify)|auth\/logout|me(?:\/(?:password|email))?|sessions(?:\/[a-zA-Z0-9-]+)?|cookie-vaults(?:\/(?:miyoushe|hoyolab)\/[0-9]{1,20})?|profiles(?:\/[a-zA-Z0-9-]+(?:\/(?:revisions(?:\/[0-9]+)?|history(?:\/[a-zA-Z0-9-]+)?))?)?)$/
 
 // Online sessions use a separate DPAPI file; the game Cookie vault is read only
 // when the user explicitly selects a saved account to encrypt and upload.
@@ -71,8 +71,9 @@ export class CloudGateway {
             delete data.sessionToken
         }
         // 读取或修改个人信息（如用户名）后刷新缓存的登录用户，与 Android 的 cloud-mobile.mjs 一致
-        if (response.ok && route === '/v1/me') await this.store.update('online', { user: data.user })
-        if ((response.ok && (route === '/v1/auth/logout' || (method === 'DELETE' && route === `/v1/sessions/${saved.sessionToken?.split('.')[0]}`))) || (response.status === 401 && !route.startsWith('/v1/auth/email/'))) {
+        if (response.ok && ((route === '/v1/me' && method !== 'DELETE') || route === '/v1/me/email')) await this.store.update('online', { user: data.user })
+        // 退出登录、撤销本机会话、注销账号成功后，清掉本机保存的会话和 Cookie 密钥
+        if ((response.ok && (route === '/v1/auth/logout' || (method === 'DELETE' && route === '/v1/me') || (method === 'DELETE' && route === `/v1/sessions/${saved.sessionToken?.split('.')[0]}`))) || (response.status === 401 && !route.startsWith('/v1/auth/email/'))) {
             await this.store.update('online', { sessionToken: null, user: null, expiresAt: null, cookieKey: null })
         }
         return { status: response.status, data }

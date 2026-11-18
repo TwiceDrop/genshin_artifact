@@ -51,8 +51,8 @@ async function execute(path, method, body, expectedContext) {
         const { sessionToken, ...result } = data
         return result
     }
-    if (path === 'v1/me') await write({ ...config, user: data.user })
-    if (path === 'v1/auth/logout' || (method === 'DELETE' && path === `v1/sessions/${config.sessionToken?.split('.')[0]}`)) await write({ url: config.url })
+    if ((path === 'v1/me' && method !== 'DELETE') || path === 'v1/me/email') await write({ ...config, user: data.user })
+    if (path === 'v1/auth/logout' || (method === 'DELETE' && path === 'v1/me') || (method === 'DELETE' && path === `v1/sessions/${config.sessionToken?.split('.')[0]}`)) await write({ url: config.url })
     return data
 }
 export function mobileCloudApi(path, method = 'GET', body, expectedContext) {
