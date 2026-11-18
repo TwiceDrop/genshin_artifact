@@ -13,11 +13,14 @@ async function request(path, method = 'GET', body, expectedContext) {
     return data
 }
 
+// 成功后会改变登录状态的接口：登录、注册、重设密码（服务端注销全部会话）、退出登录
+const CONTEXT_PATHS = ['v1/auth/email/verify', 'v1/auth/register', 'v1/auth/password/login', 'v1/auth/password/reset', 'v1/auth/logout']
+
 export async function cloudApi(path, method = 'GET', body, expectedContext) {
     const changed = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event('mona-cloud-context-change')) }
     try {
         const result = await request(path, method, body, expectedContext)
-        if ((path === 'config' && method === 'PUT') || path === 'v1/auth/email/verify' || path === 'v1/auth/logout' || (path.startsWith('v1/sessions/') && method === 'DELETE')) changed()
+        if ((path === 'config' && method === 'PUT') || CONTEXT_PATHS.includes(path) || (path.startsWith('v1/sessions/') && method === 'DELETE')) changed()
         return result
     } catch (error) { if (error.status === 401 || error.code === 'CLOUD_CONTEXT_CHANGED') changed(); throw error }
 }

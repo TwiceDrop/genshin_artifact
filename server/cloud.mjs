@@ -8,8 +8,10 @@ export function cloudServiceUrl(value) {
     return url.href.replace(/\/+$/, '')
 }
 const publicKey = value => ({ key: value.key, salt: value.salt, kdf: value.kdf })
+// 这些接口成功时返回新会话：本机保存令牌，不交给页面
+const sessionRoutes = new Set(['/v1/auth/email/verify', '/v1/auth/register', '/v1/auth/password/login'])
 const publicConfig = saved => ({ url: saved?.url || '', user: saved?.user || null, expiresAt: saved?.expiresAt || null })
-const remoteRoute = /^\/v1\/(?:auth\/email\/(?:request|verify)|auth\/logout|me|sessions(?:\/[a-zA-Z0-9-]+)?|cookie-vaults(?:\/(?:miyoushe|hoyolab)\/[0-9]{1,20})?|profiles(?:\/[a-zA-Z0-9-]+(?:\/(?:revisions(?:\/[0-9]+)?|history(?:\/[a-zA-Z0-9-]+)?))?)?)$/
+const remoteRoute = /^\/v1\/(?:auth\/email\/(?:request|verify)|auth\/register|auth\/password\/(?:login|reset)|auth\/logout|me|sessions(?:\/[a-zA-Z0-9-]+)?|cookie-vaults(?:\/(?:miyoushe|hoyolab)\/[0-9]{1,20})?|profiles(?:\/[a-zA-Z0-9-]+(?:\/(?:revisions(?:\/[0-9]+)?|history(?:\/[a-zA-Z0-9-]+)?))?)?)$/
 
 // Online sessions use a separate DPAPI file; the game Cookie vault is read only
 // when the user explicitly selects a saved account to encrypt and upload.
@@ -66,7 +68,7 @@ export class CloudGateway {
             ...(!['GET', 'HEAD'].includes(method) ? { body: JSON.stringify(body) } : {}),
         })
         const data = await response.json()
-        if (response.ok && route === '/v1/auth/email/verify') {
+        if (response.ok && sessionRoutes.has(route)) {
             await this.store.upsert({ id: 'online', url: saved.url, sessionToken: data.sessionToken, user: data.user, expiresAt: data.expiresAt })
             delete data.sessionToken
         }

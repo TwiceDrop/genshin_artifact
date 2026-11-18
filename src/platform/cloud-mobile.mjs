@@ -3,6 +3,8 @@ import { MonaLocal } from './native.mjs'
 import { publicAccount } from '../../server/cookie.mjs'
 
 let queue = Promise.resolve()
+// 这些接口成功时返回新会话：本机保存令牌，不交给页面，与桌面 server/cloud.mjs 一致
+const sessionPaths = new Set(['v1/auth/email/verify', 'v1/auth/register', 'v1/auth/password/login'])
 const publicKey = value => ({ key: value.key, salt: value.salt, kdf: value.kdf })
 const publicConfig = config => ({ url: config.url || '', user: config.user || null, expiresAt: config.expiresAt || null })
 function serviceUrl(value) {
@@ -46,7 +48,7 @@ async function execute(path, method, body, expectedContext) {
         if (response.status === 401 && !path.startsWith('v1/auth/email/')) await write({ url: config.url })
         throw Object.assign(new Error(data.error?.message || data.error || `在线服务 HTTP ${response.status}`), { ...(typeof data.error === 'object' ? data.error : {}), status: response.status, retryAfterSeconds: data.error?.retryAfterSeconds || data.retryAfterSeconds })
     }
-    if (path === 'v1/auth/email/verify' && method === 'POST') {
+    if (sessionPaths.has(path) && method === 'POST') {
         await write({ url: config.url, sessionToken: data.sessionToken, user: data.user, expiresAt: data.expiresAt })
         const { sessionToken, ...result } = data
         return result

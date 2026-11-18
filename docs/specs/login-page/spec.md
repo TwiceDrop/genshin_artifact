@@ -22,6 +22,8 @@ Status: done
 
 ## 接口
 
+2026-11-18 起登录页另有密码登录、注册和重设密码，验证码登录不再自动建号；流程、接口和文案见 `docs/specs/online-accounts/issues/06-login-and-register-pages.md`。下面是最初的验证码登录。
+
 沿用在线服务的邮箱验证码登录（与在线账号页相同）：`v1/auth/email/request`、`v1/auth/email/verify`。设备名称自动填 Windows / Android；服务地址不在登录页填写。
 
 ## 待同伴处理
