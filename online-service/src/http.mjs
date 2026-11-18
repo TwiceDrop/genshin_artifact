@@ -64,6 +64,7 @@ export function createApi(options) {
             if (method === 'POST' && path === '/v1/auth/email/verify') return send(200, await auth.verifyCode(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/auth/register') return send(200, await auth.register(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/auth/password/login') return send(200, await auth.passwordLogin(await bodyOf(request), ip))
+            if (method === 'POST' && path === '/v1/auth/password/reset') return send(200, await auth.resetPassword(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/usage-stats') return send(200, await usageStats.ingest(await bodyOf(request, USAGE_UPLOAD_LIMITS.bodyBytes), ip))
             if (method === 'GET' && path === '/v1/usage-stats/summary') return send(200, await usageStats.summary(url.searchParams, request.headers.authorization))
             const pageFile = method === 'GET' && path.startsWith('/admin/') ? await usageStatsPageFile(path) : null
@@ -76,6 +77,9 @@ export function createApi(options) {
             const userId = identity.user.id
             if (method === 'GET' && path === '/v1/me') return send(200, { user: identity.user })
             if (method === 'PATCH' && path === '/v1/me') return send(200, await auth.setUsername(identity, await bodyOf(request)))
+            if (method === 'POST' && path === '/v1/me/password') return send(200, await auth.changePassword(identity, await bodyOf(request)))
+            if (method === 'POST' && path === '/v1/me/email') return send(200, await auth.changeEmail(identity, await bodyOf(request)))
+            if (method === 'DELETE' && path === '/v1/me') return send(200, await auth.deleteAccount(identity, await bodyOf(request)))
             if (method === 'POST' && path === '/v1/auth/logout') return send(200, await auth.revoke(identity, identity.sessionId))
             if (method === 'GET' && path === '/v1/sessions') return send(200, await auth.sessions(identity))
             const sessionPath = /^\/v1\/sessions\/([^/]+)$/.exec(path)

@@ -140,6 +140,81 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
         await pool.query('UPDATE sessions SET last_used_at=$2 WHERE id=$1', [row.id, clock()])
         return { sessionId: row.id, user: { id: row.user_id, email: row.email, username: row.username } }
     }
+    // 已登录时再次确认本人：核对当前密码，同一账号每小时最多 10 次。改密码和注销账号共用。
+    async function confirmPassword(auth, password) {
+        if (typeof password !== 'string' || !password || [...password].length > 64) throw invalid('请输入当前密码')
+        await limit(`reauth-user:${auth.user.id}`, 3600, 10)
+        const { rows: [row] } = await pool.query('SELECT password_hash FROM users WHERE id=$1', [auth.user.id])
+        if (!await verifyPassword(password, row?.password_hash)) throw new ApiError(400, 'WRONG_PASSWORD', '当前密码不正确')
+    }
+    // 改密码后注销本设备以外的会话。
+    async function changePassword(auth, input) {
+        const password = passwordFrom(input?.newPassword)
+        await confirmPassword(auth, input?.currentPassword)
+        const passwordHash = await hashPassword(password)
+        await transaction(pool, async db => {
+            await db.query('UPDATE users SET password_hash=$2 WHERE id=$1', [auth.user.id, passwordHash])
+            await db.query('DELETE FROM sessions WHERE user_id=$1 AND id<>$2', [auth.user.id, auth.sessionId])
+        })
+        return { ok: true }
+    }
+    // 新邮箱的验证码走公开的 /v1/auth/email/request，这里核对后更换。
+    async function changeEmail(auth, input) {
+        checkCodeProof(input)
+        const now = clock()
+        const result = await transaction(pool, async db => {
+            const challenge = await provenChallenge(db, input, now)
+            if (!challenge) return null
+            if ((await db.query('SELECT 1 FROM users WHERE email=$1 AND id<>$2', [challenge.email, auth.user.id])).rowCount)
+                throw new ApiError(409, 'EMAIL_TAKEN', '该邮箱已被其他账号使用')
+            const { rows: [user] } = await db.query(`UPDATE users SET email=$2 WHERE id=$1 RETURNING ${USER_FIELDS}`, [auth.user.id, challenge.email])
+            await db.query('DELETE FROM email_challenges WHERE id=$1', [challenge.id])
+            return { user }
+        })
+        if (!result) throw invalidCode()
+        return result
+    }
+    // 忘记密码：用注册邮箱收到的验证码重设，并注销所有会话。发码接口对任何邮箱的回复都一样，不暴露是否注册。
+    async function resetPassword(input, ip) {
+        checkCodeProof(input)
+        const password = passwordFrom(input.newPassword)
+        await limit(`verify-ip:${ip}`, 600, 120)
+        const passwordHash = await hashPassword(password)
+        const now = clock()
+        const result = await transaction(pool, async db => {
+            const challenge = await provenChallenge(db, input, now)
+            if (!challenge) return null
+            const { rows: [user] } = await db.query('UPDATE users SET password_hash=$2 WHERE email=$1 RETURNING id', [challenge.email, passwordHash])
+            if (!user) return { unregistered: true }
+            await db.query('DELETE FROM sessions WHERE user_id=$1', [user.id])
+            await db.query('DELETE FROM email_challenges WHERE id=$1', [challenge.id])
+            return { ok: true }
+        })
+        if (!result) throw invalidCode()
+        if (result.unregistered) throw new ApiError(404, 'ACCOUNT_NOT_FOUND', '该邮箱尚未注册，请先注册')
+        return result
+    }
+    // 注销账号：用当前密码或本人邮箱的验证码确认，删除账号；会话、云端档案和 Cookie 密文随外键级联删除。
+    async function deleteAccount(auth, input) {
+        if (input?.password !== undefined) {
+            await confirmPassword(auth, input.password)
+            await pool.query('DELETE FROM users WHERE id=$1', [auth.user.id])
+            return { ok: true }
+        }
+        if (input?.challengeId === undefined) throw invalid('请输入当前密码或邮箱验证码')
+        checkCodeProof(input)
+        await limit(`reauth-user:${auth.user.id}`, 3600, 10)
+        const now = clock()
+        const deleted = await transaction(pool, async db => {
+            const challenge = await provenChallenge(db, input, now)
+            if (!challenge || challenge.email !== auth.user.email) return false
+            await db.query('DELETE FROM email_challenges WHERE id=$1', [challenge.id])
+            await db.query('DELETE FROM users WHERE id=$1', [auth.user.id])
+            return true
+        })
+        if (!deleted) throw invalidCode()
+        return { ok: true }
+    }
     async function setUsername(auth, input) {
         const username = usernameFrom(input?.username)
         try {
@@ -160,5 +235,5 @@ export function createAuth({ pool, vault, config, sendCode, onError = () => {}, 
         await pool.query('DELETE FROM sessions WHERE id=$1 AND user_id=$2', [id, auth.user.id])
         return { ok: true }
     }
-    return { requestCode, verifyCode, register, passwordLogin, authenticate, setUsername, sessions, revoke, limit }
+    return { requestCode, verifyCode, register, passwordLogin, resetPassword, authenticate, changePassword, changeEmail, deleteAccount, setUsername, sessions, revoke, limit }
 }

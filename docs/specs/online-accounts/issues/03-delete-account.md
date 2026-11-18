@@ -6,11 +6,15 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] 注销接口：要求重新验证身份，输入密码或邮箱验证码，二选一
-- [ ] 删除后，这个账号的所有会话立即失效
-- [ ] 核对所有引用 `users` 的表都会级联删除；如有不级联的表，先报告开发者，再决定怎么处理
-- [ ] 测试：注销后旧会话访问返回 401，相关数据行清空
+- [x] 注销接口：要求重新验证身份，输入密码或邮箱验证码，二选一
+- [x] 删除后，这个账号的所有会话立即失效
+- [x] 核对所有引用 `users` 的表都会级联删除；如有不级联的表，先报告开发者，再决定怎么处理
+- [x] 测试：注销后旧会话访问返回 401，相关数据行清空
 
 ## Comments
+- 2026-11-18：已实现，测试见 `online-service/tests/delete-account.test.mjs`。
+  - 接口：`DELETE /v1/me`，请求体为 `{password}`，或者 `{challengeId, code}`（验证码必须是发到本人邮箱的）。
+  - 核对了所有引用 `users` 的表，都设了 `ON DELETE CASCADE`：`sessions`、`profiles`（及其 `profile_revisions`、`profile_history`）、`cookie_vaults`。
+  - 使用统计是匿名的，不关联账号，所以不需要删。按用户计数的限流行会由 maintenance 按时间清掉。
