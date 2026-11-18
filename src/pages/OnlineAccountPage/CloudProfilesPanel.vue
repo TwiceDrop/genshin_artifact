@@ -23,6 +23,10 @@
                 </div>
             </div>
         </div>
+        <div class="sync-categories">
+            <strong>同步内容</strong>
+            <el-checkbox v-for="item in categories" :key="item.key" :model-value="settings[item.key]" :disabled="working" @change="value => setCategory(item.key, value)">{{ item.label }}</el-checkbox>
+        </div>
         <el-empty v-if="!sync.state.profiles.length" description="暂无云档案" />
         <article v-for="profile in sync.state.profiles" :key="profile.id" class="cloud-profile">
             <div class="profiles-heading"><strong>{{ profile.name || '已删除档案' }}</strong><el-tag>{{ profile.deletedAt ? '已删除' : `修订 ${profile.revision}` }}</el-tag></div>
@@ -55,6 +59,10 @@ const props = defineProps({ user: { type: Object, required: true }, serviceUrl: 
 const account = useAccountStore(), error = ref(''), pending = ref(false), versions = ref({})
 const working = computed(() => pending.value || sync.state.busy)
 const binding = computed(() => sync.state.bindings.find(item => item.localAccountId === account.currentAccountId.value))
+// 类别名称为占位文案，待开发者确认（见 docs/specs/online-accounts/issues/09-sync-settings.md）
+const categories = [{ key: 'cookie', label: 'Cookie' }, { key: 'uid', label: 'UID 数据' }, { key: 'history', label: '历史记录' }, { key: 'artifacts', label: '圣遗物' }, { key: 'characters', label: '角色设置（含 MONA-DSL 手改）' }, { key: 'teams', label: '多人轴和文件' }]
+const settings = ref(sync.getSyncSettings())
+const setCategory = (key, value) => run(async () => { await sync.setSyncSettings({ ...settings.value, [key]: value }); settings.value = sync.getSyncSettings() })
 let disposed = false, generation = 0
 const dateText = value => value ? new Date(value).toLocaleString() : '—'
 const statusLabel = value => ({ synced:'已同步', syncing:'同步中', pending:'待同步', dirty:'待提交', offline:'离线待同步', conflict:'存在冲突', deleted:'云档案已删除', disabled:'已暂停', paused:'已暂停', waiting:'等待计算结束', running:'等待计算结束', error:'同步失败', idle:'待同步' }[value] || value)
@@ -66,7 +74,7 @@ async function run(action) {
     try { await action() } catch (e) { if (!disposed && identity === generation) error.value = e.message }
     finally { pending.value = false }
 }
-function refresh() { return run(() => sync.refresh()) }
+function refresh() { return run(async () => { await sync.refresh(); settings.value = sync.getSyncSettings() }) }
 function loadVersions(profile, more = false) { return run(async () => {
     const identity = generation, before = more ? versions.value[profile.id]?.nextCursor : null
     const result = await cloudApi(`v1/profiles/${profile.id}/revisions?limit=20${before ? `&before=${before}` : ''}`, 'GET', undefined, { url: props.serviceUrl, userId: props.user.id })
@@ -79,6 +87,6 @@ onBeforeUnmount(() => { disposed = true; generation++ })
 </script>
 
 <style scoped>
-.cloud-profiles{padding:22px 0;border-bottom:1px solid var(--el-border-color-light,#e4e7ed)}.profiles-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.profiles-heading h3{font-size:17px;margin:0}.profiles-heading strong{overflow-wrap:anywhere}.profile-current{padding:18px 0}.profile-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.profile-actions .el-button{margin-left:0}.profile-actions .el-switch{margin-right:8px}.profile-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;color:var(--el-text-color-secondary,#909399);font-size:14px}.profile-error{margin:10px 0;color:var(--el-color-danger,#f56c6c);overflow-wrap:anywhere}.cloud-profile{padding:18px 0;border-top:1px solid var(--el-border-color-light,#e4e7ed)}.profile-conflict{margin-top:16px}.profile-conflict>.profile-actions{margin-top:10px}.profile-versions{margin-top:14px}.profile-version{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;font-size:14px;border-top:1px solid var(--el-border-color-lighter,#ebeef5)}
+.cloud-profiles{padding:22px 0;border-bottom:1px solid var(--el-border-color-light,#e4e7ed)}.profiles-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.profiles-heading h3{font-size:17px;margin:0}.profiles-heading strong{overflow-wrap:anywhere}.sync-categories{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;padding:6px 0 14px}.profile-current{padding:18px 0}.profile-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.profile-actions .el-button{margin-left:0}.profile-actions .el-switch{margin-right:8px}.profile-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;color:var(--el-text-color-secondary,#909399);font-size:14px}.profile-error{margin:10px 0;color:var(--el-color-danger,#f56c6c);overflow-wrap:anywhere}.cloud-profile{padding:18px 0;border-top:1px solid var(--el-border-color-light,#e4e7ed)}.profile-conflict{margin-top:16px}.profile-conflict>.profile-actions{margin-top:10px}.profile-versions{margin-top:14px}.profile-version{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;font-size:14px;border-top:1px solid var(--el-border-color-lighter,#ebeef5)}
 @media(max-width:640px){.profile-actions{display:grid;grid-template-columns:1fr 1fr}.profile-actions .el-switch{grid-column:1/-1}.profile-actions .el-button{width:100%}.profiles-heading{align-items:flex-start}.profile-version{align-items:flex-start;flex-direction:column}}
 </style>

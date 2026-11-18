@@ -1,3 +1,5 @@
+import { normalizeSyncSettings, hasDisabledProfileFields, mergeForUpload, mergeForDownload } from './sync-categories.mjs'
+
 export const SYNC_KEY = 'mona_cloud_profiles_v1'
 const clone = value => JSON.parse(JSON.stringify(value))
 const contextKey = context => context ? `${context.url}\n${context.userId}` : ''
@@ -11,6 +13,7 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
     async function init() {
         if (!initialized) initialized = (async () => {
             metadata = makeReactive(await storage.getItem(SYNC_KEY) || { version: 1, deviceId: uuid(), bindings: [], deletions: [] })
+            metadata.syncSettings = normalizeSyncSettings(metadata.syncSettings)
             names = accountNames(); await persist()
         })()
         await initialized
@@ -64,13 +67,20 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
     }
     async function push(binding, scope) {
         await ensureCreated(binding, scope)
-        if (!binding.pending) { binding.pending = payload(binding, await snapshot(binding)); await persist() }
+        if (!binding.pending) {
+            const captured = await snapshot(binding)
+            if (hasDisabledProfileFields(metadata.syncSettings)) {
+                const remote = await request(scope, `v1/profiles/${binding.profileId}`, 'GET', undefined, binding)
+                captured.data = mergeForUpload(captured.data, remote.revision?.data, metadata.syncSettings)
+            }
+            binding.pending = payload(binding, captured); await persist()
+        }
         const pending = binding.pending, { generation, ...body } = pending
         try {
             const result = await request(scope, `v1/profiles/${binding.profileId}/revisions`, 'PUT', body, binding)
             binding.baseRevision = result.revision.revision
             binding.syncedGeneration = generation; binding.pending = null; binding.conflictRevision = null; binding.conflictGeneration = null
-            binding.status = binding.localGeneration === generation ? 'synced' : 'dirty'; binding.error = ''; await persist()
+            binding.status = binding.localGeneration === generation ? 'synced' : 'dirty'; binding.error = ''; binding.lastSyncedAt = new Date().toISOString(); await persist()
         } catch (error) {
             if (error.code === 'PROFILE_CONFLICT') {
                 binding.status = 'conflict'; binding.conflictRevision = error.revision?.revision; binding.conflictGeneration = generation
@@ -84,19 +94,21 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
         return revision.data
     }
     async function apply(binding, scope, revision, generation, automatic = false) {
-        const data = revisionData(revision), sequence = mutationSequence
+        let data = revisionData(revision)
+        if (hasDisabledProfileFields(metadata.syncSettings)) data = mergeForDownload(await capture(binding.localAccountId), data, metadata.syncSettings)
+        const sequence = mutationSequence
         const guard = () => {
             localGuard(scope, binding, generation)
             if (sequence !== mutationSequence || (automatic && (binding.pending || binding.syncedGeneration !== binding.localGeneration))) throw waiting()
         }
         await assertCurrent(scope, binding); guard()
         const next = clone(metadata), nextBinding = next.bindings.find(item => item.bindingId === binding.bindingId)
-        Object.assign(nextBinding, { baseRevision: revision.revision, syncedGeneration: generation, pending: null, conflictRevision: null, conflictGeneration: null, status: 'synced', error: '' })
+        Object.assign(nextBinding, { baseRevision: revision.revision, syncedGeneration: generation, pending: null, conflictRevision: null, conflictGeneration: null, status: 'synced', error: '', lastSyncedAt: new Date().toISOString() })
         await restore(binding.localAccountId, data, [[SYNC_KEY, next]], guard)
         Object.assign(binding, nextBinding); names = accountNames(); visible(); await persist()
     }
     async function history(binding, scope) {
-        if (!binding.profileId || !historySync || !canRestore(binding.localAccountId)) return
+        if (!binding.profileId || !historySync || metadata.syncSettings.history === false || !canRestore(binding.localAccountId)) return
         await historySync({ accountId: binding.localAccountId, profileId: binding.profileId, metadata: clone(binding.history || {}),
             request: (path, options = {}) => request(scope, path, options.method || 'GET', options.body, binding),
             assertCurrent: () => assertCurrent(scope, binding),
@@ -195,6 +207,8 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
             return binding.localAccountId
         }),
         syncCurrent: () => enqueue(async () => { const scope = await identity(), binding = bindingForCurrent(); if (!scope || !binding) throw new Error('当前本地账号未关联云档案'); const enabled = binding.enabled; binding.enabled = true; try { await syncBinding(binding, scope); await loadProfiles(scope) } finally { binding.enabled = enabled; await persist() } }),
+        getSyncSettings: () => normalizeSyncSettings(metadata?.syncSettings),
+        setSyncSettings: settings => enqueue(async () => { metadata.syncSettings = normalizeSyncSettings(settings); await persist(); wake() }, false),
         setEnabled: (accountId, enabled) => enqueue(async () => { await identity(); const binding = visible().find(item => item.localAccountId === accountId); if (!binding) return; binding.enabled = enabled; if (!['conflict', 'deleted'].includes(binding.status)) binding.status = enabled ? 'dirty' : 'disabled'; await persist(); if (enabled) wake() }),
         unlink: accountId => enqueue(async () => { await identity(); metadata.bindings = metadata.bindings.filter(binding => !(binding.scope === contextKey(context) && binding.localAccountId === accountId)); await persist(); visible() }),
         deleteCloud: profileId => enqueue(async () => {
