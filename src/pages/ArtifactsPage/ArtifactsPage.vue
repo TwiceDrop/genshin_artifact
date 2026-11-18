@@ -147,7 +147,8 @@ import {downloadString} from '@/utils/common'
 import {recordUsage, recordUsageUnlessCancelled} from '@/usage-stats/index.mjs'
 import {deviceIsPC} from "@/utils/device"
 import {createRepo} from "@/api/repo"
-import {type Ref} from "vue"
+import {type Ref, watch} from "vue"
+import {useRoute, useRouter} from "vue-router"
 import {useArtifactStore} from "@/store/pinia/artifact"
 import { isNative, saveText } from '@/platform/native.mjs'
 import {usePresetStore} from "@/store/pinia/preset"
@@ -376,6 +377,15 @@ const importBackupKumiDir = ref(false)
 function handleImportJsonClicked() {
     showImportDialog.value = true;
 }
+
+// 首次使用弹窗用 /artifacts?import=1 直接打开文件导入
+const route = useRoute(), router = useRouter()
+watch(() => route.query.import, value => {
+    if (value !== undefined && route.path === "/artifacts") {
+        handleImportJsonClicked()
+        router.replace({path: "/artifacts"})
+    }
+}, {immediate: true})
 
 async function importJson(text: string, deleteUnseen: boolean, backupKumiDir: boolean) {
     try {
