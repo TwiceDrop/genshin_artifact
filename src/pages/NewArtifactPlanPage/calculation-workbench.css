@@ -1,18 +1,18 @@
 /* Hallmark · v2.0.0 · shape: app screen · theme: custom, 雾蓝工作台 · genre: modern-minimal · scope: app · signature: five equipment slots beside a live character sheet. */
 /* Critique: compare five pieces against a live stat sheet in the first viewport; keep numerical comparisons and the weapon's full passive legible. */
 [data-theme="mist"] {
-    --canvas: #f5f7fa; --surface: #ffffff; --surface-inset: #f6f8fb;
-    --ink: #243141; --ink-secondary: #425469; --quiet: #536579;
-    --rule: #d4dce5; --hairline: #e2e7ed; --field-edge: #8794a3;
-    --accent: #32649b; --action: #2c609b; --accent-hover: #214e82; --tint: #eaf2fb;
-    --profile: #f0f5fa; --on-action: #ffffff; --portrait-bg: #dfebf6;
-    --focus: #2b67a1;
+    --canvas: var(--cx-ground); --surface: var(--cx-card); --surface-inset: var(--cx-step);
+    --ink: var(--cx-letter); --ink-secondary: var(--cx-dim); --quiet: var(--cx-dim);
+    --rule: var(--cx-step-2); --hairline: var(--cx-step-2); --field-edge: var(--cx-dim);
+    --accent: var(--cx-gold); --action: var(--cx-gold); --accent-hover: var(--cx-gold); --tint: var(--cx-step);
+    --profile: var(--cx-step); --on-action: var(--cx-gold-on); --portrait-bg: var(--cx-step-2);
+    --focus: var(--cx-gold);
     --sans: system-ui, "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
     --radius-control: 6px; --radius-sheet: 10px;
-    --primary: 212 55% 39%; --primary-foreground: 0 0% 100%;
-    --el-color-primary: var(--accent); --el-color-primary-light-3: #507fb0;
-    --el-color-primary-light-5: #7b9fc2; --el-color-primary-light-7: #becfe1;
-    --el-color-primary-light-8: #d4e2ee; --el-color-primary-light-9: var(--tint);
+    --primary: 41 62% 33%; --primary-foreground: 0 0% 100%;
+    --el-color-primary: var(--accent); --el-color-primary-light-3: var(--cx-gold);
+    --el-color-primary-light-5: var(--cx-step-2); --el-color-primary-light-7: var(--cx-step-2);
+    --el-color-primary-light-8: var(--cx-step); --el-color-primary-light-9: var(--tint);
     --el-color-primary-dark-2: var(--accent-hover); --el-text-color-primary: var(--ink);
     --el-text-color-regular: var(--ink-secondary); --el-border-color: var(--rule);
     --el-border-color-light: var(--hairline); --el-border-color-lighter: var(--hairline);
@@ -68,6 +68,33 @@
 @container single-gear (min-width: 810px) { .artifacts { grid-template-columns: repeat(5,minmax(0,1fr)); } }
 .artifact-tool { margin: 12px 0; }
 .artifacts-card :deep(.artifact-comparison-controls) { padding: 12px 0 0; border: 0; border-top: 1px solid var(--hairline); border-radius: 0; }
+/* 目的：角色卡直接展示五件完整属性，按可用宽度换行，保留原卡片交互。 */
+.hero-equipment .card-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 14px; }
+.artifact-drawer-trigger { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: var(--cx-gold); font: inherit; font-weight: 650; cursor: pointer; }
+.hero-equipment .artifact-score-summary { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px 12px; margin-left: auto; }
+.hero-equipment .artifact-grade-summary { margin-left: 0; }
+.artifact-toolbar { display: flex; align-items: center; gap: 8px; flex: 1 1 420px; min-width: 0; overflow-x: auto; padding: 2px; }
+.artifact-toolbar :deep(.artifact-score-mode) { flex: none; flex-wrap: nowrap; }
+.artifact-toolbar .artifact-tool { display: flex; align-items: center; flex-wrap: nowrap; flex: none; gap: 8px; margin: 0; }
+.artifact-toolbar :deep(.artifact-score-mode > .el-button),
+.artifact-toolbar .artifact-tool :deep(> .el-button) { flex: none; margin-left: 0; height: 24px; padding: 5px 8px; font-size: 12px; }
+.artifact-toolbar .score-status, .artifact-toolbar .score-error { white-space: nowrap; }
+.artifact-bottom-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; overflow-x: auto; padding: 2px; }
+.artifact-bottom-actions .el-button { flex: none; margin-left: 0; }
+.hero-equipment .artifacts { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.hero-equipment .artifact-item-or-button { border-radius: 12px; overflow: hidden; }
+.hero-equipment .slot-name { padding: 8px 10px; border-radius: 0; }
+.hero-equipment :deep(.artifact) { display: flex; flex-direction: column; }
+.hero-equipment :deep(.artifact .up) { flex-wrap: wrap; padding: 8px 10px; }
+.hero-equipment :deep(.artifact .buttons) { margin-left: auto; }
+.hero-equipment :deep(.artifact .down) { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 8px; padding: 10px; flex: 1; }
+.hero-equipment :deep(.artifact .down .myimage) { width: 32px; height: 32px; margin: 0; }
+.hero-equipment :deep(.artifact .main-tag), .hero-equipment :deep(.artifact .sec-tag) { overflow-wrap: anywhere; line-height: 1.65; }
+.hero-equipment .artifact-piece-score { margin-top: auto; padding: 8px 10px; gap: 6px; }
+.hero-equipment .add-button { min-height: 170px; }
+@container single-gear (min-width: 440px) { .hero-equipment .artifacts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container single-gear (min-width: 660px) { .hero-equipment .artifacts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container single-gear (min-width: 1280px) { .hero-equipment .artifacts { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .panel-actions { border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 12px; }
 .team-context-control, .team-source-card, .polestar-field-control, .artifact-borrowing-control {
     background: var(--surface-inset); border-color: var(--hairline); border-radius: var(--radius-control); }

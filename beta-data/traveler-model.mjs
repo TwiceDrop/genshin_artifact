@@ -1,11 +1,25 @@
-const elements = ['Anemo', 'Geo', 'Electro', 'Dendro', 'Hydro', 'Pyro', 'Cryo'];
+export const travelerElements = Object.freeze(['Anemo', 'Geo', 'Electro', 'Dendro', 'Hydro', 'Pyro', 'Cryo']);
+export const isTraveler = name => travelerElements.some(element => name === 'Aether' + element || name === 'Lumine' + element);
+
+// 「真实之月」的共鸣加成独立于当前使用的旅行者元素。
+const resonanceStats = {
+    Anemo: ['CriticalBase', 0.10], Geo: ['DEFPercentage', 0.20],
+    Electro: ['Recharge', 0.20], Dendro: ['ElementalMastery', 60],
+    Hydro: ['HPPercentage', 0.20], Pyro: ['ATKPercentage', 0.20],
+    Cryo: ['CriticalDamageBase', 0.20],
+};
+export function travelerResonanceEffect(character) {
+    if (!character.resonated_elements?.length || !isTraveler(character.name)) return;
+    const values = Object.fromEntries(character.resonated_elements.map(element => resonanceStats[element]));
+    return {name: 'ExtensionEffect', config: {ExtensionEffect: {label: '旅行者·共鸣元素', values}}};
+}
 const aliases = { Wind: 'Anemo', Rock: 'Geo', Electric: 'Electro', Grass: 'Dendro', Water: 'Hydro', Fire: 'Pyro', Ice: 'Cryo' };
 export function travelerName(id, element) {
     if (id !== 10000005 && id !== 10000007) return undefined;
     return (id === 10000005 ? 'Aether' : 'Lumine') + (aliases[element] || element);
 }
 export function travelerModelName(name) {
-    return elements.some(element => name === 'Lumine' + element) ? name.replace('Lumine', 'Aether') : name;
+    return travelerElements.some(element => name === 'Lumine' + element) ? name.replace('Lumine', 'Aether') : name;
 }
 // Formal 7.1.0 D/R48145775: all seven elements share these sex differences.
 // Other level/ascension stats, talent parameters, passives and constellations

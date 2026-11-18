@@ -1,13 +1,13 @@
 <template>
   <template v-if="integrated">
-    <el-dialog v-model="settingsOpen" title="评分设置" width="min(540px, 94vw)" class="score-settings-dialog">
+    <el-dialog custom-class="cx-scope" v-model="settingsOpen" title="评分设置" width="min(540px, 94vw)" class="score-settings-dialog">
       <div class="controls">
       <label>评价基准<select v-model="basis" aria-label="动态评分基准"><option value="A">A · 固定主词条与套装</option><option value="B">B · 主词条与套装可变</option></select></label>
       <label>伤害目标<select v-model="target" aria-label="动态评分目标"><option v-for="item in reactions" :key="item.key" :value="item.key">{{ item.label }} · 当前技能期望</option><option v-if="input.target_function?.use_dsl" value="dsl">MONA-DSL · result</option></select></label>
     </div>
       <template #footer><el-button type="primary" @click="settingsOpen=false">完成</el-button></template>
     </el-dialog>
-    <el-dialog v-model="basisOpen" title="评分依据" width="min(1100px, 96vw)" top="5vh" class="score-basis-dialog">
+    <el-dialog custom-class="cx-scope viewport-dialog" v-model="basisOpen" title="评分依据" width="min(1100px, 96vw)" top="5vh" class="score-basis-dialog">
       <dynamic-artifact-score-result v-if="result" :result="result" :character-label="characterLabel" :weapon-label="weaponLabel" :skill-label="skillLabel" :selected-slot="selectedSlot" @inspect="inspect" />
       <template #footer><el-button @click="basisOpen=false">关闭</el-button></template>
     </el-dialog>
@@ -36,19 +36,20 @@ const basis=ref('A'),target=ref(props.input.target_function?.use_dsl?'dsl':defau
 const result=ref(null),running=ref(false),error=ref(''),status=ref('准备计算')
 const reactions=computed(()=>damageReactionOptions(props.analysis||{}))
 const client=createScoreWorkerClient(()=>new Worker(new URL('../../workers/dynamic_score.worker.js',import.meta.url)))
+const scoreRequest=computed(()=>JSON.parse(JSON.stringify({input:props.input,basis:basis.value,objective:target.value==='dsl'?{kind:'dsl'}:{kind:'skill',reaction:target.value,infusion:props.infusion},constraints:props.constraints,
+    sets:Object.values(sets).filter(s=>s.maxStar===5&&['flower','feather','sand','cup','head'].every(k=>s[k])).map(s=>s.name2)})))
 let generation=0
 const settingsOpen=ref(false),basisOpen=ref(false)
 watch([running,status,error],()=>emit('state',{running:running.value,status:status.value,error:error.value}),{flush:'sync',immediate:true})
 function inspect(index){basisOpen.value=false;emit('inspect',index)}
 defineExpose({start,cancel,openSettings:()=>{settingsOpen.value=true},openBasis:()=>{if(result.value)basisOpen.value=true}})
-function invalidate(){basisOpen.value=false;generation++;client.cancel();running.value=false;result.value=null;error.value='';status.value='计算条件已变更';emit('result',null)}
-watch(()=>[props.input,props.infusion,props.constraints,props.accountId,basis.value,target.value],invalidate,{deep:true,flush:'sync'})
+function invalidate(){basisOpen.value=false;generation++;client.cancel();running.value=false;result.value=client.getCachedResult(scoreRequest.value)??null;error.value='';status.value=result.value?'计算完成':'计算条件已变更';emit('result',result.value)}
+watch(scoreRequest,invalidate,{deep:true,flush:'sync'})
 watch(()=>JSON.stringify([props.input.character.name,props.input.skill,props.input.target_function,props.analysis?.is_heal]),()=>{target.value=props.input.target_function?.use_dsl?'dsl':defaultDamageReaction(props.analysis||{})})
-watch(()=>props.accountId,()=>client.clear())
+watch(()=>props.accountId,()=>{client.clear();invalidate()},{flush:'sync'})
 async function start(){
   error.value='';running.value=true;status.value='载入评分核心…';const token=++generation
-  const request=JSON.parse(JSON.stringify({input:props.input,basis:basis.value,objective:target.value==='dsl'?{kind:'dsl'}:{kind:'skill',reaction:target.value,infusion:props.infusion},constraints:props.constraints,
-    sets:Object.values(sets).filter(s=>s.maxStar===5&&['flower','feather','sand','cup','head'].every(k=>s[k])).map(s=>s.name2)}))
+  const request=scoreRequest.value
   try {const value=await client.run(request,p=>{if(token===generation)status.value=p.stage==='reference'?`求解参照 · 起点 ${p.start}/${p.starts} · 第 ${p.pass} 轮`:`计算单件替换 · ${p.slot}/5`})
     if(token!==generation)return;result.value=value;emit('result',value);status.value='计算完成';recordUsage('action.dynamic-artifact-score');return value
   }catch(e){if(token!==generation||e.name==='AbortError')return;error.value=e.message;status.value='计算失败'}

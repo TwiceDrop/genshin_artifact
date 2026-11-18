@@ -39,7 +39,7 @@ export default {
         left: 0;
         top: 0;
         height: 100%;
-        background-color: rgb(217, 236, 255);
+        background-color: var(--cx-step);
         z-index: -1;
     }
 

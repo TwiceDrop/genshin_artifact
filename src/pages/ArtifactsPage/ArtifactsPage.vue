@@ -7,7 +7,7 @@
             @confirm="handleConfirmAddArtifact"
         ></add-artifact-dialog>
 
-        <el-dialog
+        <el-dialog custom-class="cx-scope"
             v-model="showOutputShareDialog"
             title="分享"
             :width="deviceIsPC ? '500px' : '90%'"
@@ -20,7 +20,7 @@
             </template>
         </el-dialog>
 
-        <el-dialog v-model="showImportDialog" :title="t('misc.import')" :width="deviceIsPC ? '60%' : '90%'">
+        <el-dialog custom-class="cx-scope" v-model="showImportDialog" :title="t('misc.import')" :width="deviceIsPC ? '60%' : '90%'">
             <import-block ref="fileUploader" accept="application/json"></import-block>
             <el-checkbox v-model="importDeleteUnseen" style="margin-top: 12px">{{ t("artPage.deleteUnseen") }}</el-checkbox>
             <el-checkbox v-model="importBackupKumiDir" style="margin-top: 12px">{{ t("artPage.backupKumiDir") }}</el-checkbox>
@@ -31,8 +31,9 @@
             </template>
         </el-dialog>
 
-        <!-- 圣遗物详情；编辑在同一个抽屉里切换成原来的编辑表单 -->
-        <side-drawer v-model="detailOpen" :title="detailMode === 'edit' ? t('artPage.edit') : '圣遗物详情'">
+        <el-dialog v-model="detailOpen" :title="detailMode === 'edit' ? t('artPage.edit') : '圣遗物详情'"
+            width="min(640px, 94vw)" custom-class="cx-scope viewport-dialog condition-settings-dialog"
+            modal-class="condition-settings-overlay" append-to-body>
             <artifact-detail v-if="openedArtifact && detailMode === 'view'" :item="openedArtifact" :score="openedScore"
                 :score-label="scoreCharacter" :grade="openedScore === null ? undefined : getMarkClass(openedScore)"
                 @edit="startEditArtifact" @toggle-lock="toggleArtifact(openedArtifact.id)"
@@ -43,9 +44,11 @@
                 @confirm="handleConfirmEdit"
                 @cancel="detailMode = 'view'"
             ></edit-artifact>
-        </side-drawer>
+        </el-dialog>
 
-        <el-drawer :title="t('artPage.recommend')" v-model="showArtifactRecommendationDrawer" :size="deviceIsPC ? '30%' : '100%'">
+        <el-dialog :title="t('artPage.recommend')" v-model="showArtifactRecommendation"
+            width="min(760px, 94vw)" custom-class="cx-scope viewport-dialog condition-settings-dialog"
+            modal-class="condition-settings-overlay" append-to-body>
             <el-empty v-if="recommendationList.length === 0"></el-empty>
             <div v-else>
                 <artifact-display
@@ -57,7 +60,7 @@
                     :back-value="item[1]"
                 ></artifact-display>
             </div>
-        </el-drawer>
+        </el-dialog>
 
         <header class="art-bar">
             <div class="art-row">
@@ -166,7 +169,6 @@ import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
 import ArtifactDisplay from '@c/display/ArtifactDisplay';
 import ArtifactCard from '@/components/display/ArtifactCard.vue';
 import ArtifactDetail from './ArtifactDetail.vue';
-import SideDrawer from '@/components/misc/SideDrawer.vue';
 import {useScreen} from '@/composables/screen';
 import EditArtifact from './EditArtifact';
 import ImportBlock from '@c/misc/ImportBlock';
@@ -281,7 +283,7 @@ const artifactToBeDisplayed = computed(() => {
 const pagedArtifacts = computed(() => artifactToBeDisplayed.value.slice((page.value - 1) * pageSize, page.value * pageSize))
 watch([activeName, filterSet, filterMainStat, filterGe16, scoreCharacter], () => { page.value = 1 }, { deep: true })
 
-// 点卡片：打开详情抽屉
+// 点卡片打开详情，在同一窗口切换编辑。
 const openedArtifactId = ref(-1)
 const detailOpen = ref(false)
 const detailMode = ref<'view' | 'edit'>('view')
@@ -465,7 +467,7 @@ function handleConfirmEdit(id: number) {
 
 ///////////////////////////////////////////////////////////////////
 // artifacts recommendation
-const showArtifactRecommendationDrawer = ref(false)
+const showArtifactRecommendation = ref(false)
 const recommendationList: Ref<[number, number][]> = ref([])
 const recommendationInCalculation = ref(false)
 
@@ -479,7 +481,7 @@ function handleClickRecommendation() {
     }
 
     recommendationList.value = [];
-    showArtifactRecommendationDrawer.value = true;
+    showArtifactRecommendation.value = true;
 
     getArtifactsRecommendation().then(({ scores, skipped }) => {
         if (skipped.length) ElMessage.warning(`有 ${skipped.length} 个预设不支持静态推荐评分，已跳过；可在计算器使用实际配装。${skipped.join('；')}`)
@@ -698,7 +700,7 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
 
 .art-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 14px;
 }
 

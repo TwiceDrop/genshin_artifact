@@ -68,7 +68,7 @@ export default {
     height: 32px;
     justify-content: center;
     align-items: center;
-    background: rgb(236, 245, 255);
+    background: var(--cx-step);
 }
 
 .item {
@@ -97,7 +97,7 @@ export default {
 
         &:focus {
             //background-color: #00000005;
-            border-bottom: 1px solid #409EFF;
+            border-bottom: 1px solid var(--cx-gold);
         }
     }
 }

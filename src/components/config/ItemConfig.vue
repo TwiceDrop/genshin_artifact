@@ -30,7 +30,7 @@ export default {
             type: Array
         },
         bg: {
-            default: "rgb(239, 246, 253)"
+            default: "var(--cx-step)"
         },
         needItemName: {
             default: true,
@@ -82,7 +82,7 @@ export default {
 .config-root {
     padding: 12px;
     border-radius: 3px;
-    // background-color: rgb(239, 246, 253);
+    // background-color: var(--cx-step);
 
     .config {
         margin-bottom: 8px;

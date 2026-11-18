@@ -1,7 +1,7 @@
 <template>
-    <div class="artifact-comparison-controls">
+    <div class="artifact-comparison-controls" :class="{ inline }">
         <div class="comparison-actions">
-            <span>圣遗物对比</span><el-switch :model-value="enabled" aria-label="开启圣遗物对比" @update:model-value="v => emit('update:enabled', v)" />
+            <span>{{ inline ? '对比：' : '圣遗物对比' }}</span><el-switch :model-value="enabled" aria-label="开启圣遗物对比" @update:model-value="v => emit('update:enabled', v)" />
             <el-radio-group v-if="enabled" :model-value="mode" size="small" @update:model-value="v => emit('update:mode', v)">
                 <el-radio-button label="game">游戏内穿戴</el-radio-button>
                 <el-radio-button label="session">此次计算前</el-radio-button>
@@ -15,11 +15,15 @@
     </div>
 </template>
 <script setup>
-defineProps({ enabled: Boolean, mode: String, history: Array, historyId: String })
+defineProps({ inline: Boolean, enabled: Boolean, mode: String, history: Array, historyId: String })
 const emit = defineEmits(['update:enabled', 'update:mode', 'update:historyId', 'save'])
 </script>
 <style scoped>
 .artifact-comparison-controls{border:1px solid var(--el-border-color-light);border-radius:6px;padding:12px;margin-bottom:12px}
 .comparison-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px}
 .comparison-history{width:100%;margin-top:10px}
+.artifact-comparison-controls.inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;padding:0;margin:0;border:0}
+.inline .comparison-actions{display:contents}
+.inline .comparison-history{width:min(220px,100%);margin-top:0}
+.inline :deep(.el-radio-group){flex-shrink:0}
 </style>

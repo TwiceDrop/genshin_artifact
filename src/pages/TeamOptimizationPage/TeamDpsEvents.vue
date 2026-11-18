@@ -74,5 +74,5 @@ function selectEvent(row:any){selectedId.value=row.event.id;statePage.value=1}
 watch(()=>props.trace,resetSelection)
 </script>
 <style scoped>
-.dps-events{background:#fff;border:1px solid #e2e7ef;border-radius:14px;padding:18px;min-width:0;font-variant-numeric:tabular-nums}.dps-events h3{margin:0 0 8px}.dps-events small{display:block;color:#6f8098;margin-top:4px}.event-table :deep(.el-table__row){cursor:pointer}.event-states{margin-top:22px;padding-top:14px;border-top:1px solid #e2e7ef}.event-states h4{margin:0}.state-context{color:#63728a;font-size:14px;line-height:1.6}.el-pagination{margin-top:10px}
+.dps-events{background:var(--cx-card);border:1px solid var(--cx-step-2);border-radius:14px;padding:18px;min-width:0;font-variant-numeric:tabular-nums}.dps-events h3{margin:0 0 8px}.dps-events small{display:block;color:var(--cx-dim);margin-top:4px}.event-table :deep(.el-table__row){cursor:pointer}.event-states{margin-top:22px;padding-top:14px;border-top:1px solid var(--cx-step-2)}.event-states h4{margin:0}.state-context{color:var(--cx-dim);font-size:14px;line-height:1.6}.el-pagination{margin-top:10px}
 </style>

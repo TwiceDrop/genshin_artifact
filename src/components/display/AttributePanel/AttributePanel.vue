@@ -12,18 +12,16 @@
         <attribute-item :title="t('stat.criticalDamage')" :composition="attribute.critical_damage" :baseline="baseline?.critical_damage" :percentage="true"></attribute-item>
 
         <attribute-item :title="t('stat.cureEffect')" :composition="attribute.healing_bonus" :baseline="baseline?.healing_bonus" :percentage="true"></attribute-item>
+        <attribute-item :title="t('stat.incomingHealing')" :composition="attribute.incoming_healing_bonus" :baseline="baseline?.incoming_healing_bonus" :percentage="true" />
         <attribute-item :title="t('stat.recharge')" :composition="attribute.recharge" :baseline="baseline?.recharge" :percentage="true"></attribute-item>
+        <attribute-item :title="t('stat.cooldownReduction')" :composition="attribute.cooldown_reduction" :baseline="baseline?.cooldown_reduction" :percentage="true" />
         <attribute-item :title="t('stat.shield')" :composition="attribute.shield_strength" :baseline="baseline?.shield_strength" :percentage="true"></attribute-item>
 
         <h3 class="class">{{ t("stat.ele") }}</h3>
-        <attribute-item :title="t('stat.fireBonus')" :composition="attribute.bonus_pyro" :baseline="baseline?.bonus_pyro" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.waterBonus')" :composition="attribute.bonus_hydro" :baseline="baseline?.bonus_hydro" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.dendroBonus')" :composition="attribute.bonus_dendro" :baseline="baseline?.bonus_dendro" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.thunderBonus')" :composition="attribute.bonus_electro" :baseline="baseline?.bonus_electro" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.windBonus')" :composition="attribute.bonus_anemo" :baseline="baseline?.bonus_anemo" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.iceBonus')" :composition="attribute.bonus_cryo" :baseline="baseline?.bonus_cryo" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.rockBonus')" :composition="attribute.bonus_geo" :baseline="baseline?.bonus_geo" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.physicalBonus')" :composition="attribute.bonus_physical" :baseline="baseline?.bonus_physical" :percentage="true"></attribute-item>
+        <template v-for="[element, label] in elements" :key="element">
+            <attribute-item :title="t('stat.' + label + 'Bonus')" :composition="attribute['bonus_' + element]" :baseline="baseline?.['bonus_' + element]" :percentage="true" />
+            <attribute-item :title="t('stat.' + label + 'Res')" :composition="attribute['res_' + element]" :baseline="baseline?.['res_' + element]" :percentage="true" />
+        </template>
     </div>
 </template>
 
@@ -62,7 +60,9 @@ export default {
         const { t } = useI18n()
 
         return {
-            t
+            t,
+            elements: [['pyro', 'fire'], ['hydro', 'water'], ['dendro', 'dendro'], ['electro', 'thunder'],
+                ['anemo', 'wind'], ['cryo', 'ice'], ['geo', 'rock'], ['physical', 'physical']],
         }
     }
 }

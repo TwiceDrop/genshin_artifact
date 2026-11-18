@@ -1,7 +1,7 @@
 <template>
     <div
         class="artifact"
-        :class="{ selectable: props.selectable, omit: isLocked }"
+        :class="{ selectable: props.selectable, omit: isLocked, 'two-column': props.twoColumn }"
         :tabindex="props.selectable ? 0 : undefined"
         :aria-label="props.selectable ? displayedTitle : undefined"
         @keydown.enter.self.prevent="handleClick"
@@ -67,8 +67,13 @@
             </div>
             <div class="detail-div">
                 <p class="main-tag">{{ mainDisplayTag }}</p>
+                <div v-if="props.twoColumn" class="secondary-grid">
+                    <p v-for="(tag, index) in secTagParts" :key="index" class="sec-tag">
+                        <span>{{ tag[0] }}</span><b>{{ tag[1] }}</b>
+                    </p>
+                </div>
                 <p
-                    v-for="(tag, index) in secTags"
+                    v-for="(tag, index) in (props.twoColumn ? [] : secTags)"
                     :key="index"
                     class="sec-tag"
                 >
@@ -92,7 +97,7 @@ import IconEpLock from "~icons/ep/lock"
 import IconEpDelete from "~icons/ep/delete"
 import IconEpEdit from "~icons/ep/edit"
 import {IArtifact, IArtifactContentOnly} from "@/types/artifact"
-import {displayedTag, positionToIndex} from "@/utils/artifacts"
+import {displayedTag, displayedTagParts, positionToIndex} from "@/utils/artifacts"
 import {useI18n} from "@/i18n/i18n"
 
 // i18n
@@ -101,6 +106,8 @@ const { t, ta } = useI18n()
 interface Props {
     item: Omit<IArtifact, "id" | "contentHash">,
     selectable?: boolean,
+    twoColumn?: boolean,
+    shortRecharge?: boolean,
     extra?: string,
     buttons?: boolean,
     deleteButton?: boolean,
@@ -175,6 +182,11 @@ const mainDisplayTag = computed(() => {
     // console.log("123", props.item.mainTag.name)
     return displayedTag(props.item.mainTag.name, props.item.mainTag.value)
 })
+
+const secTagParts = computed(() => props.item.normalTags.map(tag => {
+    const [label, value] = displayedTagParts(tag.name, tag.value)
+    return [props.shortRecharge && tag.name === "recharge" ? t("stat.shortRecharge") : label, value]
+}))
 
 const secTags = computed(() => {
     let temp = [];
@@ -321,6 +333,25 @@ function defaultItem(): Omit<IArtifact, "id" | "contentHash"> {
             margin: 0;
             font-weight: bold;
         }
+    }
+}
+.artifact.two-column .down {
+    .detail-div { display: contents; }
+    .main-tag { align-self: center; }
+    .secondary-grid {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px 10px;
+    }
+    .secondary-grid .sec-tag {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 4px;
+        min-width: 0;
+        span { min-width: 0; overflow-wrap: anywhere; }
+        b { flex: none; white-space: nowrap; font-weight: 600; color: var(--cx-letter); }
     }
 }
 </style>

@@ -6,6 +6,7 @@ export interface ICharacter {
     skill1: number,
     skill2: number,
     skill3: number,
+    resonated_elements?: string[],
     params: any
 }
 

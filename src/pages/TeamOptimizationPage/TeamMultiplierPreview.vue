@@ -1,5 +1,5 @@
 <template>
- <el-dialog :model-value="true" title="技能倍率预览" width="min(1120px,96vw)" custom-class="team-dps-dialog cx-scope" @close="$emit('close')">
+ <el-dialog :model-value="true" title="技能倍率预览" width="min(1120px,96vw)" custom-class="team-dps-dialog cx-scope viewport-dialog" @close="$emit('close')">
   <p class="preview-description">按单目标汇总当前轴内的技能倍率，包含形态、资源、命座追加和角色独立倍率。生命消耗增幅、装备效果及定额加值在正式伤害计算中结算。</p>
   <el-alert v-if="error" :title="error" type="error" :closable="false"/>
   <simple-loading v-else-if="!preview"/>
@@ -52,5 +52,5 @@ onMounted(()=>{
 onBeforeUnmount(()=>{worker?.terminate();worker=null})
 </script>
 <style scoped>
-.preview-description,.preview-context{color:#718096;font-size:13px;line-height:1.7;margin:0 0 16px}.preview-context{margin:14px 0 0}.preview-overview{display:flex;align-items:center;gap:20px;margin-bottom:18px;color:#718096}.preview-overview strong{font-size:24px;color:#355b85}.preview-character{display:flex;align-items:center;gap:12px}.preview-character img{width:42px;height:42px;border-radius:50%;background:#edf4fb}.preview-character small{display:block;color:#8b97a8;margin-top:4px}.multiplier-hits{margin:6px 0 12px}.multiplier-summary :deep(.cell){line-height:1.7}.multiplier-summary :deep(.el-table__expanded-cell){padding:12px 18px;background:#f7f9fc}
+.preview-description,.preview-context{color:var(--cx-dim);font-size:13px;line-height:1.7;margin:0 0 16px}.preview-context{margin:14px 0 0}.preview-overview{display:flex;align-items:center;gap:20px;margin-bottom:18px;color:var(--cx-dim)}.preview-overview strong{font-size:24px;color:var(--cx-gold)}.preview-character{display:flex;align-items:center;gap:12px}.preview-character img{width:42px;height:42px;border-radius:50%;background:var(--cx-step)}.preview-character small{display:block;color:var(--cx-dim);margin-top:4px}.multiplier-hits{margin:6px 0 12px}.multiplier-summary :deep(.cell){line-height:1.7}.multiplier-summary :deep(.el-table__expanded-cell){padding:12px 18px;background:var(--cx-step)}
 </style>

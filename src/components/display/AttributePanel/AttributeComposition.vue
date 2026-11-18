@@ -7,7 +7,7 @@
                 class="item"
             >
                 <span>{{ item.name }}</span>
-                <span>{{ item.value.toFixed(3) }}</span>
+                <span>{{ percentage ? Number((item.value * 100).toFixed(3)) + '%' : item.value.toFixed(3) }}</span>
             </div>
         </template>
         <div class="no-item" v-else style="padding: 8px">
@@ -19,7 +19,7 @@
 <script>
 export default {
     name: "AttributeComposition",
-    props: ["composition"],
+    props: { composition: Object, percentage: Boolean },
     computed: {
         list() {
             let temp = []

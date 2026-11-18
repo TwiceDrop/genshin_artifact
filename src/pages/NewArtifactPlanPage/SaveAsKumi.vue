@@ -1,5 +1,5 @@
 <template>
-    <el-dialog
+    <el-dialog custom-class="cx-scope"
         :model-value="props.modelValue"
         @update:modelValue="emits('update:modelValue', $event)"
         :title="t('calcPage.saveKumi')"

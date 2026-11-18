@@ -1,6 +1,6 @@
 <template>
     <el-dialog :model-value="true" :title="creating ? '新建自定义预设' : '编辑角色预设'"
-        custom-class="cx-scope preset-editor-dialog"
+        custom-class="cx-scope preset-editor-dialog viewport-dialog"
         width="min(960px, 96vw)" @update:model-value="value => { if (!value) $emit('close') }" :close-on-click-modal="false">
         <div class="preset-editor">
             <label class="preset-name"><span>预设名称</span><el-input v-model="name" :disabled="!creating" aria-label="预设名称" /></label>
@@ -76,7 +76,7 @@
             append-to-body destroy-on-close @update:model-value="value => { if (!value) selectSlot = null }">
             <select-artifact v-if="selectSlot !== null" :position="positions[selectSlot]" @select="handleSelectArtifact" />
         </el-dialog>
-        <el-dialog v-model="showBuffs" :title="t('calcPage.selectBuff')" width="min(800px, 96vw)" append-to-body destroy-on-close>
+        <el-dialog custom-class="cx-scope viewport-dialog" v-model="showBuffs" :title="t('calcPage.selectBuff')" width="min(800px, 96vw)" append-to-body destroy-on-close>
             <select-buff v-if="showBuffs" :preferred-uid="game.selectedUid.value" :selected-names="b.buffs.map(buff => buff.name)" @select="handleSelectBuff" />
         </el-dialog>
     </el-dialog>

@@ -177,11 +177,11 @@ defineExpose({
     justify-content: center;
 
     &:hover {
-        border: 1px dashed #409eff;
+        border: 1px dashed var(--cx-gold);
     }
 
     &.over {
-        border: 1px dashed #409eff;
+        border: 1px dashed var(--cx-gold);
         background-color: rgba(32, 159, 255, .06);
     }
 

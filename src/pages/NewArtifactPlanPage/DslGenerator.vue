@@ -8,7 +8,7 @@
             <el-button @click="removeEntry(index)" :aria-label="'移除'+ta(entry.text)">移除</el-button>
         </div>
         <div class="generated-code"><strong>生成的 MONA-DSL</strong><el-input type="textarea" :rows="10" :model-value="source" readonly label="生成的 MONA-DSL" /><el-button @click="reset">重置</el-button></div>
-        <el-dialog v-model="showSkills" title="添加技能伤害" width="min(1100px, 96vw)" append-to-body class="dsl-skill-dialog">
+        <el-dialog custom-class="cx-scope" v-model="showSkills" title="添加技能伤害" width="min(1100px, 96vw)" append-to-body class="dsl-skill-dialog">
             <div class="generator-controls">
                 <label>取值<el-radio-group v-model="value"><el-radio-button v-for="item in DSL_VALUES" :key="item.key" :label="item.key">{{ item.label }}</el-radio-button></el-radio-group></label>
                 <label>附魔<select-element-type v-model="infusion" :elements="['None','Pyro','Hydro','Electro','Cryo','Anemo','Geo','Dendro']" /></label>

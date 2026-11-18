@@ -15,7 +15,7 @@
             </template>
         </preset-browser>
         <preset-editor v-if="editorOpen" :preset-name="editingName" @close="editorOpen = false" @saved="handleSaved" />
-        <el-dialog v-model="showImportDialog" :title="t('misc.import')" :width="deviceIsPC ? '60%' : '90%'">
+        <el-dialog custom-class="cx-scope" v-model="showImportDialog" :title="t('misc.import')" :width="deviceIsPC ? '60%' : '90%'">
             <import-block ref="fileImportBlock" accept="application/json,text/plain" />
             <template #footer><el-button @click="showImportDialog = false">{{ t('misc.cancel') }}</el-button><el-button type="primary" @click="handleImport">{{ t('misc.confirm') }}</el-button></template>
         </el-dialog>

@@ -4,6 +4,7 @@ import { characterData } from "@character"
 import {type Ref} from "vue"
 import type {CharacterName} from "@/types/character"
 import {useI18n} from "@/i18n/i18n"
+import {isTraveler} from "../../beta-data/traveler-model.mjs"
 
 export function useCharacter() {
     const characterName = ref("Amber")
@@ -13,6 +14,7 @@ export function useCharacter() {
     const characterSkill2 = ref(8)
     const characterSkill3 = ref(8)
     const characterConstellation = ref(0)
+    const travelerResonance = ref<string[]>([])
 
     const { ta } = useI18n()
     // const characterWeaponType = ref<WeaponType>("Bow")
@@ -57,6 +59,8 @@ export function useCharacter() {
             skill1: characterSkill1.value - 1,
             skill2: characterSkill2.value - 1,
             skill3: characterSkill3.value - 1,
+            ...(isTraveler(characterName.value) && travelerResonance.value.length
+                ? {resonated_elements: [...travelerResonance.value]} : {}),
             params: characterConfig.value
         }
         return i
@@ -93,6 +97,7 @@ export function useCharacter() {
         characterSkill2,
         characterSkill3,
         characterConstellation,
+        travelerResonance,
         characterWeaponType,
         characterLevelNumber,
         characterAscend,

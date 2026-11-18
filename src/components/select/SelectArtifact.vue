@@ -118,12 +118,21 @@ const { t } = useI18n()
 .artifacts {
     margin: 14px 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
     grid-auto-rows: max-content;
     gap: 10px;
 
     :deep(.art-card) {
+        min-width: 0;
         background: var(--cx-step);
+    }
+
+    :deep(.art-subs span span),
+    :deep(.art-name b) {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
     }
 
     :deep(.art-main) {

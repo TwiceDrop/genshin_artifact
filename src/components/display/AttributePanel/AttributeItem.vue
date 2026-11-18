@@ -4,7 +4,7 @@
             <span class="title">{{ title }}</span>
             <template #content>
 <!--                <div slot="content">-->
-                    <attribute-composition :composition="composition"></attribute-composition>
+                    <attribute-composition :composition="composition" :percentage="percentage"></attribute-composition>
 <!--                </div>-->
             </template>
         </el-tooltip>

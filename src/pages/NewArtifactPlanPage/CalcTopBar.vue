@@ -10,10 +10,8 @@
             <icon-ep-arrow-down aria-hidden="true" />
         </button>
         <span class="calc-top-spacer"></span>
-        <div class="calc-top-account">
-            <button type="button" class="calc-top-chip" @click="emit('import')">账号导入</button>
-            <button type="button" class="calc-top-chip" @click="emit('my-characters')">我的角色</button>
-        </div>
+        <button type="button" class="calc-top-chip" @click="emit('calculation-settings')">计算设置</button>
+        <button type="button" class="calc-top-chip" @click="emit('artifact-settings')">圣遗物设置</button>
         <button type="button" class="calc-top-run" :disabled="running" @click="emit('run')">
             <icon-ep-loading v-if="running" class="calc-top-spin" aria-hidden="true" />
             <span v-else aria-hidden="true">✦</span>
@@ -29,8 +27,8 @@ import IconEpLoading from "~icons/ep/loading"
 defineProps<{ targetLabel: string, running: boolean }>()
 const emit = defineEmits<{
     (e: "target"): void
-    (e: "import"): void
-    (e: "my-characters"): void
+    (e: "calculation-settings"): void
+    (e: "artifact-settings"): void
     (e: "run"): void
 }>()
 </script>
@@ -104,11 +102,6 @@ const emit = defineEmits<{
     flex: 1;
 }
 
-.calc-top-account {
-    display: flex;
-    gap: 8px;
-}
-
 .calc-top-run {
     display: inline-flex;
     align-items: center;
@@ -173,12 +166,8 @@ const emit = defineEmits<{
     }
 }
 
-// 窄屏：账号导入和我的角色收进预设下拉（见页面模板），这里只隐藏
+// 窄屏：预设独占一行，设置与配装操作按可用宽度换行。
 @container single-calculator (max-width: 820px) {
-    .calc-top-account {
-        display: none;
-    }
-
     .calc-top-title {
         display: none;
     }

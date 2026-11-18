@@ -2,15 +2,21 @@ import {canonical,createScoreCache,SCORE_VERSION} from './cache.mjs'
 
 export function createScoreWorkerClient(makeWorker) {
     let worker=null,sequence=0,pending=null
-    const cache=createScoreCache(12)
+    // 目的：保留一轮 100 套候选的已算评分，来回浏览时只读取缓存。
+    const cache=createScoreCache(100)
     function cancel() {
         sequence++
         if(pending){worker?.terminate();worker=null;pending.reject(Object.assign(new Error('动态评分已取消'),{name:'AbortError'}));pending=null}
     }
+    function getCachedResult(request) {
+        const saved=cache.get(canonical({version:SCORE_VERSION,request}))
+        return saved ? {...saved,timing:{...saved.timing,resultCacheHit:true,totalMs:0}} : undefined
+    }
     function run(request,onProgress=()=>{}) {
         if(pending)cancel()
-        const key=canonical({version:SCORE_VERSION,request}),saved=cache.get(key)
-        if(saved)return Promise.resolve({...saved,timing:{...saved.timing,resultCacheHit:true,totalMs:0}})
+        const saved=getCachedResult(request)
+        if(saved)return Promise.resolve(saved)
+        const key=canonical({version:SCORE_VERSION,request})
         const id=++sequence
         return new Promise((resolve,reject)=>{
             pending={resolve,reject}
@@ -26,5 +32,5 @@ export function createScoreWorkerClient(makeWorker) {
             worker.postMessage({id,request:structuredClone(request)})
         })
     }
-    return {run,cancel,clear(){cancel();worker?.terminate();worker=null;cache.clear()}}
+    return {run,getCachedResult,cancel,clear(){cancel();worker?.terminate();worker=null;cache.clear()}}
 }

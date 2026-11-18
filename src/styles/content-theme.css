@@ -1,8 +1,9 @@
-/* 内容页（计算器、圣遗物页）的配色（夜空风格）。挂在 .cx-scope 上。角色卡等夜空色区块直接读外框的 --sh-* 变量。
+/* 内容页的夜空配色。根节点提供公共控件与传送到 body 的弹层所需变量，cx-scope 和抽屉沿用同一份。目的：弹层脱离页面后仍跟随主题。
    变量名避开 script/postcss-mona-colors.cjs 识别的角色词（background、text、line、
    edge、accent、color 等），否则深色模式下会被它再映射一次。
    抽屉挂在 body 上（内容区的容器查询会困住固定定位），所以变量同时定义在 .side-drawer 上；
    本文件在 main.ts 全局引入。 */
+html[data-color-mode],
 .cx-scope,
 .side-drawer {
     --cx-ground: #eef0f6;
@@ -19,6 +20,7 @@
     --cx-radius: 18px;
 }
 
+html[data-color-mode="dark"],
 html[data-color-mode="dark"] .cx-scope,
 html[data-color-mode="dark"] .side-drawer {
     --cx-ground: #0f1428;
@@ -34,6 +36,7 @@ html[data-color-mode="dark"] .side-drawer {
 }
 
 /* 内容区和抽屉里的 Element Plus 控件用金色做主色。加 html 前缀是为了压过计算器旧「雾蓝」主题的 scoped 规则 */
+html[data-color-mode],
 html[data-color-mode] .cx-scope,
 html[data-color-mode] .side-drawer {
     --el-color-primary: var(--cx-gold);
@@ -43,9 +46,20 @@ html[data-color-mode] .side-drawer {
     --el-color-primary-light-7: var(--cx-step-2);
     --el-color-primary-light-8: var(--cx-step);
     --el-color-primary-light-9: var(--cx-step);
+    --el-bg-color: var(--cx-card);
+    --el-bg-color-overlay: var(--cx-card);
+    --el-text-color-primary: var(--cx-letter);
+    --el-text-color-regular: var(--cx-letter);
+    --el-text-color-secondary: var(--cx-dim);
+    --el-border-color: var(--cx-step-2);
+    --el-border-color-light: var(--cx-step-2);
+    --el-border-color-lighter: var(--cx-step-2);
+    --el-fill-color-light: var(--cx-step);
+    --el-fill-color-blank: var(--cx-card);
 }
 
-/* mona-theme.css 在深色模式下把单选按钮、开关、主按钮单独设成了蓝色，这里盖回金色 */
+/* 控件直接使用主题金色及其前景色。目的：浅色和深色的选中态都保持可读。 */
+html[data-color-mode] .el-radio-button,
 html[data-color-mode] .cx-scope .el-radio-button,
 html[data-color-mode] .side-drawer .el-radio-button {
     --el-radio-button-checked-bg-color: var(--cx-gold);
@@ -53,11 +67,17 @@ html[data-color-mode] .side-drawer .el-radio-button {
     --el-radio-button-checked-text-color: var(--cx-gold-on);
 }
 
+html[data-color-mode] .el-switch,
 html[data-color-mode] .cx-scope .el-switch,
 html[data-color-mode] .side-drawer .el-switch {
     --el-switch-on-color: var(--cx-gold);
 }
 
+html[data-color-mode] .el-checkbox {
+    --el-checkbox-checked-icon-color: var(--cx-gold-on);
+}
+
+html[data-color-mode] .el-button--primary,
 html[data-color-mode] .cx-scope .el-button--primary,
 html[data-color-mode] .side-drawer .el-button--primary {
     --el-button-bg-color: var(--cx-gold);
@@ -68,6 +88,50 @@ html[data-color-mode] .side-drawer .el-button--primary {
     --el-button-hover-text-color: var(--cx-gold-on);
     --el-button-active-bg-color: var(--cx-gold);
     --el-button-active-border-color: var(--cx-gold);
+    --el-button-active-text-color: var(--cx-gold-on);
+    --el-button-disabled-bg-color: var(--cx-step-2);
+    --el-button-disabled-border-color: var(--cx-step-2);
+    --el-button-disabled-text-color: var(--cx-dim);
+}
+
+/* 目的：所有对话框（包括传送到 body 的弹层）统一使用主题圆角。 */
+html[data-color-mode] .el-dialog {
+    --el-dialog-border-radius: var(--cx-radius);
+    border-radius: var(--el-dialog-border-radius);
+}
+
+/* 目的：长列表、配置和图表弹窗共用高度上限，避免内容撑出屏幕。 */
+.optimization-target-overlay .el-overlay-dialog,
+.condition-settings-overlay .el-overlay-dialog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.el-dialog.viewport-dialog {
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+    margin-top: 10vh;
+    margin-bottom: 10vh;
+}
+
+.condition-settings-overlay .condition-settings-dialog {
+    margin: 0;
+}
+
+/* 目的：长内容在窗口内滚动，标题、关闭按钮和底部操作始终可见。 */
+.viewport-dialog > .el-dialog__header,
+.viewport-dialog > .el-dialog__footer {
+    flex-shrink: 0;
+}
+
+.viewport-dialog > .el-dialog__body {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 /* 套用新配色的弹窗（如计算预设的编辑弹窗）：底色跟随内容区卡片 */

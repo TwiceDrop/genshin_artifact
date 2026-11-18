@@ -1,21 +1,24 @@
 <template>
     <div>
-        <el-drawer
+        <el-dialog
             :title="t('misc.panel')"
-            v-model="showAttributeDrawer"
-            :size="deviceIsPC ? '30%' : '100%'"
+            v-model="showAttributePanel"
+            width="min(760px, 94vw)"
+            custom-class="cx-scope viewport-dialog condition-settings-dialog"
+            modal-class="condition-settings-overlay"
+            append-to-body
         >
-            <template v-if="!wasmAttribute">
+            <template v-if="!memberAttributes">
                 <el-empty>In theory, you should not see this</el-empty>
             </template>
             <template v-else>
                 <div style="padding: 0 20px">
                     <attribute-panel
-                        :attribute="wasmAttribute"
+                        :attribute="memberAttributes"
                     ></attribute-panel>
                 </div>
             </template>
-        </el-drawer>
+        </el-dialog>
 
         <el-row :gutter="16">
             <el-col
@@ -139,7 +142,6 @@ import {ref} from "vue"
 import {convertArtifact} from "@/utils/converter"
 import {team_optimize} from "@/wasm"
 import {convertPresetToWasmInterface} from "@/utils/preset"
-import {deviceIsPC} from "@/utils/device"
 // @ts-ignore
 import ArtifactDisplay from "@/components/display/ArtifactDisplay.vue"
 import SelectPreset from "@/components/select/SelectPreset.vue"
@@ -148,7 +150,7 @@ import {useArtifactStore} from "@/store/pinia/artifact"
 import type {IArtifact} from "@/types/artifact"
 import {usePresetStore} from "@/store/pinia/preset"
 import {useAccountStore} from "@/store/pinia/account"
-import {useMona} from "@/wasm/mona"
+import {rosterAttributes} from '@/algorithms/roster-attributes.mjs'
 import {deepCopy} from "@/utils/common"
 
 import IconEpCpu from "~icons/ep/cpu"
@@ -164,7 +166,6 @@ const artifactStore = useArtifactStore()
 const presetStore = usePresetStore()
 const accountStore = useAccountStore()
 
-const mona = await useMona()
 
 // members
 type MemberPresetName = string | null
@@ -233,10 +234,10 @@ function handleChangeResultIndex(index: number) {
 
 
 // attribute
-const showAttributeDrawer = ref(false)
-const wasmAttribute = ref(null as any)
+const showAttributePanel = ref(false)
+const memberAttributes = ref(null as any)
 
-function wasmGetAttributeInterface(index: number) {
+function memberPanelInput(index: number) {
     let artifacts: any[] = []
     if (currentResultEntry.value) {
         const artifactIds = Object.values(currentResultEntry.value[index])
@@ -253,16 +254,14 @@ function wasmGetAttributeInterface(index: number) {
     return {
         character: presets.value[index].item.character,
         weapon: presets.value[index].item.weapon,
-        buffs: presets.value[index].item.buffs,
         artifacts,
     }
 }
 
-async function handleClickDisplayAttributePanel(index: number) {
-    const input = wasmGetAttributeInterface(index)
-    wasmAttribute.value = await mona.CommonInterface.get_attribute(input)
+function handleClickDisplayAttributePanel(index: number) {
+    memberAttributes.value = rosterAttributes(memberPanelInput(index))
 
-    showAttributeDrawer.value = true
+    showAttributePanel.value = true
 }
 
 // artifacts

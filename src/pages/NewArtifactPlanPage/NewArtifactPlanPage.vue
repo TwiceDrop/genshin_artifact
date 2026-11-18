@@ -1,6 +1,6 @@
 <template>
     <div class="calculator-page">
-        <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog">
+        <el-dialog v-model="showOptimizationProgress" :title="optimizationRunning ? '计算进度' : optimizationCancelled ? '计算已取消' : '计算成功'" width="min(520px, 94vw)" :close-on-click-modal="false" :close-on-press-escape="!optimizationRunning" :show-close="!optimizationRunning" class="optimization-progress-dialog" custom-class="cx-scope">
             <el-progress :percentage="Math.round((optimizationProgress.percent ?? 0) * 10) / 10" :indeterminate="optimizationProgress.percent === null" :status="optimizationRunning ? undefined : optimizationCancelled ? 'warning' : 'success'" />
             <div class="optimization-progress-stats">
                 <p v-if="useNewScore && dynamicScoreState.running" role="status">评分 <b>{{ dynamicScoreState.status }}</b></p>
@@ -44,7 +44,7 @@
         </el-dialog>
 
 <!--        damage analysis-->
-        <el-dialog
+        <el-dialog custom-class="cx-scope"
             v-model="showDamageAnalysisDialog"
             :title="t('calcPage.dmgComp')"
             :width="deviceIsPC ? '90%' : '96%'"
@@ -58,7 +58,7 @@
         </el-dialog>
 
 <!--    select buff    -->
-        <el-dialog
+        <el-dialog custom-class="cx-scope viewport-dialog"
             v-model="showSelectBuffDialog"
             :title="t('calcPage.selectBuff')"
             :width="deviceIsPC ? '60%' : '90%'"
@@ -72,11 +72,19 @@
         </el-dialog>
 
 <!--    computation setup    -->
-        <el-dialog
+        <el-dialog custom-class="cx-scope viewport-dialog"
             v-model="showConstraintDialog"
             :title="t('calcPage.setupCalc')"
             :width="deviceIsPC ? '400px' : '90%'"
         >
+
+            <div class="optimization-debug-control">
+                <el-switch v-model="optimizationDebugEnabled" active-text="Debug 模式" aria-label="Debug 模式" />
+                <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
+                <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : optimizationDebugRecord.status === 'cancelled' ? '计算已取消' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
+                <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
+                <details v-if="optimizationDebugRecord?.events.length"><summary>查看调试阶段与错误详情</summary><pre>{{ optimizationDebugDetail }}</pre></details>
+            </div>
             <template v-if="optimizationMode === 'damage'">
             <p class="common-title2">
                 {{ t("misc.algo") }}
@@ -104,12 +112,8 @@
             </template>
             <p class="common-title2">{{ t("calcPage.constSet") }}</p>
             <div style="margin-top: 12px; margin-bottom: 12px">
-                <select-artifact-set
-                    multiple
-                    v-model="constraintArtifactSet"
-                    :style="{ width: '100%' }"
-                    :placeholder="t('calcPage.constSet')"
-                ></select-artifact-set>
+                <select-artifact-set multiple v-model="constraintArtifactSet"
+                    :style="{ width: '100%' }" :placeholder="t('calcPage.constSet')" />
             </div>
 
             <p class="common-title2">{{ t("calcPage.constMain") }}</p>
@@ -227,7 +231,7 @@
         </el-dialog>
 
 <!--    artifacts analysis    -->
-        <el-dialog
+        <el-dialog custom-class="cx-scope"
             v-model="showArtifactAnalysisDialog"
             :title="t('calcPage.artAnalysis')"
             :width="deviceIsPC ? '60%' : '90%'"
@@ -238,14 +242,15 @@
         </el-dialog>
 
 <!--    stats marginal bonus    -->
-        <el-dialog v-model="showOptimalGainCurve" title="最优词条收益曲线" :width="deviceIsPC ? '85%' : '96%'" destroy-on-close>
+        <el-dialog custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body
+            v-model="showOptimalGainCurve" title="最优词条收益曲线" width="min(1100px, 94vw)" destroy-on-close>
             <optimal-stat-gain-curve v-if="showOptimalGainCurve"
                 :input="damageAnalysisWasmInterface" :analysis="characterDamageAnalysis" :fumo="fumo" :account-id="accountStore.currentAccountId.value" />
         </el-dialog>
-        <el-dialog
+        <el-dialog custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body
             v-model="showArtifactPerBonusDialog"
             :title="t('calcPage.statCurve')"
-            :width="deviceIsPC ? '80%' : '90%'"
+            width="min(1100px, 94vw)"
         >
             <artifact-per-stat-bonus
                 :data="miscPerStatBonus"
@@ -260,7 +265,7 @@
         ></save-as-kumi>
 
 <!--    select artifact kumi    -->
-        <el-dialog
+        <el-dialog custom-class="cx-scope"
             v-model="showUseKumiDialog"
             :title="t('calcPage.selectKumi')"
             :width="deviceIsPC ? '60%' : '90%'"
@@ -276,11 +281,18 @@
 
 
 <!--        artifact config-->
-        <el-dialog
+        <el-dialog custom-class="cx-scope viewport-dialog"
             v-model="showConfigArtifactDialog"
             :title="t('calcPage.setupArt')"
             :width="deviceIsPC ? '60%' : '90%'"
         >
+            <div class="artifact-borrowing-control">
+                <label><span>是否允许替换其他角色已穿戴的圣遗物</span><el-switch v-model="allowBorrowEquipped" aria-label="是否允许替换其他角色已穿戴的圣遗物" /></label>
+                <div v-if="allowBorrowEquipped" class="borrowing-sources">
+                    <el-checkbox v-model="borrowGameArtifacts">包含游戏内角色</el-checkbox>
+                    <el-checkbox v-model="borrowCustomArtifacts">包含自定义角色</el-checkbox>
+                </div>
+            </div>
             <template v-if="optimizationMode === 'damage'">
             <h3 class="common-title2">{{ t("calcPage.artMode") }}</h3>
             <el-radio-group
@@ -297,35 +309,33 @@
             ></artifact-config>
         </el-dialog>
 
-        <el-dialog v-model="showMiyousheImport" custom-class="cx-scope" title="导入我的角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
-            <miyoushe-import v-if="showMiyousheImport" @apply="name => { usePreset(name); showMiyousheImport = false }" />
+        <el-dialog v-model="showDefaultCharacters" custom-class="cx-scope viewport-dialog" title="默认角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+            <default-character-picker v-if="showDefaultCharacters" @select="selectDefaultCharacter" />
         </el-dialog>
-        <el-dialog v-model="showMyCharacters" custom-class="cx-scope" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
+        <el-dialog v-model="showMyCharacters" custom-class="cx-scope viewport-dialog" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
             <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />
         <div class="calc-content cx-scope" data-theme="mist">
             <calc-top-bar :target-label="optimizeTargetLabel" :running="optimizationRunning || dynamicScoreState.running"
-                @target="optimizeSettingsOpen = true" @import="showMiyousheImport = true" @my-characters="showMyCharacters = true"
+                @target="optimizeSettingsOpen = true" @calculation-settings="handleClickSetupOptimization"
+                @artifact-settings="handleClickArtifactConfig"
                 @run="optimizeSettingsOpen = false; handleOptimizeArtifact()">
                 <template #preset>
                     <div class="preset-actions">
-                        <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handlePresetCommand">
+                        <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handleClickSaveOptimizeConfig()">
                             <template v-if="!miscCurrentPresetName">{{ t("calcPage.newPreset") }}</template>
                             <template v-else>{{ t("calcPage.savePreset") }}「{{ miscCurrentPresetName }}」</template>
                             <template #dropdown><el-dropdown-menu>
                                 <el-dropdown-item command="save-as">{{ t('calcPage.saveAsPreset') }}</el-dropdown-item>
-                                <template v-if="narrowCalc">
-                                    <el-dropdown-item command="import" divided>账号导入</el-dropdown-item>
-                                    <el-dropdown-item command="my-characters">我的角色</el-dropdown-item>
-                                </template>
                             </el-dropdown-menu></template>
                         </el-dropdown>
                         <preset-picker @select="usePreset" />
                     </div>
                 </template>
             </calc-top-bar>
-            <side-drawer v-model="optimizeSettingsOpen" title="配装设置">
+            <el-dialog v-model="optimizeSettingsOpen" title="配装设置" width="min(560px, 94vw)"
+                custom-class="cx-scope optimization-target-dialog" modal-class="optimization-target-overlay" append-to-body>
                     <el-radio-group v-model="optimizationMode" aria-label="配装模式">
                         <el-radio-button label="damage">伤害配装</el-radio-button>
                         <el-radio-button label="panel">面板配装</el-radio-button>
@@ -390,40 +400,13 @@
                             style="margin-top: 12px"
                         ></value-display>
                     </div>
-                    <div class="optimization-debug-control">
-                        <el-switch v-model="optimizationDebugEnabled" active-text="Debug 模式" aria-label="Debug 模式" />
-                        <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
-                        <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : optimizationDebugRecord.status === 'cancelled' ? '计算已取消' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
-                        <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
-                        <details v-if="optimizationDebugRecord?.events.length"><summary>查看调试阶段与错误详情</summary><pre>{{ optimizationDebugDetail }}</pre></details>
-                    </div>
 
-                    <div class="artifact-borrowing-control">
-                        <label><span>是否允许替换其他角色已穿戴的圣遗物</span><el-switch v-model="allowBorrowEquipped" aria-label="是否允许替换其他角色已穿戴的圣遗物" /></label>
-                        <div v-if="allowBorrowEquipped" class="borrowing-sources">
-                            <el-checkbox v-model="borrowGameArtifacts">包含游戏内角色</el-checkbox>
-                            <el-checkbox v-model="borrowCustomArtifacts">包含自定义角色</el-checkbox>
-                        </div>
-                    </div>
-                    <div class="optimization-actions">
-                        <el-button-group>
-
-                            <el-button
-                                :icon="IconEpTools"
-                                @click="optimizeSettingsOpen = false; handleClickSetupOptimization()"
-                            >{{ t("calcPage.setupCalc") }}</el-button>
-
-                            <el-button
-                                :icon="IconEpTools"
-                                @click="optimizeSettingsOpen = false; handleClickArtifactConfig()"
-                            >{{ t("calcPage.setupArt") }}</el-button>
-                        </el-button-group>
-                    </div>
-            </side-drawer>
-            <side-drawer v-model="characterDrawerOpen" title="角色">
+            </el-dialog>
+            <el-dialog v-model="characterDrawerOpen" title="角色" width="min(640px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="condition-settings-content" data-theme="mist">
                         <section class="config-character setup-section">
                             <div class="character-fields">
-                                <div class="calc-field"><span>{{ t('misc.character') }}</span><select-character v-model="characterName" :aria-label="t('misc.character')" /></div>
                                 <div class="calc-field"><span>角色等级</span><select-character-level v-model="characterLevel" aria-label="角色等级" /></div>
                             </div>
                             <fieldset class="talent-fields">
@@ -443,9 +426,18 @@
                                     :configs="characterConfigConfig"
                                 ></item-config>
                             </div>
+                            <fieldset v-if="isTraveler(characterName)" class="traveler-resonance">
+                                <legend>旅行者共鸣元素 · 真实之月</legend>
+                                <el-checkbox-group v-model="travelerResonance" aria-label="旅行者共鸣元素">
+                                    <el-checkbox v-for="element in travelerElements" :key="element" :label="element">{{ t('ele', element) }}</el-checkbox>
+                                </el-checkbox-group>
+                            </fieldset>
                         </section>
-            </side-drawer>
-            <side-drawer v-model="weaponDrawerOpen" title="武器">
+                </div>
+            </el-dialog>
+            <el-dialog v-model="weaponDrawerOpen" title="武器" width="min(760px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="condition-settings-content" data-theme="mist">
                         <section class="config-weapon setup-section">
                             <div class="weapon-fields">
                                 <div class="calc-field"><span>{{ t('misc.weapon') }}</span><select-weapon :type="characterWeaponType" v-model="weaponName" :aria-label="t('misc.weapon')" /></div>
@@ -461,47 +453,12 @@
                                 ></item-config>
                             </div>
                         </section>
-            </side-drawer>
-            <side-drawer v-model="artifactsDrawerOpen" title="圣遗物">
+                </div>
+            </el-dialog>
+            <el-dialog v-model="artifactsDrawerOpen" title="圣遗物" width="min(1000px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="condition-settings-content" data-theme="mist">
                         <section class="drawer-section artifacts-card">
-                            <header class="card-heading"><h3><i-ep-collection aria-hidden="true"/>{{ t("misc.artifact") }}</h3>
-                                <artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running" @settings="openScoreSettings" />
-                                <div class="artifact-grade-summary" aria-label="角色圣遗物评分">
-                                    <div v-if="useNewScore"><span>{{ artifactScoreContext.label }} · 新评分 · 单件合计</span><strong class="miao-score" :data-grade="dynamicTotalGrade">{{ displayedScoreTotal }}</strong></div>
-                                    <div v-else><span>{{ artifactScoreContext.label }} · 喵喵总分</span><strong class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.total === null ? '—' : artifactBuildScore.total.toFixed(1) }}</strong><b class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.grade }}</b></div>
-                                </div>
-                            </header>
-                            <div class="artifacts" :class="{ 'gear-empty': !artifactCount }">
-                                <div
-                                    v-for="(id, index) in artifactIds"
-                                    :key="index"
-                                    class="artifact-item-or-button"
-                                    :data-slot="index"
-                                >
-                                    <span class="slot-name"><img :src="slotIcons[positions[index]]" alt="" />{{ t("misc", positions[index]) }}</span>
-                                    <artifact-display
-                                        v-if="artifactItems[index]"
-                                        :item="artifactItems[index]"
-                                        :locked="artifactStore.getArtifact(id)?.omit"
-                                        :lock-button="!!artifactStore.getArtifact(id)"
-                                        selectable
-                                        :buttons="true"
-                                        :delete-button="true"
-                                        @delete="removeArtifact(index)"
-                                        @toggle="artifactStore.toggleArtifact(artifactItems[index].id)"
-                                        @click="scoreArtifactIndex = index; showArtifactScore = true"
-                                        class="artifact-display"
-                                    >
-                                        <template #footer><div class="artifact-piece-score"><span v-if="useNewScore">新评分：<span class="miao-score" :data-grade="dynamicPieceGrade(index)">{{ displayedPieceScore(index) }}</span></span><span v-else>喵喵评分：<span class="miao-score" :data-grade="artifactPieceScore(index).split(' ').pop()">{{ artifactPieceScore(index) }}</span></span><span v-if="artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span></div></template>
-                                    </artifact-display>
-                                    <button v-else type="button" class="add-button"
-                                        :aria-label="'选择圣遗物：' + t('misc', positions[index])"
-                                        @click="handleGotoSelectArtifact(index)">
-                                        <i-ep-plus aria-hidden="true" /><span>选择圣遗物</span>
-                                    </button>
-                                    <span v-if="!artifactItems[index] && artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span>
-                                </div>
-                            </div>
                             <div v-if="artifactDiffs.length" class="artifact-diffs">
                                 <section v-for="diff in artifactDiffs" :key="diff.index" class="artifact-diff">
                                     <table>
@@ -516,35 +473,11 @@
                                     </table>
                                 </section>
                             </div>
-                            <div class="artifact-tool">
-                                <preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" />
-                                <el-button-group>
-                                    <el-button
-                                        :icon="IconEpHistogram"
-                                        @click="handleClickArtifactAnalysis"
-                                    >{{ t("calcPage.statAnalysis") }}</el-button>
-                                    <el-button
-                                        :icon="IconEpStarFilled"
-                                        @click="handleClickSaveAsKumi"
-                                    >{{ t("calcPage.saveKumi") }}</el-button>
-                                    <el-button
-                                        :icon="IconEpFolder"
-                                        @click="handleClickUseKumi"
-                                    >{{ t("calcPage.useKumi") }}</el-button>
-                                    <el-button
-                                        v-show="artifactCount > 0"
-                                        :icon="isAllLocked ? IconEpUnlock : IconEpLock"
-                                        @click="() => { isAllLocked ? handleUnlockAll() : handleLockAll() }"
-                                    >{{ isAllLocked ? t("calcPage.unlockAll") : t("calcPage.lockAll") }}</el-button>
-                                    <el-button :disabled="artifactCount === 0" @click="clearArtifacts(); recordUsage('action.clear-selected')">清空已选</el-button>
-                                </el-button-group>
-                                <el-button v-if="useNewScore && dynamicScore" class="score-basis-button" size="small" @click="openScoreBasis">评分依据</el-button>
-                                <span v-else-if="useNewScore && dynamicScoreState.running" class="score-status" role="status">{{ dynamicScoreState.status }}</span>
-                                <span v-else-if="useNewScore && dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span>
-                            </div>
-                            <artifact-comparison-controls v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
-                                v-model:history-id="comparisonHistoryId" :history="comparisonHistory"
-                                @save="saveComparisonHistory" />
+
+
+                            <artifact-comparison-controls v-if="!heroResult" v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
+                            v-model:history-id="comparisonHistoryId" :history="comparisonHistory"
+                            @save="saveComparisonHistory" />
                             <div v-if="artifactNeedConfig2" style="margin-top: 16px">
                                 <p class="common-description">
                                     <span class="effect2">{{ t("calcPage.effect2") }}</span>
@@ -571,12 +504,14 @@
                                 ></item-config>
                             </div>
                         </section>
-            </side-drawer>
-            <side-drawer v-model="attributesDrawerOpen" title="全部属性">
-                <div class="attributes-body">
+                </div>
+            </el-dialog>
+            <el-dialog v-model="attributesDrawerOpen" title="全部属性" width="min(760px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="attributes-body condition-settings-content" data-theme="mist">
                     <el-alert v-if="comparisonAttribute.error" :title="comparisonAttribute.error" type="warning" :closable="false" />
-                    <attribute-panel v-if="!betaCalculationError"
-                        :attribute="attributeFromWasm"
+                    <attribute-panel
+                        :attribute="displayAttributes"
                         :baseline="comparisonAttribute.value"
                     ></attribute-panel>
                     <div class="panel-actions">
@@ -587,9 +522,18 @@
                         >{{ t("calcPage.statCurve") }}</el-button>
                     </div>
                 </div>
-            </side-drawer>
-            <side-drawer v-model="buffDrawerOpen" title="BUFF">
-                <template #actions><el-button :icon="IconEpPlus" @click="handleClickAddBuff">添加BUFF</el-button></template>
+            </el-dialog>
+            <el-dialog v-model="buffDrawerOpen" title="BUFF" width="min(1000px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="condition-settings-content" data-theme="mist">
+                <div class="condition-settings-actions"><el-button type="primary" :icon="IconEpPlus" @click="handleClickAddBuff">添加BUFF</el-button></div>
+                            <div class="polestar-field-control">
+                                <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
+                                <div class="polestar-field-stacks"><span>极星辉域层数</span>
+                                    <!-- This Element Plus version sets aria-disabled only on mount. -->
+                                    <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
+                                </div>
+                            </div>
                             <selected-buff-groups class="buffs" :buffs="otherBuffs">
                                 <template #default="{ buff }">
                                 <buff-item
@@ -607,19 +551,19 @@
                                 </label>
                                 </template>
                             </selected-buff-groups>
-            </side-drawer>
-            <side-drawer v-model="teammateDrawerOpen" title="队友">
+                </div>
+            </el-dialog>
+            <el-dialog v-model="teammateDrawerOpen" title="队友" width="min(760px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="condition-settings-content" data-theme="mist">
                             <team-buff-sources v-model="teamContextSources" v-model:stellar-mode="teamContextStellarMode"
                                 :character="characterName" :preset-name="miscCurrentPresetName" :issues="teamContextResult.issues" />
-                            <div class="polestar-field-control">
-                                <el-switch v-model="polestarEnabled" active-text="启用极星辉域" />
-                                <div class="polestar-field-stacks"><span>极星辉域层数</span>
-                                    <!-- This Element Plus version sets aria-disabled only on mount. -->
-                                    <el-input-number :key="String(polestarEnabled)" v-model="polestarStacks" :min="0" :max="12" :step="1" :precision="0" :disabled="!polestarEnabled" label="极星辉域层数" />
-                                </div>
-                            </div>
-            </side-drawer>
-            <side-drawer v-model="enemyDrawerOpen" :title="t('calcPage.setupEnemy')">
+
+                </div>
+            </el-dialog>
+            <el-dialog v-model="enemyDrawerOpen" :title="t('calcPage.setupEnemy')" width="min(760px, 94vw)"
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                <div class="condition-settings-content" data-theme="mist">
             <div class="enemy-infusion">
                 <h3 class="common-title2">{{ t("calcPage.fumo") }}</h3>
                 <select-element-type
@@ -631,7 +575,8 @@
             <enemy-config-component
                 v-model="enemyConfig"
             ></enemy-config-component>
-            </side-drawer>
+                </div>
+            </el-dialog>
             <dynamic-artifact-score ref="dynamicScoreController" integrated :input="dynamicScoreInput" :analysis="characterDamageAnalysis" :infusion="fumo" :constraints="constraintInterface"
                 :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
                 @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
@@ -639,8 +584,93 @@
                 <character-hero-card class="hero-row" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
                     :element-label="t('ele', scoreCharacters[characterName].element)" :avatar="scoreCharacters[characterName].avatar"
                     :splash="scoreCharacters[characterName].splash" :level="characterLevel" :constellation="characterConstellation"
-                    :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon" :slots="heroSlots"
-                    :score="heroScore" :stats="heroStats" :result="heroResult" @open="openHeroSection" @result="handleResultAction" />
+                    :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon"
+                    :stats="heroStats" :result="heroResult" @open="openHeroSection" @result="handleResultAction"
+                    @my-characters="showMyCharacters = true" @default-characters="showDefaultCharacters = true">
+                    <template #comparison>
+                        <artifact-comparison-controls inline v-model:enabled="comparisonEnabled" v-model:mode="comparisonMode"
+                            v-model:history-id="comparisonHistoryId" :history="comparisonHistory"
+                            @save="saveComparisonHistory" />
+                    </template>
+                    <template #artifacts>
+                        <section class="artifacts-card hero-equipment">
+                            <header class="card-heading"><button type="button" class="artifact-drawer-trigger" @click="artifactsDrawerOpen = true"><i-ep-collection aria-hidden="true"/>{{ t("misc.artifact") }} <i-ep-arrow-right aria-hidden="true" /></button>
+                                <div class="artifact-toolbar">
+                                    <artifact-score-mode v-model="dynamicScoreEnabled" :disabled="optimizationRunning || dynamicScoreState.running"
+                                        @settings="openScoreSettings" />
+                                    <div class="artifact-tool">
+                                        <preset-picker apply :character="characterName" @select="applyArtifactsToPreset" @create="createPresetFromResult" />
+
+                                        <el-button v-if="useNewScore && dynamicScore" class="score-basis-button" size="small" @click="openScoreBasis">评分依据</el-button>
+                                        <span v-else-if="useNewScore && dynamicScoreState.running" class="score-status" role="status">{{ dynamicScoreState.status }}</span>
+                                        <span v-else-if="useNewScore && dynamicScoreState.error" class="score-error" role="alert">{{ dynamicScoreState.error }}</span>
+                                    </div>
+                                </div>
+                                <div class="artifact-score-summary">
+                                    <el-button v-if="useNewScore" class="calculate-artifact-score" type="primary" size="small"
+                                        :disabled="optimizationRunning || dynamicScoreState.running" :loading="dynamicScoreState.running"
+                                        @click="dynamicScoreController?.start()">计算当前圣遗物新评分</el-button>
+                                    <div class="artifact-grade-summary" aria-label="角色圣遗物评分">
+                                        <div v-if="useNewScore"><span>{{ artifactScoreContext.label }} · 新评分 · 单件合计</span><strong class="miao-score" :data-grade="dynamicTotalGrade">{{ displayedScoreTotal }}</strong></div>
+                                        <div v-else><span>{{ artifactScoreContext.label }} · 喵喵总分</span><strong class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.total === null ? '—' : artifactBuildScore.total.toFixed(1) }}</strong><b class="miao-score" :data-grade="artifactBuildScore.grade">{{ artifactBuildScore.grade }}</b></div>
+                                    </div>
+                                </div>
+                            </header>
+                            <div class="artifacts" :class="{ 'gear-empty': !artifactCount }">
+                                <div
+                                    v-for="(id, index) in artifactIds"
+                                    :key="index"
+                                    class="artifact-item-or-button"
+                                    :data-slot="index"
+                                >
+                                    <span class="slot-name"><img :src="slotIcons[positions[index]]" alt="" />{{ t("misc", positions[index]) }}</span>
+                                    <artifact-display
+                                        v-if="artifactItems[index]"
+                                        :item="artifactItems[index]"
+                                        :locked="artifactStore.getArtifact(id)?.omit"
+                                        :lock-button="!!artifactStore.getArtifact(id)"
+                                        selectable
+                                        two-column
+                                        :buttons="true"
+                                        :delete-button="true"
+                                        @delete="removeArtifact(index)"
+                                        @toggle="artifactStore.toggleArtifact(artifactItems[index].id)"
+                                        @click="scoreArtifactIndex = index; showArtifactScore = true"
+                                        class="artifact-display"
+                                    >
+                                        <template #footer><div class="artifact-piece-score"><span v-if="useNewScore">新评分：<span class="miao-score" :data-grade="dynamicPieceGrade(index)">{{ displayedPieceScore(index) }}</span></span><span v-else>喵喵评分：<span class="miao-score" :data-grade="artifactPieceScore(index).split(' ').pop()">{{ artifactPieceScore(index) }}</span></span><span v-if="artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span></div></template>
+                                    </artifact-display>
+                                    <button v-else type="button" class="add-button"
+                                        :aria-label="'选择圣遗物：' + t('misc', positions[index])"
+                                        @click="handleGotoSelectArtifact(index)">
+                                        <i-ep-plus aria-hidden="true" /><span>选择圣遗物</span>
+                                    </button>
+                                    <span v-if="!artifactItems[index] && artifactChanges[index]" class="artifact-change-marker">{{ artifactChanges[index] }}</span>
+                                </div>
+                            </div>
+                            <div class="artifact-bottom-actions">
+                                <el-button size="small"
+                                :icon="IconEpHistogram"
+                                @click="handleClickArtifactAnalysis"
+                                >{{ t("calcPage.statAnalysis") }}</el-button>
+                                <el-button size="small"
+                                :icon="IconEpStarFilled"
+                                @click="handleClickSaveAsKumi"
+                                >{{ t("calcPage.saveKumi") }}</el-button>
+                                <el-button size="small"
+                                :icon="IconEpFolder"
+                                @click="handleClickUseKumi"
+                                >{{ t("calcPage.useKumi") }}</el-button>
+                                <el-button size="small"
+                                v-show="artifactCount > 0"
+                                :icon="isAllLocked ? IconEpUnlock : IconEpLock"
+                                @click="() => { isAllLocked ? handleUnlockAll() : handleLockAll() }"
+                                >{{ isAllLocked ? t("calcPage.unlockAll") : t("calcPage.lockAll") }}</el-button>
+                                <el-button size="small" :disabled="artifactCount === 0" @click="clearArtifacts(); recordUsage('action.clear-selected')">清空已选</el-button>
+                            </div>
+                        </section>
+                    </template>
+                </character-hero-card>
                 <div class="calc-editor">
                         <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" @details="handleDisplayAnalysis">
                             <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
@@ -727,6 +757,7 @@ import SelectArtifactMainStat from "@c/select/SelectArtifactMainStat"
 import ArtifactConfig from "./ArtifactConfig.vue"
 import DamageAnalysis from "@/components/display/DamageAnalysis"
 import {useCharacter, useCharacterSkill} from "@/composables/character"
+import {isTraveler, travelerElements} from '../../../beta-data/traveler-model.mjs'
 import {useEnemy} from "@/composables/enemy"
 import {useCharacterWeapon} from "@/composables/weapon"
 import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
@@ -734,7 +765,6 @@ import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
 import DslGenerator from './DslGenerator.vue'
 import CalcTopBar from './CalcTopBar.vue'
-import SideDrawer from '@/components/misc/SideDrawer.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
 import DamageResultCard from './DamageResultCard.vue'
 import CalcConditionsCard from './CalcConditionsCard.vue'
@@ -743,12 +773,11 @@ import {characterData} from '@character'
 import {characterSkillGroups} from '@/utils/character-skill-groups'
 import {weaponData} from '@weapon'
 import {attributeComparison} from '@/algorithms/attribute-comparison.mjs'
-import {useScreen} from '@/composables/screen'
+import {rosterAttributes} from '@/algorithms/roster-attributes.mjs'
 import {generateDsl} from '@/algorithms/dsl-generator.mjs'
 import {useTargetFunction} from "@/composables/targetFunction"
 import type {ArtifactPosition, IArtifact, IArtifactWasm} from "@/types/artifact"
 import IconEpCaretRight from "~icons/ep/caret-right"
-import IconEpTools from "~icons/ep/tools"
 import IconEpPlus from "~icons/ep/plus"
 import IconEpMenu from "~icons/ep/menu"
 import IconEpHistogram from "~icons/ep/histogram"
@@ -786,10 +815,10 @@ import SelectElementType from "@/components/select/SelectElementType.vue";
 const presetStore = usePresetStore()
 const artifactStore = useArtifactStore()
 const miyousheStore = useMiyousheStore()
-const MiyousheImport = defineAsyncComponent(() => import('@/components/import/MiyousheImport.vue'))
-const showMiyousheImport = ref(false)
+const DefaultCharacterPicker = defineAsyncComponent(() => import('@/components/select/DefaultCharacterPicker.vue'))
 const MiyousheCharacterPicker = defineAsyncComponent(() => import('@/components/import/MiyousheCharacterPicker.vue'))
 const showMyCharacters = ref(false)
+const showDefaultCharacters = ref(false)
 // 配装前穿着的五件（圣遗物 ID），供「恢复原装备」使用；从计算历史恢复的结果没有这份记录
 const preOptimizationIds = ref<number[] | null>(null)
 const optimizeSettingsOpen = ref(false)
@@ -803,22 +832,14 @@ onDeactivated(() => {
     optimizeSettingsOpen.value = characterDrawerOpen.value = weaponDrawerOpen.value = false
     artifactsDrawerOpen.value = attributesDrawerOpen.value = false
     buffDrawerOpen.value = teammateDrawerOpen.value = enemyDrawerOpen.value = false
+    showDefaultCharacters.value = false
 })
-// 角色卡上点哪一块就打开哪个抽屉；空槽位直接选圣遗物，有圣遗物的槽位打开圣遗物抽屉并定位到该部位
-async function openHeroSection(section: string, slot?: number) {
+// 角色卡各入口打开对应抽屉；圣遗物卡片直接打开评分详情。
+function openHeroSection(section: string) {
     if (section === 'character') characterDrawerOpen.value = true
     else if (section === 'weapon') weaponDrawerOpen.value = true
     else if (section === 'attributes') attributesDrawerOpen.value = true
-    else if (slot !== undefined && !artifactItems.value[slot]) handleGotoSelectArtifact(slot)
-    else {
-        artifactsDrawerOpen.value = true
-        if (slot === undefined) return
-        await nextTick()
-        document.querySelector(`.side-drawer [data-slot="${slot}"]`)?.scrollIntoView({ block: 'nearest' })
-    }
 }
-const { width: screenWidth } = useScreen()
-const narrowCalc = computed(() => screenWidth.value <= 820)
 const kumiStore = useKumiStore()
 const accountStore = useAccountStore()
 
@@ -873,6 +894,7 @@ const {
     characterSkill2,
     characterSkill3,
     characterConstellation,
+    travelerResonance,
     characterWeaponType,
     characterLevelNumber,
     characterAscend,
@@ -881,6 +903,13 @@ const {
     characterInterface,
     characterLocale,
 } = useCharacter()
+
+function selectDefaultCharacter(name: string) {
+    characterName.value = name
+    characterConstellation.value = 0
+    characterSkill1.value = characterSkill2.value = characterSkill3.value = 8
+    showDefaultCharacters.value = false
+}
 
 const {
     characterSkillConfig,
@@ -1191,7 +1220,7 @@ function usePreset(name: string, historyItem?: IPreset) {
     teamContextStellarMode.value = item.teamContextStellarMode === true
 
     applyPresetIdentity(item, {
-        characterName, characterLevel, characterConstellation, characterSkill1, characterSkill2, characterSkill3, characterConfig,
+        characterName, characterLevel, characterConstellation, characterSkill1, characterSkill2, characterSkill3, characterConfig, travelerResonance,
     }, {weaponName, weaponLevel, weaponRefine, weaponConfig})
     enemyConfig.value = item.enemy!
     fumo.value = item.infusion!
@@ -1389,6 +1418,9 @@ const attributeCalculation = computed(() => {
     catch (error: any) { return { value: null, error: error.message || String(error) } }
 })
 const attributeFromWasm = computed(() => attributeCalculation.value.value || {})
+const displayAttributes = computed(() => rosterAttributes({
+    character: characterInterface.value, weapon: weaponInterface.value, artifacts: artifactWasmFormat.value,
+}))
 
 const betaCalculationError = computed(() => teamContextError.value || attributeCalculation.value.error || damageCalculation.value.error || transformativeCalculation.value.error)
 
@@ -1633,8 +1665,7 @@ const ELEMENT_BONUS: Record<string, [string, string]> = {
     Geo: ['bonus_geo', 'stat.rockBonus'],
 }
 const heroStats = computed(() => {
-    const attribute: any = attributeFromWasm.value
-    if (betaCalculationError.value || !attribute) return []
+    const attribute = displayAttributes.value
     const baseline: any = comparisonAttribute.value.value
     const element = ELEMENT_BONUS[scoreCharacters[characterName.value].element] ?? ['bonus_physical', 'stat.physicalBonus']
     const rows: [string, string, boolean, boolean][] = [
@@ -1645,7 +1676,10 @@ const heroStats = computed(() => {
     ]
     return rows.map(([key, label, percentage, highlight]) => {
         const c = attributeComparison(attribute[key], baseline?.[key], percentage)
-        return { key, label: t(label), current: String(c.current), before: c.before === null ? null : String(c.before), direction: c.direction, highlight }
+        return {
+            key, label: t(label), percentage, highlight, composition: attribute[key], baseline: baseline?.[key],
+            current: String(c.current), before: c.before === null ? null : String(c.before), direction: c.direction,
+        }
     })
 })
 const heroWeapon = computed(() => {
@@ -1653,19 +1687,6 @@ const heroWeapon = computed(() => {
     const effect = data.effect ? String(ta(data.effect)).replace(/<[^>]+>/g, '').split(/[。；]/)[0] : ''
     return { name: weaponLocale.value, icon: data.url, level: weaponLevel.value, refine: weaponRefine.value, effect }
 })
-const heroSlots = computed(() => positions.map((position, i) => {
-    const item: any = artifactItems.value[i]
-    const piece = item ? artifactsData[item.setName]?.[position] : null
-    return {
-        position, label: t('misc', position), icon: slotIcons[position], image: piece?.url ?? null,
-        title: piece ? ta(piece.text) : '', level: item?.level ?? null, changed: !!artifactChanges.value[i],
-    }
-}))
-const heroScore = computed(() => useNewScore.value
-    ? { value: String(displayedScoreTotal.value), label: '新评分 · 单件合计', grade: dynamicTotalGrade.value }
-    : { value: artifactBuildScore.value.total === null ? '—' : artifactBuildScore.value.total.toFixed(1),
-        label: '喵喵总分 · ' + artifactBuildScore.value.grade, grade: artifactBuildScore.value.grade })
-
 // 计算条件卡的三行摘要
 const conditionRows = computed(() => {
     const counts: Record<string, number> = { Character: 0, Weapon: 0, Artifact: 0, Common: 0 }
@@ -1673,14 +1694,14 @@ const conditionRows = computed(() => {
     const buffSummary = BUFF_COLUMNS.filter(([key]) => key !== 'Common' || counts.Common)
         .map(([key, label]) => `${label} ${counts[key]}`).join(' · ')
     const teammates = teamContextSources.value.map((source: any) => source.presetName).join('、') || '未选队友预设'
-    const polestar = polestarEnabled.value ? `极星辉域 ${polestarStacks.value} 层` : '极星辉域未启用'
+    const polestar = polestarEnabled.value ? ` · 极星辉域 ${polestarStacks.value} 层` : ''
     const enemy: any = enemyConfig.value
     const res = Object.keys(enemy).filter(key => key.endsWith('_res')).map(key => Math.round(enemy[key] * 100))
     const resText = Math.min(...res) === Math.max(...res) ? `全元素抗性 ${res[0]}%` : `抗性 ${Math.min(...res)}%～${Math.max(...res)}%`
     const infusion = fumo.value === 'None' ? '无附魔' : `${t('ele', fumo.value)}元素附魔`
     return [
-        { key: 'buff', title: 'BUFF', action: '添加', summary: buffSummary },
-        { key: 'teammate', title: '队友', action: '选择', summary: `${teammates} · ${polestar}` },
+        { key: 'buff', title: 'BUFF', action: '添加', summary: buffSummary + polestar },
+        { key: 'teammate', title: '队友', action: '选择', summary: teammates },
         { key: 'enemy', title: '敌人', action: '修改', summary: `Lv ${enemy.level} · ${resText} · ${infusion}` },
     ]
 })
@@ -1699,11 +1720,6 @@ const optimizeTargetLabel = computed(() => {
     if (miscTargetFunctionTab.value !== 'normal') return '自定义 DSL'
     return ta(targets[targetFunctionName.value].nameLocale)
 })
-function handlePresetCommand(command: string) {
-    if (command === 'import') showMiyousheImport.value = true
-    else if (command === 'my-characters') showMyCharacters.value = true
-    else handleClickSaveOptimizeConfig()
-}
 const resultObjectiveLabel=computed(()=>{
     const tf=resultSearchInput.value?.target_function
     return tf?.use_dsl?'DSL 组合目标':tf?ta(targets[tf.name].nameLocale):'优化目标'
@@ -1815,7 +1831,7 @@ const reviewCandidateInput=computed(()=>({
 const comparisonAttribute = computed(() => {
     if (!comparisonBaseline.value) return { value: null, error: '' }
     try {
-        return { value: mona.CommonInterface.get_attribute({ ...reviewCandidateInput.value,
+        return { value: rosterAttributes({ character: characterInterface.value, weapon: weaponInterface.value,
             artifacts: comparisonArtifactsWasm.value }), error: '' }
     } catch (error: any) { return { value: null, error: `对比基准面板无法计算：${error.message || error}` } }
 })
@@ -1847,13 +1863,13 @@ const heroResult = computed(() => {
     const changed = artifactChanges.value.filter(Boolean).length
     const parts = ['目标：' + (panelResultSnapshot.value ? '面板配装' : resultObjectiveLabel.value)]
     parts.push(changed ? `换了 ${changed} 件` : '五件未变')
-    parts.push('对比：' + reviewBaselineLabel.value)
+    const details: string[] = []
     const dsl = reviewDsl.value
-    if (dsl && Number.isFinite(dsl.current)) parts.push('目标值 ' + (Number.isFinite(dsl.before) ? `${dsl.before.toFixed(1)} → ` : '') + dsl.current.toFixed(1))
+    if (dsl && Number.isFinite(dsl.current)) details.push('目标值 ' + (Number.isFinite(dsl.before) ? `${dsl.before.toFixed(1)} → ` : '') + dsl.current.toFixed(1))
     const rechargeMin = optimizationMode.value === 'damage' ? constraintMinRecharge.value : 0
-    if (rechargeMin > 1) parts.push(`充能要求 ≥ ${(rechargeMin * 100).toFixed(1)}%`)
-    return { index: reviewIndex.value, count, note: parts.join(' · '), error: dsl?.error || comparisonDamage.value.error,
-        canRestore: !!preOptimizationIds.value }
+    if (rechargeMin > 1) details.push(`充能要求 ≥ ${(rechargeMin * 100).toFixed(1)}%`)
+    return { index: reviewIndex.value, count, note: parts.join(' · '), detail: details.join(' · '), error: dsl?.error || comparisonDamage.value.error,
+        canRestore: !!preOptimizationIds.value, busy: optimizationRunning.value || dynamicScoreState.value.running }
 })
 async function handleResultAction(action: string) {
     if (action === 'compare') showOptimizationResults.value = true
@@ -1891,7 +1907,6 @@ async function handleUseNthOptimizationResult(n: number) {
 
     optimizationResultIndex.value = n
     await nextTick()
-    if (useNewScore.value) await dynamicScoreController.value?.start()
 }
 
 function getOptimizeArtifactWasmInterface() {
@@ -2257,7 +2272,7 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 }
 .card-heading { margin-bottom: 16px; }
 .card-heading h3 { font-size: 20px; }
-.card-heading h3 svg { color: #568de0; width: 1.1em; height: 1.1em; }
+.card-heading h3 svg { color: var(--cx-gold); width: 1.1em; height: 1.1em; }
 .preset-actions, .preset-actions :deep(.el-dropdown), .preset-actions :deep(.el-button-group) { min-width: 0; max-width: 100%; }
 .preset-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
 .preset-actions :deep(.el-dropdown) { flex:1; }
@@ -2291,17 +2306,17 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .config-character .constellation-line button { min-width: 0; min-height: 40px; padding-inline: 0; }
 .artifacts-card { container: single-gear / inline-size; }
 .calc-field { display: flex; flex-direction: column; min-width: 0; gap: 6px; }
-.calc-field > span, .constellation-line > span { font-size: 15px; font-weight: 600; color: #5d6b81; }
+.calc-field > span, .constellation-line > span { font-size: 15px; font-weight: 600; color: var(--cx-dim); }
 .character-fields, .weapon-fields { display: grid; gap: 12px; align-items: start; }
-.character-fields { grid-template-columns: 2fr 1fr; }
-.talent-fields { min-width: 0; margin: 16px 0 10px; padding: 0; border: 0; }
-.talent-fields legend { padding: 0; margin-bottom: 4px; font-size: 15px; font-weight: 600; color: #5d6b81; }
+.character-fields { grid-template-columns: minmax(0, 1fr); }
+.talent-fields, .traveler-resonance { min-width: 0; margin: 16px 0 10px; padding: 0; border: 0; }
+.talent-fields legend, .traveler-resonance legend { padding: 0; margin-bottom: 4px; font-size: 15px; font-weight: 600; color: var(--cx-dim); }
 .talent-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 5px 0; }
-.talent-row + .talent-row { border-top: 1px solid #edf0f5; }
-.talent-row > span { font-size: 15px; color: #35465d; }
+.talent-row + .talent-row { border-top: 1px solid var(--cx-step-2); }
+.talent-row > span { font-size: 15px; color: var(--cx-letter); }
 .talent-row .el-input-number { width: 120px; max-width: 55%; }
 .talent-row :deep(.el-input__wrapper) { padding-inline: 34px; }
-.talent-row :deep(.el-input-number__decrease), .talent-row :deep(.el-input-number__increase) { width: 32px; border: 0; background: #eff4fa; color: #476584; }
+.talent-row :deep(.el-input-number__decrease), .talent-row :deep(.el-input-number__increase) { width: 32px; border: 0; background: var(--cx-step); color: var(--cx-dim); }
 .talent-row :deep(input) { font-weight: 600; font-variant-numeric: tabular-nums; }
 .weapon-fields { grid-template-columns: 2fr 1fr 1fr; margin-bottom: 14px; }
 .enemy-infusion { max-width: 560px; margin-bottom: 16px; container: enemy-infusion / inline-size; }
@@ -2313,32 +2328,31 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .enemy-infusion .common-title2 { margin-top: 0; }
 .calc-field > :last-child { width: 100%; min-width: 0; }
 .constellation-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.constellation-line { border-top: 1px solid #e9edf3; padding-top: 12px; }
+.constellation-line { border-top: 1px solid var(--cx-step-2); padding-top: 12px; }
 .constellation-line > span { margin-right: 5px; }
-.constellation-line button { font: inherit; font-size: 15px; font-weight: 600; background: #fff; border: 1px solid #dce4ef; color: #637690; border-radius: 8px; min-width: 38px; min-height: 36px; cursor: pointer; }
-.constellation-line button[aria-pressed=true] { color: #356da9; background: #e7f1ff; border-color: #88afe0; }
+.constellation-line button { font: inherit; font-size: 15px; font-weight: 600; background: var(--cx-card); border: 1px solid var(--cx-step-2); color: var(--cx-dim); border-radius: 8px; min-width: 38px; min-height: 36px; cursor: pointer; }
+.constellation-line button[aria-pressed=true] { color: var(--cx-gold); background: var(--cx-step); border-color: var(--cx-gold); }
 .character-extra-config, .weapon-extra-config { margin-top: 14px; }
 .calc-content .el-button + .el-button { margin-left: 0; }
-.card-actions :deep(.el-button-group), .artifact-tool :deep(.el-button-group), .optimization-actions :deep(.el-button-group) { display: flex; flex-wrap: wrap; gap: 6px; }
-.optimization-actions { border-top: 1px solid #e9edf3; padding-top: 14px; }
+.card-actions :deep(.el-button-group), .artifact-tool :deep(.el-button-group) { display: flex; flex-wrap: wrap; gap: 6px; }
 .artifacts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit,minmax(min(100%,200px),1fr)); grid-auto-rows: minmax(64px,auto); }
 @container single-gear (min-width: 555px) { .artifacts { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @container single-gear (min-width: 910px) { .artifacts { grid-template-columns: repeat(5,minmax(0,1fr)); } }
 .artifact-item-or-button { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
-.slot-name { color: #526985; font-size: 14px; font-weight: 600; }
+.slot-name { color: var(--cx-dim); font-size: 14px; font-weight: 600; }
 .artifact-tool { margin: 14px 0 10px; display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
 .score-basis-button,.score-status{margin-left:auto}.score-error{color:var(--el-color-danger);overflow-wrap:anywhere}
 .artifacts-card .artifact-comparison-controls { margin: 0; }
 .artifacts :deep(.artifact .up .buttons button) { margin-left: 3px; }
-.artifacts :deep(.artifact .down .sec-tag) { font-size: 13px; color: #637187; }
+.artifacts :deep(.artifact .down .sec-tag) { font-size: 13px; color: var(--cx-dim); }
 .artifacts :deep(.artifact .down .main-tag) { font-size: 14px; }
 .artifacts :deep(.artifact .up .name) { font-size: 13px; }
 .artifacts .add-button { flex: 1; min-height: 64px; }
 .artifact-item-or-button .add-button, .artifact-item-or-button .artifact-display { box-sizing: border-box; width: 100%; }
 .panel-actions { gap: 8px; margin-top: 14px; }
-.attributes-body :deep(.class) { color: #536680; margin: 12px 0 4px; font-size: 16px; }
-.attributes-body :deep(.attribute-item) { padding: 4px 0; line-height: 1.45; border-bottom: 1px solid #edf0f5; }
-.attributes-body :deep(.attribute-item .title) { color: #65758a; font-weight: 500; }
+.attributes-body :deep(.class) { color: var(--cx-dim); margin: 12px 0 4px; font-size: 16px; }
+.attributes-body :deep(.attribute-item) { padding: 4px 0; line-height: 1.45; border-bottom: 1px solid var(--cx-step-2); }
+.attributes-body :deep(.attribute-item .title) { color: var(--cx-dim); font-weight: 500; }
 .attributes-body :deep(.attribute-item .value) { font-weight: 650; }
 @container single-weapon (max-width: 480px) {
     .weapon-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -2368,10 +2382,10 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .preset-menu-list { max-height: min(55vh, 480px); overflow-y: auto; }
 .preset-menu-list :deep(.el-dropdown-menu__item) { white-space: normal; overflow-wrap: anywhere; }
 
-.optimization-debug-control{margin:12px 0;padding:12px;border:1px solid #dcdfe6;border-radius:5px}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.optimization-debug-control{margin:12px 0;padding:12px;border:1px solid var(--cx-step-2);border-radius:5px}.optimization-debug-control .el-alert{margin-top:10px}.optimization-debug-control details{margin-top:10px}.optimization-debug-control pre{max-height:280px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 
-.manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:#667085;font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
-.artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid #e4e7ed;border-radius:6px;background:#f5f8fc}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}
+.manual-buff-source{display:flex;align-items:center;gap:8px;padding:0 8px 8px;color:var(--cx-dim);font-size:12px}.manual-buff-source :deep(.el-select){min-width:130px;flex:1}
+.artifact-borrowing-control{padding:12px;margin-bottom:12px;border:1px solid var(--cx-step-2);border-radius:6px;background:var(--cx-step)}.artifact-borrowing-control label{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;line-height:1.6}.artifact-borrowing-control .el-switch{flex-shrink:0}
 .artifact-grade-summary{padding:4px 10px;background:var(--el-color-primary-light-9);border-radius:6px;color:var(--el-text-color-primary)}
 .artifact-grade-summary>div{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:14px}.artifact-grade-summary strong{font-size:20px;color:var(--el-color-primary)}.artifact-grade-summary b{font-size:19px;color:var(--el-color-primary)}
 .artifact-piece-score{padding:7px 8px;border-top:1px solid var(--el-border-color-lighter);font-size:12px;color:var(--el-color-primary);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
@@ -2388,56 +2402,62 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 .artifact-diff tbody tr + tr { box-shadow: 0 -1px 0 var(--cx-step-2); }
 .artifact-diff td.up { color: var(--cx-up); font-weight: 600; }
 .artifact-diff td.down { color: var(--cx-down); font-weight: 600; }
+.condition-settings-content { container: buff-board / inline-size; }
+.condition-settings-content .config-weapon { border: 0; padding: 0; }
+.condition-settings-actions { display: flex; justify-content: flex-end; margin-bottom: 16px; }
 .polestar-field-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
     padding: 12px;
     margin-bottom: 12px;
     border: 1px solid var(--el-border-color-light);
     border-radius: 6px;
-    .polestar-field-stacks { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; font-size: 14px; }
-    .el-input-number { width: 100%; }
+    .polestar-field-stacks { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 14px; }
+    .el-input-number { width: 130px; }
 }
-.side-drawer-body {
-    .target-function-detail {
-        display: flex;
-        //align-items: top;
-        margin-top: 16px;
+.target-function-detail {
+    display: flex;
+    //align-items: top;
+    margin-top: 16px;
 
-        .detail-left {
+    .detail-left {
+        width: 64px;
+        margin-right: 16px;
+
+        img {
+            height: 64px;
             width: 64px;
-            margin-right: 16px;
-
-            img {
-                height: 64px;
-                width: 64px;
-                border-radius: 50%;
-            }
+            border-radius: 50%;
         }
+    }
 
-        .detail-right {
-            .target-function-description {
-                margin: 0;
-                font-size: 14px;
-                color: #555555;
-            }
+    .detail-right {
+        .target-function-description {
+            margin: 0;
+            font-size: 14px;
+            color: var(--cx-dim);
         }
     }
 }
 
 .common-title2, .constraint-title {
     margin: 14px 0 7px;
-    color: #5d6b81;
+    color: var(--cx-dim);
     font-size: 15px;
     font-weight: 600;
 }
 
 .common-description {
     font-size: 0.7rem;
-    color: #606266;
+    color: var(--cx-dim);
 }
 
  //artifact effect description title
 .effect4, .effect2 {
-    color: #6eb7ff;
+    color: var(--cx-gold);
 }
 
 .constraint-main-stat-item {
@@ -2492,3 +2512,9 @@ watch(()=>route.query.history,()=>{if(route.path==='/calculate'&&route.query.his
 
 
 <style scoped src="../../styles/artifact-score.css"></style>
+
+<style>
+/* 目的：配装目标和计算条件居中展示，长内容在窗口内滚动。 */
+.optimization-target-overlay .optimization-target-dialog { margin: 0; max-height: calc(100vh - 32px); display: flex; flex-direction: column; }
+.optimization-target-dialog .el-dialog__body { min-height: 0; overflow-y: auto; }
+</style>

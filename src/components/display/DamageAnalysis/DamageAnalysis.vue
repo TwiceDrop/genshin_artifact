@@ -79,13 +79,13 @@
                     title="其他"
                 ></damage-analysis-util>
                 <div v-if="damageType === 'spread'" style="min-width: 100px">
-                    <div class="big-title" style="background: rgb(236, 245, 255)">蔓激化基础伤害</div>
+                    <div class="big-title" style="background: var(--cx-step)">蔓激化基础伤害</div>
                     <div class="header-row" style="height: 100%; display: flex; align-items: center; justify-content: center">
                         <span>{{ Math.round(baseDamageQuicken * 100) / 100 }}</span>
                     </div>
                 </div>
                 <div v-if="damageType === 'aggravate'" style="min-width: 100px">
-                    <div class="big-title" style="background: rgb(236, 245, 255)">超激化基础伤害</div>
+                    <div class="big-title" style="background: var(--cx-step)">超激化基础伤害</div>
                     <div class="header-row" style="height: 100%; display: flex; align-items: center; justify-content: center">
                         <span>{{ Math.round(baseDamageQuicken * 100) / 100 }}</span>
                     </div>
@@ -586,35 +586,35 @@ export default {
     min-width: 100px;
 
     &.base-damage-region {
-        background-color: rgb(217, 236, 255);
+        background-color: var(--cx-step);
     }
 
     &.critical-region {
-        background-color: rgb(179, 216, 255);
+        background-color: var(--cx-step-2);
     }
 
     &.bonus-region {
-        background-color: rgb(217, 236, 255);
+        background-color: var(--cx-step);
     }
 
     &.reaction-ratio-region {
-        background-color: rgb(179, 216, 255);
+        background-color: var(--cx-step-2);
     }
 
     &.vaporize-region {
-        background-color: rgb(217, 236, 255);
+        background-color: var(--cx-step);
     }
 
     &.melt-region {
-        background-color: rgb(217, 236, 255);
+        background-color: var(--cx-step);
     }
 
     &.def-minus {
-        background-color: rgb(217, 236, 255);
+        background-color: var(--cx-step);
     }
 
     &.res-minus {
-        background-color: rgb(179, 216, 255);
+        background-color: var(--cx-step-2);
     }
 }
 </style>

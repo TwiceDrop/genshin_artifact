@@ -80,6 +80,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { STATS, combinationCount, rollValue } from '@/algorithms/stat-gain/curve.mjs'
 import { damageReactionOptions, defaultDamageReaction } from '@/algorithms/reaction-labels.mjs'
 import { statGainCache } from '@/store/stat-gain-cache'
+import { darkMode } from '@/styles/color-mode.mjs'
 
 use([LineChart, BarChart, GridComponent, TooltipComponent, MarkPointComponent, CanvasRenderer])
 const props = defineProps({ input: { type: Object, required: true }, analysis: { type: Object, required: true }, fumo: { type: String, default: 'None' }, accountId: { type: Number, required: true } })
@@ -149,6 +150,9 @@ async function start() {
 onMounted(start)
 onBeforeUnmount(stopWorker)
 function selectChartPoint(event) { if (Number.isInteger(event.dataIndex)) activeBudget.value = event.dataIndex }
+const readChartGold = () => getComputedStyle(document.documentElement).getPropertyValue('--cx-gold').trim()
+const chartGold = ref(readChartGold())
+watch(darkMode, () => { chartGold.value = readChartGold() }, { flush: 'post' })
 const chartOptions = computed(() => ({
     animation: false,
     grid: { left: 70, right: 32, top: 36, bottom: 40 },
@@ -159,7 +163,7 @@ const chartOptions = computed(() => ({
     xAxis: { type: 'category', data: points.value.map(p => p.rolls), name: '词条', boundaryGap: false },
     yAxis: { type: 'value', name: metric.value === 'gain' ? '累计提升 (%)' : '期望伤害', axisLabel: { formatter: value => number(value) } },
     series: [{ name: '最优收益', type: 'line', smooth: false, symbol: 'circle', symbolSize: 6,
-        lineStyle: { width: 3, color: '#3b82f6' }, itemStyle: { color: '#3b82f6' }, areaStyle: { color: '#3b82f6', opacity: .09 },
+        lineStyle: { width: 3, color: chartGold.value }, itemStyle: { color: chartGold.value }, areaStyle: { color: chartGold.value, opacity: .09 },
         data: points.value.map(p => metric.value === 'gain' ? (p.gain === null ? null : p.gain * 100) : p.damage) }],
 }))
 const marginalOptions = computed(() => ({
@@ -167,7 +171,7 @@ const marginalOptions = computed(() => ({
     tooltip: { trigger: 'axis', formatter: params => { const p = points.value[params[0]?.dataIndex]; return p ? `第 ${p.rolls} 条的边际收益：${signed(p.marginal)}` : '' } },
     xAxis: { type: 'category', data: points.value.map(p => p.rolls) },
     yAxis: { type: 'value', name: '额外伤害' },
-    series: [{ type: 'bar', data: points.value.map(p => p.marginal), itemStyle: { color: '#79b5f8', borderRadius: [3, 3, 0, 0] }, barMaxWidth: 24 }],
+    series: [{ type: 'bar', data: points.value.map(p => p.marginal), itemStyle: { color: chartGold.value, borderRadius: [3, 3, 0, 0] }, barMaxWidth: 24 }],
 }))
 const panelRows = computed(() => {
     if (!activePoint.value) return []
@@ -186,21 +190,21 @@ function exportResults() {
 </script>
 
 <style scoped lang="scss">
-.gain-curve { color: #24344b; }
-.intro { margin-bottom: 24px; h2 { margin: 6px 0 10px; font-size: 26px; font-weight: 650; } p { margin: 0; color: #67788d; line-height: 1.7; } }
-.eyebrow { color: #3b82f6; font-size: 12px; letter-spacing: 2px; }
+.gain-curve { color: var(--cx-letter); }
+.intro { margin-bottom: 24px; h2 { margin: 6px 0 10px; font-size: 26px; font-weight: 650; } p { margin: 0; color: var(--cx-dim); line-height: 1.7; } }
+.eyebrow { color: var(--cx-gold); font-size: 12px; letter-spacing: 2px; }
 .controls { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; } }
-.stat-selector { margin-top: 20px; padding: 16px; border: 1px solid #e6edf5; border-radius: 8px; }
+.stat-selector { margin-top: 20px; padding: 16px; border: 1px solid var(--cx-step-2); border-radius: 8px; }
 .field-label { display: block; font-size: 13px; margin-bottom: 6px; font-weight: 600; }
-.roll-value { color: #8592a3; font-size: 11px; }
+.roll-value { color: var(--cx-dim); font-size: 11px; }
 .progress-line, .chart-heading, .footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.progress-line { font-size: 12px; color: #7a8797; margin: 18px 0 8px; }
-.summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0; div { background: #f5f8fd; border-radius: 8px; padding: 16px; } span { display: block; color: #7a8797; font-size: 12px; margin-bottom: 10px; } strong { font-size: 23px; } .accent { color: #287bdb; } }
-.chart-heading { font-size: 14px; font-weight: 600; small { font-size: 12px; color: #8b97a6; font-weight: normal; } }
+.progress-line { font-size: 12px; color: var(--cx-dim); margin: 18px 0 8px; }
+.summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0; div { background: var(--cx-step); border-radius: 8px; padding: 16px; } span { display: block; color: var(--cx-dim); font-size: 12px; margin-bottom: 10px; } strong { font-size: 23px; } .accent { color: var(--cx-gold); } }
+.chart-heading { font-size: 14px; font-weight: 600; small { font-size: 12px; color: var(--cx-dim); font-weight: normal; } }
 .main-chart { height: 310px; }
 .marginal-chart { height: 170px; }
-.allocation { border-top: 1px solid #e6edf5; padding-top: 20px; margin-top: 16px; }
+.allocation { border-top: 1px solid var(--cx-step-2); padding-top: 20px; margin-top: 16px; }
 .allocation-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
-.footer { border-top: 1px solid #e6edf5; padding-top: 16px; margin-top: 20px; font-size: 12px; color: #8b97a6; }
+.footer { border-top: 1px solid var(--cx-step-2); padding-top: 16px; margin-top: 20px; font-size: 12px; color: var(--cx-dim); }
 @media (max-width: 700px) { .summary { grid-template-columns: repeat(2, 1fr); } .controls { gap: 10px; } .footer, .chart-heading { flex-wrap: wrap; } }
 </style>

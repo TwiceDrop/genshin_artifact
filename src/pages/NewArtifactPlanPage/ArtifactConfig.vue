@@ -164,7 +164,7 @@ export default {
         }
 
         .effect-title {
-            color: #6eb7ff;
+            color: var(--cx-gold);
         }
 
         .effect-body {

@@ -18,8 +18,8 @@
 }
 
 .select-int.active {
-    background: #79bbff;
-    color: white;
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
 }
 
 /* .config-item {

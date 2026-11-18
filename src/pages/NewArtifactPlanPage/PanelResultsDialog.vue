@@ -1,8 +1,8 @@
 <template>
- <el-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue',$event)" title="面板配装结果" width="94%" destroy-on-close>
+ <el-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue',$event)" title="面板配装结果" width="94%" custom-class="cx-scope viewport-dialog" destroy-on-close>
   <div class="panel-toolbar">
    <span>全局目标：{{ targetLabel }} · {{ snapshot.options.direction==='desc'?'最高':'最低' }} · {{ results.length }} 套</span>
-   <el-select v-model="sortMetric" aria-label="面板结果排序"><el-option v-for="stat in PANEL_STATS" :key="stat.key" :value="stat.key" :label="stat.label" /></el-select>
+   <el-select v-model="sortMetric" aria-label="面板结果排序" popper-class="cx-scope"><el-option v-for="stat in PANEL_STATS" :key="stat.key" :value="stat.key" :label="stat.label" /></el-select>
    <el-radio-group v-model="sortDirection"><el-radio-button label="desc">从高到低</el-radio-button><el-radio-button label="asc">从低到高</el-radio-button></el-radio-group>
   </div>
   <div class="panel-table-wrap">
@@ -44,5 +44,6 @@ watch(()=>props.modelValue,open=>{if(open){sortMetric.value=props.snapshot.optio
 watch([sortMetric,sortDirection],()=>{limit.value=50})
 </script>
 <style scoped>
-.panel-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.panel-toolbar .el-select{width:160px}.panel-table-wrap{overflow:auto;max-height:50vh}.panel-table{width:100%;border-collapse:collapse;white-space:nowrap}.panel-table th,.panel-table td{padding:10px;border-bottom:1px solid var(--el-border-color,#ddd);text-align:right}.panel-table thead{position:sticky;top:0;background:var(--el-bg-color,#fff)}.panel-baseline,.is-selected{background:var(--el-fill-color-light,#f5f7fa)}.panel-artifacts{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:10px;overflow:auto}.panel-difference{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.panel-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.panel-toolbar .el-select{width:160px}.panel-table-wrap{overflow:auto;max-height:50vh}.panel-table{width:100%;border-collapse:collapse;white-space:nowrap}.panel-table th,.panel-table td{padding:10px;border-bottom:1px solid var(--cx-step-2);text-align:right}.panel-table thead{position:sticky;top:0;background:var(--cx-card)}.panel-baseline,.is-selected{background:var(--cx-step)}.panel-artifacts{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:10px;overflow:auto}.panel-difference{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.panel-artifacts :deep(.artifact .up .name){color:var(--cx-letter)}
 </style>

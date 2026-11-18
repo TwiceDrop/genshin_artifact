@@ -22,6 +22,7 @@ export function applyPresetIdentity(item: IPreset, character: any, weapon: any) 
     character.characterSkill2.value = c.skill2 + 1
     character.characterSkill3.value = c.skill3 + 1
     character.characterConfig.value = c.params
+    character.travelerResonance.value = [...(c.resonated_elements ?? [])]
     weapon.weaponName.value = w.name
     weapon.weaponLevel.value = w.level.toString() + (w.ascend ? '+' : '-')
     weapon.weaponRefine.value = w.refine

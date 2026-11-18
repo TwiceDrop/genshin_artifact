@@ -5,7 +5,7 @@ html{overscroll-behavior-y:contain}
     .el-button{min-height:40px;padding:9px 13px}.el-button.is-circle{min-width:38px;min-height:38px}
     .el-input__wrapper,.el-select .el-input{min-height:40px;box-sizing:border-box}
     .el-input-number{max-width:100%}.el-input-number .el-input__wrapper{padding-top:0;padding-bottom:0}
-    .el-dialog{width:calc(100% - 16px)!important;max-width:none!important;margin:8px auto 76px!important;border-radius:14px!important;max-height:calc(100dvh - 24px);display:flex;flex-direction:column}
+    .el-dialog:not(.condition-settings-dialog){width:calc(100% - 16px)!important;max-width:none!important;margin:8px auto 76px!important;border-radius:14px!important;max-height:calc(100dvh - 24px);display:flex;flex-direction:column}
     .el-dialog__header{padding:18px 48px 12px 16px;margin:0}.el-dialog__body{padding:12px 16px!important;overflow:auto;min-height:0}.el-dialog__footer{padding:12px 16px}
     .el-overlay-dialog{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
     .el-message-box{width:calc(100vw - 32px)!important;max-width:420px}.el-message{max-width:calc(100vw - 24px)}

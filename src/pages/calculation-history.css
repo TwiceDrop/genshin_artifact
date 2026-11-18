@@ -97,8 +97,10 @@
 .buffs span { background: var(--cx-card); padding: 3px 10px; border-radius: 999px; overflow-wrap: anywhere; }
 
 /* 五件圣遗物：沿用圣遗物页的卡片，放在成员块里时用更浅一层的底色 */
-.history-artifacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 10px; }
+.history-artifacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 10px; }
 .history-artifacts :deep(.art-card) { background: var(--cx-card); }
+.history-artifacts :deep(.art-head) { padding-right: 0; }
+.history-artifacts :deep(.art-name b), .history-artifacts :deep(.art-subs span span) { white-space: normal; overflow-wrap: anywhere; }
 .empty-artifact { display: grid; align-content: center; justify-items: center; gap: 4px; min-height: 120px; border-radius: 16px; background: var(--cx-card); color: var(--cx-dim); font-size: 13px; }
 .empty-artifact b { color: var(--cx-letter); font-size: 14px; }
 
@@ -114,13 +116,9 @@
   .history-frame:not(.show-detail) .detail, .show-detail .record-list { display: none; }
   .back-button { display: inline-flex; }
 }
-@container history-detail (min-width: 1000px) {
-  .history-artifacts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
 @container history-detail (max-width: 540px) {
   .weapon { width: 100%; margin-left: 0; box-sizing: border-box; }
   .history-member { padding: 12px; }
-  .history-artifacts { grid-template-columns: minmax(0, 1fr); }
   .metrics { grid-template-columns: 1fr; gap: 6px; }
   .metrics > div { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
   .metrics dd { margin: 0; }

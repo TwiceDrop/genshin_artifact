@@ -8,6 +8,8 @@
                 <button type="button" aria-label="下一套" :disabled="result.index >= result.count" @click="emit('result', 'next')">›</button>
             </span>
             <span class="hero-result-note">{{ result.note }}</span>
+            <slot name="comparison" />
+            <span v-if="result.detail" class="hero-result-note">{{ result.detail }}</span>
             <span v-if="result.error" class="hero-result-error" role="alert">{{ result.error }}</span>
             <span class="hero-result-spacer"></span>
             <button type="button" class="hero-result-btn" @click="emit('result', 'compare')">对比候选</button>
@@ -21,12 +23,15 @@
             <div class="hero-name">
                 <img v-if="elementIcon" :src="elementIcon" :alt="elementLabel" />
                 <h2>{{ name }}</h2>
+                <button type="button" class="hero-select-character" @click="emit('my-characters')">选择我的角色</button>
+                <button type="button" class="hero-select-character" @click="emit('default-characters')">默认角色</button>
             </div>
 
             <div class="hero-pills">
                 <button type="button" class="hero-pill" @click="emit('open', 'character')"><small>等级</small>{{ level }}</button>
                 <button type="button" class="hero-pill" @click="emit('open', 'character')"><small>命座</small>C{{ constellation }}</button>
                 <button type="button" class="hero-pill" @click="emit('open', 'character')"><small>天赋</small>{{ talents.join(' · ') }}</button>
+                <button type="button" class="hero-pill" @click="emit('open', 'character')">角色设置</button>
             </div>
 
             <button type="button" class="hero-weapon" @click="emit('open', 'weapon')">
@@ -38,43 +43,45 @@
                 <span class="hero-more">更换 ›</span>
             </button>
 
-            <div class="hero-arts">
-                <button v-for="(slot, index) in slots" :key="slot.position" type="button" class="hero-slot"
-                        :class="{ filled: slot.image, changed: slot.changed }"
-                        :aria-label="slot.image ? `${slot.label}：${slot.title}` : `选择圣遗物：${slot.label}`"
-                        @click="emit('open', 'artifacts', index)">
-                    <img v-if="slot.image" class="hero-slot-art" :src="slot.image" alt="" />
-                    <img v-else class="hero-slot-icon" :src="slot.icon" alt="" />
-                    <span v-if="slot.image" class="hero-slot-level">+{{ slot.level }}</span>
-                    <span v-else class="hero-slot-add" aria-hidden="true">+</span>
-                    <span v-if="slot.changed" class="hero-slot-new">新</span>
-                </button>
-                <button type="button" class="hero-score" @click="emit('open', 'artifacts')">
-                    <b :data-grade="score.grade">{{ score.value }}</b>
-                    <span>{{ score.label }}</span>
-                </button>
-            </div>
         </div>
 
-        <div class="hero-stats">
+        <div class="hero-stats" :class="{ 'is-comparing': stats.some(stat => stat.before !== null) }">
             <h3>面板</h3>
-            <div v-for="stat in stats" :key="stat.key" class="hero-stat" :class="{ hl: stat.highlight }">
-                <span>{{ stat.label }}</span>
-                <b>
-                    <template v-if="stat.before !== null"><s>{{ stat.before }}</s> → </template>
-                    <em :class="stat.direction">{{ stat.current }}</em>
-                </b>
-            </div>
+            <el-tooltip v-for="stat in stats" :key="stat.key" placement="left">
+                <div class="hero-stat" :class="{ hl: stat.highlight }" tabindex="0">
+                    <span>{{ stat.label }}</span>
+                    <b>
+                        <template v-if="stat.before !== null"><s>{{ stat.before }}</s> → </template>
+                        <em :class="stat.direction">{{ stat.current }}</em>
+                    </b>
+                </div>
+                <template #content>
+                    <div class="hero-stat-sources">
+                        <div v-if="stat.before !== null">
+                            <strong>{{ stat.before }} →</strong>
+                            <attribute-composition :composition="stat.baseline" :percentage="stat.percentage" />
+                        </div>
+                        <div>
+                            <strong v-if="stat.before !== null">{{ stat.current }}</strong>
+                            <attribute-composition :composition="stat.composition" :percentage="stat.percentage" />
+                        </div>
+                    </div>
+                </template>
+            </el-tooltip>
             <button type="button" class="hero-stats-more" @click="emit('open', 'attributes')">全部属性 · 收益曲线 ›</button>
         </div>
+        <div class="hero-equipment-area"><slot name="artifacts" /></div>
     </section>
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue"
+import {computed, ref, watch, onMounted, onActivated, onDeactivated, onBeforeUnmount} from "vue"
+import AttributeComposition from "@/components/display/AttributePanel/AttributeComposition.vue"
 
-interface Slot { position: string, label: string, icon: string, image: string | null, title: string, level: number | null, changed: boolean }
-interface Stat { key: string, label: string, current: string, before: string | null, direction: string, highlight: boolean }
+interface Stat {
+    key: string, label: string, current: string, before: string | null, direction: string, highlight: boolean,
+    percentage: boolean, composition: Record<string, number>, baseline?: Record<string, number>,
+}
 
 const props = defineProps<{
     name: string
@@ -86,16 +93,39 @@ const props = defineProps<{
     constellation: number
     talents: number[]
     weapon: { name: string, icon: string, level: string, refine: number, effect: string }
-    slots: Slot[]
-    score: { value: string, label: string, grade?: string }
     stats: Stat[]
     // 有配装结果时显示结果条；index 为 0 表示当前不是任何一套候选（如已恢复原装备）
-    result?: { index: number, count: number, note: string, error?: string, canRestore: boolean } | null
+    result?: { index: number, count: number, note: string, detail?: string, error?: string, canRestore: boolean, busy?: boolean } | null
 }>()
 const emit = defineEmits<{
-    (e: "open", section: "character" | "weapon" | "artifacts" | "attributes", slot?: number): void
+    (e: "my-characters"): void
+    (e: "default-characters"): void
+    (e: "open", section: "character" | "weapon" | "attributes"): void
     (e: "result", action: "prev" | "next" | "compare" | "restore"): void
 }>()
+
+// 目的：只在计算器结果页接管方向键，输入控件和弹层保留自身的键盘操作。
+function handleResultKeydown(event: KeyboardEvent) {
+    const result = props.result
+    if (!result || result.busy || event.defaultPrevented || event.repeat || event.isComposing
+        || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    const target = event.target
+    if (target instanceof Element && target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="slider"], [role="radio"], [role="tab"], [role="combobox"], [role="listbox"]')) return
+    const overlayOpen = Array.from(document.querySelectorAll('[role="dialog"], [role="menu"], [role="listbox"], .el-overlay'))
+        .some(element => element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden')
+    if (overlayOpen) return
+    const previous = event.key === 'ArrowLeft'
+    if (previous ? result.index <= 1 : result.index >= result.count) return
+    event.preventDefault()
+    emit('result', previous ? 'prev' : 'next')
+}
+function bindResultKeyboard() { window.addEventListener('keydown', handleResultKeydown) }
+function unbindResultKeyboard() { window.removeEventListener('keydown', handleResultKeydown) }
+onMounted(bindResultKeyboard)
+onActivated(bindResultKeyboard)
+onDeactivated(unbindResultKeyboard)
+onBeforeUnmount(unbindResultKeyboard)
 
 // 立绘：米游社头像地址 .../character_icon/UI_AvatarIcon_X.png 对应透明底立绘
 // .../character_image/UI_AvatarIcon_X@2x.png；不是这种地址的角色用自带 splash，
@@ -114,16 +144,12 @@ const portraitSrc = computed(() => {
 .hero {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr) 264px;
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr) 360px;
     min-height: 360px;
     border-radius: var(--cx-radius);
     overflow: hidden;
     background: var(--sh-night);
     color: var(--sh-letter);
-}
-
-.hero.has-result {
-    grid-template-rows: auto 1fr;
 }
 
 .hero-result {
@@ -235,6 +261,7 @@ const portraitSrc = computed(() => {
 
 .hero-name {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
 
@@ -247,6 +274,22 @@ const portraitSrc = computed(() => {
         margin: 0;
         font: 900 40px/1.05 "Noto Serif SC", "Source Han Serif SC", serif;
         letter-spacing: .04em;
+    }
+}
+
+.hero-select-character {
+    flex: none;
+    height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--cx-step-2);
     }
 }
 
@@ -325,103 +368,12 @@ const portraitSrc = computed(() => {
     font-size: 13px;
 }
 
-.hero-arts {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-}
-
-.hero-slot {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 60px;
-    height: 60px;
-    padding: 0;
-    border: 0;
-    border-radius: 12px;
+.hero-equipment-area {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding: 18px 24px 24px;
     background: var(--sh-foot);
-    cursor: pointer;
-
-    &.changed {
-        box-shadow: 0 0 0 2px var(--sh-gold);
-    }
-}
-
-.hero-slot-icon {
-    width: 28px;
-    height: 28px;
-    opacity: .5;
-    filter: invert(1);
-}
-
-// 部位图标本身是深色线条，浅色模式下不用反色
-html[data-color-mode="light"] .hero-slot-icon {
-    filter: none;
-    opacity: .45;
-}
-
-.hero-slot-art {
-    width: 52px;
-    height: 52px;
-}
-
-.hero-slot-add {
-    position: absolute;
-    right: 6px;
-    bottom: 1px;
-    color: var(--sh-gold);
-    font-size: 15px;
-}
-
-.hero-slot-level {
-    position: absolute;
-    right: 4px;
-    bottom: 2px;
-    padding: 0 4px;
-    border-radius: 6px;
-    background: var(--sh-night);
-    color: var(--sh-letter);
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-}
-
-.hero-slot-new {
-    position: absolute;
-    left: -4px;
-    top: -6px;
-    padding: 0 5px;
-    border-radius: 6px;
-    background: var(--sh-gold);
-    color: var(--sh-night);
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.hero-score {
-    display: flex;
-    flex-direction: column;
-    margin-left: 8px;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-
-    b {
-        color: var(--sh-gold);
-        font-size: 22px;
-        line-height: 1.1;
-        font-variant-numeric: tabular-nums;
-    }
-
-    span {
-        color: var(--sh-dim);
-        font-size: 12px;
-    }
+    color: var(--cx-letter);
 }
 
 .hero-stats {
@@ -446,10 +398,13 @@ html[data-color-mode="light"] .hero-slot-icon {
     font-variant-numeric: tabular-nums;
 
     span {
+        min-width: 0;
         color: var(--sh-dim);
     }
 
     b {
+        flex: none;
+        white-space: nowrap;
         font-weight: 600;
         text-align: right;
     }
@@ -478,6 +433,15 @@ html[data-color-mode="light"] .hero-slot-icon {
     }
 }
 
+.hero-stat-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    max-width: min(560px, 80vw);
+    max-height: 65vh;
+    overflow: auto;
+}
+
 .hero-stats-more {
     margin-top: auto;
     padding: 12px 0 0;
@@ -491,8 +455,7 @@ html[data-color-mode="light"] .hero-slot-icon {
 }
 
 .hero-pill,
-.hero-weapon,
-.hero-slot {
+.hero-weapon {
     transition: background-color .15s ease;
 }
 
@@ -500,8 +463,7 @@ html[data-color-mode="light"] .hero-slot-icon {
     filter: brightness(1.2);
 }
 
-.hero-weapon:hover,
-.hero-slot:hover {
+.hero-weapon:hover {
     background: var(--sh-hover);
 }
 
@@ -512,8 +474,7 @@ html[data-color-mode="light"] .hero-slot-icon {
 
 @media (prefers-reduced-motion: reduce) {
     .hero-pill,
-    .hero-weapon,
-    .hero-slot {
+    .hero-weapon {
         transition: none;
     }
 }
@@ -529,6 +490,10 @@ html[data-color-mode="light"] .hero-slot-icon {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         column-gap: 24px;
+
+        &.is-comparing {
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+        }
 
         h3,
         .hero-stats-more {
@@ -566,29 +531,17 @@ html[data-color-mode="light"] .hero-slot-icon {
         font-size: 32px;
     }
 
-    .hero-arts {
-        gap: 8px;
-    }
-
-    .hero-slot {
-        width: 52px;
-        height: 52px;
-    }
-
-    .hero-slot-art {
-        width: 46px;
-        height: 46px;
-    }
-
-    .hero-score {
-        margin-left: 0;
-    }
+    .hero-equipment-area { padding: 16px; }
 
     .hero-stats {
         grid-column: auto;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         column-gap: 18px;
         padding: 18px 16px 14px;
+    }
+
+    .hero-stats.is-comparing {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .hero-result {

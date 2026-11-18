@@ -134,6 +134,8 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
   }
  }
  function baselineTeam(){
+  // Presets may omit saved artifacts; JSON snapshots represent those entries as null.
+  if(settings.initial_ids.some(ids=>ids==null))return null;
   const current=settings.initial_ids.map(ids=>ids.map(id=>catalog.get(id)));
   return current.every(b=>b.length===5&&b.every(a=>a&&teamDpsArtifactAvailable(a.set_name)))?current:null;
  }

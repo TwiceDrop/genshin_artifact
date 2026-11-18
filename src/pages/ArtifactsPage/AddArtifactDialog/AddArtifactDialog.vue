@@ -1,5 +1,5 @@
 <template>
-    <el-dialog
+    <el-dialog custom-class="cx-scope"
         :title="t('artPage.newArt')"
         :model-value="props.modelValue"
         @update:model-value="$emit('update:modelValue', $event)"

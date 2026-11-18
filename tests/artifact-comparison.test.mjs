@@ -43,6 +43,7 @@ test('switch game/session/history baselines, disable comparison, retain history 
 test('attribute deltas use displayed units, red increases, green decreases, and no false negative zero', () => {
     assert.deepEqual(attributeComparison({ base: .5, gear: .463 }, { base: .5, gear: .473 }, true), { current: '96.3%', before: '97.3%', delta: '-1.0%', direction: 'decrease' })
     assert.deepEqual(attributeComparison({ base: 1000, gear: 122.6 }, { base: 1000, gear: 20.1 }), { current: '1123', before: '1020', delta: '+103', direction: 'increase' })
-    assert.equal(attributeComparison({ v: .963000000001 }, { v: .963 }, true).direction, '')
+    assert.deepEqual(attributeComparison({ v: .963000000001 }, { v: .963 }, true), { current: '96.3%', before: null, delta: '', direction: '' })
+    assert.deepEqual(attributeComparison({}, {}), { current: '0', before: null, delta: '', direction: '' })
     assert.equal(attributeComparison({ v: .963 }, null, true).before, null)
 })

@@ -135,11 +135,11 @@ export default {
 .feature-row small { margin-right: 6px; color: var(--cx-dim); }
 .damage-feature .increase { color: var(--cx-up); }
 .damage-feature .decrease { color: var(--cx-down); }
-.damage-values { display: inline-flex; flex-direction: column; max-width: 100%; color: #000; font-variant-numeric: tabular-nums; }
-.damage-values.expected { font-weight: 650; color: #396ba9; }
+.damage-values { display: inline-flex; flex-direction: column; max-width: 100%; color: var(--cx-letter); font-variant-numeric: tabular-nums; }
+.damage-values.expected { font-weight: 650; color: var(--cx-gold); }
 .value-line, .change-line { display: flex; flex-wrap: wrap; gap: 0 4px; align-items: baseline; }
 .damage-number { white-space: nowrap; word-break: normal; }
-.before-value { color: #000; white-space: nowrap; }
+.before-value { color: var(--cx-letter); white-space: nowrap; }
 .increase { color: #d93025; }
 .decrease { color: #188038; }
 .item {

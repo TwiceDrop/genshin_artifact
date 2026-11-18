@@ -16,7 +16,11 @@
                         <slot v-for="buff in group.buffs" :key="buff.id" :buff="buff" />
                     </el-collapse-item>
                 </el-collapse>
-            <slot v-for="buff in partition.other" :key="buff.id" :buff="buff" />
+                <section v-if="resonanceBuffs.length" class="selected-resonance">
+                    <header class="buff-column-heading"><h4>{{ t('buffGenre', 'Resonance') }}</h4><span>{{ resonanceBuffs.length }}</span></header>
+                    <slot v-for="buff in resonanceBuffs" :key="buff.id" :buff="buff" />
+                </section>
+                <slot v-for="buff in ungroupedBuffs" :key="buff.id" :buff="buff" />
             </template>
             <template v-else>
                 <slot v-for="buff in column.buffs" :key="buff.id" :buff="buff" />
@@ -34,7 +38,7 @@ import rules from '@/algorithms/buff-groups/ownership.json'
 import { groupSelectedBuffs, buffColumnKey, BUFF_COLUMNS } from '@/algorithms/buff-groups/index.mjs'
 
 const props = defineProps({ buffs: { type: Array, default: () => [] } })
-const { ta } = useI18n()
+const { t, ta } = useI18n()
 const columns = computed(() => {
     const buckets = { Character: [], Weapon: [], Artifact: [], Common: [] }
     for (const buff of props.buffs) {
@@ -46,6 +50,8 @@ const columns = computed(() => {
         .map(([key, label]) => ({ key, label, buffs: buckets[key] }))
 })
 const partition = computed(() => groupSelectedBuffs(columns.value[0].buffs, buffData, rules))
+const resonanceBuffs = computed(() => partition.value.other.filter(buff => buffData[buff.name]?.genre === 'Resonance'))
+const ungroupedBuffs = computed(() => partition.value.other.filter(buff => buffData[buff.name]?.genre !== 'Resonance'))
 const groups = computed(() => partition.value.characters.map(group => ({
     ...group,
     label: characters[group.character] ? ta(characters[group.character].nameLocale) : '旅行者 · 通用',
@@ -63,6 +69,7 @@ watch(() => groups.value.map(g => g.character), (names, previous = []) => {
 .buff-column-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .buff-column-heading h4 { color: var(--ink); font-size: 15px; font-weight: 650; margin: 0; }
 .buff-column-heading > span { color: var(--quiet); font-size: 12px; font-variant-numeric: tabular-nums; }
+.selected-resonance { margin-top: 16px; }
 .buff-empty { margin: 0; padding: 10px 0; color: var(--quiet); font-size: 13px; }
 .selected-buff-title { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; line-height: 1.5; padding: 8px 0; }
 .selected-buff-title img { width: 30px; height: 30px; object-fit: contain; }

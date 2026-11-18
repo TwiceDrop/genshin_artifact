@@ -20,8 +20,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$color: rgb(217, 236, 255);
-$hoverColor: rgb(217, 236, 255);
+$color: var(--cx-gold);
+$hoverColor: var(--cx-gold);
 $border: 2px solid $color;
 $border-radius: 10px;
 

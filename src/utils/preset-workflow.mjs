@@ -25,7 +25,10 @@ export function createCustomPreset(presets, name, item) {
 export function refreshGamePreset(previous, incoming, artifactIds, key, name) {
     const result = copy({...incoming, ...previous, name, character: incoming.character,
         weapon: incoming.weapon, artifactIds, miyousheKey: key})
-    if (previous?.character.name === result.character.name) result.character.params = copy(previous.character.params)
+    if (previous?.character.name === result.character.name) {
+        result.character.params = copy(previous.character.params)
+        if (previous.character.resonated_elements) result.character.resonated_elements = copy(previous.character.resonated_elements)
+    }
     if (previous?.weapon.name === result.weapon.name) result.weapon.params = copy(previous.weapon.params)
     return result
 }
