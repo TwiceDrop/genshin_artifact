@@ -77,6 +77,7 @@ declare module '@vue/runtime-core' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElTree: typeof import('element-plus/es')['ElTree']
     FilterPotentialResult: typeof import('./components/filter/FilterPotentialResult.vue')['default']
+    FirstUseDialog: typeof import('./components/FirstUseDialog.vue')['default']
     IEpArrowDown: typeof import('~icons/ep/arrow-down')['default']
     IEpArrowLeft: typeof import('~icons/ep/arrow-left')['default']
     IEpArrowRight: typeof import('~icons/ep/arrow-right')['default']

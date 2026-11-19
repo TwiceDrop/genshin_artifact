@@ -22,11 +22,13 @@
         </div>
 
         <div class="sb-foot">
-            <!-- 登录在线账号后显示头像和用户名，点开到设置页的在线账号 -->
-            <button v-if="onlineUser.user" type="button" class="sb-item sb-online" @click="go('/setup')">
-                <img v-if="avatarUrl(onlineUser.user.avatar)" :src="avatarUrl(onlineUser.user.avatar)" alt="" class="sb-avatar" />
+            <!-- 在线账号入口：登录后显示头像和用户名，进账户管理与同步页；没登录显示「点击登录」，登录后回到那一页 -->
+            <button type="button" class="sb-item sb-online" :class="{ active: isActive('/online-account') }"
+                    :aria-current="isActive('/online-account') ? 'page' : undefined"
+                    @click="go(onlineUser.user ? '/online-account' : '/login?redirect=/online-account')">
+                <img v-if="onlineUser.user && avatarUrl(onlineUser.user.avatar)" :src="avatarUrl(onlineUser.user.avatar)" alt="" class="sb-avatar" />
                 <icon-ep-avatar v-else class="sb-icon" aria-hidden="true" />
-                <span class="sb-label">{{ onlineUser.user.username || onlineUser.user.email }}</span>
+                <span class="sb-label">{{ onlineUser.user ? (onlineUser.user.username || onlineUser.user.email) : '点击登录' }}</span>
             </button>
             <button type="button" class="sb-item" :class="{ active: isActive('/account') }"
                     :aria-current="isActive('/account') ? 'page' : undefined" @click="go('/account')">

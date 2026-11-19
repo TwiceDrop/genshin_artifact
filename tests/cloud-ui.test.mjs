@@ -9,24 +9,20 @@ const { JSDOM } = require('jsdom')
 const { parse, compileScript, compileTemplate } = require('@vue/compiler-sfc')
 
 // 合成数据。云端和本机网关用内存模拟；加解密用真实的 WebCrypto，验证页面只把密文和派生密钥交出去。
-test('online account page encrypts Cookies before upload, unlocks with the passphrase on a new device and re-encrypts on passphrase change', async () => {
+test('cookie vault panel encrypts Cookies before upload, unlocks with the passphrase on a new device and re-encrypts on passphrase change', async () => {
     const dom = new JSDOM('<html><body><div id="app"></div></body></html>', { url: 'http://127.0.0.1/online-account', pretendToBeVisual: true })
     for (const key of ['window', 'document', 'HTMLElement', 'SVGElement', 'Element', 'Node', 'MutationObserver', 'getComputedStyle', 'Event', 'MouseEvent']) globalThis[key] = typeof dom.window[key] === 'function' && key === 'getComputedStyle' ? dom.window[key].bind(dom.window) : dom.window[key]
     globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
     globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window)
     globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window)
     const Vue = require('vue'), ElementPlus = require('element-plus')
-    const user = { id: 'user-a', email: 'synthetic@example.test' }
     const localCookie = 'ltuid=123456;ltoken=synthetic-ltoken;cookie_token=synthetic-cookie-token;account_id=123456;'
     const passphrase = '合成测试解密密码', nextPassphrase = '新的合成解密密码'
     const calls = [], vaults = new Map(), mysCalls = []
-    let loggedIn = false, storedKey = null, failReplace = false, cookieSync = true
+    let loggedIn = true, storedKey = null, failReplace = false, cookieSync = true
     const fail = (status, code, message) => { throw Object.assign(new Error(message), { status, code }) }
     async function cloudApi(path, method = 'GET', body) {
         calls.push({ path, method, body })
-        if (path === 'config') return { url: 'https://fixture.example.test', user: null }
-        if (path === 'v1/auth/email/request') return { challengeId: 'email-1', resendAfterSeconds: 60 }
-        if (path === 'v1/auth/email/verify') { loggedIn = true; return { user } }
         if (path === 'v1/sessions') return { sessions: [{ id: 'session-a', deviceName: '合成设备', current: true, lastUsedAt: '2026-11-07T00:00:00Z' }] }
         if (path === 'v1/sessions/session-a' && method === 'DELETE') { loggedIn = false; return { ok: true } }
         if (path === 'local-accounts') return { accounts: [{ id: '123456', accountUid: '123456', platform: 'miyoushe', roles: [] }] }
@@ -52,15 +48,16 @@ test('online account page encrypts Cookies before upload, unlocks with the passp
     }
     const mysApi = async (path, method, body) => { mysCalls.push({ path, method, body }); return { account: { id: '123456', accountUid: '123456', platform: 'miyoushe', roles: [{ nickname: '合成角色' }] } } }
     const profileSync = { getSyncSettings: () => ({ cookie: cookieSync }) }
-    const filename = 'src/pages/OnlineAccountPage/OnlineAccountPage.vue'
+    const setOnlineUserCalls = [], setOnlineUser = value => setOnlineUserCalls.push(value)
+    const filename = 'src/pages/OnlineAccountPage/CookieVaultPanel.vue'
     const { descriptor } = parse(fs.readFileSync(new URL('../' + filename, import.meta.url), 'utf8'), { filename })
     const script = compileScript(descriptor, { id: 'online-component' })
     const template = compileTemplate({ source: descriptor.template.content, filename, id: 'online-component', compilerOptions: { bindingMetadata: script.bindings } })
     assert.deepEqual(template.errors, [])
     const scriptCode = script.content.replace(/^import .*\r?\n/gm, '').replace('export default', 'const component =')
     const renderCode = template.code.replace(/import \{([^}]+)\} from "vue"/g, (_, names) => `const {${names.replace(/\s+as\s+/g, ':')}} = Vue`).replace('export function render', 'function render')
-    const component = new Function('Vue', 'cloudApi', 'isNative', 'mysApi', 'profileSync', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'checkNewPassphrase', 'communityAccount',
-        `const {ref,computed,onMounted,onBeforeUnmount,watch}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, false, mysApi, profileSync, deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, communityAccount)
+    const component = new Function('Vue', 'cloudApi', 'mysApi', 'profileSync', 'setOnlineUser', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'checkNewPassphrase', 'communityAccount',
+        `const {ref,onMounted,onBeforeUnmount}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, mysApi, profileSync, setOnlineUser, deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, communityAccount)
     const app = Vue.createApp(component).use(ElementPlus)
     const button = label => [...document.querySelectorAll('button')].find(item => item.textContent.trim() === label)
     const idle = () => [...document.querySelectorAll('button')].some(item => item.textContent.trim() === '刷新' && !item.disabled) || !button('刷新')
@@ -72,10 +69,6 @@ test('online account page encrypts Cookies before upload, unlocks with the passp
     const sentSecrets = () => calls.some(call => JSON.stringify(call.body ?? '').includes('synthetic-cookie-token') || JSON.stringify(call.body ?? '').includes('合成解密密码'))
     try {
         app.mount('#app'); await settle()
-        await fill('邮箱', user.email); await click('发送验证码')
-        await fill('邮箱验证码', '123456'); await click('注册／登录')
-        assert.equal(loggedIn, true); assert.ok(document.body.textContent.includes(user.email))
-
         // 第一台设备：设置解密密码，本机只存派生密钥
         await fill('解密密码', passphrase); await fill('确认解密密码', passphrase); await click('设置解密密码')
         assert.deepEqual(Object.keys(storedKey).sort(), ['kdf', 'key', 'salt'])
@@ -119,6 +112,6 @@ test('online account page encrypts Cookies before upload, unlocks with the passp
         storedKey = oldKey; await click('刷新'); await click('导入本机')
         assert.match(alert(), /其他设备修改/); assert.equal(storedKey, null); assert.ok(button('解锁')); assert.equal(vaults.size, 1)
 
-        await click('退出此设备'); assert.equal(loggedIn, false); assert.ok(button('注册／登录'))
+        await click('退出此设备'); assert.equal(loggedIn, false); assert.ok(!document.body.textContent.includes('合成设备'))
     } finally { app.unmount(); dom.window.close() }
 })

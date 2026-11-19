@@ -72,7 +72,7 @@ Status: ready-for-human
 | `src/cloud/profile-sync.ts`、`profile-sync-core.mjs`、`sync-categories.mjs`、`history-sync.mjs` | 云档案同步，以及按类别的同步开关 |
 | `src/components/FirstUseDialog.vue`、`src/platform/first-use.mjs` | 首次使用弹窗 |
 | `src/platform/cloud.mjs`、`server/cloud.mjs`、`src/platform/cloud-mobile.mjs` | 页面访问在线服务的入口。桌面经本机服务网关（转发白名单、本机保存会话和 Cookie 密钥），Android 走自己的实现。服务端新增接口时，这三处都要放行 |
-| `src/pages/OnlineAccountPage/` | 在线账号页（Cookie 与云档案），路由仍隐藏。开放前要把页内旧的验证码登录区改成跳转到登录页，首次使用弹窗的「从云端账号导入」也要改为指向这里 |
+| `src/pages/OnlineAccountPage/` | 账户管理与同步页，路由 `/online-account`（2026-11-19 开放）。页面由 `OnlineAccountCard.vue`（邮箱、用户名、头像、改邮箱、改密码、注销、退出登录）、`CloudProfilesPanel.vue`（同步内容开关、云档案管理）、`CookieVaultPanel.vue`（解密密码、云端 Cookie、登录设备）和页底的服务地址输入组成。入口是侧栏左下角：登录后显示头像和用户名，没登录显示「点击登录」。设置页只留一行跳转；首次使用弹窗的「从云端账号导入」也指向这里 |
 
 ### 验证
 

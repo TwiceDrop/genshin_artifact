@@ -18,6 +18,7 @@ const PAGES = [
     ['page.setup', '设置', '/setup'],
     ['page.intro', '介绍页', '/intro'],
     ['page.login', '登录', '/login'],
+    ['page.online-account', '账户管理与同步', '/online-account'],
 ]
 
 const ACTIONS = [
