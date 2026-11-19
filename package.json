@@ -1,6 +1,6 @@
 {
   "name": "genshin_artifacts",
-  "version": "7.2.4",
+  "version": "7.2.5-EA",
   "private": true,
   "scripts": {
     "start": "node server/local.mjs",
@@ -69,5 +69,5 @@
     "unplugin-icons": "^0.14.5",
     "unplugin-vue-components": "^0.19.6"
   },
-  "displayVersion": "7.2.04"
+  "displayVersion": "7.2.05EA"
 }
