@@ -1,7 +1,6 @@
 // 同步类别开关：服务端要求档案整份提交、字段齐全，所以关闭的类别在客户端合并，不改服务端。
 // 档案字段见 online-service/src/profiles.mjs 的 DATA_KEYS；name 不属于任何类别，始终同步。
 export const SYNC_CATEGORIES = Object.freeze([
-    { key: 'cookie', fields: [] },
     { key: 'uid', fields: ['miyoushe'] },
     { key: 'history', fields: [] },
     { key: 'artifacts', fields: ['artifacts'] },

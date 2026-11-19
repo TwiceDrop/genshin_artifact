@@ -7,10 +7,11 @@ const KEYS = ['name', 'artifacts', 'presets', 'kumi', 'miyoushe', 'comparisonSet
 const make = tag => Object.fromEntries(KEYS.map(key => [key, key === 'name' ? tag : { from: tag, key }]))
 
 test('默认全开，缺项补齐，只有明确 false 才关闭', () => {
-    assert.deepEqual(Object.values(defaultSyncSettings()), Array(6).fill(true))
-    const settings = normalizeSyncSettings({ artifacts: false, uid: 0, bogus: false })
+    assert.deepEqual(Object.values(defaultSyncSettings()), Array(5).fill(true))
+    const settings = normalizeSyncSettings({ artifacts: false, uid: 0, cookie: false, bogus: false })
     assert.equal(settings.artifacts, false)
     assert.equal(settings.uid, true)
+    assert.equal('cookie' in settings, false)
     assert.equal('bogus' in settings, false)
     assert.deepEqual(normalizeSyncSettings(null), defaultSyncSettings())
 })
@@ -60,6 +61,25 @@ function harness(initialLocal, remoteRevision) {
     })
     return { sync, puts, state, store }
 }
+
+test('后台每分钟检查一次，修改同步设置不额外触发同步', async t => {
+    t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] })
+    let checks = 0
+    const sync = createProfileSync({
+        api: async () => { checks++; return {} },
+        storage: { getItem: async () => null, setItem: async () => {}, subscribeMutations: () => () => {} },
+        accountNames: () => ({}),
+    })
+    await sync.start()
+    t.after(() => sync.stop())
+    await sync.setSyncSettings({ uid: false })
+    t.mock.timers.tick(59_999)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(checks, 0)
+    t.mock.timers.tick(1)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(checks, 1)
+})
 
 test('同步流程：关闭圣遗物后上传带云端原值，并记录上次同步时间', async () => {
     const h = harness(make('local'), { revision: 3, schemaVersion: 1, data: make('remote') })

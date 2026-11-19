@@ -19,7 +19,7 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
     const localCookie = 'ltuid=123456;ltoken=synthetic-ltoken;cookie_token=synthetic-cookie-token;account_id=123456;'
     const passphrase = '合成测试解密密码', nextPassphrase = '新的合成解密密码'
     const calls = [], vaults = new Map(), mysCalls = []
-    let loggedIn = true, storedKey = null, failReplace = false, cookieSync = true
+    let loggedIn = true, storedKey = null, failReplace = false
     const fail = (status, code, message) => { throw Object.assign(new Error(message), { status, code }) }
     async function cloudApi(path, method = 'GET', body) {
         calls.push({ path, method, body })
@@ -47,7 +47,6 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
         throw new Error(`Unexpected API ${method} ${path}`)
     }
     const mysApi = async (path, method, body) => { mysCalls.push({ path, method, body }); return { account: { id: '123456', accountUid: '123456', platform: 'miyoushe', roles: [{ nickname: '合成角色' }] } } }
-    const profileSync = { getSyncSettings: () => ({ cookie: cookieSync }) }
     const setOnlineUserCalls = [], setOnlineUser = value => setOnlineUserCalls.push(value)
     const filename = 'src/pages/OnlineAccountPage/CookieVaultPanel.vue'
     const { descriptor } = parse(fs.readFileSync(new URL('../' + filename, import.meta.url), 'utf8'), { filename })
@@ -56,8 +55,8 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
     assert.deepEqual(template.errors, [])
     const scriptCode = script.content.replace(/^import .*\r?\n/gm, '').replace('export default', 'const component =')
     const renderCode = template.code.replace(/import \{([^}]+)\} from "vue"/g, (_, names) => `const {${names.replace(/\s+as\s+/g, ':')}} = Vue`).replace('export function render', 'function render')
-    const component = new Function('Vue', 'cloudApi', 'mysApi', 'profileSync', 'setOnlineUser', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'checkNewPassphrase', 'communityAccount',
-        `const {ref,onMounted,onBeforeUnmount}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, mysApi, profileSync, setOnlineUser, deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, communityAccount)
+    const component = new Function('Vue', 'cloudApi', 'mysApi', 'setOnlineUser', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'checkNewPassphrase', 'communityAccount',
+        `const {ref,onMounted,onBeforeUnmount}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, mysApi, setOnlineUser, deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, communityAccount)
     const app = Vue.createApp(component).use(ElementPlus)
     const button = label => [...document.querySelectorAll('button')].find(item => item.textContent.trim() === label)
     const idle = () => [...document.querySelectorAll('button')].some(item => item.textContent.trim() === '刷新' && !item.disabled) || !button('刷新')
@@ -79,12 +78,6 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
         assert.equal(await decryptCookie(await deriveCookieKey(passphrase, { salt: sealed.salt }), sealed), localCookie)
         assert.equal(sentSecrets(), false)
 
-        // Cookie 同步关闭时不上传
-        cookieSync = false; vaults.delete('miyoushe/123456')
-        await click('加密上传所选 Cookie')
-        assert.equal(vaults.size, 0); assert.match(alert(), /Cookie 同步已关闭/)
-        cookieSync = true; await click('刷新'); await click('加密上传所选 Cookie'); assert.equal(vaults.size, 1)
-
         // 新设备：本机没有密钥，输错解密密码只提示，不改任何数据
         storedKey = null; await click('刷新')
         assert.equal(button('加密上传所选 Cookie'), undefined)
@@ -93,7 +86,12 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
         assert.match(alert(), /解密密码不正确/); assert.equal(storedKey, null); assert.equal(JSON.stringify([...vaults.entries()]), before)
         await fill('解密密码', passphrase); await click('解锁')
         assert.equal(alert(), ''); assert.ok(storedKey)
+        const imported = []
+        window.addEventListener('mona-cloud-cookie-imported', event => imported.push(event.detail))
         await click('导入本机')
+        assert.equal(imported.length, 1)
+        assert.equal(imported[0].account.id, imported[0].accounts[0].id)
+        assert.equal(JSON.stringify(imported).includes('synthetic-cookie-token'), false)
         assert.deepEqual(mysCalls, [{ path: 'accounts', method: 'POST', body: { cookie: localCookie, platform: 'miyoushe' } }])
 
         // 修改解密密码：409 时什么都不改；成功后云端密文换成新密钥加密

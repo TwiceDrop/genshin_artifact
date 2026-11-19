@@ -90,6 +90,49 @@ test('profile CAS, preserved conflicts, operation idempotency, tombstones and te
     assert.equal(f.errors.length, 0)
 })
 
+test('each profile retains five snapshots including its head, and pruned requests remain idempotent', async t => {
+    const f = await fixture(); t.after(() => f.close())
+    const { sessionToken: token } = await f.login()
+    const req = (path, method = 'GET', body) => f.request(path, { method, body, token })
+    async function newProfile(name) {
+        const { body } = await req('/v1/profiles', 'POST', { operationId: randomUUID(), name })
+        return '/v1/profiles/' + body.profile.id
+    }
+    const base = await newProfile('轮换测试'), other = await newProfile('独立档案')
+    const revisions = base + '/revisions'
+    const snapshotNumbers = async () => (await req(revisions)).body.revisions.map(r => r.revision)
+    const first = commit(0, '第一份')
+    await req(other + '/revisions', 'PUT', first)
+    await req(revisions, 'PUT', first)
+    for (let n = 2; n <= 5; n++) assert.equal((await req(revisions, 'PUT', commit(n - 1, '正常同步'))).status, 200)
+    assert.deepEqual(await snapshotNumbers(), [5, 4, 3, 2, 1])
+    const sixth = commit(5, '第六份')
+    assert.equal((await req(revisions, 'PUT', sixth)).body.revision.revision, 6)
+    assert.deepEqual(await snapshotNumbers(), [6, 5, 4, 3, 2])
+    assert.equal((await req(revisions + '/1')).status, 404)
+    assert.deepEqual((await req(other + '/revisions/1')).body.revision.data, first.data)
+    const receipt = (await f.pool.query('SELECT request_json,octet_length(pruned_request_sha256) AS bytes FROM profile_revisions WHERE profile_id=$1 AND revision=1', [base.split('/').at(-1)])).rows[0]
+    assert.deepEqual(receipt, { request_json: null, bytes: 32 })
+    const replay = await req(revisions, 'PUT', { data: first.data, ...first })
+    assert.equal(replay.body.replayed, true)
+    assert.equal(replay.body.revision.revision, 1)
+    assert.equal((await req(revisions, 'PUT', { ...first, data: data('不同内容') })).body.error.code, 'OPERATION_ID_REUSED')
+
+    const stale = commit(0, '旧设备')
+    assert.equal((await req(revisions, 'PUT', stale)).body.error.revision.revision, 7)
+    const conflicts = await Promise.all(Array.from({ length: 5 }, () => req(revisions, 'PUT', commit(0, '冲突副本'))))
+    assert.ok(conflicts.every(r => r.status === 409 && r.body.error.code === 'PROFILE_CONFLICT'))
+    assert.deepEqual(await snapshotNumbers(), [12, 11, 10, 9, 6])
+    assert.deepEqual((await req(base)).body.revision.data, sixth.data)
+    assert.equal((await req(revisions + '/7')).status, 404)
+    const replayConflict = (await req(revisions, 'PUT', stale)).body.error
+    assert.equal(replayConflict.replayed, true)
+    assert.equal(replayConflict.revision.revision, 7)
+    assert.equal((await req(revisions, 'PUT', commit(6, '继续同步'))).body.revision.revision, 13)
+    assert.deepEqual(await snapshotNumbers(), [13, 12, 11, 10, 9])
+    assert.equal(f.errors.length, 0)
+})
+
 test('immutable terminal history, independent sequence pagination, limits and deletion isolation', async t => {
     const f = await fixture(); t.after(() => f.close())
     const a = await f.login(), b = await f.login('history-b@example.test')

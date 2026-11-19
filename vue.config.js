@@ -69,6 +69,23 @@ module.exports = {
     parallel: false,
     publicPath: process.env.PublicPath || '/',
     devServer: {
+        setupMiddlewares(middlewares, devServer) {
+            let localHandler
+            // Serve desktop APIs at the page origin. Other API paths keep their configured proxies.
+            const localPrefixes = ["/api/cloud/", "/api/mys/", "/api/update/"]
+            middlewares.unshift({ name: "mona-local-api", middleware(req, res, next) {
+                const pathname = req.url.split("?", 1)[0]
+                if (pathname !== "/api/calculation/session" && pathname !== "/api/usage-stats"
+                    && !localPrefixes.some(prefix => pathname.startsWith(prefix))) return next()
+                if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress)) {
+                    return res.status(403).json({ error: "仅允许本机访问" })
+                }
+                localHandler ||= import("./server/local.mjs").then(({ createLocalRequestHandler }) =>
+                    createLocalRequestHandler(devServer.server))
+                return localHandler.then(handle => handle(req, res)).catch(next)
+            } })
+            return middlewares
+        },
         proxy: {
             "^/api/compute_result/analysis": {
                 // target: "http://localhost:8000"

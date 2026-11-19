@@ -21,7 +21,7 @@ export default {
         nav: "导航",
         home: "首页",
         repo: "我的仓库",
-        account: "账号",
+        account: "本地账户",
         artifact: "圣遗物",
         kumi: "圣遗物套装",
         preset: "计算预设",

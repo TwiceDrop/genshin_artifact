@@ -27,14 +27,14 @@
             <strong>同步内容</strong>
             <el-checkbox v-for="item in categories" :key="item.key" :model-value="settings[item.key]" :disabled="working" @change="value => setCategory(item.key, value)">{{ item.label }}</el-checkbox>
         </div>
-        <el-empty v-if="!sync.state.profiles.length" description="暂无云档案" />
-        <article v-for="profile in sync.state.profiles" :key="profile.id" class="cloud-profile">
-            <div class="profiles-heading"><strong>{{ profile.name || '已删除档案' }}</strong><el-tag>{{ profile.deletedAt ? '已删除' : `修订 ${profile.revision}` }}</el-tag></div>
+        <el-empty v-if="!activeProfiles.length" description="暂无云档案" />
+        <article v-for="profile in activeProfiles" :key="profile.id" class="cloud-profile">
+            <div class="profiles-heading"><strong>{{ profile.name }}</strong><el-tag>修订 {{ profile.revision }}</el-tag></div>
             <div class="profile-meta"><span>{{ dateText(profile.updatedAt) }}</span></div>
-            <div v-if="!profile.deletedAt" class="profile-actions">
+            <div class="profile-actions">
                 <el-button :disabled="working || !profile.revision" @click="run(() => sync.downloadNew(profile.id))">下载为新本地账号</el-button>
                 <el-button :disabled="working || !profile.revision" @click="loadVersions(profile)">查看修订</el-button>
-                <el-popconfirm title="删除云档案及全部修订和历史？" confirm-button-text="删除" cancel-button-text="取消" @confirm="run(() => sync.deleteCloud(profile.id))">
+                <el-popconfirm :teleported="false" title="删除云档案及全部修订和历史？" confirm-button-text="删除" cancel-button-text="取消" @confirm="run(() => sync.deleteCloud(profile.id))">
                     <template #reference><el-button type="danger" plain :disabled="working">删除云档案</el-button></template>
                 </el-popconfirm>
             </div>
@@ -58,9 +58,10 @@ import { cloudApi } from '@/platform/cloud.mjs'
 const props = defineProps({ user: { type: Object, required: true }, serviceUrl: { type: String, required: true } })
 const account = useAccountStore(), error = ref(''), pending = ref(false), versions = ref({})
 const working = computed(() => pending.value || sync.state.busy)
+const activeProfiles = computed(() => sync.state.profiles.filter(profile => !profile.deletedAt))
 const binding = computed(() => sync.state.bindings.find(item => item.localAccountId === account.currentAccountId.value))
 // 类别名称为占位文案，待开发者确认（见 docs/specs/online-accounts/issues/09-sync-settings.md）
-const categories = [{ key: 'cookie', label: 'Cookie' }, { key: 'uid', label: 'UID 数据' }, { key: 'history', label: '历史记录' }, { key: 'artifacts', label: '圣遗物' }, { key: 'characters', label: '角色设置（含 MONA-DSL 手改）' }, { key: 'teams', label: '多人轴和文件' }]
+const categories = [{ key: 'uid', label: 'UID 数据' }, { key: 'history', label: '历史记录' }, { key: 'artifacts', label: '圣遗物' }, { key: 'characters', label: '角色设置（含 MONA-DSL 手改）' }, { key: 'teams', label: '多人轴和文件' }]
 const settings = ref(sync.getSyncSettings())
 const setCategory = (key, value) => run(async () => { await sync.setSyncSettings({ ...settings.value, [key]: value }); settings.value = sync.getSyncSettings() })
 let disposed = false, generation = 0

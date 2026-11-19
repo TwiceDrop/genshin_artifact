@@ -153,8 +153,9 @@ async function saveQr() {
     catch (e) { error.value = e.message }
 }
 async function loadAccounts() {
+    const run = generation
     const data = await api('accounts')
-    if (disposed) return
+    if (disposed || run !== generation) return
     savedAccounts.value = data.accounts
     return data
 }
@@ -340,7 +341,20 @@ async function restore(event) {
     } catch (e) { error.value = e.message }
     finally { busy.value = false; event.target.value = '' }
 }
+function onCloudCookieImported({ detail: { accounts, account } }) {
+    generation++
+    stopTimers()
+    savedAccounts.value = accounts
+    if (activeId.value !== account.id || !account.roles.some(role => role.uid === selectedUid.value)) {
+        selectedUid.value = account.roles[0]?.uid || ''
+    }
+    activeId.value = account.id; roles.value = account.roles; loginPlatform.value = account.platform
+    loggedIn.value = true; busy.value = false; loginChoice.value = false; manualOpen.value = false
+    qrImage.value = ''; error.value = ''; manualCookie.value = ''; webLoginPending.value = false
+    verification.value = null; verificationNeeded.value = false
+}
 onMounted(async () => {
+    window.addEventListener('mona-cloud-cookie-imported', onCloudCookieImported)
     const run = generation
     busy.value = true
     try {
@@ -350,6 +364,7 @@ onMounted(async () => {
     finally { if (!disposed) busy.value = false }
 })
 onBeforeUnmount(() => {
+    window.removeEventListener('mona-cloud-cookie-imported', onCloudCookieImported)
     disposed = true; generation++; stopTimers(); manualCookie.value = ''; verification.value = null
     if (webLoginPending.value || (busy.value && loggedIn.value)) api('cancel', 'POST').catch(() => {})
 })

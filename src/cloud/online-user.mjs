@@ -3,7 +3,7 @@ import { reactive } from 'vue'
 import { cloudApi } from '@/platform/cloud.mjs'
 import { characterData } from '@character'
 
-export const onlineUser = reactive({ user: null, error: '' })
+export const onlineUser = reactive({ user: null, ready: false, error: '' })
 
 // 头像存的是角色英文键名，图片沿用角色数据里的头像地址；角色不存在（如旧版本没有的新角色）时返回空。
 export const avatarUrl = key => (key && characterData[key]?.avatar) || ''
@@ -21,6 +21,8 @@ export async function loadOnlineUser() {
         if (error.status === 401) setOnlineUser(null)
         onlineUser.error = error.message
         throw error
+    } finally {
+        onlineUser.ready = true
     }
     return onlineUser.user
 }

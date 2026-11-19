@@ -27,6 +27,7 @@ declare module '@vue/runtime-core' {
     ConfigItem: typeof import('./components/config/ConfigItem.vue')['default']
     DamageAnalysis: typeof import('./components/display/DamageAnalysis/DamageAnalysis.vue')['default']
     DamageAnalysisUtil: typeof import('./components/display/DamageAnalysis/DamageAnalysisUtil.vue')['default']
+    DefaultCharacterPicker: typeof import('./components/select/DefaultCharacterPicker.vue')['default']
     DynamicArtifactScore: typeof import('./components/display/DynamicArtifactScore.vue')['default']
     DynamicArtifactScoreResult: typeof import('./components/display/DynamicArtifactScoreResult.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']

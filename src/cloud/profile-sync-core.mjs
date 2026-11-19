@@ -8,7 +8,7 @@ const waiting = () => Object.assign(new Error('本地档案正在计算或修改
 const domainPattern = /^mona_account_(artifacts|presets|kumi|miyoushe|comparison_settings|team_dps_configurations|team_dps_tasks)_(\d+)$/
 
 export function createProfileSync({ api, storage, capture, restore, createLocal, currentAccountId, accountNames, canRestore, historySync, makeReactive = value => value, uuid = () => crypto.randomUUID(), state = { bindings: [], profiles: [], busy: false, error: '' } }) {
-    let metadata, context = null, epoch = 0, queue = Promise.resolve(), initialized, timer, debounce, started = false, names = {}, unsubscribe, mutationSequence = 0
+    let metadata, context = null, epoch = 0, queue = Promise.resolve(), initialized, timer, started = false, names = {}, unsubscribe, mutationSequence = 0
     function visible() { const bindings = metadata.bindings.filter(binding => binding.scope === contextKey(context)); state.bindings = bindings; return bindings }
     async function init() {
         if (!initialized) initialized = (async () => {
@@ -19,7 +19,7 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
         await initialized
     }
     function persist() { return storage.setItem(SYNC_KEY, clone(metadata), { source: 'cloud-sync' }) }
-    function invalidateContext() { epoch++; context = null; state.bindings = []; state.profiles = []; wake() }
+    function invalidateContext() { epoch++; context = null; state.bindings = []; state.profiles = [] }
     async function identity() {
         const config = await api('config')
         const next = config.url && config.user ? { url: config.url, userId: config.user.id } : null
@@ -159,11 +159,6 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
         }
         for (const binding of [...visible()]) await syncBinding(binding, scope)
     }
-    function wake() {
-        if (!started) return
-        clearTimeout(debounce)
-        debounce = setTimeout(() => enqueue(tick, false).catch(error => { if (error.code !== 'CLOUD_CONTEXT_CHANGED' && visible().some(binding => binding.enabled)) state.error = error.message }), 2000)
-    }
     function mutation(event) {
         if (event.source !== 'local') { if (event.keys.includes('mona_accounts')) names = accountNames(); return }
         mutationSequence++
@@ -178,7 +173,7 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
         for (const binding of metadata.bindings) if (ids.has(binding.localAccountId)) {
             binding.localGeneration++; if (!['conflict', 'deleted'].includes(binding.status)) binding.status = binding.enabled ? 'dirty' : 'disabled'; dirty = true
         }
-        if (dirty) { persist().catch(error => { state.error = error.message }); wake() }
+        if (dirty) persist().catch(error => { state.error = error.message })
     }
     async function createBinding(scope, accountId, replace) {
         const existing = visible().find(item => item.localAccountId === accountId)
@@ -208,8 +203,8 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
         }),
         syncCurrent: () => enqueue(async () => { const scope = await identity(), binding = bindingForCurrent(); if (!scope || !binding) throw new Error('当前本地账号未关联云档案'); const enabled = binding.enabled; binding.enabled = true; try { await syncBinding(binding, scope); await loadProfiles(scope) } finally { binding.enabled = enabled; await persist() } }),
         getSyncSettings: () => normalizeSyncSettings(metadata?.syncSettings),
-        setSyncSettings: settings => enqueue(async () => { metadata.syncSettings = normalizeSyncSettings(settings); await persist(); wake() }, false),
-        setEnabled: (accountId, enabled) => enqueue(async () => { await identity(); const binding = visible().find(item => item.localAccountId === accountId); if (!binding) return; binding.enabled = enabled; if (!['conflict', 'deleted'].includes(binding.status)) binding.status = enabled ? 'dirty' : 'disabled'; await persist(); if (enabled) wake() }),
+        setSyncSettings: settings => enqueue(async () => { metadata.syncSettings = normalizeSyncSettings(settings); await persist() }, false),
+        setEnabled: (accountId, enabled) => enqueue(async () => { await identity(); const binding = visible().find(item => item.localAccountId === accountId); if (!binding) return; binding.enabled = enabled; if (!['conflict', 'deleted'].includes(binding.status)) binding.status = enabled ? 'dirty' : 'disabled'; await persist() }),
         unlink: accountId => enqueue(async () => { await identity(); metadata.bindings = metadata.bindings.filter(binding => !(binding.scope === contextKey(context) && binding.localAccountId === accountId)); await persist(); visible() }),
         deleteCloud: profileId => enqueue(async () => {
             const scope = await identity(); if (!scope) throw new Error('请先登录在线账号')
@@ -239,13 +234,21 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
             await loadProfiles(scope)
         }),
         start: async () => {
+            await init()
             if (started) return
-            await init(); started = true; unsubscribe = storage.subscribeMutations(mutation)
-            timer = setInterval(() => enqueue(tick, false).catch(error => { if (error.code !== 'CLOUD_CONTEXT_CHANGED' && state.bindings.some(binding => binding.enabled)) state.error = error.message }), 15000)
-            if (typeof window !== 'undefined') { window.addEventListener('online', wake); window.addEventListener('mona-cloud-context-change', invalidateContext); document.addEventListener('visibilitychange', wake) }
-            wake()
+            started = true; unsubscribe = storage.subscribeMutations(mutation)
+            timer = setInterval(() => {
+                if (state.busy) return
+                enqueue(tick, false).catch(error => {
+                    if (error.code !== 'CLOUD_CONTEXT_CHANGED' && state.bindings.some(binding => binding.enabled)) state.error = error.message
+                })
+            }, 60_000)
+            if (typeof window !== 'undefined') window.addEventListener('mona-cloud-context-change', invalidateContext)
         },
-        stop: () => { started = false; epoch++; clearInterval(timer); clearTimeout(debounce); unsubscribe?.(); if (typeof window !== 'undefined') { window.removeEventListener('online', wake); window.removeEventListener('mona-cloud-context-change', invalidateContext); document.removeEventListener('visibilitychange', wake) } },
+        stop: () => {
+            started = false; epoch++; clearInterval(timer); unsubscribe?.()
+            if (typeof window !== 'undefined') window.removeEventListener('mona-cloud-context-change', invalidateContext)
+        },
         tick: () => enqueue(tick, false),
         invalidateContext,
     }

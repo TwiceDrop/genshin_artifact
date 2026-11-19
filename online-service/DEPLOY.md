@@ -77,6 +77,8 @@ docker compose up -d api maintenance caddy
 
 升级前备份，保留 `secrets/`、`.env` 与 Docker 命名卷。将新部署包解压到独立目录，复制同一份私密配置，沿用 Compose 项目名 `mona-online`。停止旧 API 和后台服务，构建新镜像并执行迁移，然后启动新服务。数据库结构回滚应使用对应版本代码与升级前备份。
 
+迁移 `009_profile_revision_retention.sql` 保留已有修订。每个档案下次保存新修订时，服务端保留当前生效版本和其余编号最新的 4 份，冲突副本也占一份。淘汰的修订会删除正文，仅保留识别重复提交所需的记录。计算历史单独保存。
+
 从带有服务端 Cookie 托管的旧版本升级时：迁移 `007_cookie_vaults.sql` 会删除旧的托管账号、拉取任务和角色快照，用户需要在客户端重新上传 Cookie。后台服务从 `worker` 改名为 `maintenance`，启动新服务时加 `--remove-orphans` 清掉旧的 `worker` 容器：`docker compose up -d --remove-orphans`。
 
 ```bash

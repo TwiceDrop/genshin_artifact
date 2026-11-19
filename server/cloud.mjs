@@ -1,4 +1,5 @@
 import { CredentialStore, publicAccount } from './credentials.mjs'
+import { withDefaultCloudUrl } from './cloud-config.mjs'
 
 export function cloudServiceUrl(value) {
     const url = new URL(String(value).trim())
@@ -30,7 +31,7 @@ export class CloudGateway {
         return task
     }
     async request(route, method, body, expectedContext) {
-        let saved = await this.store.get('online')
+        let saved = withDefaultCloudUrl(await this.store.get('online'))
         if (expectedContext && (saved?.url !== expectedContext.url || saved?.user?.id !== expectedContext.userId)) {
             return { status: 409, data: { error: { code: 'CLOUD_CONTEXT_CHANGED', message: '在线账号或服务已切换，本次同步已停止' } } }
         }
@@ -52,7 +53,6 @@ export class CloudGateway {
             const { platform, accountUid } = publicAccount(account)
             return { status: 200, data: { platform, accountUid, cookie: account.cookie } }
         }
-        if (!saved?.url) return { status: 400, data: { error: '请先设置服务地址' } }
         if (route === '/cookie-key') {
             if (!saved.user) return { status: 401, data: { error: { code: 'UNAUTHORIZED', message: '请先登录在线账号' } } }
             if (method === 'GET') return { status: 200, data: { cookieKey: saved.cookieKey?.userId === saved.user.id ? publicKey(saved.cookieKey) : null } }
@@ -67,7 +67,17 @@ export class CloudGateway {
             method, headers, redirect: 'error', signal: AbortSignal.timeout(60000),
             ...(!['GET', 'HEAD'].includes(method) ? { body: JSON.stringify(body) } : {}),
         })
-        const data = await response.json()
+        let data
+        try {
+            data = await response.json()
+        } catch (error) {
+            if (!(error instanceof SyntaxError)) throw error
+            if (response.status === 413) {
+                return { status: 413, data: { error: { code: 'BODY_TOO_LARGE', message: '请求内容过大（HTTP 413）' } } }
+            }
+            return { status: response.ok ? 502 : response.status,
+                data: { error: { message: `在线服务返回了非 JSON 内容（HTTP ${response.status}）` } } }
+        }
         if (response.ok && sessionRoutes.has(route)) {
             await this.store.upsert({ id: 'online', url: saved.url, sessionToken: data.sessionToken, user: data.user, expiresAt: data.expiresAt })
             delete data.sessionToken

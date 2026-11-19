@@ -4,6 +4,7 @@ import { ApiError, invalid, missing } from './errors.mjs'
 import { isUuid } from './auth.mjs'
 
 export const SYNC_BODY_LIMIT = 16 * 1024 * 1024
+const RETAINED_REVISIONS = 5
 const DATA_KEYS = ['name','artifacts','presets','kumi','miyoushe','comparisonSettings','teamDpsConfigurations','teamDpsTasks']
 const COMMIT_KEYS = ['operationId','baseRevision','deviceId','schemaVersion','appVersion','engineVersion','data']
 const HISTORY_PRIVATE_KEYS = ['id','accountId','progress','storageError','syncId']
@@ -94,7 +95,10 @@ export function createProfiles({ pool, clock = () => new Date() }) {
         const outcome = await transaction(pool, async db => {
             const profile = await ownedProfile(db, userId, id, { lock: true })
             const serialized = JSON.stringify(input)
-            const { rows: [existing] } = await db.query(`SELECT *,request_json=$3::jsonb AS same_request FROM profile_revisions WHERE profile_id=$1 AND operation_id=$2`, [id, input.operationId, serialized])
+            const { rows: [existing] } = await db.query(`SELECT ${revisionColumns},
+                CASE WHEN r.request_json IS NOT NULL THEN r.request_json=$3::jsonb
+                     ELSE r.pruned_request_sha256=sha256(convert_to(($3::jsonb)::text,'UTF8')) END AS same_request
+                FROM profile_revisions r WHERE r.profile_id=$1 AND r.operation_id=$2`, [id, input.operationId, serialized])
             if (existing) {
                 if (!existing.same_request) throw reused()
                 return { profile, revision: existing, replayed: true }
@@ -106,6 +110,13 @@ export function createProfiles({ pool, clock = () => new Date() }) {
             [id, number, input.baseRevision, input.operationId, status, input.deviceId, input.schemaVersion, input.appVersion, input.engineVersion, serialized, now])
             const { rows: [updated] } = await db.query(`UPDATE profiles SET last_revision=$2,current_revision=CASE WHEN $3 THEN $2 ELSE current_revision END,
                 name=CASE WHEN $3 THEN $4 ELSE name END,updated_at=$5 WHERE id=$1 RETURNING *`, [id, number, status === 'applied', input.data.name, now])
+            // Conflicts use the same five slots, but cannot evict the current download.
+            await db.query(`UPDATE profile_revisions
+                SET pruned_request_sha256=sha256(convert_to(request_json::text,'UTF8')), request_json=NULL
+                WHERE profile_id=$1 AND revision IN (
+                    SELECT revision FROM profile_revisions WHERE profile_id=$1 AND request_json IS NOT NULL
+                    ORDER BY (revision=$2) DESC, revision DESC OFFSET $3
+                )`, [id, updated.current_revision, RETAINED_REVISIONS])
             return { profile: updated, revision, replayed: false }
         })
         // Commit the conflict branch before returning 409; throwing inside the transaction would discard it.
@@ -116,7 +127,8 @@ export function createProfiles({ pool, clock = () => new Date() }) {
         await ownedProfile(pool, userId, id)
         const limit = boundedNumber(query.get('limit'), 50), before = boundedNumber(query.get('before'), 2147483647, 2147483647)
         const { rows } = await pool.query(`SELECT ${revisionColumns} FROM profile_revisions r JOIN profiles p ON p.id=r.profile_id
-            WHERE r.profile_id=$1 AND p.user_id=$2 AND p.deleted_at IS NULL AND r.revision<$3 ORDER BY r.revision DESC LIMIT $4`, [id, userId, before, limit + 1])
+            WHERE r.profile_id=$1 AND p.user_id=$2 AND p.deleted_at IS NULL AND r.request_json IS NOT NULL
+            AND r.revision<$3 ORDER BY r.revision DESC LIMIT $4`, [id, userId, before, limit + 1])
         const page = rows.slice(0, limit)
         return { revisions: page.map(row => publicRevision(row)), nextCursor: rows.length > limit ? page.at(-1).revision : null }
     }
@@ -124,7 +136,7 @@ export function createProfiles({ pool, clock = () => new Date() }) {
         await ownedProfile(pool, userId, id)
         const parsed = boundedNumber(number, null, 2147483647)
         const { rows: [row] } = await pool.query(`SELECT ${revisionColumns},r.request_json->'data' AS data FROM profile_revisions r JOIN profiles p ON p.id=r.profile_id
-            WHERE r.profile_id=$1 AND p.user_id=$2 AND p.deleted_at IS NULL AND r.revision=$3`, [id, userId, parsed])
+            WHERE r.profile_id=$1 AND p.user_id=$2 AND p.deleted_at IS NULL AND r.request_json IS NOT NULL AND r.revision=$3`, [id, userId, parsed])
         if (!row) throw missing()
         return { revision: publicRevision(row, true) }
     }

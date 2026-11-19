@@ -3,6 +3,17 @@ import assert from 'node:assert/strict'
 import { createLocalServer } from '../server/local.mjs'
 import { CloudGateway } from '../server/cloud.mjs'
 
+test('profile sync preserves an upstream upload limit when the proxy returns an HTML error page', async () => {
+    const gateway = new CloudGateway({
+        credentialStore: {}, sessionStore: { get: async () => ({ url: 'https://synthetic.example.test' }) },
+        fetcher: async () => new Response('<html>413 Request Entity Too Large</html>', {status:413}),
+    })
+    const result = await gateway.handle('/v1/profiles/fixture/revisions', 'PUT', {data:{name:'合成档案'}})
+    assert.equal(result.status, 413)
+    assert.equal(result.data.error.code, 'BODY_TOO_LARGE')
+    assert.equal(result.data.error.message, '请求内容过大（HTTP 413）')
+})
+
 test('profile gateway binds each upload to its online identity and preserves large UTF-8 data and pagination', async t => {
     let saved = { id:'online',url:'https://synthetic.example.test',user:{id:'user-a'},sessionToken:'synthetic-token' }
     const calls=[]

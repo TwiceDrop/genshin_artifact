@@ -2,6 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { publicAccount } from '../server/cookie.mjs'
+import { withDefaultCloudUrl } from '../server/cloud-config.mjs'
+
+process.env.VUE_APP_MONA_CLOUD_URL = 'https://cloud.example.test'
 
 test('cloud mobile keeps sessions and the derived Cookie key in its native vault and hands the selected Cookie only to the page', async () => {
     let vault = '{}', failMe = false, releaseVerify
@@ -12,7 +15,7 @@ test('cloud mobile keeps sessions and the derived Cookie key in its native vault
     const requests = [], token = '00000000-0000-4000-8000-000000000001.synthetic-session-secret'
     const user = { id: 'synthetic-user', email: 'synthetic@example.test' }
     const mock = {
-        publicAccount,
+        publicAccount, withDefaultCloudUrl,
         MonaLocal: { readCloudVault: async () => ({ text: vault }), writeCloudVault: async ({ text }) => { vault = text }, readVault: async () => ({ text: originalGameVault }) },
         CapacitorHttp: { request: async request => {
             requests.push(request)
@@ -29,8 +32,12 @@ test('cloud mobile keeps sessions and the derived Cookie key in its native vault
     }
     globalThis.__cloudMobileMock = mock
     const source = fs.readFileSync(new URL('../src/platform/cloud-mobile.mjs', import.meta.url), 'utf8').replace(/^import .*\r?\n/gm, '')
-    const { mobileCloudApi: api } = await import('data:text/javascript;base64,' + Buffer.from(`const { MonaLocal, CapacitorHttp, publicAccount } = globalThis.__cloudMobileMock;\n${source}`).toString('base64'))
+    const { mobileCloudApi: api } = await import('data:text/javascript;base64,' + Buffer.from(`const { MonaLocal, CapacitorHttp, publicAccount, withDefaultCloudUrl } = globalThis.__cloudMobileMock;\n${source}`).toString('base64'))
     delete globalThis.__cloudMobileMock
+    assert.equal((await api('config')).url, 'https://cloud.example.test')
+    await api('v1/auth/email/request', 'POST', { email: 'synthetic@example.test' })
+    assert.equal(requests.at(-1).url, 'https://cloud.example.test/v1/auth/email/request')
+    assert.equal(vault, '{}')
     await assert.rejects(api('config', 'PUT', { url: 'http://remote.example.test' }), /HTTPS/)
     await api('config', 'PUT', { url: 'https://one.example.test' })
     const login = await api('v1/auth/email/verify', 'POST', { challengeId: 'test', code: '123456' })

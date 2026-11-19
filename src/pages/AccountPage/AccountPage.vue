@@ -45,10 +45,9 @@
 <!--        </div>-->
 
         <header class="account-bar">
-            <h2>账号</h2>
+            <h2>{{ t('nav.account') }}</h2>
             <span class="account-actions">
-                <!-- 选过离线模式后，从这里再进登录页（已登录时登录页会直接返回） -->
-                <button type="button" class="account-login" @click="router.push({ name: 'login', query: { redirect: '/account' } })"><icon-ep-user aria-hidden="true" />登录在线账号</button>
+                <button v-if="onlineUser.ready && !onlineUser.user" type="button" class="account-login" @click="router.push({ name: 'login', query: { redirect: '/account' } })"><icon-ep-user aria-hidden="true" />登录在线账号</button>
                 <button type="button" class="account-add" @click="addAccount"><icon-ep-plus aria-hidden="true" />{{ t('accountPage.addAccount') }}</button>
             </span>
         </header>
@@ -98,6 +97,7 @@ import ClickEditLabel from "@c/misc/ClickEditLabel"
 import IconEpSort from "~icons/ep/sort"
 import {useI18n} from "@/i18n/i18n"
 import {useRouter} from "vue-router"
+import {onlineUser} from "@/cloud/online-user.mjs"
 import IconEpUser from "~icons/ep/user"
 import IconEpPlus from "~icons/ep/plus"
 import IconEpCircleCheckFilled from "~icons/ep/circle-check-filled"

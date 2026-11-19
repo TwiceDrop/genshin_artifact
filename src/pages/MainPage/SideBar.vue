@@ -58,8 +58,8 @@ import IconEpUser from "~icons/ep/user"
 import IconEpSetting from "~icons/ep/setting"
 import IconEpAvatar from "~icons/ep/avatar"
 
-import {computed, onMounted} from "vue"
-import {onlineUser, loadOnlineUser, avatarUrl} from "@/cloud/online-user.mjs"
+import {computed} from "vue"
+import {onlineUser, avatarUrl} from "@/cloud/online-user.mjs"
 import {useRoute, useRouter} from "vue-router"
 import {useI18n} from "@/i18n/i18n"
 import {useAccountStore} from "@/store/pinia/account"
@@ -75,8 +75,6 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { currentAccountName } = useAccountStore()
-// 读不到登录状态（例如没有本机服务）时不显示这一行，原因留在 onlineUser.error 里
-onMounted(() => { loadOnlineUser().catch(() => {}) })
 
 // 计算放最前：它是玩家最常用的入口；设置和账号移到底部
 const groups = computed(() => [

@@ -21,7 +21,7 @@ export default {
         nav: "Navigation",
         home: "Home",
         repo: "My Repo",
-        account: "Account",
+        account: "Local Account",
         artifact: "Artifact",
         kumi: "Artifact Group",
         preset: "Preset",

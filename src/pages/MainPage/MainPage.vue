@@ -79,6 +79,8 @@
 
 <script setup lang="ts">
 import SideBar from "./SideBar.vue"
+import {onMounted} from "vue"
+import {loadOnlineUser} from "@/cloud/online-user.mjs"
 import { default as MonaFooter } from "./Footer.vue"
 import IconEpMenu from "~icons/ep/menu"
 import {useRoute, useRouter} from "vue-router"
@@ -87,6 +89,7 @@ import {useScreen} from "@/composables/screen"
 import { isNative } from '@/platform/native.mjs'
 
 const { geSmall } = useScreen()
+onMounted(() => { loadOnlineUser().catch(() => {}) })
 
 const drawerVisible = ref(false)
 

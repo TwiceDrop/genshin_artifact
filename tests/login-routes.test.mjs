@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { CloudGateway } from '../server/cloud.mjs'
 import { publicAccount } from '../server/cookie.mjs'
+import { withDefaultCloudUrl } from '../server/cloud-config.mjs'
 import { followCloudSession } from '../src/platform/login-gate.mjs'
 
 // 合成数据：令牌、用户和服务地址都是虚构的。
@@ -20,6 +21,20 @@ function memoryStore(initial) {
         peek: () => value,
     }
 }
+
+process.env.VUE_APP_MONA_CLOUD_URL = 'https://cloud.example.test'
+
+test('a fresh desktop gateway can request a code before a service address is saved', async () => {
+    const store = memoryStore()
+    const gateway = new CloudGateway({ sessionStore: store, fetcher: async url => {
+        assert.equal(url, 'https://cloud.example.test/v1/auth/email/request')
+        return Response.json({ challengeId: 'synthetic' })
+    } })
+    assert.deepEqual(await gateway.handle('/v1/auth/email/request', 'POST', { email: 'synthetic@example.test' }),
+        { status: 200, data: { challengeId: 'synthetic' } })
+    assert.equal((await gateway.handle('/config', 'GET')).data.url, 'https://cloud.example.test')
+    assert.equal(store.peek(), undefined)
+})
 
 test('desktop gateway forwards register, password login and reset, and keeps the new session token to itself', async () => {
     const sent = []
@@ -51,7 +66,7 @@ test('Android forwards register and password login and saves the session in its 
     let vault = JSON.stringify({ url: 'https://cloud.example.test' })
     const paths = []
     globalThis.__loginRoutesMock = {
-        publicAccount,
+        publicAccount, withDefaultCloudUrl,
         MonaLocal: { readCloudVault: async () => ({ text: vault }), writeCloudVault: async ({ text }) => { vault = text } },
         CapacitorHttp: { request: async request => {
             const path = new URL(request.url).pathname
@@ -60,7 +75,7 @@ test('Android forwards register and password login and saves the session in its 
         } },
     }
     const source = fs.readFileSync(new URL('../src/platform/cloud-mobile.mjs', import.meta.url), 'utf8').replace(/^import .*\r?\n/gm, '')
-    const { mobileCloudApi: api } = await import('data:text/javascript;base64,' + Buffer.from(`const { MonaLocal, CapacitorHttp, publicAccount } = globalThis.__loginRoutesMock;\n${source}`).toString('base64'))
+    const { mobileCloudApi: api } = await import('data:text/javascript;base64,' + Buffer.from(`const { MonaLocal, CapacitorHttp, publicAccount, withDefaultCloudUrl } = globalThis.__loginRoutesMock;\n${source}`).toString('base64'))
     delete globalThis.__loginRoutesMock
     for (const path of sessionRoutes) {
         vault = JSON.stringify({ url: 'https://cloud.example.test' })

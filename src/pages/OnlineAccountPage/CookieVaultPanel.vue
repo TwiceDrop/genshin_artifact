@@ -5,7 +5,6 @@
         <!-- 本区块的文案均为占位，待开发者确认（docs/specs/online-accounts/issues/08-cookie-client-encryption.md 的 Comments） -->
         <section class="oa-card">
             <div class="oa-heading"><h3>云端 Cookie</h3><el-button :disabled="busy" @click="refreshAll">刷新</el-button></div>
-            <div v-if="!cookieSyncEnabled" class="oa-note" role="status">Cookie 同步已关闭，不会上传 Cookie</div>
             <div v-if="!cookieKey && !vaults.length" class="oa-passphrase">
                 <el-input v-model="passphrase" type="password" autocomplete="new-password" label="解密密码" placeholder="设置解密密码" :disabled="busy" />
                 <el-input v-model="passphraseConfirm" type="password" autocomplete="new-password" label="确认解密密码" placeholder="再次输入解密密码" :disabled="busy" />
@@ -14,7 +13,7 @@
             <div v-else-if="!cookieKey" class="oa-passphrase">
                 <el-input v-model="passphrase" type="password" autocomplete="current-password" label="解密密码" placeholder="输入解密密码" :disabled="busy" @keyup.enter="unlock" />
                 <el-button type="primary" :disabled="busy || !passphrase" @click="unlock">解锁</el-button>
-                <el-popconfirm title="删除云端全部 Cookie，之后重新上传并设置新的解密密码？" confirm-button-text="删除" cancel-button-text="取消" @confirm="forgetPassphrase">
+                <el-popconfirm :teleported="false" title="删除云端全部 Cookie，之后重新上传并设置新的解密密码？" confirm-button-text="删除" cancel-button-text="取消" @confirm="forgetPassphrase">
                     <template #reference><el-button :disabled="busy">忘记解密密码</el-button></template>
                 </el-popconfirm>
             </div>
@@ -23,7 +22,7 @@
                     <el-select v-model="localAccountId" aria-label="本机游戏账号" placeholder="选择本机已保存账号" :disabled="busy" style="width:100%">
                         <el-option v-for="account in localAccounts" :key="account.id" :value="account.id" :label="accountLabel(account)" />
                     </el-select>
-                    <el-button type="primary" :disabled="busy || !localAccountId || !cookieSyncEnabled" @click="uploadLocal">加密上传所选 Cookie</el-button>
+                    <el-button type="primary" :disabled="busy || !localAccountId" @click="uploadLocal">加密上传所选 Cookie</el-button>
                 </div>
                 <div class="oa-actions oa-manual-toggle">
                     <el-button :disabled="busy" @click="manualOpen = !manualOpen">手动输入 Cookie</el-button>
@@ -32,7 +31,7 @@
                 <div v-if="manualOpen" class="oa-manual">
                     <el-select v-model="platform" aria-label="Cookie 平台" :disabled="busy"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
                     <el-input v-model="cookie" type="password" autocomplete="off" label="Cookie" placeholder="Cookie" :disabled="busy" />
-                    <el-button :disabled="busy || !cookie.trim() || !cookieSyncEnabled" @click="uploadCookie">加密上传 Cookie</el-button>
+                    <el-button :disabled="busy || !cookie.trim()" @click="uploadCookie">加密上传 Cookie</el-button>
                 </div>
                 <div v-if="changeOpen" class="oa-passphrase">
                     <el-input v-model="passphrase" type="password" autocomplete="new-password" label="新解密密码" placeholder="新解密密码" :disabled="busy" />
@@ -45,7 +44,7 @@
                 <div><strong>{{ platformName(vault.platform) }} · {{ vault.accountUid }}</strong><div>上传于 {{ dateText(vault.updatedAt) }}</div></div>
                 <div class="oa-actions">
                     <el-button type="primary" :disabled="busy || !cookieKey" @click="importVault(vault)">导入本机</el-button>
-                    <el-popconfirm title="删除这条云端 Cookie？" confirm-button-text="删除" cancel-button-text="取消" @confirm="deleteVault(vault)">
+                    <el-popconfirm :teleported="false" title="删除这条云端 Cookie？" confirm-button-text="删除" cancel-button-text="取消" @confirm="deleteVault(vault)">
                         <template #reference><el-button type="danger" plain :disabled="busy">删除</el-button></template>
                     </el-popconfirm>
                 </div>
@@ -68,14 +67,13 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { cloudApi } from '@/platform/cloud.mjs'
 
 import { mysApi } from '@/platform/mys-api.mjs'
-import { profileSync } from '@/cloud/profile-sync'
 import { setOnlineUser } from '@/cloud/online-user.mjs'
 import { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase } from '@/cloud/cookie-crypto.mjs'
 import { communityAccount } from '../../../server/cookie.mjs'
 
 // 本面板只在已登录时由账户管理与同步页显示；登录、退出、改资料都在页面的其他部分
 const error = ref(''), busy = ref(false)
-const localAccounts = ref([]), localAccountId = ref(''), vaults = ref([]), sessions = ref([]), cookieKey = ref(null), cookieSyncEnabled = ref(true)
+const localAccounts = ref([]), localAccountId = ref(''), vaults = ref([]), sessions = ref([]), cookieKey = ref(null)
 const manualOpen = ref(false), changeOpen = ref(false), cookie = ref(''), platform = ref('miyoushe'), passphrase = ref(''), passphraseConfirm = ref(''), notice = ref('')
 let disposed = false, generation = 0
 const platformName = value => value === 'hoyolab' ? 'HoYoLAB' : '米游社'
@@ -102,7 +100,7 @@ async function loadAll() {
     await loadVaults()
     const devices = await cloudApi('v1/sessions'), local = await cloudApi('local-accounts')
     if (disposed || run !== generation) return
-    sessions.value = devices.sessions; localAccounts.value = local.accounts; cookieSyncEnabled.value = profileSync.getSyncSettings().cookie
+    sessions.value = devices.sessions; localAccounts.value = local.accounts
     if (!local.accounts.some(account => account.id === localAccountId.value)) localAccountId.value = local.accounts[0]?.id || ''
 }
 function refreshAll() { return run(loadAll) }
@@ -129,7 +127,6 @@ async function assertKeyCurrent() {
     if (sealed.salt !== cookieKey.value.salt || sealed.kdf.iterations !== cookieKey.value.kdf.iterations) await open(sealed)
 }
 async function upload(account) {
-    if (!profileSync.getSyncSettings().cookie) { cookieSyncEnabled.value = false; throw new Error('Cookie 同步已关闭') }
     await assertKeyCurrent()
     await cloudApi(vaultPath(account), 'PUT', await encryptCookie(cookieKey.value, account.cookie))
     await loadVaults()
@@ -169,7 +166,10 @@ function uploadCookie() { return run(async () => {
 function importVault(vault) { return run(async () => {
     const value = await open(await readVault(vault))
     const { account } = await mysApi('accounts', 'POST', { cookie: value, platform: vault.platform })
-    localAccounts.value = (await cloudApi('local-accounts')).accounts
+    const { accounts } = await cloudApi('local-accounts')
+    localAccounts.value = accounts
+    localAccountId.value = account.id
+    window.dispatchEvent(new window.CustomEvent('mona-cloud-cookie-imported', { detail: { accounts, account } }))
     notice.value = `已存入本机：${accountLabel(account)}`
 }) }
 function deleteVault(vault) { return run(async () => { await cloudApi(vaultPath(vault), 'DELETE'); await loadVaults() }) }
@@ -276,11 +276,6 @@ onBeforeUnmount(() => { disposed = true; generation++; clearSecrets() })
     .el-button {
         margin-left: 0;
     }
-}
-
-.oa-note {
-    margin: 0 0 14px;
-    color: var(--cx-dim);
 }
 
 .oa-result {

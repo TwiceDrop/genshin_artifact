@@ -11,14 +11,21 @@ import { communityAccount } from './cookie.mjs'
 import { startHoyolabWebLogin } from './hoyolab-web-login.mjs'
 import { CredentialStore, normalizeCookie, publicAccount } from './credentials.mjs'
 
-export function createLocalServer({ clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
+export function createLocalServer(options) {
+    const server = http.createServer()
+    server.on('request', createLocalRequestHandler(server, options))
+    return server
+}
+
+export function createLocalRequestHandler(server, { clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
     cloudGateway, updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     let cloud = cloudGateway
     const sessions = new Map()
     const calculationSession = randomBytes(16).toString('hex')
     const cleanup = s => { s.cancelled = true; s.webLogin?.cancel(); s.client.clear() }
     const timer = setInterval(() => { for (const [id, s] of sessions) if (Date.now() > s.expires) { cleanup(s); sessions.delete(id) } }, 60000).unref()
-    const server = http.createServer(async (req, res) => {
+    server.on('close', () => { clearInterval(timer); for (const s of sessions.values()) cleanup(s); sessions.clear() })
+    return async (req, res) => {
         const json = (value, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)) }
         const port = server.address().port
         if (![`127.0.0.1:${port}`, `localhost:${port}`].includes(req.headers.host)) return json({ error: '仅允许本机访问' }, 403)
@@ -193,9 +200,7 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
             res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' })
             res.end(req.method === 'HEAD' ? undefined : await readFile(file))
         } catch { res.writeHead(404); res.end('Not found. Run npm run build:local first.') }
-    })
-    server.on('close', () => { clearInterval(timer); for (const s of sessions.values()) cleanup(s); sessions.clear() })
-    return server
+    }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const port = Number(process.env.MONA_PORT || 4183)

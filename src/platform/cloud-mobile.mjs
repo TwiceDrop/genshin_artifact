@@ -1,6 +1,7 @@
 import { CapacitorHttp } from '@capacitor/core'
 import { MonaLocal } from './native.mjs'
 import { publicAccount } from '../../server/cookie.mjs'
+import { withDefaultCloudUrl } from '../../server/cloud-config.mjs'
 
 let queue = Promise.resolve()
 // 这些接口成功时返回新会话：本机保存令牌，不交给页面，与桌面 server/cloud.mjs 一致
@@ -13,7 +14,7 @@ function serviceUrl(value) {
     return url.origin
 }
 async function execute(path, method, body, expectedContext) {
-    let config = JSON.parse((await MonaLocal.readCloudVault()).text)
+    let config = withDefaultCloudUrl(JSON.parse((await MonaLocal.readCloudVault()).text))
     if (expectedContext && (config.url !== expectedContext.url || config.user?.id !== expectedContext.userId)) throw Object.assign(new Error('在线账号或服务地址已切换'), { status: 409, code: 'CLOUD_CONTEXT_CHANGED' })
     const write = async value => { config = value; await MonaLocal.writeCloudVault({ text: JSON.stringify(value) }) }
     if (path === 'config' && method === 'GET') return publicConfig(config)
@@ -29,7 +30,6 @@ async function execute(path, method, body, expectedContext) {
         const { platform, accountUid } = publicAccount(saved)
         return { platform, accountUid, cookie: saved.cookie }
     }
-    if (!config.url) throw new Error('请先设置在线服务地址')
     // 本机只存解密密码派生出的密钥，随在线账号保存、退出登录时清除，与桌面 server/cloud.mjs 一致
     if (path === 'cookie-key') {
         if (!config.user) throw Object.assign(new Error('请先登录在线账号'), { status: 401, code: 'UNAUTHORIZED' })
