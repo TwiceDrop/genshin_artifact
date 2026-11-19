@@ -50,14 +50,14 @@ test('feature ids are unique and every feature is complete', () => {
         if (f.category === 'page') assert.match(f.route, /^\//)
         else assert.equal(f.route, undefined)
     }
-    assert.equal(features.filter(f => f.category === 'page').length, 13)
+    assert.equal(features.filter(f => f.category === 'page').length, 14)
     assert.equal(features.filter(f => f.category === 'action').length, 15)
 })
 
 test('lookups return nothing for unknown ids and routes, and the registry cannot be changed', () => {
     assert.equal(getUsageFeature('action.unknown'), undefined)
     assert.equal(usageFeatureIdForRoute('/no-such-page'), undefined)
-    assert.equal(usageFeatureIdForRoute('/online-account'), undefined)
+    assert.equal(usageFeatureIdForRoute('/online-account/other'), undefined)
     const [first] = listUsageFeatures()
     assert.throws(() => { first.name = 'changed' }, TypeError)
     assert.throws(() => { listUsageFeatures().push({}) }, TypeError)

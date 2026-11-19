@@ -58,7 +58,7 @@ watch(() => route.name, name => {
 }, {immediate: true})
 
 const targets = {
-    cloud: '/account',
+    cloud: '/online-account',
     uid: '/uid-data',
     file: {path: '/artifacts', query: {import: '1'}},
 }

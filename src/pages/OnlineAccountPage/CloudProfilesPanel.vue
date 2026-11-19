@@ -86,7 +86,129 @@ onMounted(refresh)
 onBeforeUnmount(() => { disposed = true; generation++ })
 </script>
 
-<style scoped>
-.cloud-profiles{padding:22px 0;border-bottom:1px solid var(--el-border-color-light,#e4e7ed)}.profiles-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.profiles-heading h3{font-size:17px;margin:0}.profiles-heading strong{overflow-wrap:anywhere}.sync-categories{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;padding:6px 0 14px}.profile-current{padding:18px 0}.profile-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.profile-actions .el-button{margin-left:0}.profile-actions .el-switch{margin-right:8px}.profile-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;color:var(--el-text-color-secondary,#909399);font-size:14px}.profile-error{margin:10px 0;color:var(--el-color-danger,#f56c6c);overflow-wrap:anywhere}.cloud-profile{padding:18px 0;border-top:1px solid var(--el-border-color-light,#e4e7ed)}.profile-conflict{margin-top:16px}.profile-conflict>.profile-actions{margin-top:10px}.profile-versions{margin-top:14px}.profile-version{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;font-size:14px;border-top:1px solid var(--el-border-color-lighter,#ebeef5)}
-@media(max-width:640px){.profile-actions{display:grid;grid-template-columns:1fr 1fr}.profile-actions .el-switch{grid-column:1/-1}.profile-actions .el-button{width:100%}.profiles-heading{align-items:flex-start}.profile-version{align-items:flex-start;flex-direction:column}}
+<style scoped lang="scss">
+// 夜空风格：颜色读外层 .cx-scope 的 --cx-*
+.cloud-profiles {
+    max-width: 760px;
+    margin-bottom: 12px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: var(--cx-card);
+    color: var(--cx-letter);
+
+    :deep(.el-alert) {
+        margin-bottom: 12px;
+    }
+}
+
+.profiles-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+
+    h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    strong {
+        overflow-wrap: anywhere;
+    }
+}
+
+.sync-categories {
+    display: flex;
+    align-items: center;
+    gap: 6px 18px;
+    flex-wrap: wrap;
+    padding: 6px 0 14px;
+}
+
+.profile-current {
+    padding: 12px 0;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    .el-button {
+        margin-left: 0;
+    }
+
+    .el-switch {
+        margin-right: 8px;
+    }
+}
+
+.profile-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    color: var(--cx-dim);
+    font-size: 14px;
+}
+
+.profile-error {
+    margin: 10px 0;
+    color: var(--cx-up);
+    overflow-wrap: anywhere;
+}
+
+.cloud-profile {
+    padding: 14px 0;
+    box-shadow: 0 -1px 0 var(--cx-step-2);
+}
+
+.profile-conflict {
+    margin-top: 16px;
+
+    > .profile-actions {
+        margin-top: 10px;
+    }
+}
+
+.profile-versions {
+    margin-top: 12px;
+}
+
+.profile-version {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 14px;
+    box-shadow: 0 -1px 0 var(--cx-step-2);
+}
+
+@media (max-width: 640px) {
+    .profile-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+
+        .el-switch {
+            grid-column: 1 / -1;
+        }
+
+        .el-button {
+            width: 100%;
+        }
+    }
+
+    .profiles-heading {
+        align-items: flex-start;
+    }
+
+    .profile-version {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
 </style>
