@@ -10,18 +10,23 @@ export const UPDATE_SOURCES = [
     {id: 'ghproxy', name: 'ghproxy.net', prefix: 'https://ghproxy.net/'},
     {id: 'gh-proxy', name: 'gh-proxy.com', prefix: 'https://gh-proxy.com/'},
 ]
+// 版本号：数字段，可跟 EA（或 -EA），EA 后面可再跟补丁段，例如 7.2.05EA.01；其他 -/+ 后缀不参与比较。
+// 数字段先比；数字相同时 EA 早于正式版，两个 EA 再比补丁段。
 export function compareVersions(left, right) {
     const parts = value => {
-        const match = String(value || '').trim().match(/^v?(\d+(?:\.\d+)*)(?:EA|[-+].*)?$/i)
-        return match ? match[1].split('.').map(Number) : null
+        const match = String(value || '').trim().match(/^v?(\d+(?:\.\d+)*)(?:(-?EA)(?:\.(\d+(?:\.\d+)*))?|[-+].*)?$/i)
+        return match ? {numbers: match[1].split('.').map(Number), early: !!match[2], patch: (match[3] || '').split('.').filter(Boolean).map(Number)} : null
+    }
+    const order = (x, y) => {
+        for (let i = 0; i < Math.max(x.length, y.length); i++) {
+            const delta = (x[i] || 0) - (y[i] || 0)
+            if (delta) return Math.sign(delta)
+        }
+        return 0
     }
     const a = parts(left), b = parts(right)
     if (!a || !b) return null
-    for (let i = 0; i < Math.max(a.length, b.length); i++) {
-        const delta = (a[i] || 0) - (b[i] || 0)
-        if (delta) return Math.sign(delta)
-    }
-    return 0
+    return order(a.numbers, b.numbers) || (Number(b.early) - Number(a.early)) || order(a.patch, b.patch)
 }
 export function sourceUrl(value, sourceId) {
     const source = UPDATE_SOURCES.find(item => item.id === sourceId)
