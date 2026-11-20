@@ -4,9 +4,9 @@
 
 **Blocked by:** 01, 04
 
-**Status:** ready-for-human
+**Status:** ready-for-agent
 
-需要开发者先定：补丁清单的地址（规格「待开发者决定」第 1 条）。在线服务还没部署，可以先用本地文件或固定地址做验证，地址写成一个常量，之后一处替换。
+清单地址已定（2026-11-20）：写成一个常量，开发和测试用本地假服务，在线服务部署后只换这个常量；真实地址由开发者部署后提供。校验直接用 `server/patch-package.mjs` 的 `verifyPatchPackage`，公钥来自构建配置。
 
 规格见 `docs/specs/content-patch/spec.md`。
 

@@ -20,7 +20,7 @@ const WEAPONS = PATCHABLE_DATA.weapons, SIGNATURE = PATCHABLE_DATA.signatureWeap
 // 合成补丁：{path: 内容}，baseVersion 默认只适用于 7.2.05EA
 function makePatch(contents = {[WEAPONS]: {weapons: [{name: 'Synthetic'}]}}, {patch = '7.2.05EA.01', min = '7.2.05EA', max = '7.2.05EA.99'} = {}) {
     const files = Object.fromEntries(Object.entries(contents).map(([file, value]) => [file, Buffer.from(JSON.stringify(value))]))
-    return {manifest: {patch, baseVersion: {min, max}, files: Object.entries(files).map(([file, bytes]) => ({path: file, sha256: sha(bytes), size: bytes.length}))}, files}
+    return {manifest: {patch, createdAt: '2026-11-20T00:00:00Z', baseVersion: {min, max}, files: Object.entries(files).map(([file, bytes]) => ({path: file, sha256: sha(bytes), size: bytes.length}))}, files}
 }
 async function withStore(run) {
     const directory = await mkdtemp(base)
@@ -51,15 +51,15 @@ test('a newer install replaces the pending patch and the next activation replace
 }))
 
 test('install refuses files outside the registry, mismatching bytes and a manifest that disagrees with the files', () => withStore(async store => {
-    const reject = async (patch, stage) => assert.rejects(store.install(patch), error => error.code === 'PATCH_STORE' && error.stage === stage)
-    await reject(makePatch({'beta-data/team-engine/character-packages.mjs': {}}), '清单')
-    await reject(makePatch({'../outside.json': {}}), '清单')
+    const reject = async (patch, stage) => assert.rejects(store.install(patch), error => error.code === 'PATCH_PACKAGE' && error.stage === stage)
+    await reject(makePatch({'beta-data/team-engine/character-packages.mjs': {}}), '路径')
+    await reject(makePatch({'../outside.json': {}}), '路径')
     const tampered = makePatch(); tampered.files[WEAPONS] = Buffer.from('{"weapons":[]}')
     await reject(tampered, '哈希')
     const extra = makePatch(); extra.files[SIGNATURE] = Buffer.from('{}')
-    await reject(extra, '清单')
+    await reject(extra, '路径')
     const missing = makePatch(); delete missing.files[WEAPONS]
-    await reject(missing, '清单')
+    await reject(missing, '路径')
     const noRange = makePatch(); noRange.manifest.baseVersion = {min: 'x', max: '7.2.05EA'}
     await reject(noRange, '清单')
     assert.deepEqual(await readdir(store.directory), [], 'a refused install must leave nothing behind')
@@ -77,7 +77,7 @@ test('a patch whose file was changed on disk is rejected with the stage and the 
 
 test('a damaged manifest and a file that is not JSON are rejected, not thrown', () => withStore(async (store, directory) => {
     const notJson = Buffer.from('not json')
-    await activated(store, {manifest: {patch: '7.2.05EA.01', baseVersion: {min: '7.2.05EA', max: '7.2.05EA.99'}, files: [{path: WEAPONS, sha256: sha(notJson), size: notJson.length}]}, files: {[WEAPONS]: notJson}})
+    await activated(store, {manifest: {patch: '7.2.05EA.01', createdAt: '2026-11-20T00:00:00Z', baseVersion: {min: '7.2.05EA', max: '7.2.05EA.99'}, files: [{path: WEAPONS, sha256: sha(notJson), size: notJson.length}]}, files: {[WEAPONS]: notJson}})
     assert.equal((await store.load('7.2.05EA')).stage, '解析')
     await writeFile(path.join(directory, 'current', 'manifest.json'), '{broken')
     assert.equal((await store.load('7.2.05EA')).stage, '清单')

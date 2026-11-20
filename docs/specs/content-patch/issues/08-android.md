@@ -6,7 +6,7 @@
 
 **Status:** ready-for-human
 
-需要开发者先定：本规格第一版是否包含 Android（规格「待开发者决定」第 5 条，建议先只做 Windows，验证稳定后再做）。
+已定（2026-11-20）：第一版只做 Windows，本任务暂缓，Windows 验证稳定后再做。Android 的 WebView 里 ECDSA P-256 的可用性做这个任务时要先验证。
 
 Android 没有本机服务，打包的是同一套 `src/` 界面（Capacitor）。覆盖层的存放和读取要走 Capacitor 的文件或存储接口，下载走和 `src/platform/release-update.mjs` 一致的原生网络调用。
 
