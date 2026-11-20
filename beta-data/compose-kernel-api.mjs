@@ -15,6 +15,7 @@ import {withLumineTraveler} from './lumine-traveler-facade.mjs';
 import {withLunarDamageContexts} from './lunar-context-facade.mjs';
 import {withDirectReactionScope} from './direct-reaction-scope.mjs';
 import {withInterfaceContracts} from './interface-contracts.mjs';
+import {applyDataOverlay} from './data-overlay.mjs';
 
 export function originalApiFromBindings(bindings) {
     return {BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,
@@ -23,7 +24,10 @@ export function originalApiFromBindings(bindings) {
 }
 
 // core: exports of the effect-bridge kernel instance; extension: the initialised extension kernel module.
-export function composeKernelApi({rawOriginal, core, extension, data}) {
+// overlay: optional content-patch data that replaces entries of `data` (see data-overlay.mjs); every entry
+// reaches the data through this function, so the overlay is applied here and nowhere else.
+export function composeKernelApi({rawOriginal, core, extension, data: packaged, overlay}) {
+    const data = applyDataOverlay(packaged, overlay);
     const original = withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginal, core), core);
     const base = createFacade(original, extension, data.vodyanitsa, data.support, data.characters);
     const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(base, extension, data.support), original, data.weapons, data.signatureWeapons), original);

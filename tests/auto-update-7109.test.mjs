@@ -179,7 +179,8 @@ test('4. real update component compiles and runs source selection, download prog
     const calls = [], usage = []
     let phases = ['pending', 'paused', 'downloading', 'ready']
     const bindings = {
-        ref: value => ({value}), computed: get => ({get value() {return get()}}), onMounted() {}, onBeforeUnmount() {},
+        ref: value => ({value}), computed: get => ({get value() {return get()}}), onMounted() {}, onBeforeUnmount() {}, watch() {},
+        useRoute: () => ({name: 'home'}), createPatchChecker: () => async () => ({status: 'disabled'}), startPatchChecks: () => ({requestCheck() {}, stop() {}}), refreshPatchInfo: async () => ({}),
         ElMessage: {error: message => {throw Error(message)}, success() {}}, process: {env: {MONA_VERSION: '7.1.09'}},
         createReleaseCheckCoordinator: () => async () => ({...describeRelease(metadata(128), '7.1.09')}),
         isAutomaticUpdateEnabled: () => true, setAutomaticUpdateEnabled: () => true, MANUAL_UPDATE_EVENT: 'test',

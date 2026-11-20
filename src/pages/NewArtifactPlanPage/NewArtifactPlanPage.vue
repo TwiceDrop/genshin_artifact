@@ -723,6 +723,7 @@ import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifa
 import {deepCopy, downloadString} from "@/utils/common"
 import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
 import {usageStatsDebugInfo, recordUsage, recordUsageUnlessCancelled, recordCharacterUsage} from "@/usage-stats/index.mjs"
+import {patchDebugInfo} from "@/platform/patch-info.mjs"
 import {wasmSingleOptimize} from "@/wasm/single_optimize"
 import {wasmPanelOptimize} from '@/wasm/panel_optimize'
 import {newPanelSearchOptions,readPanel} from '../../../beta-data/panel-search.mjs'
@@ -2041,7 +2042,7 @@ const optimizationDebugDetail = computed(() => JSON.stringify({events:optimizati
 async function exportOptimizationDebug() {
     if (!optimizationDebugRecord.value) return
     // Usage stats state is read at export time so the latest send failure is included.
-    const record = {...optimizationDebugRecord.value, environment: {...optimizationDebugRecord.value.environment, usageStats: usageStatsDebugInfo()}}
+    const record = {...optimizationDebugRecord.value, environment: {...optimizationDebugRecord.value.environment, usageStats: usageStatsDebugInfo(), contentPatch: patchDebugInfo()}}
     try { recordUsageUnlessCancelled(await downloadString(JSON.stringify(record,null,2),'application/json',`mona-debug-${optimizationDebugRecord.value.version || process.env.MONA_VERSION}-${Date.now()}.json`), 'action.debug-export') }
     catch (error: any) { ElMessage.error('调试包导出失败：' + (error.message || String(error))) }
 }

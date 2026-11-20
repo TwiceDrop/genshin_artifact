@@ -23,7 +23,8 @@ function localDay(date) {
 }
 const dayNumber = day => Date.parse(`${day}T00:00:00Z`) / DAY_MS
 
-export function createUsageStatsRecorder({ storage, send, endpoint, platform, version, clock = () => new Date(),
+// patch: 返回这次运行正在生效的内容补丁号，没有补丁时返回空；有补丁才在上报里多带一个 patch 字段
+export function createUsageStatsRecorder({ storage, send, endpoint, platform, version, patch = () => null, clock = () => new Date(),
     randomId = () => crypto.randomUUID() }) {
     let failure = null, inflight = null
     // Usage stats exist in this build only when it was built with an endpoint.
@@ -101,7 +102,8 @@ export function createUsageStatsRecorder({ storage, send, endpoint, platform, ve
         try {
             batch = current(readQueue()).slice(0, USAGE_UPLOAD_RULES.maxRecords)
             if (!batch.length) return
-            body = { installId: installId(), platform, version, records: batch }
+            const patchNumber = patch()
+            body = { installId: installId(), platform, version, ...(patchNumber ? { patch: patchNumber } : {}), records: batch }
         } catch (error) { return fail('storage', error) }
         let result, sendError
         try { result = await send(body, options) } catch (error) { sendError = error }

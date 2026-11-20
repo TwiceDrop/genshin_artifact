@@ -4,6 +4,8 @@ import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LocalUpdater } from './updates.mjs'
+import { PatchStore } from './patch-store.mjs'
+import { PatchUpdater } from './patch-updater.mjs'
 import { CloudGateway } from './cloud.mjs'
 import { forwardUsageStats } from './usage-stats-forward.mjs'
 import { communityClient } from './hoyolab.mjs'
@@ -18,8 +20,12 @@ export function createLocalServer(options) {
 }
 
 export function createLocalRequestHandler(server, { clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
-    cloudGateway, updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
+    cloudGateway, updater = new LocalUpdater(),
+    patchStore = new PatchStore({ directory: path.join(process.env.MONA_DATA_DIR || fileURLToPath(new URL('../.local-data/', import.meta.url)), 'patches') }),
+    patchUpdater = new PatchUpdater({ store: patchStore }),
+    credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     let cloud = cloudGateway
+    let patchesActivated
     const sessions = new Map()
     const calculationSession = randomBytes(16).toString('hex')
     const cleanup = s => { s.cancelled = true; s.webLogin?.cancel(); s.client.clear() }
@@ -78,6 +84,22 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                         ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : url.pathname === '/api/cloud/v1/cookie-vaults' ? 524288 : 20000), expectedContext)
                     return json(result.data, result.status)
                 }
+                // 内容补丁：本机服务启动后第一次被问到时把待生效的补丁换成当前补丁，之后这次运行里不再变化
+                if (url.pathname === '/api/patch/overlay' && req.method === 'GET') {
+                    patchesActivated ||= patchStore.activatePending()
+                    await patchesActivated
+                    return json(await patchStore.load(url.searchParams.get('version') || ''))
+                }
+                // 内容补丁的当前状态（不含补丁数据）：正在生效的、待下次启动生效的、最近一次检查的结果
+                if (url.pathname === '/api/patch/info' && req.method === 'GET') {
+                    patchesActivated ||= patchStore.activatePending()
+                    await patchesActivated
+                    const { overlay, ...current } = await patchStore.load(url.searchParams.get('version') || '')
+                    return json({ current, pending: await patchStore.pendingPatch(), lastCheck: patchUpdater.status() })
+                }
+                // 内容补丁的检查与下载：页面带上自己的版本、补丁地址和公钥；结果不抛错，失败原因在返回值里
+                if (url.pathname === '/api/patch/check' && req.method === 'POST') return json(await patchUpdater.check(await input()))
+                if (url.pathname === '/api/patch/status' && req.method === 'GET') return json(patchUpdater.status())
                 if (url.pathname.startsWith('/api/update/')) {
                     if (url.pathname === '/api/update/info' && req.method === 'GET') return json(updater.info())
                     if (url.pathname === '/api/update/status' && req.method === 'GET') return json(updater.status())

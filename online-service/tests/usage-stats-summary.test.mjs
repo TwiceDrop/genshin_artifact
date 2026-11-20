@@ -53,7 +53,7 @@ test('the summary counts each install once per feature and window', async t => {
     const calculate = body.features.find(x => x.id === 'page.calculate')
     assert.equal(calculate.name, '配装计算')
     assert.equal(calculate.category, 'page')
-    assert.equal(body.features.length, 28)                       // server/usage-stats-features.mjs; f1a342d added page.login
+    assert.equal(body.features.length, 29)                       // server/usage-stats-features.mjs; f1a342d added page.login, 4bad0b8 added page.online-account
     assert.deepEqual(body.platforms, ['windows', 'android'])
     assert.deepEqual(body.versions, ['7.2.04', '7.2.05'])
     // 90 days ending today; A on 11-07 in two versions is one install.

@@ -73,9 +73,13 @@ function createMemoryLimiter(clock, maximum, seconds) {
 
 function parseUpload(input, today) {
     const { installId, platform, version, records } = input
+    // 内容补丁号可选：没有补丁的客户端不带这个字段，存成空字符串
+    const patch = input.patch === undefined ? '' : input.patch
     if (!isUuid(installId)) throw invalid('匿名安装 ID 格式不正确')
     if (!USAGE_PLATFORMS.includes(platform)) throw invalid('平台不正确')
     if (typeof version !== 'string' || !VERSION.test(version)) throw invalid('版本格式不正确')
+    if (patch !== '' && (typeof patch !== 'string' || !VERSION.test(patch))) throw invalid('补丁号格式不正确')
+    if (input.patch === '') throw invalid('补丁号格式不正确')
     if (!Array.isArray(records) || !records.length || records.length > USAGE_UPLOAD_LIMITS.records)
         throw invalid(`记录必须是 1～${USAGE_UPLOAD_LIMITS.records} 条的列表`)
     records.forEach((record, index) => {
@@ -92,14 +96,15 @@ function parseUpload(input, today) {
         if (day < today - USAGE_UPLOAD_LIMITS.pastDays || day > today + USAGE_UPLOAD_LIMITS.futureDays)
             reject(`日期超出服务器日期前 ${USAGE_UPLOAD_LIMITS.pastDays} 天到后 ${USAGE_UPLOAD_LIMITS.futureDays} 天的范围`)
     })
-    return { installId: installId.toLowerCase(), platform, version, records }
+    return { installId: installId.toLowerCase(), platform, version, patch, records }
 }
 
 function parseFilters(searchParams) {
-    const platform = searchParams.get('platform') || '', version = searchParams.get('version') || ''
+    const platform = searchParams.get('platform') || '', version = searchParams.get('version') || '', patch = searchParams.get('patch') || ''
     if (platform && !USAGE_PLATFORMS.includes(platform)) throw invalid('平台不正确')
     if (version && !VERSION.test(version)) throw invalid('版本格式不正确')
-    return { platform, version }
+    if (patch && !VERSION.test(patch)) throw invalid('补丁号格式不正确')
+    return { platform, version, patch }
 }
 
 export function createUsageStats({ pool, config, clock = () => new Date() }) {
@@ -111,19 +116,23 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
     }
     async function summary(searchParams, authorization) {
         authorize(authorization)
-        const { platform, version } = parseFilters(searchParams)
+        const { platform, version, patch } = parseFilters(searchParams)
         const today = utcDay(clock())
         // Filter conditions numbered from `first`, so each query can put its own parameters ahead of them.
-        const filter = first => {
+        // 补丁只记在按天的行里，累计表不按补丁拆分，所以补丁筛选只作用于按天的查询（近 7 天、近 30 天和每日活跃）。
+        const filter = (first, byPatch = false) => {
             const sql = [], values = []
             if (platform) { values.push(platform); sql.push(`platform = $${first + values.length - 1}`) }
             if (version) { values.push(version); sql.push(`version = $${first + values.length - 1}`) }
+            if (patch && byPatch) { values.push(patch); sql.push(`patch = $${first + values.length - 1}`) }
             return { and: sql.map(s => ` AND ${s}`).join(''), values }
         }
-        const firstsFilter = filter(1), daysFilter = filter(2)
+        const firstsFilter = filter(1), daysFilter = filter(2, true)
         const days = [today, ...daysFilter.values]
+        // 按角色的按天表没有补丁列，这里的查询不按补丁筛选
+        const characterDaysFilter = filter(2), characterDays = [today, ...characterDaysFilter.values]
         const window = length => `day BETWEEN $1::date - ${length - 1} AND $1::date`
-        const [totals, recent, active, daily, versions, characterTotals, characterRecent, installs] = await Promise.all([
+        const [totals, recent, active, daily, versions, characterTotals, characterRecent, installs, patches] = await Promise.all([
             pool.query(`SELECT feature_id, count(DISTINCT install_id)::int AS n FROM usage_stats_firsts WHERE true${firstsFilter.and} GROUP BY feature_id`, firstsFilter.values),
             pool.query(`SELECT feature_id, count(DISTINCT install_id) FILTER (WHERE day >= $1::date - 6)::int AS last7,
                 count(DISTINCT install_id)::int AS last30 FROM usage_stats_days WHERE ${window(30)}${daysFilter.and} GROUP BY feature_id`, days),
@@ -132,8 +141,9 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
             pool.query('SELECT DISTINCT version FROM usage_stats_firsts ORDER BY version'),
             pool.query(`SELECT character, feature_id, count(DISTINCT install_id)::int AS n FROM usage_stats_character_firsts WHERE true${firstsFilter.and} GROUP BY character, feature_id`, firstsFilter.values),
             pool.query(`SELECT character, feature_id, count(DISTINCT install_id) FILTER (WHERE day >= $1::date - 6)::int AS last7,
-                count(DISTINCT install_id)::int AS last30 FROM usage_stats_character_days WHERE ${window(30)}${daysFilter.and} GROUP BY character, feature_id`, days),
+                count(DISTINCT install_id)::int AS last30 FROM usage_stats_character_days WHERE ${window(30)}${characterDaysFilter.and} GROUP BY character, feature_id`, characterDays),
             pool.query(`SELECT count(DISTINCT install_id)::int AS n FROM usage_stats_firsts WHERE true${firstsFilter.and}`, firstsFilter.values),
+            pool.query("SELECT DISTINCT patch FROM usage_stats_days WHERE patch <> '' ORDER BY patch"),
         ])
         const characterFeatures = listUsageFeatures().filter(f => f.characters).map(({ id, name }) => ({ id, name }))
         const characters = new Map()
@@ -158,8 +168,8 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
         const perDay = new Map(daily.rows.map(r => [r.day, r.n]))
         const start = Date.parse(`${today}T00:00:00Z`) - (DAILY_DAYS - 1) * DAY_MS
         return {
-            today, filters: { platform, version }, activeInstalls30, activeInstalls7: active.rows[0].last7, totalInstalls: installs.rows[0].n,
-            platforms: [...USAGE_PLATFORMS], versions: versions.rows.map(r => r.version),
+            today, filters: { platform, version, patch }, activeInstalls30, activeInstalls7: active.rows[0].last7, totalInstalls: installs.rows[0].n,
+            platforms: [...USAGE_PLATFORMS], versions: versions.rows.map(r => r.version), patches: patches.rows.map(r => r.patch),
             features: listUsageFeatures().map(({ id, category, name }) => {
                 const last30 = windows.get(id)?.last30 || 0
                 return { id, category, name, total: total.get(id) || 0, last7: windows.get(id)?.last7 || 0, last30,
@@ -176,7 +186,7 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
     async function ingest(input, address) {
         limit(address)
         const today = Math.floor(clock().getTime() / DAY_MS)
-        const { installId, platform, version, records } = parseUpload(input, today)
+        const { installId, platform, version, patch, records } = parseUpload(input, today)
         // Collapse repeats inside one upload: ON CONFLICT cannot touch the same row twice in one statement.
         const days = new Map(), firsts = new Map(), characterDays = new Map(), characterFirsts = new Map()
         for (const { feature, day, character } of records) {
@@ -192,9 +202,9 @@ export function createUsageStats({ pool, config, clock = () => new Date() }) {
         const column = (rows, i) => [...rows.values()].map(r => r[i])
         await transaction(pool, async db => {
             if (days.size) {
-                await db.query(`INSERT INTO usage_stats_days(install_id, feature_id, day, platform, version)
-                    SELECT $1, f, d, $2, $3 FROM unnest($4::text[], $5::date[]) AS r(f, d)
-                    ON CONFLICT DO NOTHING`, [installId, platform, version, column(days, 0), column(days, 1)])
+                await db.query(`INSERT INTO usage_stats_days(install_id, feature_id, day, platform, version, patch)
+                    SELECT $1, f, d, $2, $3, $6 FROM unnest($4::text[], $5::date[]) AS r(f, d)
+                    ON CONFLICT DO NOTHING`, [installId, platform, version, column(days, 0), column(days, 1), patch])
                 await db.query(`INSERT INTO usage_stats_firsts(install_id, feature_id, platform, version, first_day)
                     SELECT $1, f, $2, $3, d FROM unnest($4::text[], $5::date[]) AS r(f, d)
                     ON CONFLICT (install_id, feature_id, platform, version)

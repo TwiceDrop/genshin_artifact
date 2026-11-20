@@ -227,6 +227,7 @@ function render(data) {
     $('stamp').textContent = `数据截至 ${data.today}（UTC）`
     fillSelect($('platform'), data.platforms, data.filters.platform, v => PLATFORM[v] || v)
     fillSelect($('version'), data.versions, data.filters.version)
+    fillSelect($('patch'), data.patches, data.filters.patch)
     $('kpi-30').textContent = int.format(data.activeInstalls30)
     $('kpi-7').textContent = int.format(data.activeInstalls7)
     $('kpi-total').textContent = int.format(data.totalInstalls)
@@ -247,6 +248,7 @@ async function load() {
     const query = new URLSearchParams()
     if ($('platform').value) query.set('platform', $('platform').value)
     if ($('version').value) query.set('version', $('version').value)
+    if ($('patch').value) query.set('patch', $('patch').value)
     $('report-error').hidden = true
     let response
     try { response = await fetch(`/v1/usage-stats/summary?${query}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }) }
@@ -273,6 +275,7 @@ $('login').addEventListener('submit', event => {
 $('logout').addEventListener('click', () => { writeToken(''); showLogin() })
 $('platform').addEventListener('change', load)
 $('version').addEventListener('change', load)
+$('patch').addEventListener('change', load)
 $('refresh').addEventListener('click', load)
 $('retry').addEventListener('click', load)
 let resizeTimer

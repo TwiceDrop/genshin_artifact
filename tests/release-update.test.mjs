@@ -25,6 +25,23 @@ test('EA display and package versions compare consistently without offering an o
     }
 })
 
+test('an EA build is older than the stable release with the same number, and EA patch numbers follow EA', () => {
+    const order = ['7.2.04', '7.2.05EA', '7.2.05EA.01', '7.2.05EA.02', '7.2.05', '7.2.05.01', '7.2.06EA']
+    for (let i = 0; i < order.length; i++) for (let j = 0; j < order.length; j++)
+        assert.equal(compareVersions(order[i], order[j]), Math.sign(i - j), order[i] + ' vs ' + order[j])
+    assert.equal(compareVersions('v7.2.05ea.1', '7.2.5-EA.01'), 0)
+    assert.equal(compareVersions('7.2.05EA', '7.2.5-EA'), 0)
+    assert.equal(compareVersions('7.2.05EA.01.02', '7.2.05EA.01'), 1)
+    assert.equal(compareVersions('7.2.05EA.x', '7.2.05EA'), null)
+})
+
+test('an installed EA build is offered the stable release with the same number', async () => {
+    const check = (current, tag) => checkLatestRelease(current, async () => ({ok: true, json: async () => ({tag_name: tag,
+        html_url: 'https://github.com/TwiceDrop/genshin_artifact/releases/tag/' + tag})}))
+    assert.equal((await check('7.2.05EA', 'v7.2.05')).newer, true)
+    assert.equal((await check('7.2.05', 'v7.2.05EA')).newer, false)
+})
+
 test('four-part and zero-padded release versions compare numerically', () => {
     assert.equal(compareVersions('v7.1.05','7.1.04'),1)
     assert.equal(compareVersions('7.1.04','v7.1.4'),0)

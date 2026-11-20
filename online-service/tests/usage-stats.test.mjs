@@ -88,7 +88,7 @@ test('uploads are rate limited per address in memory only', async t => {
     // Nothing that names an address reaches the database.
     assert.equal((await f.pool.query('SELECT count(*)::int AS n FROM rate_limits')).rows[0].n, 0)
     const columns = (await f.pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name IN ('usage_stats_days','usage_stats_firsts')`)).rows.map(r => r.column_name)
-    assert.deepEqual([...new Set(columns)].sort(), ['day', 'feature_id', 'first_day', 'install_id', 'platform', 'version'])
+    assert.deepEqual([...new Set(columns)].sort(), ['day', 'feature_id', 'first_day', 'install_id', 'patch', 'platform', 'version'])
 })
 
 test('usage uploads need no login', async t => {

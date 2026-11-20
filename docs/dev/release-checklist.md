@@ -31,6 +31,7 @@
 - [ ] Android 用原签名目录构建，应用 ID、端口、主机名保持不变，保证能覆盖升级、保留用户存档。
 - [ ] 发布包里没有账号、UID、库存、预设、Debug 导出、浏览器存储、密钥或签名资料。
 - [ ] 使用统计：`.env.development.yaml` 的 `MONA_USAGE_STATS_URL` 为空时成品不上报。要启用时，按 `docs/dev/usage-stats-rollout.md` 的顺序：先部署并验证在线服务，再填上在线服务地址（只写 https 根地址）。
+- [ ] 内容补丁：`.env.development.yaml` 的 `MONA_PATCH_BASE_URL` 或 `MONA_PATCH_PUBLIC_KEY` 任一为空时成品不检查补丁。要启用时先用 `node beta-tools/patch-tool.mjs keygen` 生成密钥对，私钥只留在本机，把打印出的公钥和补丁所在目录的 https 地址填进去。规格和任务见 `docs/specs/content-patch/`。
 - [ ] 在持有私有夹具和证据文件的机器上跑一次 `npm run test:evidence` 和 `npm run smoke:fixtures`，失败项逐个核对是否与本版改动有关。
 
 ## 4. 发布源码

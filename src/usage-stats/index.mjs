@@ -7,6 +7,7 @@ import { installUsageStats as install } from './install.mjs'
 import { CapacitorHttp } from '@capacitor/core'
 import { isNative } from '../platform/native.mjs'
 import { desktopUsageStatsSender, nativeUsageStatsSender } from '../platform/usage-stats-transport.mjs'
+import { activePatch } from '../platform/patch-info.mjs'
 
 const storage = {
     getItem: key => window.localStorage.getItem(key),
@@ -16,7 +17,7 @@ const storage = {
 const endpoint = process.env.MONA_USAGE_STATS_URL
 
 export const usageStats = createUsageStatsRecorder({
-    storage, endpoint, platform: isNative ? 'android' : 'windows', version: process.env.MONA_VERSION,
+    storage, endpoint, platform: isNative ? 'android' : 'windows', version: process.env.MONA_VERSION, patch: () => activePatch.value,
     send: isNative ? nativeUsageStatsSender(endpoint, options => CapacitorHttp.request(options)) : desktopUsageStatsSender(endpoint),
 })
 export const recordUsage = feature => usageStats.record(feature)
