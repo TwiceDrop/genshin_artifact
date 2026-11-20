@@ -57,6 +57,7 @@
 import {onMounted, onBeforeUnmount, ref, computed, watch} from 'vue'
 import {useRoute} from 'vue-router'
 import {createPatchChecker, startPatchChecks} from '@/platform/patch-update.mjs'
+import {refreshPatchInfo} from '@/platform/patch-info.mjs'
 import {ElMessage} from 'element-plus'
 import {elementLocale} from '@/i18n/element-locale'
 import MainPage from "@page/MainPage"
@@ -178,7 +179,8 @@ watch(() => route.name, name => { if (name === 'calculate') patchChecks?.request
 const manualCheck = () => { recordUsage('action.update-check'); return checkForUpdates(true) }
 onMounted(() => {
     window.addEventListener(MANUAL_UPDATE_EVENT, manualCheck)
-    patchChecks = startPatchChecks({check: createPatchChecker()})
+    refreshPatchInfo()
+    patchChecks = startPatchChecks({check: createPatchChecker({onResult: () => refreshPatchInfo()})})
     if (isAutomaticUpdateEnabled()) checkForUpdates()
     automaticTimer = setInterval(() => {if (isAutomaticUpdateEnabled()) checkForUpdates()}, 60 * 60 * 1000)
 })

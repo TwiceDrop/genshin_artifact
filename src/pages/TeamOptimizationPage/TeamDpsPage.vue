@@ -157,6 +157,7 @@ import {teamDpsObjectiveValue} from '../../../beta-data/team-dps-numeric-rules.m
 import {TEAM_DPS_RESULT_VERSION,canRestoreTeamDpsResult,createTeamDpsResultPacker,unpackTeamDpsResult,teamDamageAnalysis,teamProbabilityText} from '../../../beta-data/team-dps-result-view.mjs'
 import {exportTeamDpsResult} from '../../wasm/team-dps-result-export.mjs'
 import {usageStatsDebugInfo, recordUsage, recordCharacterUsage} from '../../usage-stats/index.mjs'
+import {patchDebugInfo} from '../../platform/patch-info.mjs'
 import {normalizeEnemy} from '../../../beta-data/enemy-interface.mjs'
 import TeamDpsEvents from './TeamDpsEvents.vue'
 import {useEnemy} from '@/composables/enemy'
@@ -317,7 +318,7 @@ async function run(mode:string){
  catch(e:any){if(e.name==='AbortError'){if(controller===task)ElMessage.info('计算已取消')}else{console.error(e);if(controller===task)error.value=e.message}}
  finally{clearInterval(taskTimer);if(controller===task){clock.value=performance.now();busy.value=false;showProgress.value=false;controller=null;timer=null}}
 }
-async function exportDebug(){try{const blob=await exportTeamDpsResult({resultVersion:TEAM_DPS_RESULT_VERSION,input:lastInput,result_input:resultContext.value?.input,result:packResult(output.value),error:error.value,usageStats:usageStatsDebugInfo()}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='team-dps-debug.json';a.click();URL.revokeObjectURL(url);recordUsage('action.debug-export')}catch(e:any){console.error(e);error.value=e.message}}
+async function exportDebug(){try{const blob=await exportTeamDpsResult({resultVersion:TEAM_DPS_RESULT_VERSION,input:lastInput,result_input:resultContext.value?.input,result:packResult(output.value),error:error.value,usageStats:usageStatsDebugInfo(),contentPatch:patchDebugInfo()}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='team-dps-debug.json';a.click();URL.revokeObjectURL(url);recordUsage('action.debug-export')}catch(e:any){console.error(e);error.value=e.message}}
 for(let r=0;r<4;r++){
  watch(()=>names.value[r],()=>{if(!restoringTask&&presetStore.presets.value[names.value[r]]?.item)loadPreset(r)},{flush:'sync'});
  watch(()=>presetStore.presets.value[names.value[r]]?.item,(item:any)=>{if(item&&!restoringTask&&!taskRestored)loadPreset(r)},{deep:true,flush:'sync'});

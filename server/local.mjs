@@ -83,6 +83,14 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
                     await patchesActivated
                     return json(await patchStore.load(url.searchParams.get('version') || ''))
                 }
+                // 内容补丁的当前状态（不含补丁数据）：正在生效的、待下次启动生效的、最近一次检查的结果
+                if (url.pathname === '/api/patch/info' && req.method === 'GET') {
+                    patchesActivated ||= patchStore.activatePending()
+                    await patchesActivated
+                    const { overlay, ...current } = await patchStore.load(url.searchParams.get('version') || '')
+                    const latest = await patchStore.latestPatch()
+                    return json({ current, pending: latest && latest !== current.patch ? latest : null, lastCheck: patchUpdater.status() })
+                }
                 // 内容补丁的检查与下载：页面带上自己的版本、补丁地址和公钥；结果不抛错，失败原因在返回值里
                 if (url.pathname === '/api/patch/check' && req.method === 'POST') return json(await patchUpdater.check(await input()))
                 if (url.pathname === '/api/patch/status' && req.method === 'GET') return json(patchUpdater.status())

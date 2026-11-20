@@ -31,6 +31,16 @@
                 </el-select>
             </div>
 
+            <!-- 内容补丁：显示正在生效的补丁号（没有补丁显示「无」），并可关闭自动获取；构建没有配置补丁通道时不显示 -->
+            <div v-if="patchChannelAvailable" class="setup-row">
+                <span class="setup-row-label setup-patch-label">内容补丁</span>
+                <div class="setup-patch">
+                    <span class="setup-patch-value">{{ activePatch || '无' }}</span>
+                    <span id="setup-patch-auto" class="setup-patch-auto">自动获取内容补丁</span>
+                    <el-switch :model-value="automaticPatches" aria-label="自动获取内容补丁" @update:model-value="changeAutomaticPatches"></el-switch>
+                </div>
+            </div>
+
             <div v-if="usageStatsAvailable" class="setup-row">
                 <div class="setup-row-label">
                     <span>{{ t('usageStats.title') }}</span>
@@ -60,6 +70,8 @@ import {useI18n} from "@/i18n/i18n"
 import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent, refreshUsageStatsConsent, recordUsage} from "@/usage-stats/index.mjs"
 import IconEpDelete from "~icons/ep/delete"
 import {useRouter} from "vue-router"
+import {patchChannelAvailable, isAutomaticPatchEnabled, setAutomaticPatchEnabled} from "@/platform/patch-update.mjs"
+import {activePatch} from "@/platform/patch-info.mjs"
 
 
 // 外观选项：值与 color-mode.mjs 一致，文字沿用 setupPage 的 i18n
@@ -72,6 +84,11 @@ const modes = [
 const { t, setLocale, locale } = useI18n()
 const router = useRouter()
 
+
+const automaticPatches = ref(isAutomaticPatchEnabled())
+function changeAutomaticPatches(enabled: boolean) {
+    if (setAutomaticPatchEnabled(enabled)) automaticPatches.value = enabled
+}
 
 function handleSetColorMode(mode: string) {
     setColorMode(mode)
@@ -306,6 +323,32 @@ async function handleSetLocale(lang: string) {
 
 .setup-locale {
     width: 180px;
+}
+
+// 内容补丁一行：补丁号、开关名和开关排成一组，窄屏上换行
+// 标签不换行，补丁号、开关名和开关在剩下的位置里换行
+.setup-patch-label {
+    flex: none;
+    white-space: nowrap;
+}
+
+.setup-patch {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px 12px;
+    min-width: 0;
+}
+
+.setup-patch-value {
+    font-variant-numeric: tabular-nums;
+    color: var(--cx-dim);
+    font-size: 14px;
+}
+
+.setup-patch-auto {
+    font-size: 13px;
 }
 
 .setup-danger {

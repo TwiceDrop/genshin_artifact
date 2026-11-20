@@ -6,6 +6,9 @@ import {isNative} from './native.mjs'
 // 第一版只做 Windows 桌面，Android 没有本机服务，不检查。装好的补丁下次启动才生效。
 const AUTOMATIC_PATCH_KEY = 'mona.automaticContentPatches'
 
+// 这个构建有没有配置补丁通道：地址和公钥都有才算，Android 暂不支持。设置页据此决定显不显示补丁一行。
+export const patchChannelAvailable = Boolean(process.env.MONA_PATCH_BASE_URL && process.env.MONA_PATCH_PUBLIC_KEY) && !isNative
+
 // 玩家开关，默认开启；关闭后不再发起检查。界面入口见任务 06。
 export function isAutomaticPatchEnabled(storage) {
     try { return (storage || globalThis.localStorage)?.getItem(AUTOMATIC_PATCH_KEY) !== 'false' } catch { return true }
@@ -20,7 +23,7 @@ export function setAutomaticPatchEnabled(enabled, storage) {
 }
 
 export function createPatchChecker({fetchImpl = globalThis.fetch, version = process.env.MONA_VERSION, baseUrl = process.env.MONA_PATCH_BASE_URL,
-    publicKey = process.env.MONA_PATCH_PUBLIC_KEY, storage, native = isNative, now = Date.now, minGap = 10 * 60 * 1000, log = console.warn} = {}) {
+    publicKey = process.env.MONA_PATCH_PUBLIC_KEY, storage, native = isNative, now = Date.now, minGap = 10 * 60 * 1000, log = console.warn, onResult} = {}) {
     let last = null, lastAt = 0
     return async function check({force = false} = {}) {
         if (native) return {status: 'disabled', reason: 'Android 暂不支持内容补丁'}
@@ -35,6 +38,7 @@ export function createPatchChecker({fetchImpl = globalThis.fetch, version = proc
             last = response.ok ? body : {status: 'unavailable', reason: body?.error || 'HTTP ' + response.status}
         } catch (error) { last = {status: 'unavailable', reason: '本机服务无法访问：' + error.message} }
         if (last.status === 'failed') log('内容补丁检查失败，保持现有数据，下次再试：', last.reason)
+        onResult?.(last)
         return last
     }
 }
