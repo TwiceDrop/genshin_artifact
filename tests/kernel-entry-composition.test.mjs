@@ -19,3 +19,13 @@ for (const [name, file] of Object.entries(entries)) {
         for (const wrapper of wrappers) assert.ok(!source.includes(wrapper), `${file} applies ${wrapper} itself`)
     })
 }
+
+// 页面和四人轴 Worker 在组装内核前要读内容补丁，Node 测试入口不读（测试用安装包原数据）
+for (const file of ['mona_wasm/pkg/index.js', 'src/wasm/team-dps-native-api.mjs']) {
+    test(`${file} reads the content patch before composing`, () => {
+        const source = fs.readFileSync(file, 'utf8')
+        assert.match(source, /loadPatchOverlay/)
+        assert.ok(source.indexOf('await loadPatchOverlay()') < source.indexOf('composeKernelApi({'), 'the overlay must be loaded first')
+        assert.match(source, /composeKernelApi\(\{[^}]*overlay/)
+    })
+}

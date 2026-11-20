@@ -4,6 +4,7 @@ import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LocalUpdater } from './updates.mjs'
+import { PatchStore } from './patch-store.mjs'
 import { CloudGateway } from './cloud.mjs'
 import { forwardUsageStats } from './usage-stats-forward.mjs'
 import { communityClient } from './hoyolab.mjs'
@@ -12,8 +13,11 @@ import { startHoyolabWebLogin } from './hoyolab-web-login.mjs'
 import { CredentialStore, normalizeCookie, publicAccount } from './credentials.mjs'
 
 export function createLocalServer({ clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
-    cloudGateway, updater = new LocalUpdater(), credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
+    cloudGateway, updater = new LocalUpdater(),
+    patchStore = new PatchStore({ directory: path.join(process.env.MONA_DATA_DIR || fileURLToPath(new URL('../.local-data/', import.meta.url)), 'patches') }),
+    credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     let cloud = cloudGateway
+    let patchesActivated
     const sessions = new Map()
     const calculationSession = randomBytes(16).toString('hex')
     const cleanup = s => { s.cancelled = true; s.webLogin?.cancel(); s.client.clear() }
@@ -70,6 +74,12 @@ export function createLocalServer({ clientFactory = communityClient, webLoginFac
                     const result = await cloud.handle(url.pathname.slice('/api/cloud'.length) + url.search, req.method,
                         ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : url.pathname === '/api/cloud/v1/cookie-vaults' ? 524288 : 20000), expectedContext)
                     return json(result.data, result.status)
+                }
+                // 内容补丁：本机服务启动后第一次被问到时把待生效的补丁换成当前补丁，之后这次运行里不再变化
+                if (url.pathname === '/api/patch/overlay' && req.method === 'GET') {
+                    patchesActivated ||= patchStore.activatePending()
+                    await patchesActivated
+                    return json(await patchStore.load(url.searchParams.get('version') || ''))
                 }
                 if (url.pathname.startsWith('/api/update/')) {
                     if (url.pathname === '/api/update/info' && req.method === 'GET') return json(updater.info())

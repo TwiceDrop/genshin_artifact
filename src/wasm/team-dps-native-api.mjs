@@ -9,12 +9,14 @@ import signatureData from '../../beta-data/weapons-signature-release-71.json';
 import data from '../../beta-data/vodyanitsa.json';
 import support from '../../beta-data/extension-support.json';
 import characters from '../../src/assets/_gen_character.js';
+import {loadPatchOverlay} from '../platform/patch-overlay.mjs';
 const response = await fetch(new URL('../../beta-data/team-dps-native/native-graph.wasm?raw-wasm', import.meta.url));
 const { instance } = await WebAssembly.instantiate(await response.arrayBuffer(), { './mona_wasm_bg.js': bridge, mona_trace:nativeGraphImports, mona_progress:progressImports(()=>instance.exports.memory) });
 bindNativeGraphMemory(()=>instance.exports.memory);
 bindings.lI(instance.exports);
 const extensionResponse = await fetch(new URL('../../beta-data/team-dps-native/extension-graph.wasm?raw-wasm', import.meta.url));
 await initExtension(await extensionResponse.arrayBuffer());
-const {api} = composeKernelApi({rawOriginal:originalApiFromBindings(bindings), core:instance.exports, extension,
+const {overlay} = await loadPatchOverlay();
+const {api} = composeKernelApi({rawOriginal:originalApiFromBindings(bindings), core:instance.exports, extension, overlay,
     data:{vodyanitsa:data, support, characters, weapons:weaponData, signatureWeapons:signatureData}});
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;
