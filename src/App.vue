@@ -54,7 +54,9 @@
 </template>
 
 <script setup>
-import {onMounted, onBeforeUnmount, ref, computed} from 'vue'
+import {onMounted, onBeforeUnmount, ref, computed, watch} from 'vue'
+import {useRoute} from 'vue-router'
+import {createPatchChecker, startPatchChecks} from '@/platform/patch-update.mjs'
 import {ElMessage} from 'element-plus'
 import {elementLocale} from '@/i18n/element-locale'
 import MainPage from "@page/MainPage"
@@ -169,15 +171,20 @@ async function acceptUpdate(source = 'cnb') {
         ElMessage.error(error.message)
     } finally {busy.value = false}
 }
-let automaticTimer
+let automaticTimer, patchChecks
+const route = useRoute()
+// 内容补丁：打开计算页时也查一次（不短于最小间隔），装好的补丁下次启动生效
+watch(() => route.name, name => { if (name === 'calculate') patchChecks?.requestCheck() })
 const manualCheck = () => { recordUsage('action.update-check'); return checkForUpdates(true) }
 onMounted(() => {
     window.addEventListener(MANUAL_UPDATE_EVENT, manualCheck)
+    patchChecks = startPatchChecks({check: createPatchChecker()})
     if (isAutomaticUpdateEnabled()) checkForUpdates()
     automaticTimer = setInterval(() => {if (isAutomaticUpdateEnabled()) checkForUpdates()}, 60 * 60 * 1000)
 })
 onBeforeUnmount(() => {
     clearInterval(automaticTimer)
+    patchChecks?.stop()
     window.removeEventListener(MANUAL_UPDATE_EVENT, manualCheck)
 })
 </script>

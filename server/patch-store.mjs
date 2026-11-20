@@ -51,6 +51,16 @@ export class PatchStore {
         await this.#replace('pending', staging)
     }
 
+    // 已安装的最新补丁号（待生效的优先，其次是当前的），没有或读不出来时返回 null；检查更新时用来判断要不要下载
+    async latestPatch() {
+        for (const slot of ['pending', 'current']) {
+            let bytes
+            try { bytes = await readFile(this.#at(slot, 'manifest.json')) } catch (error) { if (error.code === 'ENOENT') continue; throw error }
+            try { return parseManifest(bytes).patch } catch (error) { if (!isPatchFailure(error)) throw error }
+        }
+        return null
+    }
+
     // 本机服务启动后第一次被问到时调用：有 pending 就换成 current。
     async activatePending() {
         await this.#recover()

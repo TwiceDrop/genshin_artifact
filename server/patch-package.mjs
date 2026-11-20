@@ -37,6 +37,7 @@ export async function verifySignature(publicKey, manifestBytes, signature) {
 // 检查清单本身的格式和其中的路径；清单已经是对象
 export function checkManifest(manifest) {
     if (!manifest || typeof manifest !== 'object' || typeof manifest.patch !== 'string' || !manifest.patch) throw patchFailure('清单', '缺少补丁号')
+    if (compareVersions(manifest.patch, '0') === null) throw patchFailure('清单', '补丁号无法识别：' + manifest.patch)
     if (typeof manifest.createdAt !== 'string' || Number.isNaN(Date.parse(manifest.createdAt))) throw patchFailure('清单', '创建时间无效')
     const range = manifest.baseVersion
     if (!range || typeof range.min !== 'string' || typeof range.max !== 'string' || compareVersions(range.min, '0') === null || compareVersions(range.max, '0') === null)

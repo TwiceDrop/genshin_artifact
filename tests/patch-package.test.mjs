@@ -77,7 +77,7 @@ test('missing and extra files fail the path stage', async () => {
 
 test('a signed but malformed manifest fails the manifest stage', async () => {
     const pack = await makeSignedPackage(keys.privateKey)
-    for (const change of [m => { m.patch = '' }, m => { delete m.createdAt }, m => { m.createdAt = 'yesterday' }, m => { m.baseVersion = {min: 'x', max: '7.2.05EA'} },
+    for (const change of [m => { m.patch = '' }, m => { m.patch = 'unknown' }, m => { delete m.createdAt }, m => { m.createdAt = 'yesterday' }, m => { m.baseVersion = {min: 'x', max: '7.2.05EA'} },
         m => { m.baseVersion = {min: '7.2.05EA'} }, m => { m.files = [] }, m => { m.files[0].sha256 = 'ABC' }, m => { m.files[0].size = -1 }]) {
         await rejects(verify(await resign(pack, change)), '清单')
     }
