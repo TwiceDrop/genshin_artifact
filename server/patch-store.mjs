@@ -51,14 +51,27 @@ export class PatchStore {
         await this.#replace('pending', staging)
     }
 
-    // 已安装的最新补丁号（待生效的优先，其次是当前的），没有或读不出来时返回 null；检查更新时用来判断要不要下载
+    // 已安装的最新补丁号（待生效的优先，其次是当前的），检查更新时用来判断要不要下载。
+    // 文件缺失或被改坏的补丁不算已安装：损坏的补丁不能挡住重新下载同一个补丁号。
     async latestPatch() {
         for (const slot of ['pending', 'current']) {
-            let bytes
-            try { bytes = await readFile(this.#at(slot, 'manifest.json')) } catch (error) { if (error.code === 'ENOENT') continue; throw error }
-            try { return parseManifest(bytes).patch } catch (error) { if (!isPatchFailure(error)) throw error }
+            try {
+                const manifest = parseManifest(await readFile(this.#at(slot, 'manifest.json')))
+                const files = {}
+                for (const file of manifest.files) files[file.path] = await readFile(this.#at(slot, 'files', PATCH_KEY_BY_PATH.get(file.path) + '.json'))
+                await checkFiles(manifest, files)
+                return manifest.patch
+            } catch (error) { if (error.code !== 'ENOENT' && !isPatchFailure(error)) throw error }
         }
         return null
+    }
+
+    // 已安装、等下次启动才生效的补丁号，没有时返回 null
+    async pendingPatch() {
+        try { return parseManifest(await readFile(this.#at('pending', 'manifest.json'))).patch } catch (error) {
+            if (error.code === 'ENOENT' || isPatchFailure(error)) return null
+            throw error
+        }
     }
 
     // 本机服务启动后第一次被问到时调用：有 pending 就换成 current。

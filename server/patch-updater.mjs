@@ -75,7 +75,10 @@ export class PatchUpdater {
 
     async #check({version, baseUrl, publicKey}) {
         if (!baseUrl || !publicKey) return {status: 'disabled', reason: '没有配置补丁地址或公钥'}
-        const base = patchBaseUrl(baseUrl), key = patchPublicKey(publicKey), known = this.etags.get(base)
+        const base = patchBaseUrl(baseUrl), key = patchPublicKey(publicKey)
+        // 只有本机上记下的那个补丁还完好时才带 ETag：装好的补丁被改坏后，同一个清单也要重新下载
+        const remembered = this.etags.get(base)
+        const known = remembered && (remembered.patch === null || await this.store.latestPatch() === remembered.patch) ? remembered.etag : null
 
         const manifestUrl = base + '/manifest.json'
         const manifestResponse = await this.#get(manifestUrl, this.timeouts.manifest, known ? {'If-None-Match': known} : {})
@@ -91,7 +94,7 @@ export class PatchUpdater {
         const signature = await this.#bytes(signatureResponse, signatureUrl, 1024)
         await verifySignature(key, manifestBytes, signature)
         const manifest = parseManifest(manifestBytes)
-        const decided = result => { if (etag) this.etags.set(base, etag); return result }
+        const decided = result => { if (etag) this.etags.set(base, {etag, patch: result.status === 'not-applicable' ? null : result.patch}); return result }
 
         try { checkBaseVersion(manifest, version) } catch (error) {
             if (isPatchFailure(error) && error.stage === '版本') return decided({status: 'not-applicable', patch: manifest.patch, reason: error.message})

@@ -78,6 +78,7 @@ test('the local server reports the active patch without its data, the pending on
             await install(await make('7.2.05EA.02', 'Second'))
             assert.equal((await info('7.2.05EA')).pending, '7.2.05EA.02', 'a newer installed patch waits for the next start')
             assert.equal((await info('7.2.06')).current.stage, '版本')
+            assert.equal((await info('7.2.06')).pending, '7.2.05EA.02', 'a rejected current patch is never reported as the pending one')
         } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)) }
     } finally { await rm(directory, {recursive: true, force: true}) }
 })

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import http from 'node:http'
-import {mkdir, mkdtemp, rm} from 'node:fs/promises'
+import {mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {PatchStore} from '../server/patch-store.mjs'
@@ -78,6 +78,22 @@ test('an unchanged manifest answers 304 and downloads nothing; a lower or equal 
     assert.equal(filesHit(hits).length, before, 'no file may be downloaded again')
     publish(await pack({[WEAPONS]: {weapons: [{name: 'Newer'}]}}, {patch: '7.2.05EA.03'}), {etag: '"v4"'})
     assert.equal((await updater.check(input())).status, 'installed')
+}))
+
+test('a damaged installed patch does not count as installed, so the same patch number is downloaded again', () => withSetup(async ({updater, input, publish, store, directory}) => {
+    publish(await pack({[WEAPONS]: {weapons: [{name: 'Good'}]}}))
+    assert.equal((await updater.check(input())).status, 'installed')
+    await store.activatePending()
+    assert.equal(await store.latestPatch(), '7.2.05EA.01')
+    const damaged = path.join(directory, 'patches', 'current', 'files', 'weapons.json')
+    const bytes = await readFile(damaged); bytes[bytes.length - 3] ^= 1; await writeFile(damaged, bytes)
+    assert.equal((await store.load('7.2.05EA')).stage, '哈希')
+    assert.equal(await store.latestPatch(), null, 'a damaged patch is not an installed patch')
+    const again = await updater.check(input())
+    assert.deepEqual([again.status, again.patch], ['installed', '7.2.05EA.01'], 'the same patch number is repaired by downloading it again')
+    assert.equal(await store.pendingPatch(), '7.2.05EA.01')
+    await store.activatePending()
+    assert.equal((await store.load('7.2.05EA')).status, 'applied')
 }))
 
 test('a patch for another base version is ignored without downloading its files', () => withSetup(async ({updater, input, hits, publish, store}) => {
