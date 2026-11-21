@@ -7,7 +7,8 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $output = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $projectRoot 'release-output' }
 $stage = Join-Path $output 'web'
-$version = (Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).displayVersion
+$package = Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json
+$version = $package.displayVersion
 $archive = Join-Path $output "genshin_artifact_V${version}_web.zip"
 if (Test-Path -LiteralPath $stage) { throw "Output already exists: $stage" }
 if (Test-Path -LiteralPath $archive) { throw "Output already exists: $archive" }
@@ -32,6 +33,12 @@ try {
     Copy-Item -LiteralPath (Join-Path $projectRoot 'src/algorithms/artifact-score/vendor/LICENSE.miao') -Destination (Join-Path $stage 'LICENSE.miao')
     Copy-Item -LiteralPath (Join-Path $projectRoot 'server/vendor/twicedrop/LICENSE') -Destination (Join-Path $stage 'LICENSE.qrcode')
     [IO.File]::WriteAllText((Join-Path $stage "启动${version}.bat"), "@echo off`r`nstart `"`" `"%~dp0启动${version}.exe`"`r`n", [Text.Encoding]::GetEncoding(936))
+    # Already installed updaters locate and restart the launcher using the release tag.
+    if ($package.updateVersion -and $package.updateVersion -ne $version) {
+        $aliasName = '启动' + $package.updateVersion
+        Copy-Item -LiteralPath (Join-Path $stage "启动${version}.exe") -Destination (Join-Path $stage "$aliasName.exe")
+        [IO.File]::WriteAllText((Join-Path $stage "$aliasName.bat"), "@echo off`r`nstart `"`" `"%~dpn0.exe`"`r`n", [Text.Encoding]::ASCII)
+    }
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -CompressionLevel Optimal
     Write-Output $archive
 } finally { Pop-Location }

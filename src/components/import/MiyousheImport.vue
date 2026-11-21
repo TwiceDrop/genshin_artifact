@@ -235,7 +235,7 @@ async function login(platform = 'miyoushe') {
                     const saved = await loadAccounts()
                     if (run !== generation || disposed) return
                     activeId.value = saved?.activeId || ''
-                    roles.value = await api('roles')
+                    roles.value = state.roles ?? await api('roles')
                     if (run !== generation || disposed) return
                     selectedUid.value = roles.value[0]?.uid || ''
                     if (!roles.value.length) error.value = '当前账号没有可导入的原神角色'

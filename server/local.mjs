@@ -60,7 +60,7 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
             }
             const persistLogin = async s => {
                 if (s.cancelled) throw new Error('登录已取消')
-                const c = s.client, account = communityAccount(c.cookie, c.platform), { id } = account
+                const c = s.client, account = communityAccount(c.cookie, c.platform, { recordOnly: c.platform !== 'hoyolab' }), { id } = account
                 await credentialStore.upsert({ ...account, device: c.device, deviceSeed: c.deviceSeed, deviceFp: c.deviceFp,
                     roles: c.roles, status: 'saved', lastError: '', lastUsedAt: new Date().toISOString() })
                 s.accountId = id

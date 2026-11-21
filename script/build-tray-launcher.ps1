@@ -8,6 +8,7 @@ $output=if($OutputDirectory){[IO.Path]::GetFullPath($OutputDirectory)}else{$sour
 $package=Get-Content -LiteralPath (Join-Path $sourceRoot 'package.json') -Raw | ConvertFrom-Json
 $displayVersion=$package.displayVersion
 $version=([version]($package.version -split '-')[0]).ToString(3)+'.0'
+if ($package.updateVersion) { $version = ([version]$package.updateVersion).ToString(4) }
 $exe=Join-Path $output ('启动'+$displayVersion+'.exe')
 if(Test-Path -LiteralPath $exe){throw "Launcher output already exists: $exe"}
 foreach($name in @('node.exe','LICENSE')){

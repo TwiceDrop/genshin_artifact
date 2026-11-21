@@ -14,7 +14,8 @@ export const UPDATE_SOURCES = [
 // 数字段先比；数字相同时 EA 早于正式版，两个 EA 再比补丁段。
 export function compareVersions(left, right) {
     const parts = value => {
-        const match = String(value || '').trim().match(/^v?(\d+(?:\.\d+)*)(?:(-?EA)(?:\.(\d+(?:\.\d+)*))?|[-+].*)?$/i)
+        const version = String(value || '').trim().replace(/^(v?\d+\.\d+\.\d+)-hotfix(\d+)$/i, '$1.$2')
+        const match = version.match(/^v?(\d+(?:\.\d+)*)(?:(-?EA)(?:\.(\d+(?:\.\d+)*))?|[-+].*)?$/i)
         return match ? {numbers: match[1].split('.').map(Number), early: !!match[2], patch: (match[3] || '').split('.').filter(Boolean).map(Number)} : null
     }
     const order = (x, y) => {

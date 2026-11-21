@@ -9,7 +9,7 @@ export const MIHOYO_API = Object.freeze({
   queryQr:
     "https://passport-api.mihoyo.com/account/ma-cn-passport/app/queryQRLoginStatus",
   cookieToken:
-    "https://passport-api.mihoyo.com/account/auth/api/getCookieAccountInfoBySToken",
+    "https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken",
   ltoken:
     "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken",
 })
@@ -40,7 +40,7 @@ function normalizeQrStatus(data) {
 
   let raw = ""
   if (status === "Confirmed") {
-    const stoken = data?.tokens?.find(item => item?.token)?.token
+    const stoken = data?.tokens?.find(item => item?.token_type === 1)?.token
     const uid = String(data?.user_info?.aid || "")
     const mid = data?.user_info?.mid
     if (!/^\d+$/.test(uid) || !stoken || !mid) {
@@ -156,7 +156,7 @@ export class MihoyoApiClient {
     return { retcode: 0, message: response?.message, data: normalized }
   }
 
-  async exchangeQrLogin({ uid, mid, stoken }) {
+  async exchangeQrLogin({ uid, mid, stoken }, { recordOnly = false } = {}) {
     const accountId = String(uid || "")
     if (!/^\d+$/.test(accountId) || !mid || !stoken) {
       throw new MihoyoApiError("INVALID_QR_CREDENTIAL", "扫码登录凭据无效")
@@ -164,27 +164,34 @@ export class MihoyoApiClient {
 
     const safeStoken = safeCookieValue(stoken)
     const safeMid = safeCookieValue(mid)
-    const authCookie = `stoken=${safeStoken}; mid=${safeMid};`
-    const headers = { Accept: "application/json", Cookie: authCookie }
+    const accountField = safeStoken.startsWith("v2_") ? `mid=${safeMid}` : `stuid=${accountId}`
+    const cookieHeaders = { Accept: "application/json", Cookie: `stoken=${safeStoken}; ${accountField};` }
+    const ltokenHeaders = { Accept: "application/json", Cookie: `stoken=${safeStoken}; mid=${safeMid};` }
 
     const cookieUrl = new URL(MIHOYO_API.cookieToken)
     cookieUrl.searchParams.set("stoken", safeStoken)
+    cookieUrl.searchParams.set("uid", accountId)
     const ltokenUrl = new URL(MIHOYO_API.ltoken)
     ltokenUrl.searchParams.set("stoken", safeStoken)
 
     const [cookieData, ltokenData] = await Promise.all([
-      this.requestJson(cookieUrl, { method: "GET", headers }),
-      this.requestJson(ltokenUrl, { method: "GET", headers }),
+      recordOnly ? null : this.requestJson(cookieUrl, { method: "GET", headers: cookieHeaders }),
+      this.requestJson(ltokenUrl, { method: "GET", headers: ltokenHeaders }),
     ])
 
-    const cookieToken = cookieData?.data?.cookie_token
     const ltoken = ltokenData?.data?.ltoken
+    if (Number(ltokenData?.retcode) !== 0 || !ltoken) {
+      throw new MihoyoApiError("COOKIE_EXCHANGE_FAILED", "获取米游社 Cookie 失败")
+    }
+    const safeLtoken = safeCookieValue(ltoken)
+    const recordCookie = `ltoken=${safeLtoken};ltuid=${accountId};`
+    if (recordOnly) return { accountId, cookie: recordCookie }
+
+    const cookieToken = cookieData?.data?.cookie_token
     const returnedAccountId = String(cookieData?.data?.uid || accountId)
     if (
       Number(cookieData?.retcode) !== 0 ||
-      Number(ltokenData?.retcode) !== 0 ||
       !cookieToken ||
-      !ltoken ||
       !/^\d+$/.test(returnedAccountId) ||
       returnedAccountId !== accountId
     ) {
@@ -192,11 +199,10 @@ export class MihoyoApiClient {
     }
 
     const safeCookieToken = safeCookieValue(cookieToken)
-    const safeLtoken = safeCookieValue(ltoken)
     return {
       accountId,
       cookie:
-        `ltoken=${safeLtoken};ltuid=${accountId};` +
+        recordCookie +
         `cookie_token=${safeCookieToken};account_id=${accountId};` +
         `stoken=${safeStoken};stuid=${accountId};mid=${safeMid};`,
     }

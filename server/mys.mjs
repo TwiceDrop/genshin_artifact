@@ -2,7 +2,6 @@
 import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto'
 import { MihoyoApiClient } from './vendor/twicedrop/mihoyo-api.mjs'
 import { deviceFpBody, recordDevice, recordUserAgent } from './device-fp.mjs'
-import { normalizeCookie } from './cookie.mjs'
 const RECORD = 'https://api-takumi-record.mihoyo.com'
 const FP = 'https://public-data-api.mihoyo.com'
 const stages = {
@@ -25,7 +24,7 @@ export function ds(body = '', query = '', platform = 'miyoushe') {
 }
 export class MysClient {
     constructor(fetcher = fetch) { this.fetcher = fetcher; this.device = randomUUID().toUpperCase(); this.deviceFp = ''; this.deviceSeed = randomBytes(8).toString('hex'); this.cookie = ''; this.ticket = ''; this.roles = []; this.challengeRequest = null; this.verification = null; this.verifiedChallenges = new Map(); this.qr = new MihoyoApiClient({ fetchImpl: fetcher }) }
-    async request(base, path, { body, query = '', authenticated = true, challengePath } = {}) {
+    async request(base, path, { body, query = '', authenticated = true, cookie = this.cookie, challengePath } = {}) {
         const stage = stages[path] || '数据读取'
         const serialized = body === undefined ? '' : JSON.stringify(body)
         // Match the registered iOS profile; FP registration has no record credentials/DS.
@@ -35,7 +34,7 @@ export class MysClient {
             'x-rpc-client_type': '5', Referer: 'https://webstatic.mihoyo.com/',
             DS: ds(serialized, query),
         })
-        if (authenticated) headers.Cookie = this.cookie
+        if (authenticated) headers.Cookie = cookie
         if (base === RECORD) Object.assign(headers, {
             'x-rpc-device_fp': this.deviceFp,
             'x-rpc-device_name': recordDevice.model, 'x-rpc-sys_version': recordDevice.osVersion,
@@ -132,24 +131,30 @@ export class MysClient {
     async pollQR() {
         if (this.cookie) return { status: 'Confirmed' }
         if (!this.ticket || Date.now() >= this.qrExpires) return { status: 'Expired' }
-        const response = await this.qr.queryQr(this.device, this.ticket)
+        const ticket = this.ticket
+        const response = await this.qr.queryQr(this.device, ticket)
         if (Number(response.retcode) !== 0) {
             if (/expired/i.test(response.message || '')) return { status: 'Expired' }
             throw new Error(`扫码查询失败（${Number(response.retcode)}），请重新扫码`)
         }
         const status = response.data.stat
         if (status !== 'Confirmed') return { status: status === 'Scanned' ? status : 'Waiting' }
-        const account = await this.qr.exchangeQrLogin(JSON.parse(response.data.payload.raw))
-        // Only retain credentials required for record reads; never send them to the browser.
-        this.cookie = normalizeCookie(account.cookie).cookie
+        const account = await this.qr.exchangeQrLogin(JSON.parse(response.data.payload.raw), { recordOnly: true })
+        const roles = await this.readBoundRoles(account.cookie)
+        if (ticket !== this.ticket) return { status: 'Expired' }
+        this.cookie = account.cookie
+        this.roles = roles
         this.ticket = ''
-        return { status: 'Confirmed' }
+        return { status: 'Confirmed', roles }
     }
     async getRoles() {
         if (!this.cookie) throw new Error('请先扫码登录')
-        const data = await this.request('https://api-takumi.mihoyo.com', '/binding/api/getUserGameRolesByCookie', { query: 'game_biz=hk4e_cn' })
-        this.roles = (data.list || []).filter(r => ['cn_gf01', 'cn_qd01'].includes(r.region)).map(r => ({ uid: String(r.game_uid), region: r.region, nickname: r.nickname, level: r.level, regionName: r.region_name }))
+        this.roles = await this.readBoundRoles(this.cookie)
         return this.roles
+    }
+    async readBoundRoles(cookie) {
+        const data = await this.request('https://api-takumi.mihoyo.com', '/binding/api/getUserGameRolesByCookie', { query: 'game_biz=hk4e_cn', cookie })
+        return (data.list || []).filter(r => ['cn_gf01', 'cn_qd01'].includes(r.region)).map(r => ({ uid: String(r.game_uid), region: r.region, nickname: r.nickname, level: r.level, regionName: r.region_name }))
     }
     async snapshot(uid, onProgress = () => {}, isCancelled = () => false) {
         const role = this.roles.find(r => r.uid === uid)

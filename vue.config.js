@@ -72,7 +72,7 @@ module.exports = {
         setupMiddlewares(middlewares, devServer) {
             let localHandler
             // Serve desktop APIs at the page origin. Other API paths keep their configured proxies.
-            const localPrefixes = ["/api/cloud/", "/api/mys/", "/api/update/"]
+            const localPrefixes = ["/api/cloud/", "/api/mys/", "/api/update/", "/api/patch/"]
             middlewares.unshift({ name: "mona-local-api", middleware(req, res, next) {
                 const pathname = req.url.split("?", 1)[0]
                 if (pathname !== "/api/calculation/session" && pathname !== "/api/usage-stats"
