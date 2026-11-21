@@ -20,7 +20,7 @@ use windows_sys::Win32::{
 };
 
 const PAYLOAD: &[u8] = include_bytes!("../payload.tar.gz");
-const BUILD_REVISION: &str = "20261119-7205ea";
+const BUILD_REVISION: &str = "20261121-7205";
 // Fixed: the port is part of the WebView storage origin, so changing it loses saved data.
 const PORT: u16 = 47504;
 

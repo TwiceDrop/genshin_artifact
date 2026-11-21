@@ -1,4 +1,4 @@
-# 莫娜在线服务 7.2.04 部署包
+# 莫娜在线服务 7.2.05 部署包
 
 账号用邮箱验证码注册并设密码，登录可用「邮箱或用户名 + 密码」或邮箱验证码。米游社或 HoYoLAB Cookie 由客户端用用户自设的解密密码加密后上传，服务器只保存密文、不能解密，也不访问游戏接口；游戏数据由客户端解密后在本机拉取。客户端访问 API，API 和后台清理任务访问 PostgreSQL；数据库不开放公网端口。计算仍在客户端。
 
@@ -9,7 +9,7 @@
 解压部署包，保留 `online-service` 与 `server` 的相邻位置，然后执行：
 
 ```bash
-cd mona-online-service-7.2.04/online-service
+cd mona-online-service-7.2.05/online-service
 cp .env.example .env
 # 用编辑器填写 .env 中的 SERVICE_DOMAIN、ACME_EMAIL、SMTP_*、MAIL_FROM。
 # SERVICE_DOMAIN 只写域名，例如 api.example.com，不带 https:// 或路径。
@@ -78,6 +78,8 @@ docker compose up -d api maintenance caddy
 升级前备份，保留 `secrets/`、`.env` 与 Docker 命名卷。将新部署包解压到独立目录，复制同一份私密配置，沿用 Compose 项目名 `mona-online`。停止旧 API 和后台服务，构建新镜像并执行迁移，然后启动新服务。数据库结构回滚应使用对应版本代码与升级前备份。
 
 迁移 `009_profile_revision_retention.sql` 保留已有修订。每个档案下次保存新修订时，服务端保留当前生效版本和其余编号最新的 4 份，冲突副本也占一份。淘汰的修订会删除正文，仅保留识别重复提交所需的记录。计算历史单独保存。
+
+迁移 `010_usage_stats_patch.sql` 为按天统计增加内容补丁号，已有记录的补丁号为空。
 
 从带有服务端 Cookie 托管的旧版本升级时：迁移 `007_cookie_vaults.sql` 会删除旧的托管账号、拉取任务和角色快照，用户需要在客户端重新上传 Cookie。后台服务从 `worker` 改名为 `maintenance`，启动新服务时加 `--remove-orphans` 清掉旧的 `worker` 容器：`docker compose up -d --remove-orphans`。
 

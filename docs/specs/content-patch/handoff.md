@@ -37,7 +37,7 @@
 | `src/platform/patch-info.mjs` | 设置页和 Debug 用的补丁状态 |
 | `mona_wasm/pkg/index.js`、`src/wasm/team-dps-native-api.mjs`、`beta-tools/runtime.mjs` | 三个计算入口。四人轴那个原来自己抄了一份包装链，现在改成走 `composeKernelApi` |
 | `beta-tools/patch-tool.mjs` | 开发者本机用的打包和签名工具 |
-| `online-service/migrations/009_usage_stats_patch.sql` 等 | 使用统计的补丁号字段 |
+| `online-service/migrations/010_usage_stats_patch.sql` 等 | 使用统计的补丁号字段 |
 
 补丁在本机的存放位置：安装版是 `%LOCALAPPDATA%\MonaArtifact\data\patches`，开发时是仓库下的 `.local-data\patches`。
 
@@ -86,7 +86,7 @@ node beta-tools/patch-tool.mjs build --base-min 7.2.04 --base-max 7.2.04.99 --pa
 - **Debug 导出没有实际导出过。** 单人配装的调试包要先跑出配装结果（需要仓库里有圣遗物，点自动配装，打开「Debug 模式」再导出调试包），应该在 `environment.contentPatch` 里看到补丁号、各文件哈希、最近一次检查的失败阶段和原因。四人轴的导出在顶层 `contentPatch`。两个页面的导出代码我只改了，没有运行过，只有单元测试覆盖。
 - **安装器覆盖升级**后，旧补丁是否按版本范围正确地不生效。
 - **真实升级基础版本**：我用「适用范围是旧版本的补丁」模拟，没有真的升级。
-- **使用统计的服务端部分**：新迁移 `009_usage_stats_patch.sql` 只在内存数据库里跑过。部署在线服务时迁移会自动执行；之后打开 `/admin/stats`，「补丁」下拉应该有补丁号，按它筛选只影响近 7 天、近 30 天和每日活跃，累计数不受影响。新客户端对没升级的旧服务端上报也没问题（多出的字段被忽略）。
+- **使用统计的服务端部分**：新迁移 `010_usage_stats_patch.sql` 只在内存数据库里跑过。部署在线服务时迁移会自动执行；之后打开 `/admin/stats`，「补丁」下拉应该有补丁号，按它筛选只影响近 7 天、近 30 天和每日活跃，累计数不受影响。新客户端对没升级的旧服务端上报也没问题（多出的字段被忽略）。
 - **真实密钥和 https 的补丁地址**。
 
 ## 要知道的限制

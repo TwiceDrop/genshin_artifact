@@ -1,7 +1,7 @@
 name: mona-online
 
 x-app: &app
-  image: mona-online-service:7.2.04
+  image: mona-online-service:7.2.05
   build:
     context: ..
     dockerfile: online-service/Dockerfile

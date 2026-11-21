@@ -19,6 +19,8 @@ try {
     }
     New-Item -ItemType Directory -Path $stage,(Join-Path $stage 'script'),(Join-Path $stage 'docs') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $projectRoot 'dist'),(Join-Path $projectRoot 'server') -Destination $stage -Recurse
+    New-Item -ItemType Directory -Path (Join-Path $stage 'beta-data') | Out-Null
+    Copy-Item -LiteralPath (Join-Path $projectRoot 'beta-data/data-overlay.mjs') -Destination (Join-Path $stage 'beta-data')
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'start-local.mjs') -Destination (Join-Path $stage 'script')
     & (Join-Path $PSScriptRoot 'build-tray-launcher.ps1') -NodeRuntime $NodeRuntime -OutputDirectory $stage
     & (Join-Path $PSScriptRoot 'build-hoyolab-login.ps1')

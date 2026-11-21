@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $package = Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json
 $version = $package.displayVersion
-$numericVersion = ([version]$package.version).ToString(3) + '.0'
+$numericVersion = ([version]($package.version -split '-')[0]).ToString(3) + '.0'
 & $Iscc ("/DStageDir=" + [IO.Path]::GetFullPath($StageDirectory)) ("/DOutputPath=" + [IO.Path]::GetFullPath($OutputDirectory)) ("/DDisplayVersion=" + $version) ("/DNumericVersion=" + $numericVersion) (Join-Path $projectRoot 'installer/mona.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
 Write-Output (Join-Path $OutputDirectory "genshin_artifact_V${version}_windows_x64_setup.exe")

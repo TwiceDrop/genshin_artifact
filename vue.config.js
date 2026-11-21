@@ -168,11 +168,11 @@ module.exports = {
         config.plugin("define").tap(definitions => {
             const definePluginConverted = convertKVToDefinePlugin(customEnv)
             definitions[0]["process.env"] = Object.assign(definitions[0]["process.env"], definePluginConverted, {
+                VUE_APP_MONA_CLOUD_URL: JSON.stringify(process.env.VUE_APP_MONA_CLOUD_URL || require('./server/desktop-cloud-url.cjs')),
                 MONA_VERSION: `"${version}"`,
                 MONA_BUILD_DATE: `"${buildDate}"`,
                 MONA_REVISION: `"${revision}"`
             })
-            console.log(definitions)
             return definitions
         })
 

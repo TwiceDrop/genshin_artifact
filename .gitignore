@@ -15,6 +15,7 @@ node_modules
 
 # local env files
 .env.local
+/server/desktop-cloud-url.local.json
 .env.*.local
 
 # Log files

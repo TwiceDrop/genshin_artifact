@@ -58,7 +58,7 @@ export function createProfileSync({ api, storage, capture, restore, createLocal,
         return { data, generation }
     }
     function payload(binding, captured) {
-        return { operationId: uuid(), baseRevision: binding.baseRevision, deviceId: metadata.deviceId, schemaVersion: 1, appVersion: '7.2.5-EA', engineVersion: 'mona-team-engine/58', data: captured.data, generation: captured.generation }
+        return { operationId: uuid(), baseRevision: binding.baseRevision, deviceId: metadata.deviceId, schemaVersion: 1, appVersion: '7.2.5', engineVersion: 'mona-team-engine/58', data: captured.data, generation: captured.generation }
     }
     async function ensureCreated(binding, scope) {
         if (binding.profileId) return

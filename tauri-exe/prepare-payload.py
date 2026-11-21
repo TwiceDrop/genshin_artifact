@@ -19,7 +19,7 @@ for directory in ['server', 'runtime/hoyolab-login']:
     for path in (source / directory).rglob('*'):
         if path.is_file():
             files[path.relative_to(source).as_posix()] = path
-for name in ['package.json', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'script/install-update.ps1']:
+for name in ['package.json', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'script/install-update.ps1', 'beta-data/data-overlay.mjs']:
     files[name] = source / name
 files['start-server.mjs'] = wrapper / 'start-server.mjs'
 files['runtime/node.exe'] = node / 'node.exe'

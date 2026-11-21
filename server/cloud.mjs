@@ -1,5 +1,6 @@
 import { CredentialStore, publicAccount } from './credentials.mjs'
 import { withDefaultCloudUrl } from './cloud-config.mjs'
+import desktopCloudUrl from './desktop-cloud-url.cjs'
 
 export function cloudServiceUrl(value) {
     const url = new URL(String(value).trim())
@@ -31,7 +32,7 @@ export class CloudGateway {
         return task
     }
     async request(route, method, body, expectedContext) {
-        let saved = withDefaultCloudUrl(await this.store.get('online'))
+        let saved = withDefaultCloudUrl(await this.store.get('online'), desktopCloudUrl)
         if (expectedContext && (saved?.url !== expectedContext.url || saved?.user?.id !== expectedContext.userId)) {
             return { status: 409, data: { error: { code: 'CLOUD_CONTEXT_CHANGED', message: '在线账号或服务已切换，本次同步已停止' } } }
         }
