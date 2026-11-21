@@ -18,6 +18,7 @@ impl<T: Attribute> ArtifactEffect<T> for ThunderingFuryEffect {
         attribute.set_value_by(AttributeName::EnhanceSuperconduct, "如雷的盛怒4", 0.4);
         attribute.set_value_by(AttributeName::EnhanceHyperbloom, "如雷的盛怒4", 0.4);
         attribute.set_value_by(AttributeName::EnhanceAggravate, "如雷的盛怒4", 0.2);
+        attribute.set_value_by(AttributeName::EnhanceMoonelectro, "如雷的盛怒4", 0.2);
     }
 }
 
@@ -64,8 +65,8 @@ impl ArtifactTrait for ThunderingFury {
         )),
         effect3: None,
         effect4: Some(crate::common::i18n::locale!(
-            zh_cn: "超载、感电、超导反应造成的伤害提升40%。触发这些元素反应时，元素战技冷却时间减少1秒。该效果每0.8秒最多触发一次。",
-            en: "Increases damage caused by Overloaded, Electro-Charged and Superconduct by 40%. Triggering such effects decreases Elemental Skill CD by 1s. Can only occur once every 0.8s.",
+            zh_cn: "超载、感电、超导、超绽放反应伤害提升40%，超激化反应的伤害加成提升20%，月感电反应伤害提升20%。触发上述反应或原激化时，元素战技冷却时间减少1秒，每0.8秒最多触发一次。",
+            en: "Grants 40% reaction DMG Bonus to Overloaded, Electro-Charged, Superconduct, and Hyperbloom, and 20% to Aggravate and Lunar-Charged. Triggering any of these reactions or Quicken reduces Elemental Skill cooldown by 1s, once every 0.8s.",
         )),
         effect5: None,
         internal_id: 15005,

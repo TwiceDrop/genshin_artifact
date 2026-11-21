@@ -60,11 +60,39 @@
                 </el-popconfirm>
             </div>
         </section>
+
+        <section class="setup-card migration-actions" aria-label="数据迁移">
+            <button id="export-data" type="button" class="setup-plain" :disabled="transferring" @click="exportAccounts">导出数据</button>
+            <button type="button" class="setup-plain" :disabled="transferring" @click="backupFile?.click()">导入数据</button>
+            <input ref="backupFile" type="file" accept=".json,application/json" hidden @change="previewFile">
+        </section>
+        <el-dialog v-model="previewOpen" title="导入数据" width="min(480px, 92vw)" append-to-body
+                   :close-on-click-modal="!transferring" :close-on-press-escape="!transferring" :show-close="!transferring" @closed="pendingBackup = null">
+            <ul class="backup-preview">
+                <li v-for="account in previewAccounts" :key="account.id">
+                    <strong>{{ account.name }}</strong>
+                    <div>{{ account.uids }} 个 UID · {{ account.artifacts }} 件圣遗物 · {{ account.axes }} 条四人轴 · {{ account.history }} 条计算记录</div>
+                </li>
+            </ul>
+            <el-checkbox v-if="pendingBackup?.preferences" v-model="usePreferences">同时导入语言和外观设置</el-checkbox>
+            <template #footer>
+                <el-button :disabled="transferring" @click="previewOpen = false">取消</el-button>
+                <el-button type="primary" :loading="transferring" @click="importAccounts">导入为新账号</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import localforage from "localforage"
+import { computed, nextTick, ref, shallowRef } from 'vue'
+import { ElMessage } from 'element-plus'
+import backend from '@/store/backend'
+import { accountReady, useAccountStore, reload } from '@/store/pinia/account'
+import { calculationState, calculationHistory } from '@/store/calculation-history'
+import { flushTeamDpsWrites } from '../../../beta-data/team-dps-library.mjs'
+import { backupCounts, validateBackup } from '@/store/account-backup.mjs'
+import { downloadString } from '@/utils/common'
 import {colorMode,setColorMode} from "@/styles/color-mode.mjs"
 import {useI18n} from "@/i18n/i18n"
 import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent, refreshUsageStatsConsent, recordUsage} from "@/usage-stats/index.mjs"
@@ -84,6 +112,64 @@ const modes = [
 const { t, setLocale, locale } = useI18n()
 const router = useRouter()
 
+const transferring = ref(false), previewOpen = ref(false), usePreferences = ref(false)
+const backupFile = ref<HTMLInputElement | null>(null), pendingBackup = shallowRef<any>(null)
+const previewAccounts = computed(() => (pendingBackup.value?.accounts || []).map((account: any) =>
+    ({ id: account.id, name: account.name, ...backupCounts(account) })))
+
+async function settlePlayerData() {
+    await accountReady
+    await nextTick()
+    if (calculationState.active) throw new Error('请先等待当前计算结束')
+    for (const { id } of useAccountStore().allAccounts) {
+        await flushTeamDpsWrites(id)
+        await calculationHistory.flush(id)
+    }
+    await backend.allReady()
+    if (calculationState.active) throw new Error('请先等待当前计算结束')
+}
+
+async function exportAccounts() {
+    transferring.value = true
+    try {
+        await settlePlayerData()
+        const pack = await backend.exportBackup(process.env.MONA_VERSION, { locale: locale.value, colorMode: colorMode.value })
+        await downloadString(JSON.stringify(pack), 'application/json', 'mona-backup-' + pack.exportedAt.slice(0, 10) + '.json')
+    } catch (error) { ElMessage.error('导出失败：' + String(error)) }
+    finally { transferring.value = false }
+}
+
+async function previewFile(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+    transferring.value = true
+    try {
+        pendingBackup.value = validateBackup(JSON.parse(await file.text()))
+        usePreferences.value = false
+        previewOpen.value = true
+    } catch (error) { ElMessage.error('无法读取备份：' + String(error)) }
+    finally { transferring.value = false }
+}
+
+async function importAccounts() {
+    transferring.value = true
+    try {
+        const pack = pendingBackup.value
+        await settlePlayerData()
+        try { await backend.importBackup(pack) }
+        finally { await reload() }
+        if (usePreferences.value) {
+            const prefs = pack.preferences
+            if (['zh-cn', 'en'].includes(prefs.locale)) await setLocale(prefs.locale)
+            if (['light', 'dark', 'auto'].includes(prefs.colorMode)) setColorMode(prefs.colorMode)
+        }
+        previewOpen.value = false
+        ElMessage.success('已导入 ' + pack.accounts.length + ' 个新账号')
+    } catch (error) { ElMessage.error(String(error)) }
+    finally { transferring.value = false }
+}
 
 const automaticPatches = ref(isAutomaticPatchEnabled())
 function changeAutomaticPatches(enabled: boolean) {
@@ -147,6 +233,10 @@ async function handleSetLocale(lang: string) {
         font-weight: 700;
     }
 }
+
+.migration-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.backup-preview { margin: 0; padding-left: 1.5em; max-height: 48vh; overflow: auto; }
+.backup-preview li { margin-bottom: 10px; overflow-wrap: anywhere; }
 
 // 外观：三张带缩略图的选项卡
 .mode-options {

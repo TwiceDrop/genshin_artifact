@@ -20,7 +20,7 @@ use windows_sys::Win32::{
 };
 
 const PAYLOAD: &[u8] = include_bytes!("../payload.tar.gz");
-const BUILD_REVISION: &str = "20261121-7205";
+const BUILD_REVISION: &str = "20261121-7206-r2";
 // Fixed: the port is part of the WebView storage origin, so changing it loses saved data.
 const PORT: u16 = 47504;
 
@@ -35,7 +35,33 @@ fn log(path: &Path, message: &str) {
     }
 }
 
-fn start_backend(root: &Path, data: &Path) -> Result<Backend, Box<dyn Error>> {
+fn prepare_update(runtime: &Path, data: &Path, server_pid: u32, request: &str) -> Result<Child, Box<dyn Error>> {
+    let package = PathBuf::from(serde_json::from_str::<String>(request)?).canonicalize()?;
+    if package.file_name().and_then(|s| s.to_str()) != Some("package.exe")
+        || package.parent().and_then(Path::parent) != Some(data.join("updates").canonicalize()?.as_path()) {
+        return Err("更新包不在下载目录内".into());
+    }
+    let mut installer = Command::new(runtime.join("runtime/node.exe"))
+        .arg(runtime.join("server/tauri-update-worker.mjs"))
+        .arg(package).arg(std::env::current_exe()?).arg(std::process::id().to_string())
+        .arg(server_pid.to_string()).arg(data.join("running.json"))
+        .creation_flags(CREATE_NO_WINDOW)
+        .stdin(Stdio::piped()).stdout(Stdio::piped())
+        .stderr(OpenOptions::new().create(true).append(true).open(data.join("backend.log"))?)
+        .spawn()?;
+    let mut reply = String::new();
+    BufReader::new(installer.stdout.take().ok_or("缺少更新进程输出")?).read_line(&mut reply)?;
+    if reply.trim_end() != "READY" {
+        let _ = installer.wait();
+        let message = serde_json::from_str::<serde_json::Value>(&reply).ok()
+            .and_then(|v| v["error"].as_str().map(str::to_owned))
+            .unwrap_or_else(|| "更新进程未就绪，请查看 backend.log".to_owned());
+        return Err(message.into());
+    }
+    Ok(installer)
+}
+
+fn start_backend(app: tauri::AppHandle, root: &Path, data: &Path) -> Result<Backend, Box<dyn Error>> {
     fs::create_dir_all(data)?;
     let runtime = root.join(BUILD_REVISION);
     if !runtime.join(".ready").is_file() {
@@ -70,11 +96,34 @@ fn start_backend(root: &Path, data: &Path) -> Result<Backend, Box<dyn Error>> {
         handle
     };
     let stdout = child.stdout.take().ok_or("Missing backend startup pipe")?;
+    let mut stdin = child.stdin.take().ok_or("Missing backend control pipe")?;
+    let server_pid = child.id();
+    let worker_data = data.to_owned();
+    let worker_runtime = runtime.clone();
     let (sender, receiver) = mpsc::channel();
     std::thread::spawn(move || {
-        let mut line = String::new();
-        let result = BufReader::new(stdout).read_line(&mut line).map(|_| line);
-        let _ = sender.send(result);
+        let mut lines = BufReader::new(stdout).lines();
+        if let Some(first) = lines.next() { let _ = sender.send(first); }
+        // Launch from the GUI process: backend descendants are killed with its Job Object.
+        let mut pending = None;
+        for line in lines.map_while(Result::ok) {
+            if let Some(request) = line.strip_prefix("MONA_TAURI_PREPARE ") {
+                let reply = match prepare_update(&worker_runtime, &worker_data, server_pid, request) {
+                    Ok(worker) => { pending = Some(worker); serde_json::json!({"ready": true}) }
+                    Err(error) => serde_json::json!({"error": error.to_string()}),
+                };
+                if writeln!(stdin, "{}", reply).is_err() { break; }
+            } else if line == "MONA_TAURI_INSTALL" {
+                if let Some(mut worker) = pending.take() {
+                    if let Some(mut control) = worker.stdin.take() {
+                        match writeln!(control, "INSTALL") {
+                            Ok(()) => { app.exit(0); break; }
+                            Err(error) => { log(&worker_data.join("backend.log"), &error.to_string()); }
+                        }
+                    }
+                }
+            }
+        }
     });
     let line = receiver.recv_timeout(Duration::from_secs(20))??;
     let ready: serde_json::Value = serde_json::from_str(&line)
@@ -108,7 +157,7 @@ fn main() {
             let app_data = app.path().app_local_data_dir()?;
             let data = std::env::var_os("MONA_TAURI_TEST_DATA_DIR")
                 .map(PathBuf::from).unwrap_or_else(|| app_data.join("data"));
-            let backend = start_backend(&app_data.join("runtime"), &data)?;
+            let backend = start_backend(app.handle().clone(), &app_data.join("runtime"), &data)?;
             app.manage(backend);
             let error_log = data.join("window.log");
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(

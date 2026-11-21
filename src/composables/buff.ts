@@ -10,6 +10,7 @@ export interface BuffEntry {
     config: any,
     lock: boolean,
     source_id?: string,
+    source_character?: string,
     source_effect?: string,
 }
 
@@ -38,6 +39,7 @@ export function useBuff() {
                 name: buff.name,
                 config: buff.config,
                 ...(buff.source_id ? {source_id: buff.source_id} : {}),
+                ...(buff.source_character ? {source_character: buff.source_character} : {}),
                 ...(buff.source_effect ? {source_effect: buff.source_effect} : {}),
             })
         }

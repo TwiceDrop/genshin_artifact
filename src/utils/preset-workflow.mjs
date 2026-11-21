@@ -41,10 +41,20 @@ export function snapshotPreset(state) {
 
 export function readPresetConfiguration(item, defaults) {
     const result = snapshotPreset(item)
-    for (const field of ['enemy', 'infusion', 'skill', 'singleConfig']) {
+    for (const field of ['enemy', 'infusion', 'skill']) {
         if (result[field] === undefined) result[field] = copy(defaults[field])
     }
-    result.singleConfig = {...copy(defaults.singleConfig), ...result.singleConfig}
+    // Older presets saved the preview and optimization controls separately.
+    // The explicit optimizer settings were in use for custom and panel runs.
+    const configs = result.artifactEffectMode === 'custom' || result.optimizationMode === 'panel'
+        ? [result.singleConfig, result.artifactConfig]
+        : [result.artifactConfig, result.singleConfig]
+    result.singleConfig = copy(defaults.singleConfig)
+    for (const config of configs) {
+        for (const [set, fields] of Object.entries(config ?? {})) {
+            result.singleConfig[set] = {...result.singleConfig[set], ...fields}
+        }
+    }
     return result
 }
 

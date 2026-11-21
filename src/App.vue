@@ -118,7 +118,7 @@ async function acceptOtherSource() {
 }
 async function testSources() {
     testing.value = true; updateError.value = ''
-    const candidates = UPDATE_SOURCES.filter(source => source.id !== 'cnb')
+    const candidates = UPDATE_SOURCES.filter(source => platform.value.kind === 'tauri' ? source.id === 'github' : source.id !== 'cnb')
     const results = await Promise.all(candidates.map(async source => {
         try {
             const result = await probeUpdateSource(availableRelease.value, platform.value.kind, source.id)

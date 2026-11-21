@@ -32,6 +32,18 @@ test('分类不改旧配置；游戏刷新保留手动条件，另存自定义�
     assert.throws(() => createCustomPreset({'测试自定义': {item: custom}}, '测试自定义', old), /已有同名预设/)
 })
 
+test('旧预设按原使用模式合并套装条件，保留零覆盖率和其余字段', () => {
+    const defaults = {enemy: {}, infusion: 'None', skill: {}, singleConfig: {set: {rate: 1, stacks: 2}}}
+    const preset = {singleConfig: {set: {rate: 0}}, artifactConfig: {set: {rate: 0.6}, other: {active: true}}}
+    for (const [mode, expected] of [['auto', 0], ['custom', 0.6]]) {
+        const saved = {...preset, artifactEffectMode: mode}
+        assert.deepEqual(readPresetConfiguration(saved, defaults).singleConfig,
+            {set: {rate: expected, stacks: 2}, other: {active: true}})
+    }
+    assert.equal(readPresetConfiguration({...preset, optimizationMode: 'panel'}, defaults).singleConfig.set.rate, 0.6)
+    assert.equal(preset.singleConfig.set.rate, 0)
+})
+
 test('当前面板完整保存并恢复；旧字段使用约定初始值；应用结果只换装备且拒绝缺失/变更的历史装备', () => {
     const defaults = {enemy: {level: 90, pyro_res: 0.1}, infusion: 'None',
         skill: {index: 0, config: 'NoConfig'}, singleConfig: {fixture: {stack: 1}}}

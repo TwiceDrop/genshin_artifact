@@ -1,4 +1,5 @@
 import localforage from "localforage"
+import { appendBackup, captureBackup } from './account-backup.mjs'
 
 const BACKEND_META_KEY = 'backend_meta'
 const BACKEND_VERSION = 1
@@ -13,6 +14,20 @@ function genMeta(): BackendMeta {
         version: BACKEND_VERSION,
         lastModified: new Date().getTime(),
     }
+}
+
+function requestValue<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error)
+    })
+}
+
+async function openLocalDatabase() {
+    await localforage.ready()
+    if (localforage.driver() !== localforage.INDEXEDDB) throw new Error('此操作需要 IndexedDB 存储')
+    const name = localforage.config('name') as string
+    return { db: await requestValue(indexedDB.open(name)), storeName: localforage.config('storeName') as string }
 }
 
 /**
@@ -47,14 +62,7 @@ class LocalBackend {
     }
 
     async batch(entries: [string, any][], removals: string[], meta: BackendMeta, beforeWrite: () => void = () => {}) {
-        await localforage.ready()
-        if (localforage.driver() !== localforage.INDEXEDDB) throw new Error('云档案恢复需要 IndexedDB 存储')
-        const name = (localforage as any).config('name') as string, storeName = (localforage as any).config('storeName') as string
-        const db = await new Promise<IDBDatabase>((resolve, reject) => {
-            const request = indexedDB.open(name)
-            request.onsuccess = () => resolve(request.result)
-            request.onerror = () => reject(request.error)
-        })
+        const { db, storeName } = await openLocalDatabase()
         try {
             beforeWrite()
             await new Promise<void>((resolve, reject) => {
@@ -368,6 +376,46 @@ class MixedBackend {
         do { pending = this.writeQueue; await pending } while (pending !== this.writeQueue)
         if (this.writeErrors.size) throw this.writeErrors.values().next().value
         if (this.fileBackend.connected()) await this.fileBackend.allWritten()
+    }
+
+    async exportBackup(version: string, preferences: object) {
+        await this.allReady()
+        const { db, storeName } = await openLocalDatabase()
+        try {
+            const store = db.transaction(storeName).objectStore(storeName)
+            return await captureBackup((key: string) => requestValue(store.get(key)), version, preferences)
+        } finally { db.close() }
+    }
+
+    importBackup(pack: any) {
+        return this.enqueue([], async () => {
+            await this.checkConsistency()
+            const { db, storeName } = await openLocalDatabase()
+            const meta = genMeta()
+            let entries: [string, any][]
+            try {
+                const tx = db.transaction(storeName, 'readwrite'), store = tx.objectStore(storeName)
+                const committed = new Promise<void>((resolve, reject) => {
+                    tx.oncomplete = () => resolve()
+                    tx.onabort = () => reject(tx.error || new Error('导入事务已中止'))
+                })
+                try {
+                    const [raw, keys] = await Promise.all([requestValue(store.get('mona_accounts')), requestValue(store.getAllKeys())])
+                    const registry = typeof raw === 'string' ? JSON.parse(raw) : raw
+                    if (!registry) throw new Error('本地账号列表尚未就绪')
+                    entries = appendBackup(pack, registry, keys) as [string, any][]
+                    for (const [key, value] of entries) store.put(value, key)
+                    store.put(meta, BACKEND_META_KEY)
+                } catch (error) {
+                    try { tx.abort() } catch { /* The request may have already aborted the transaction. */ }
+                    await committed.catch(() => {})
+                    throw error
+                }
+                await committed
+            } finally { db.close() }
+            try { await this.mirror(entries, [], meta) }
+            catch (error) { throw new Error('备份已导入本机，目录镜像写入失败：' + String(error)) }
+        }, { keys: [], source: 'backup' })
     }
 
     // startConsistencyCheck() {

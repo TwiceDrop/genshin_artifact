@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>进入 QQ 群 · 莫娜占卜铺</title>
+    <style>
+        :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+        body { margin: 0; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; }
+        main { padding: 24px; text-align: center; }
+        h1 { margin: 0; font-size: 1.5rem; }
+        p { margin: 12px 0 24px; }
+        strong { user-select: all; }
+        a { display: inline-block; padding: 10px 24px; border-radius: 8px; background: #dceeff; color: #164875; font-weight: 600; text-decoration: none; }
+        a:hover, a:focus-visible { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>莫娜占卜铺 QQ 群</h1>
+        <p>群号 <strong>1087955401</strong></p>
+        <a id="open-qq" href="mqqapi://card/show_pslcard?src_type=internal&amp;version=1&amp;uin=1087955401&amp;card_type=group&amp;source=qrcode">打开 QQ</a>
+    </main>
+    <script>window.location.assign(document.getElementById('open-qq').href)</script>
+</body>
+</html>

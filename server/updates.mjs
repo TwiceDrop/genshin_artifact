@@ -4,21 +4,23 @@ import {tmpdir} from 'node:os'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {spawn} from 'node:child_process'
+import {createHash} from 'node:crypto'
 import {fetchReleaseMetadata, releaseAsset, sourceUrl, UPDATE_SOURCES} from './update-sources.mjs'
 
 export class LocalUpdater {
     constructor({root = fileURLToPath(new URL('../', import.meta.url)), fetchImpl = globalThis.fetch,
-        directory = tmpdir(), launch = spawn, notify = () => console.log('MONA_LAUNCHER_UPDATE')} = {}) {
+        directory = tmpdir(), launch = spawn, notify = () => console.log('MONA_LAUNCHER_UPDATE'), prepareTauriInstall} = {}) {
         this.root = root
         this.fetch = fetchImpl
         this.directory = directory
         this.launch = launch
         this.notify = notify
-        this.kind = existsSync(path.join(root, 'unins000.exe')) ? 'installer' : 'portable'
+        this.prepareTauriInstall = prepareTauriInstall
+        this.kind = prepareTauriInstall ? 'tauri' : existsSync(path.join(root, 'unins000.exe')) ? 'installer' : 'portable'
         this.state = {phase: 'idle', downloaded: 0, total: 0, speed: 0}
     }
     info() {
-        return {kind: this.kind, canInstall: process.platform === 'win32' && !!process.env.MONA_LAUNCHER_PID}
+        return {kind: this.kind, canInstall: process.platform === 'win32' && (this.kind === 'tauri' || !!process.env.MONA_LAUNCHER_PID)}
     }
     async latest(accelerated, currentVersion) {
         const release = await fetchReleaseMetadata(this.fetch, accelerated, currentVersion)
@@ -56,26 +58,33 @@ export class LocalUpdater {
         }
     }
     async start(version, source) {
-        if (['downloading', 'installing'].includes(this.state.phase)) throw new Error('已有更新正在进行')
+        if (this.starting || ['downloading', 'installing'].includes(this.state.phase)) throw new Error('已有更新正在进行')
         const asset = this.asset(version)
         const url = sourceUrl(asset.browser_download_url, source)
-        await mkdir(this.directory, {recursive: true})
-        const directory = await mkdtemp(path.join(this.directory, 'mona-update-'))
-        const file = path.join(directory, this.kind === 'installer' ? 'package.exe' : 'package.zip')
+        if (this.kind === 'tauri' && !['github', 'cnb'].includes(source)) throw new Error('Tauri 更新请使用 CNB 或 GitHub')
+        this.starting = true
+        let directory
+        try {
+            await mkdir(this.directory, {recursive: true})
+            directory = await mkdtemp(path.join(this.directory, 'mona-update-'))
+        } finally { this.starting = false }
+        const file = path.join(directory, this.kind === 'portable' ? 'package.zip' : 'package.exe')
         const job = this.state = {phase: 'downloading', downloaded: 0, total: asset.size, speed: 0,
             version, source, file, directory, error: ''}
         this.controller = new AbortController()
-        this.task = this.download(url, job, this.controller.signal)
+        this.task = this.download(url, job, this.controller.signal, this.kind === 'tauri' ? asset.digest : null)
         return this.status()
     }
-    async download(url, job, signal) {
+    async download(url, job, signal, digest) {
         let output
         try {
             const response = await this.fetch(url, {signal, headers: {'Accept-Encoding': 'identity'}})
             if (!response.ok) throw new Error('下载失败（HTTP ' + response.status + '）')
             output = await open(job.file + '.part', 'w')
             let tick = Date.now(), previous = 0
+            const hash = digest?.startsWith('sha256:') ? createHash('sha256') : null
             for await (const bytes of response.body) {
+                hash?.update(bytes)
                 await output.writeFile(bytes)
                 job.downloaded += bytes.byteLength
                 const now = Date.now()
@@ -86,6 +95,7 @@ export class LocalUpdater {
             }
             if (signal.aborted) throw signal.reason
             if (job.downloaded !== job.total) throw new Error('下载不完整：收到 ' + job.downloaded + '／' + job.total + ' 字节')
+            if (hash && 'sha256:' + hash.digest('hex') !== digest.toLowerCase()) throw new Error('下载文件的 SHA-256 与发布附件不一致')
             await output.close(); output = null
             const {rename} = await import('node:fs/promises')
             await rename(job.file + '.part', job.file)
@@ -113,9 +123,15 @@ export class LocalUpdater {
         return this.status()
     }
     async install(port) {
-        if (this.state.phase !== 'ready') throw new Error('更新包尚未下载完成')
+        if (this.starting || this.state.phase !== 'ready') throw new Error('更新包尚未下载完成')
         if (!this.info().canInstall) throw new Error('请通过莫娜启动 EXE 运行后再安装更新')
         const job = this.state
+        if (this.kind === 'tauri') {
+            job.phase = 'installing'
+            try { await this.prepareTauriInstall(job.file) }
+            catch (error) { job.phase = 'ready'; throw error }
+            return this.status()
+        }
         const script = path.join(job.directory, 'install-update.ps1')
         const worker = path.join(job.directory, 'install-update.mjs')
         const runtime = path.join(job.directory, 'node.exe')

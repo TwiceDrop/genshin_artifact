@@ -24,7 +24,7 @@
                 </template>
             </template>
         </el-dialog>
-        <optimization-results-dialog v-if="showOptimizationResults && !panelResultSnapshot" v-model="showOptimizationResults" :results="optimizationResults" :input="reviewCandidateInput" :infusion="fumo" :mona="mona" :get-artifact="getResultArtifact" :selected-index="reviewIndex"
+        <optimization-results-dialog v-if="showOptimizationResults && !panelResultSnapshot" v-model="showOptimizationResults" :results="optimizationResults" :input="damageAnalysisWasmInterface" :infusion="fumo" :mona="mona" :get-artifact="getResultArtifact" :selected-index="reviewIndex"
             :charge-min="resultSearchInput?.constraint?.recharge_min" :objective-label="resultObjectiveLabel" :objective-before="reviewDsl?.before"
             :baseline-analysis="comparisonDamage.value" :baseline-label="reviewBaselineLabel" :skill-label="reviewSkill" @select="applyReviewCandidate" />
         <panel-results-dialog v-if="showOptimizationResults && panelResultSnapshot" v-model="showOptimizationResults" :results="optimizationResults" :snapshot="panelResultSnapshot" :selected-index="optimizationResultIndex" @select="applyReviewCandidate" />
@@ -293,19 +293,14 @@
                     <el-checkbox v-model="borrowCustomArtifacts">包含自定义角色</el-checkbox>
                 </div>
             </div>
-            <template v-if="optimizationMode === 'damage'">
             <h3 class="common-title2">{{ t("calcPage.artMode") }}</h3>
-            <el-radio-group
-                v-model="artifactEffectMode"
-            >
-                <el-radio label="auto">{{ t("calcPage.modeAuto") }}</el-radio>
-                <el-radio label="custom">{{ t("calcPage.modeCustom") }}</el-radio>
+            <el-radio-group v-model="artifactEffectMode" :aria-label="t('calcPage.artMode')">
+                <el-radio-button label="auto">{{ t('calcPage.modeAuto') }}</el-radio-button>
+                <el-radio-button label="custom">{{ t('calcPage.modeCustom') }}</el-radio-button>
             </el-radio-group>
-            </template>
-
-            <h3 class="common-title2">{{ t("calcPage.artEffect") }}</h3>
             <artifact-config
                 v-model="artifactConfig"
+                v-if="artifactEffectMode === 'custom'"
             ></artifact-config>
         </el-dialog>
 
@@ -484,8 +479,8 @@
                                     <span v-html="artifactEffect2Text"></span>
                                 </p>
                                 <item-config
-                                    v-if="artifactSingleConfig"
-                                    v-model="artifactSingleConfig"
+                                    v-if="artifactConfig"
+                                    v-model="artifactConfig"
                                     :item-name="artifactConfigItemName"
                                     :configs="artifactConfig2Configs"
                                 ></item-config>
@@ -497,8 +492,8 @@
                                     <span v-html="artifactEffect4Text"></span>
                                 </p>
                                 <item-config
-                                    v-if="artifactSingleConfig"
-                                    v-model="artifactSingleConfig"
+                                    v-if="artifactConfig"
+                                    v-model="artifactConfig"
                                     :item-name="artifactConfigItemName"
                                     :configs="artifactConfig4Configs"
                                 ></item-config>
@@ -715,11 +710,11 @@ import { useArtifactComparison, snapshotEquipment } from '@/composables/artifact
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { createMysConverter } from '@/import/miyoushe.mjs'
 import scoreCharacters from '@/assets/_gen_character'
+import {singleSearchArtifactConfig} from '@/algorithms/single-artifact-effects.mjs'
 import scoreWeapons from '@/assets/_gen_weapon'
 import scoreLocale from '@/i18n/generated/zh-cn.json'
 import { scoreBuild, scoreSetNames, panelScoreAttributes, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 import {convertArtifact} from "@util/converter"
-import {mergeArtifactConfig, newDefaultArtifactConfigForWasm} from "@util/artifacts"
 import {deepCopy, downloadString} from "@/utils/common"
 import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
 import {usageStatsDebugInfo, recordUsage, recordUsageUnlessCancelled, recordCharacterUsage} from "@/usage-stats/index.mjs"
@@ -988,7 +983,7 @@ watch([miscTargetFunctionTab, generatedDsl], ([mode, source]) => {
 const {
     artifactIds,
     artifactCount,
-    artifactSingleConfig,
+    artifactSingleConfig: artifactConfig,
     artifactWasmFormat,
 
     artifactItems,
@@ -1001,12 +996,12 @@ const {
     artifactEffect2Text,
     artifactConfig4Configs,
     artifactConfig2Configs,
-    artifactConfigForCalculator,
 
     setArtifact,
     removeArtifact,
     clearArtifacts,
 } = use5Artifacts()
+const artifactEffectMode = ref<'auto' | 'custom'>('auto')
 
 const showSelectArtifactDialog = ref(false)
 const showArtifactScore = ref(false)
@@ -1086,8 +1081,6 @@ function handleClickSetupOptimization() {
 //////////////////////////////////////////////////////////////
 // artifact config
 const showConfigArtifactDialog = ref(false)
-const artifactEffectMode = ref<"auto" | "custom">("auto")
-const artifactConfig = ref(newDefaultArtifactConfigForWasm())
 
 function handleClickArtifactConfig() {
     showConfigArtifactDialog.value = true
@@ -1161,7 +1154,7 @@ function getPresetItem() {
     const item = {
         buffs: buffs.value,
         enemy: enemyConfig.value, infusion: fumo.value,
-        skill: characterSkillInterface.value, singleConfig: artifactSingleConfig.value,
+        skill: characterSkillInterface.value, singleConfig: artifactConfig.value,
         artifactIds: [...artifactIds.value],
         teamContext: deepCopy(teamContextSources.value),
         teamContextStellarMode: teamContextStellarMode.value,
@@ -1192,7 +1185,9 @@ function usePreset(name: string, historyItem?: IPreset) {
 
     resetArtifactComparison()
 
-    const item = restorePresetConfiguration(historyItem || entry.item)
+    const saved = historyItem || entry.item
+    const item = restorePresetConfiguration(saved)
+    artifactEffectMode.value = item.artifactEffectMode ?? (saved.artifactConfig || saved.singleConfig ? 'custom' : 'auto')
     optimizationMode.value = item.optimizationMode ?? 'damage'
     panelSearchOptions.value = item.panelSearch ? deepCopy(item.panelSearch) : newPanelSearchOptions()
     if (item.artifactIds) {
@@ -1211,6 +1206,7 @@ function usePreset(name: string, historyItem?: IPreset) {
                 config: buff.config,
                 lock: buff.lock,
                 source_id: buff.source_id,
+                source_character: buff.source_character,
                 source_effect: buff.source_effect,
             }
             newBuffs.push(newBuff)
@@ -1227,7 +1223,7 @@ function usePreset(name: string, historyItem?: IPreset) {
     fumo.value = item.infusion!
     characterSkillIndex.value = item.skill!.index
     characterSkillConfig.value = item.skill!.config
-    artifactSingleConfig.value = item.singleConfig
+    artifactConfig.value = item.singleConfig
 
     // use target function
     const tf = item.targetFunction
@@ -1272,16 +1268,6 @@ function usePreset(name: string, historyItem?: IPreset) {
         algorithm.value = "AStar"
     }
 
-    // use artifact effect mode
-    artifactEffectMode.value = item.artifactEffectMode ?? "auto"
-
-    // use artifact config
-    if (item.artifactConfig) {
-        artifactConfig.value = mergeArtifactConfig(item.artifactConfig)
-    } else {
-        artifactConfig.value = newDefaultArtifactConfigForWasm()
-    }
-
     miscCurrentPresetName.value = name
     if (item.miyousheKey) miyousheStore.selectedUid.value = item.miyousheKey.split(':')[0]
 }
@@ -1314,6 +1300,9 @@ const teamContextResult = computed(() => deriveSingleTeamContext(mona, {
 }, teamContextSources.value, presetStore.presets.value,
 id => artifactStore.getArtifact(id), convertArtifact))
 const effectiveBuffs = computed(() => teamContextResult.value.buffs)
+const searchArtifactConfig = computed(() => artifactEffectMode.value === 'auto'
+    ? singleSearchArtifactConfig(artifactConfig.value, characterName.value, effectiveBuffs.value, teamContextResult.value.sources)
+    : artifactConfig.value)
 const teamContextError = computed(() => teamContextResult.value.issues.join(' '))
 const teamContextKey = computed(() => JSON.stringify([
     teamContextSources.value, teamContextStellarMode.value,
@@ -1360,7 +1349,7 @@ const damageAnalysisWasmInterface = computed(() => {
         buffs: effectiveBuffs.value,
         ...(restoredTeamContext.value ? {team_context:restoredTeamContext.value} : teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         artifacts: artifactWasmFormat.value,
-        artifact_config: artifactConfigForCalculator.value,
+        artifact_config: artifactConfig.value,
         skill: characterSkillInterface.value,
         enemy: enemyInterface.value,
     }
@@ -1410,7 +1399,7 @@ const getAttributeWasmInterface = computed(() => {
         buffs: effectiveBuffs.value,
         ...(restoredTeamContext.value ? {team_context:restoredTeamContext.value} : teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         artifacts: artifactWasmFormat.value,
-        artifact_config: artifactConfigForCalculator.value,
+        artifact_config: artifactConfig.value,
     }
 })
 
@@ -1475,7 +1464,7 @@ const bonusPerStatWasmInterface = computed(() => {
         buffs: effectiveBuffs.value,
         ...(restoredTeamContext.value ? {team_context:restoredTeamContext.value} : teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         enemy: enemyInterface.value,
-        artifacts_config: artifactConfigForCalculator.value
+        artifacts_config: artifactConfig.value
     }
 })
 
@@ -1825,10 +1814,6 @@ const reviewDsl=computed(()=>{
     } catch(e:any){error=e.message||String(e)}
     return {current,before,error}
 })
-const reviewCandidateInput=computed(()=>({
-    ...damageAnalysisWasmInterface.value,
-    artifact_config:artifactSingleConfig.value,
-}))
 const comparisonAttribute = computed(() => {
     if (!comparisonBaseline.value) return { value: null, error: '' }
     try {
@@ -1839,7 +1824,7 @@ const comparisonAttribute = computed(() => {
 const comparisonDamage = computed(() => {
     if (!comparisonBaseline.value) return { value: null, error: '' }
     try {
-        const input = { ...reviewCandidateInput.value, artifacts: comparisonArtifactsWasm.value }
+        const input = { ...damageAnalysisWasmInterface.value, artifacts: comparisonArtifactsWasm.value }
         return { value: mona.CalculatorInterface.get_damage_analysis(input, fumo.value === 'None' ? null : fumo.value), error: '' }
     } catch (error: any) { return { value: null, error: `对比基准伤害无法计算：${error.message || error}` } }
 })
@@ -1902,7 +1887,6 @@ async function handleUseNthOptimizationResult(n: number) {
     temp.push(m(result.goblet))
     temp.push(m(result.head))
 
-    if (panelResultSnapshot.value) artifactSingleConfig.value = deepCopy(panelResultSnapshot.value.input.artifact_config)
     artifactIds.value = temp
     recordComparisonHistory(`计算结果 ${n}`)
 
@@ -1911,11 +1895,6 @@ async function handleUseNthOptimizationResult(n: number) {
 }
 
 function getOptimizeArtifactWasmInterface() {
-    let artifact_config: any = null
-    if (artifactEffectMode.value === "custom") {
-        artifact_config = artifactConfig.value
-    }
-
     const i = {
         character: characterInterface.value,
         weapon: weaponInterface.value,
@@ -1924,7 +1903,7 @@ function getOptimizeArtifactWasmInterface() {
         enemy: enemyInterface.value,
         buffs: effectiveBuffs.value,
         ...(restoredTeamContext.value ? {team_context:restoredTeamContext.value} : teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
-        artifact_config,
+        artifact_config: searchArtifactConfig.value,
         algorithm: algorithm.value,
     }
 
@@ -1939,7 +1918,7 @@ function getPanelOptimizeInterface() {
         weapon: weaponInterface.value,
         buffs: effectiveBuffs.value,
         ...(restoredTeamContext.value ? {team_context:restoredTeamContext.value} : teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
-        artifact_config: artifactConfig.value,
+        artifact_config: searchArtifactConfig.value,
         constraint: {set_mode:constraintSetMode.value},
         panel_search: panelSearchOptions.value,
     })
@@ -2093,7 +2072,7 @@ function handleOptimizeArtifact() {
 
     const runOptimize = panelMode ? wasmPanelOptimize : wasmSingleOptimize
     const items=Object.fromEntries([...artifactStore.artifacts.value.values()].map(a=>[a.id,deepCopy(a)]))
-    const historyDetail={input:optimizeInterface,items,artifacts,view:{preset:getPresetItem(),skill:deepCopy(characterSkillInterface.value),enemy:deepCopy(enemyConfig.value),infusion:fumo.value,singleConfig:deepCopy(artifactSingleConfig.value)}}
+    const historyDetail={input:optimizeInterface,items,artifacts,view:{preset:getPresetItem(),skill:deepCopy(characterSkillInterface.value),enemy:deepCopy(enemyConfig.value),infusion:fumo.value,singleConfig:deepCopy(artifactConfig.value)}}
     const job=calculationHistory.start({accountId:originalAccount,kind:'single',label:characterLocale.value,members:historyMembers([optimizeInterface],items,[[]])},historyDetail,async ({signal,onProgress}:any)=>{
         const results=await runOptimize(optimizeInterface,artifacts,{signal,onDebug:debug?debugEvent:undefined,onProgress:(progress:any)=>{onProgress(progress);optimizationProgress.value=progress;optimizationProgressReceivedElapsed.value=Date.now()-start.getTime()}})
         return {detail:{...historyDetail,results,panelSnapshot:panelMode?panelSnapshot:null},summary:{members:historyMembers([optimizeInterface],items,[results.length?buildIds(results[0]):[]])}}
@@ -2170,7 +2149,7 @@ function handleOptimizeArtifact() {
 
 const panelSettingsKey = computed(() => JSON.stringify([
     optimizationMode.value,characterInterface.value,weaponInterface.value,effectiveBuffs.value,teamContextKey.value,
-    artifactConfig.value,panelSearchOptions.value,constraintSetMode.value,
+    searchArtifactConfig.value,panelSearchOptions.value,constraintSetMode.value,
     constraintSandMainStats.value,constraintGobletMainStats.value,constraintHeadMainStats.value,
     filteredKumiIds.value,allowBorrowEquipped.value,
 ]))
@@ -2214,12 +2193,16 @@ async function restoreCalculationHistory(id:string) {
     try {
         const detail=await calculationHistory.read(accountId,Number(id))
         if (!detail || accountId!==accountStore.currentAccountId.value || String(route.query.history)!==id) return
-        usePreset('',{...detail.view.preset,buffs:detail.input.buffs,teamContext:[]})
+        usePreset('',{
+            ...detail.view.preset,
+            singleConfig:detail.view.singleConfig ?? detail.view.preset.singleConfig,
+            ...(detail.input.artifact_config ? {artifactConfig:detail.input.artifact_config,artifactEffectMode:'custom'} : {}),
+            buffs:detail.input.buffs,teamContext:[]
+        })
         characterSkillIndex.value=detail.view.skill.index
         characterSkillConfig.value=deepCopy(detail.view.skill.config)
         enemyConfig.value=deepCopy(detail.view.enemy)
         fumo.value=detail.view.infusion
-        artifactSingleConfig.value=deepCopy(detail.view.singleConfig)
         await nextTick()
         restoredTeamContext.value=deepCopy(detail.input.team_context||null)
         artifactSnapshot.value=deepCopy(detail.items)
@@ -2229,7 +2212,6 @@ async function restoreCalculationHistory(id:string) {
         panelResultSnapshot.value=deepCopy(detail.panelSnapshot||null)
         if (optimizationResults.value.length) {
             artifactIds.value=buildIds(optimizationResults.value[0])
-            if (panelResultSnapshot.value) artifactSingleConfig.value=deepCopy(panelResultSnapshot.value.input.artifact_config)
             optimizationResultIndex.value=1
         }
         preOptimizationIds.value=null

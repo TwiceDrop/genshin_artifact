@@ -1,4 +1,4 @@
-﻿param([switch]$SkipWebBuild, [string]$SigningDirectory, [string]$OutputSuffix, [string]$OutputDirectory)
+﻿param([switch]$SkipWebBuild, [string]$SigningDirectory, [string]$OutputSuffix, [string]$OutputDirectory, [switch]$MobileTest)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $projectRoot
@@ -6,7 +6,8 @@ if ($OutputSuffix -and $OutputSuffix -notmatch '^[a-z0-9][a-z0-9-]*$') { throw '
 $package = Get-Content -LiteralPath (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json
 $version = if ($package.displayVersion) { $package.displayVersion } else { $package.version }
 $suffix = if ($OutputSuffix) { "-$OutputSuffix" } else { '' }
-$filename = "genshin_artifact_V${version}${suffix}_android.apk"
+$channel = if ($MobileTest) { '_mobiletest' } else { '' }
+$filename = "genshin_artifact_V${version}${suffix}${channel}_android.apk"
 $outputRoot = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $projectRoot 'releases' }
 $apk = Join-Path $outputRoot $filename
 if ((Test-Path -LiteralPath $apk) -or (Test-Path -LiteralPath "$apk.sha256")) { throw "输出已经存在，已保留旧包：$apk" }
@@ -51,7 +52,9 @@ try {
         & "$env:JAVA_HOME\bin\keytool.exe" -genkeypair -keystore $keyFile -storepass:env MONA_SIGN_PASSWORD -keypass:env MONA_SIGN_PASSWORD -alias mona-local -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=Mona Offline, OU=Local App, O=Mona, C=CN' -noprompt
         if ($LASTEXITCODE -ne 0) { throw '生成本地签名失败' }
     }
-    & .\android\gradlew.bat -p android assembleRelease --console=plain
+    $gradleArgs = @('-p', 'android', 'assembleRelease', '--console=plain')
+    if ($MobileTest) { $gradleArgs += '-PmonaMobileTest' }
+    & .\android\gradlew.bat @gradleArgs
     if ($LASTEXITCODE -ne 0) { throw 'APK 构建失败' }
     New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
     Copy-Item -LiteralPath 'android/app/build/outputs/apk/release/app-release.apk' -Destination $apk

@@ -11,6 +11,61 @@ const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-9, String(a)+' != '+b);
 const values=(name,p={})=>EXTENSION_BUFF_REGISTRY.compile(named(name,p),{character:{name:'Vesna'}})?.[0]?.config.ExtensionEffect.values||{};
 const direct=(kind,buffs=[])=>({kind,owner:{id:'Vesna',em:0,critRate:0,critDamage:0},scalingStat:100,skillMultiplier:1,resistanceMultiplier:1,buffs});
 const total=buffs=>buffs.reduce((out,b)=>{for(const[k,v]of Object.entries(b.config?.ExtensionEffect?.values||{}))out[k]=(out[k]||0)+v;return out;},{});
+test('如雷四件为伊涅芙的月感电加20%，两种单人搜索按候选套装计分', async () => {
+ const {api, sum} = await import('../beta-tools/runtime.mjs');
+ const {fixture, optimizer} = await import('../beta-tools/interface-audit-7108.mjs');
+ const x = fixture('Ineffa');
+ x.skill.index = 11;
+ x.target_function = {...x.target_function, use_dsl: true, dsl_source: 'dmg hit = Ineffa.TalentOverclocking\nresult = hit.direct_moonelectro.e'};
+ const calc = input => api.CalculatorInterface.get_damage_analysis(input, null);
+ const two = x.artifacts.map((artifact, i) => ({...artifact, set_name: ['ThunderingFury', 'ThunderingFury', 'Instructor', 'Scholar', 'Adventurer'][i]}));
+ const three = two.map((a, i) => i === 2 ? {...a, set_name: 'ThunderingFury'} : a);
+ const fourth = {...three[3], id: 6, set_name: 'ThunderingFury'};
+ const four = three.map(a => a.slot === fourth.slot ? fourth : a);
+ const baseline = calc({...x, artifacts: two}).direct_moonelectro.expectation;
+ const em = sum(api.CommonInterface.get_attribute({...x, artifacts: two}).elemental_mastery);
+ const expected = baseline * (1 + 0.2 / (1 + 6 * em / (2000 + em)));
+ near(calc({...x, artifacts: three}).direct_moonelectro.expectation, baseline);
+ const hit = calc({...x, artifacts: four});
+ near(hit.direct_moonelectro_compose['如雷的盛怒4'], 0.2);
+ near(hit.direct_moonelectro.expectation, expected);
+ const ordinary = {...x, skill: {...x.skill, index: 9}};
+ near(calc({...ordinary, artifacts: two}).normal.expectation, calc({...ordinary, artifacts: four}).normal.expectation);
+ for (const algorithm of ['Naive', 'AStar']) {
+  const best = api.OptimizeSingleWasm.optimize({...optimizer(x), algorithm}, [...three, fourth])[0];
+  assert.equal(best.goblet, fourth.id);
+  near(best.value, expected);
+ }
+});
+
+test('乐园四件按实际件数和层数增加普通绽放系与月绽放，配装按每个候选结算', async () => {
+ const {api, sum} = await import('../beta-tools/runtime.mjs');
+ const {fixture, optimizer} = await import('../beta-tools/interface-audit-7108.mjs');
+ const x = fixture('Nefer');
+ x.skill.index = 11;
+ x.target_function = {...x.target_function, use_dsl: true, dsl_source: 'dmg hit = Nefer.IllusionShadow1\nresult = hit.direct_moonbloom.e'};
+ x.artifacts.forEach((a, i) => { a.set_name = i < 3 ? 'FlowerOfParadiseLost' : i === 3 ? 'Scholar' : 'Adventurer'; });
+ const hit = input => api.CalculatorInterface.get_damage_analysis(input, null);
+ const reactions = input => api.CalculatorInterface.get_transformative_damage(input);
+ const base = hit(x), ordinary = reactions(x);
+ const em = sum(api.CommonInterface.get_attribute(x).elemental_mastery);
+ const lunarBase = 1 + 6 * em / (2000 + em), ordinaryBase = 1 + 16 * em / (2000 + em);
+ const fourth = {...x.artifacts[3], id: 6, set_name: 'FlowerOfParadiseLost'};
+ const full = {...x, artifacts: x.artifacts.map(a => a.slot === fourth.slot ? fourth : a)};
+ for (const [stack, lunar, bloom] of [[0, 0.10, 0.40], [1, 0.125, 0.50], [2, 0.15, 0.60], [3, 0.175, 0.70], [4, 0.20, 0.80]]) {
+  full.artifact_config = {config_flower_of_paradise_lost: {stack}};
+  const expected = base.direct_moonbloom.expectation * (1 + lunar / lunarBase);
+  near(hit(full).direct_moonbloom.expectation, expected);
+  const actual = reactions(full);
+  for (const key of ['bloom', 'burgeon', 'hyperbloom']) near(actual[key], ordinary[key] * (1 + bloom / ordinaryBase));
+  near(actual.burning, ordinary.burning);
+  for (const algorithm of ['Naive', 'AStar']) {
+   const best = api.OptimizeSingleWasm.optimize({...optimizer(full), algorithm}, [...x.artifacts, fourth])[0];
+   assert.equal(best.goblet, fourth.id);
+   near(best.value, expected);
+  }
+ }
+});
 test('1 纺夜天镜：双状态交集、精炼、四类反应消费和同名去重',()=>{
  for(let r=1;r<=5;r++)for(const a of [false,true])for(const b of [false,true]){
   const p={refine:r,northernmost_runo_active:a,crescent_verse_active:b,overlap_rate:.5};const v=values('NightweaversLookingGlass',p),factor=a&&b?(.3+.1*r)*.5:0;

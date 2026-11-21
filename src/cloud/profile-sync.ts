@@ -9,10 +9,7 @@ import { syncHistory } from './history-sync.mjs'
 import { createProfileSync } from './profile-sync-core.mjs'
 
 // [档案字段, 本机存储键里的类型名]，与 online-service/src/profiles.mjs 的 DATA_KEYS 对应（name 另行处理）
-const DOMAINS: [string, string][] = [
-    ['artifacts', 'artifacts'], ['presets', 'presets'], ['kumi', 'kumi'], ['miyoushe', 'miyoushe'],
-    ['comparisonSettings', 'comparison_settings'], ['teamDpsConfigurations', 'team_dps_configurations'], ['teamDpsTasks', 'team_dps_tasks'],
-]
+import { profileDomains as DOMAINS } from '@/store/profile-domains.mjs'
 const storageEntries = (accountId: number, data: any): [string, any][] =>
     DOMAINS.map(([field, type]) => [`mona_account_${type}_${accountId}`, data[field] ?? null])
 

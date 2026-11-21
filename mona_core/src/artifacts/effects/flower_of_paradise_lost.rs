@@ -16,9 +16,11 @@ impl<A: Attribute> ArtifactEffect<A> for FlowerOfParadiseLostEffect {
     }
 
     fn effect4(&self, attribute: &mut A) {
-        attribute.set_value_by(AttributeName::EnhanceBloom, "乐园遗落之花4", 0.4 * (1.0 + 0.25 * self.stack));
-        attribute.set_value_by(AttributeName::EnhanceBurgeon, "乐园遗落之花4", 0.4 * (1.0 + 0.25 * self.stack));
-        attribute.set_value_by(AttributeName::EnhanceHyperbloom, "乐园遗落之花4", 0.4 * (1.0 + 0.25 * self.stack));
+        let multiplier = 1.0 + 0.25 * self.stack;
+        for reaction in [AttributeName::EnhanceBloom, AttributeName::EnhanceBurgeon, AttributeName::EnhanceHyperbloom] {
+            attribute.set_value_by(reaction, "乐园遗落之花4", 0.4 * multiplier);
+        }
+        attribute.set_value_by(AttributeName::EnhanceMoonbloom, "乐园遗落之花4", 0.1 * multiplier);
     }
 }
 
@@ -67,8 +69,8 @@ impl ArtifactTrait for FlowerOfParadiseLost {
         )),
         effect3: None,
         effect4: Some(crate::common::i18n::locale!(
-            zh_cn: "装备者绽放、超绽放、烈绽放反应造成的伤害提升50%。此外，装备者触发绽放、超绽放、烈绽放时，上述效果带来的加成提升25%，该效果持续10秒，至多叠加4次，每1秒至多触发一次。装备者处于队伍后台时依然能触发该效果。",
-            en: "The equipping character's Bloom, Hyperbloom, and Burgeon reaction DMG are increased by 50%. Additionally, when the equipping character triggers Bloom, Hyperbloom, or Burgeon they will gain another 25% bonus to the effect mentioned prior. Each stack of this lasts 10s. Max 4 stacks simultaneously. This effect can only be triggered once per second. The character who equips this can still trigger its effects when not on the field.",
+            zh_cn: "装备者的绽放、超绽放和烈绽放反应伤害提升40%，月绽放反应伤害提升10%。装备者每次触发上述任一反应时，这两项加成分别额外提升10和2.5个百分点，持续10秒，最多叠加4层，每秒最多触发一次。装备者在后台时也能触发。",
+            en: "The wearer gains 40% Bloom, Hyperbloom, and Burgeon DMG Bonus and 10% Lunar-Bloom DMG Bonus. Triggering any of these reactions adds 10 and 2.5 percentage points to the respective bonuses for 10s. Up to 4 stacks, once per second. This can trigger while the wearer is off-field.",
         )),
         effect5: None,
         internal_id: 15028,

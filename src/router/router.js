@@ -157,7 +157,7 @@ router.beforeEach(() => {
     return true
 })
 router.beforeEach(async to => {
-    if (loginChecked || to.name === "login" || to.path === "/import") return true
+    if (loginChecked || to.name === "login" || to.path === "/import" || (to.name === 'setup' && to.hash === '#export-data')) return true
     loginChecked = true
     if (!(await needsLogin())) return true
     return { name: "login", query: to.fullPath === "/" ? {} : { redirect: to.fullPath } }

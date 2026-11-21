@@ -111,7 +111,8 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                     if (url.pathname === '/api/update/cancel') return json(await updater.cancel())
                     if (url.pathname === '/api/update/install') {
                         const status = await updater.install(port)
-                        res.once('finish', () => updater.notify())
+                        if (res.destroyed && updater.kind === 'tauri') updater.notify()
+                        else res.once(updater.kind === 'tauri' ? 'close' : 'finish', () => updater.notify())
                         return json(status)
                     }
                     return json({error: '接口不存在'}, 404)

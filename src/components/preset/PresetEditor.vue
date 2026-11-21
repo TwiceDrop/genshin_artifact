@@ -161,7 +161,9 @@ function save() {
     const item = snapshotPreset({...base, name: name.value, character: c.characterInterface, weapon: w.weaponInterface,
         targetFunction: target.targetFunctionInterface.value, artifactIds: a.artifactIds, buffs: b.buffs,
         teamContext: teamContext.value, teamContextStellarMode: stellarMode.value,
-        enemy: enemy.value, infusion: infusion.value, skill: s.characterSkillInterface, singleConfig: a.artifactSingleConfig})
+        enemy: enemy.value, infusion: infusion.value, skill: s.characterSkillInterface,
+        singleConfig: a.artifactSingleConfig, artifactConfig: a.artifactSingleConfig, artifactEffectMode: base.artifactEffectMode
+            ?? (original.artifactConfig || original.singleConfig ? 'custom' : 'auto')})
     try {
         if (creating.value) store.createCustom(name.value, item)
         else store.addOrOverwrite(props.presetName!, item)

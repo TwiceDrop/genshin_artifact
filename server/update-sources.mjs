@@ -54,7 +54,7 @@ export function officialReleaseUrl(value) {
     } catch { return null }
 }
 export function releaseAsset(release, kind) {
-    const pattern = {installer: /_windows_x64_setup\.exe$/i, portable: /_web\.zip$/i, android: /_android\.apk$/i, 'android-test': /_mobiletest_android\.apk$/i}[kind]
+    const pattern = {tauri: /_tauri_x64\.exe$/i, installer: /_windows_x64_setup\.exe$/i, portable: /_web\.zip$/i, android: /_android\.apk$/i, 'android-test': /_mobiletest_android\.apk$/i}[kind]
     const asset = release.assets.find(item => pattern.test(item.name) && (kind !== 'android' || !/_mobiletest_android\.apk$/i.test(item.name)) && officialReleaseUrl(item.browser_download_url))
     if (!asset) throw new Error('发布版本缺少对应的更新包（' + kind + '）')
     return asset

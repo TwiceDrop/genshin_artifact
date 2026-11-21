@@ -8,8 +8,8 @@ android {
         manifestPlaceholders = [monaAppName: '莫娜占卜铺']
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 70205
-        versionName "7.2.05"
+        versionCode 70206
+        versionName "7.2.06"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -32,6 +32,9 @@ android {
             applicationIdSuffix '.debug'
         }
         release {
+            if (project.hasProperty('monaMobileTest')) {
+                applicationIdSuffix '.mobiletest'
+            }
             signingConfig signingConfigs.localRelease
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

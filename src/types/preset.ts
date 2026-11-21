@@ -8,6 +8,7 @@ export interface IBuff {
     config: any,
     lock: boolean,
     source_id?: string,
+    source_character?: string,
     source_effect?: string,
 }
 

@@ -188,6 +188,9 @@ s=s.rstrip()[:-1]+f'''
 # Keep future effect-bridge rebuilds on the same exact graph implementation.
 from optimizer_graph_7112 import patch_wat
 s=patch_wat(s)
+from lunar_artifact_effects import add_lunar_bloom_write, add_thundering_fury_write
+s=add_lunar_bloom_write(s)
+s=add_thundering_fury_write(s)
 output.write_text(s)
 target=root/'mona_wasm/pkg/mona_effect_bridge.wasm'
 subprocess.run([str(tools/'wat2wasm.exe'),str(output),'-o',str(target)],check=True)
