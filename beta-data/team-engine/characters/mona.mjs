@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {effect,chronological,actionTime} from '../rule-utils.mjs';
 import {createMonaRuntime,MONA_BUBBLE_APPLICATION_DELAY,monaBubbleCompletion} from './mona-runtime.mjs';
 import {scalarMath} from '../../team-dps-numeric-rules.mjs';
@@ -13,6 +14,7 @@ const basicActions=defineActionRecipes([
 const omenBonus=level=>[.42,.44,.46,.48,.5,.52,.54,.56,.58,.6,.6,.6,.6,.6,.6][level];
 const c2Mastery=80,c4Critical=.15;
 export const mona={
+ castFrames:castFrameTable({skill:50,'skill.hold':80,burst:127,charged:113},[29,30,54,67]),
  id:'Mona',element:'Hydro',panelIndex:10,reactionStatIndex:0,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill3',5:'skill2'},
  nativeDamage:{

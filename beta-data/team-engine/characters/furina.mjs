@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {createFurinaHitRuntime} from './furina-hit-runtime.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {createTeamNumericRules,scalarMath} from '../../team-dps-numeric-rules.mjs';
@@ -65,7 +66,7 @@ export const furina={
  hitElement:e=>['normal','charged','plunge'].includes(e.category)&&!e.furinaC6?'Physical':'Hydro',
  // Mean 60fps clocks and projectile delays from gcsim's measured Salon data.
  // 60fps animation lengths; see docs/specs/team-timeline-editor/cast-timing.md.
- castFrames:a=>a.action==='skill'?(a.arkhe==='pneuma'?57:54):a.action==='burst'?121:undefined,
+ castFrames:castFrameTable({skill:a=>a.arkhe==='pneuma'?57:54,burst:121,charged:253},[34,28,48,58]),
  timing:{salon:{duration:30},bubble:.3,burstHit:2},
  expand(ctx){
   const {actions,hit,addWindow,hpDrains,duration}=ctx;

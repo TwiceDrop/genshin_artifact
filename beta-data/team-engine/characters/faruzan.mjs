@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {scalarMath} from '../../team-dps-numeric-rules.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {effect,numericSum,actionTime} from '../rule-utils.mjs';
@@ -15,7 +16,7 @@ export function createFaruzanRuntime({role,profile,settings={},math:m=scalarMath
  function shred(e,gate){for(const id of hitTargets(e,settings))s.resUntil[id]=m.choose(gate,actionTime(e.time+4),s.resUntil[id]??-Infinity);remember(e);}
  function collapse(e,gate,key){hit(e,33/60,10,'skill','Anemo',gate,key,{label:'风压塌陷',followup:true,statSnapshot:{time:e.time,rootOrder:e.rootOrder,order:e.order,step:(e.step??0)+1}});}
  return {
-  stateAt(e){const h=history.findLast(h=>compareEventPosition(h.at,e)<=0);return {benefit:h?m.lt(e.time,h.benefitUntil):0,resUntil:h?.resUntil??{},guard:guard.get(eventKey(e))};},
+  stateAt(e){const h=history.findLast(h=>compareEventPosition(h.at,e)<=0);return {manifestUntil:h?.manifestUntil,arrows:h?.arrows,benefit:h?m.lt(e.time,h.benefitUntil):0,resUntil:h?.resUntil??{},guard:guard.get(eventKey(e))};},
   beforeEvent(e){
    if(!teamTalentUnlocked(c,4)||!triggersHit(e)||e.element!=='Anemo'||e.damageModel&&e.damageModel!=='native.skill'||!['normal','charged','plunge','skill','burst'].includes(e.category))return;
    const enabled=and(e.enabled??1,and(m.lt(e.time,s.benefitUntil),m.ge(e.time,s.a4Ready))),used=and(enabled,observeHit(e));
@@ -59,6 +60,13 @@ export function createFaruzanRuntime({role,profile,settings={},math:m=scalarMath
  };
 }
 export const faruzan={
+ castFrames:castFrameTable({
+  skill:35,burst:71,aimed:26,
+  charged(a,rotation,character){
+   const state=rotation.characterState(a.role,a);
+   return teamTalentUnlocked(character,1)&&a.time<state.manifestUntil&&state.arrows>0?60:96;
+  },
+ },[26,21,39,86]),
  id:'Faruzan',element:'Anemo',weaponType:'Bow',panelIndex:9,reactionStatIndex:0,usesElementalApplications:true,nativeBackend:'legacy',constellationTalents:{3:'skill2',5:'skill3'},
  defaultWeapon:'FavoniusWarbow',previewWeapon:'HuntersBow',capabilities:{energy:80,shield:false,nightsoul:false,arkhe:false},isBlunt:e=>[7,8].includes(e.index),
  nativeDamage:Object.fromEntries(Array.from({length:12},(_,index)=>[index,{category:index<4?'normal':index<6?'charged':index<9?'plunge':index<11?'skill':'burst',element:index===5||index>=9?'Anemo':'Physical',...(index>=6&&index<9?{plungeImpact:index!==6}:{})}])),

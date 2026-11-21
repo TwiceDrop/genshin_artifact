@@ -1,7 +1,9 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {effect,numericSum,actionTime} from '../rule-utils.mjs';
 import {createOdetteRuntime} from './odette-runtime.mjs';
 const dream=Array.from({length:15},(_,i)=>.14+.04*i);
 export const odette={
+ castFrames:castFrameTable({skill:(a,rotation)=>a.time<rotation.characterState(a.role,a).recastUntil?76:42,burst:126,charged:83},[25,23,69,85,70]),
  enablesStellarSwirl:true,
  id:'Odette',element:'Cryo',weaponType:'Sword',panelIndex:10,reactionStatIndex:0,enablesStellarConduct:true,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill2',5:'skill3'},defaultWeapon:'FavoniusSword',previewWeapon:'DullBlade',

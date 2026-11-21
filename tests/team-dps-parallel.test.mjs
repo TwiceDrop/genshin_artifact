@@ -10,6 +10,20 @@ import {createTeamDpsEvaluator,sum} from '../beta-data/team-dps-evaluator.mjs';
 import {createTeamDpsScorePool} from '../src/workers/team-dps-score-pool.mjs';
 import {FakeTeamWorker as Worker,simpleTeamModel} from './helpers/team-dps-fake-worker.mjs';
 
+test('search ETA survives scoring batches in automatic and branch searches',async()=>{
+ for(const algorithm of ['auto','branch_bound']){
+  const input=sample(),updates=[];
+  Object.assign(input.team_dps,{max_evaluations:24,search_algorithm:algorithm});
+  await nodeTeamDps(input,builds(input).flat(),{threads:2,onProgress:p=>updates.push(p)});
+  assert.ok(updates.some(p=>p.phase==='compile'&&p.eta_scope==='compile'&&p.eta_ms>0));
+  assert.ok(updates.some(p=>p.phase==='search'&&p.compute_backend==='cpu'&&p.scoring_workers===2));
+  const searching=updates.filter(p=>p.phase==='search'&&p.evaluated_teams>0&&p.remaining_teams>0);
+  assert.ok(searching.length>0,algorithm+' must report a completed batch before finishing');
+  assert.ok(searching.every(p=>Number.isFinite(p.eta_ms)&&p.eta_ms>0),algorithm+' must retain the estimate');
+  assert.equal(updates.at(-1).eta_ms,0);
+ }
+});
+
 test('parallel: real scoring workers keep full serial output and candidate order',async()=>{
  const input=sample();input.team_dps.max_evaluations=24;
  const artifacts=builds(input).flat(),saved=structuredClone({input,artifacts});

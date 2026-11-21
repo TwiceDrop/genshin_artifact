@@ -1,6 +1,6 @@
 import {LEGACY_EFFECT_SLOTS} from '../legacy-effect-slots.mjs';
 import {nativeBackends} from './native-bindings.mjs';
-import {isStellarConduct,isStellarSwirl} from './native-damage-fields.mjs';
+import {isStellarConduct,isStellarSwirl,isMoonCrystallize} from './native-damage-fields.mjs';
 import {transformativeReaction} from './transformative-reactions.mjs';
 const categories={normal:['NormalAttack',1],charged:['ChargedAttack',2],plunge:['PlungingAttack',3],skill:['ElementalSkill',4],burst:['ElementalBurst',5],other:[null,0]};
 const elements={Electro:6,Pyro:7,Hydro:8,Cryo:9,Anemo:10,Geo:11,Dendro:12,Physical:13};
@@ -13,7 +13,7 @@ export function createNativeDamageProjector(extensionSlots){
   if(!declaration)throw Error('角色未声明原生公式类型：'+character.id+'/'+event.index);
   const selected=typeof declaration==='function'?declaration({input,event}):declaration;
   const reaction=transformativeReaction(event);
-  const shape={...selected,element:reaction?.element??(isStellarSwirl(event)?event.nativeElement??selected.element:selected.infusable===false?selected.element:event.nativeElement??selected.element),...(isStellarConduct(event)?{kind:'stellarConduct'}:isStellarSwirl(event)?{kind:'stellarSwirl'}:reaction?{kind:'transformative',bonus:reaction.bonus,effect:reaction.effect,effects:reaction.effects}:{})},key=JSON.stringify([character.nativeBackend,shape]);
+  const shape={...selected,element:reaction?.element??(isStellarSwirl(event)?event.nativeElement??selected.element:selected.infusable===false?selected.element:event.nativeElement??selected.element),...(isMoonCrystallize(event)?{kind:'moonCrystallize',element:'Geo'}:isStellarConduct(event)?{kind:'stellarConduct'}:isStellarSwirl(event)?{kind:'stellarSwirl'}:reaction?{kind:'transformative',bonus:reaction.bonus,effect:reaction.effect,effects:reaction.effects}:{})},key=JSON.stringify([character.nativeBackend,shape]);
   if(!cache.has(key))cache.set(key,nativeDamageProjection(shape,nativeBackends[character.nativeBackend],extensionSlots));
   return cache.get(key);
  };
@@ -23,6 +23,10 @@ export function createNativeDamageProjector(extensionSlots){
 export function nativeDamageProjection(shape,{extension,slot,stellarConduct,stellarSwirl,effectSlots},extensionSlots){
  const slots=extension?{...extensionSlots,...effectSlots}:LEGACY_EFFECT_SLOTS;
  const panel={atk:[6,27,28,29].map(slot),hp:[23,24,25].map(slot),def:[31,32,33].map(slot),em:[4,5].map(slot)};
+ if(shape.kind==='moonCrystallize')return {...panel,critical:[slots.CriticalBase,slots.CriticalGeo],critical_damage:[slots.CriticalDamageBase,slots.CriticalDamageGeo],res_minus:[slots.ResMinusBase,slots.ResMinusGeo],
+  direct_mooncrystallize_compose:[slots.EnhanceMoonCrystallize],mooncrystallize_base_compose:[slots.EnhanceMoonCrystallizeBase],enhance_moon_reaction_compose:[slots.EnhanceMoonReaction],
+  critical_moon_reaction:[slots.CriticalMoonReaction],critical_damage_moon_reaction:[slots.CriticalDamageMoonReaction],elevate_mooncrystallize_compose:[slots.ElevateMoonCrystallize],
+  ...(!extension?{moon_reaction_damage_multiplier:[147],elevate_moon_reaction_compose:[109],direct_mooncrystallize_extra_fixed:[113]}:{moon_reaction_damage_multiplier:[slots.MoonReactionDamageMultiplier]})};
  if(shape.kind==='healing')return {...panel,healing_bonus:[slots.HealingBonus]};
  if(shape.kind==='transformative')return {...panel,[shape.bonus]:(shape.effects??[shape.effect]).map(name=>slots[name]),res_minus:[slots.ResMinusBase,slots['ResMinus'+shape.element]]};
  if(shape.kind==='stellarConduct'){

@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {createEscoffierRuntime,escoffierSkillApplication} from './escoffier-runtime.mjs';
 import {elementalApplication} from '../ice-electro-reactions.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
@@ -62,7 +63,7 @@ export const escoffier={
  modeled:['EscoffierTalent3','EscoffierC1','EscoffierC2'],
  normalize:p=>{p.character.params={Escoffier:{hydro_cryo_count:0,after_burst:false}};},
  // 60fps animation lengths, separate from hitmarks and summon lifetimes.
- castFrames:a=>a.action==='skill'?35:a.action==='burst'?110:undefined,
+ castFrames:castFrameTable({skill:35,burst:110,charged:65},[22,30,62]),
  timing,
  createTimeline:createEscoffierRuntime,
  createCombat:createEscoffierRuntime,

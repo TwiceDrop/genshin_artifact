@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {effect} from '../rule-utils.mjs';
 import {eventBefore} from '../event-order.mjs';
@@ -33,6 +34,7 @@ const actions=defineActionRecipes([
 ]);
 
 export const vodyanitsa={
+ castFrames:castFrameTable({skill:59,burst:102,charged:75},[26,34,48,105]),
  id:'Vodyanitsa',element:'Hydro',panelIndex:8,reactionStatIndex:0,usesElementalApplications:true,hpRatioLabel:'遥久之歌·独立倍率',
  nativeBackend:'extension',constellationTalents:{3:'skill2',5:'skill3'},
  nativeDamage:{

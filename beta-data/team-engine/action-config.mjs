@@ -1,4 +1,5 @@
 import {TEAM_ACTION_CATALOG} from './action-catalog.mjs';
+import {defaultTeamCharacter} from '../team-dps-character-rules.mjs';
 import {compileActionAxis} from './timeline.mjs';
 export {TEAM_ACTION_CATALOG};
 export {actionAxisTimeline} from './action-timing.mjs';
@@ -8,7 +9,7 @@ export function createActionAxis(id,characters){
  return {format:'mona-action-axis',formatVersion:1,rulesVersion:TEAM_ACTION_RULES_VERSION,id,title:'新动作轴',endHit:'include',initialActiveSlot:members[0].slot,members,timeline:[]};
 }
 export function actionAxisDurationMs(c,profiles){
- const members=profiles??c.members.map(m=>({character:{name:m.character,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9},weapon:{name:''}}));
+ const members=profiles??c.members.map(m=>({character:defaultTeamCharacter(m.character),weapon:{name:''}}));
  return compileActionAxis(c,members).duration*1000;
 }
 // The action format has its own data contract; legacy coverage is not migrated.
@@ -27,6 +28,7 @@ export function validateActionAxis(c){
   const name=c.members[slots.indexOf(e.actor)].character,entry=TEAM_ACTION_CATALOG[name].find(a=>a.id===e.action);
   if(e.kind==='action'&&!entry)throw Error('未实现或角色不符的动作：'+name+'/'+e.action);
   if(e.when&&((e.when.slot!==undefined&&!slots.includes(e.when.slot))||!Number.isInteger(e.when.constellationAtLeast)||e.when.constellationAtLeast<0||e.when.constellationAtLeast>6))throw Error('命座条件无效：'+e.id);
+  if(e.when?.otherwiseTimeMs!==undefined&&(!finite(e.when.otherwiseTimeMs)||e.when.otherwiseTimeMs<0))throw Error('命座条件未满足时的动作时间无效：'+e.id);
   const known=Object.values(TEAM_ACTION_CATALOG).flatMap(actions=>actions.flatMap(a=>a.parameters||[]));
   for(const field of known){
    const value=e.params?.[field.key];

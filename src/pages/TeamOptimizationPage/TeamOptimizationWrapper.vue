@@ -22,14 +22,14 @@
       <el-tabs v-model="editorTab">
        <el-tab-pane label="动作时间轴" name="timeline">
         <template v-if="actionDraft">
-         <div class="timeline-toolbar"><el-button @click="addAction">添加动作</el-button><el-button @click="draft.timeline.sort((a,b)=>a.timeMs-b.timeMs)">按时间排序</el-button><el-button @click="openTimelineJson">编辑 JSON</el-button><el-button @click="openMultiplierPreview">倍率预览</el-button></div>
+         <div class="timeline-toolbar"><el-button @click="addAction">添加动作</el-button><el-button @click="draft.timeline.sort((a,b)=>(rowTime(a)??Infinity)-(rowTime(b)??Infinity))">按时间排序</el-button><el-button @click="openTimelineJson">编辑 JSON</el-button><el-button @click="openMultiplierPreview">倍率预览</el-button></div>
          <team-action-timeline v-if="windowsTimeline" :axis="draft" :characters="draftCharacters" :disabled="saving" @update:timeline="draft.timeline=$event"/>
-         <el-table v-else :data="draft.timeline" row-key="id" class="action-timeline" max-height="min(55vh, 560px)" scrollbar-always-on>
-          <el-table-column label="时间（秒）" width="125"><template #default="{row}"><el-input-number :model-value="row.timeMs/1000" :min="0" :step="0.1" :controls="false" @update:model-value="row.timeMs=$event*1000"/></template></el-table-column>
+         <el-table v-else :data="tableRows" row-key="id" class="action-timeline" max-height="min(55vh, 560px)" scrollbar-always-on>
+          <el-table-column label="时间（秒）" width="125"><template #default="{row}"><el-input-number :model-value="rowTime(row)/1000" :min="0" :step="0.1" :controls="false" @update:model-value="setRowTime(row,$event)"/></template></el-table-column>
           <el-table-column label="角色" width="115"><template #default="{row}"><el-select popper-class="team-dps-popper" v-model="row.actor" @change="changeActor(row)"><el-option v-for="m in draft.members" :key="m.slot" :value="m.slot" :label="locale[characterData[m.character].nameLocale]"/></el-select></template></el-table-column>
           <el-table-column label="类型" width="110"><template #default="{row}"><el-select popper-class="team-dps-popper" v-model="row.kind" @change="changeKind(row)"><el-option value="action" label="动作"/><el-option value="switch" label="切换至"/></el-select></template></el-table-column>
           <el-table-column label="技能" min-width="270"><template #default="{row}"><el-select v-if="row.kind==='action'" popper-class="team-dps-popper" v-model="row.action" @change="changeAction(row)"><el-option v-for="a in actionsFor(row)" :key="a.id" :value="a.id" :label="a.label"/></el-select><div v-for="field in parametersFor(row)" :key="field.key" class="action-effect"><span>{{ field.label }}</span><el-input-number :model-value="row.params?.[field.key]===undefined?undefined:row.params[field.key]/(field.scale||1)" :min="field.min/(field.scale||1)" :max="field.max/(field.scale||1)" :step="field.step" :controls="false" :placeholder="field.placeholder" :aria-label="field.label" @update:model-value="setActionParameter(row,field,$event)"/><small v-if="field.help">{{ field.help }}</small></div></template></el-table-column>
-          <el-table-column label="顺序" width="145"><template #default="{$index}"><el-button :disabled="$index===0" aria-label="上移" @click="moveAction($index,-1)">↑</el-button><el-button :disabled="$index===draft.timeline.length-1" aria-label="下移" @click="moveAction($index,1)">↓</el-button><el-button type="danger" link @click="draft.timeline.splice($index,1)">删除</el-button></template></el-table-column>
+          <el-table-column label="顺序" width="145"><template #default="{row,$index}"><el-button :disabled="$index===0" aria-label="上移" @click="moveAction($index,-1)">↑</el-button><el-button :disabled="$index===tableRows.length-1" aria-label="下移" @click="moveAction($index,1)">↓</el-button><el-button type="danger" link @click="draft.timeline.splice(draft.timeline.indexOf(row),1)">删除</el-button></template></el-table-column>
          </el-table>
         </template>
         <template v-else><div class="timeline-toolbar"><el-button @click="convertLegacyDraft">转为动作轴</el-button></div><el-input v-model="timelineText" type="textarea" :rows="19" aria-label="动作时间轴 JSON"/></template>
@@ -81,6 +81,8 @@ import {characterData} from '@/assets/character'
 import locale from '@/i18n/generated/zh-cn.json'
 import {saveTeamDpsTasks,loadTeamDpsLibrary,saveTeamDpsLibrary,emptyTeamDpsLibrary,importTeamDpsConfiguration,updateTeamDpsConfiguration,deleteTeamDpsConfiguration,exportTeamDpsConfiguration} from '../../../beta-data/team-dps-library.mjs'
 import {TEAM_ACTION_CATALOG,createActionAxis,actionAxisDurationMs} from '../../../beta-data/team-engine/action-config.mjs'
+import {usesPrimaryTime} from '../../../beta-data/team-engine/action-timing.mjs'
+import {defaultTeamCharacter} from '../../../beta-data/team-dps-character-rules.mjs'
 import {validateTeamDpsConfiguration} from '../../../beta-data/team-dps-config.mjs'
 import {legacyActionAxis} from '../../../beta-data/team-engine/legacy-conversion.mjs'
 const account=useAccountStore(),mys=useMiyousheStore(),library=ref<any>(emptyTeamDpsLibrary()),managing=ref(false),loading=ref(true),saving=ref(false),error=ref(''),generation=ref(0)
@@ -91,6 +93,11 @@ const jsonDialog=ref(false),actionDraft=computed(()=>draft.value?.format==='mona
 const multiplierPreview=ref<any>(null)
 const windowsTimeline=/Windows NT/.test(navigator.userAgent)
 const draftCharacters=computed(()=>editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields.members.map((m:any)=>m.character))
+const draftProfiles=computed(()=>draft.value?.members.map((m:any,r:number)=>({character:draftCharacters.value?.[r]??defaultTeamCharacter(m.character)})))
+const primaryTime=(row:any)=>usesPrimaryTime(draft.value,row,draftProfiles.value)
+const rowTime=(row:any)=>primaryTime(row)?row.timeMs:row.when.otherwiseTimeMs
+const tableRows=computed(()=>draft.value?.timeline.filter((row:any)=>rowTime(row)!==undefined)??[])
+function setRowTime(row:any,seconds:number){if(primaryTime(row))row.timeMs=Math.round(seconds*1000);else row.when.otherwiseTimeMs=Math.round(seconds*1000)}
 function openMultiplierPreview(){try{validateTeamDpsConfiguration(currentDraft());const fields=editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields;multiplierPreview.value=JSON.parse(JSON.stringify({axis:currentDraft(),characters:fields?.members.map((m:any)=>m.character)}));error.value=''}catch(e){fail(e)}}
 const draftDurationMs=computed(()=>actionDraft.value?actionAxisDurationMs(draft.value,editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields.members):draft.value?.durationMs)
 const selectingMembers=ref(false),newMembers=ref<string[]>([]),characterSearch=ref('')
@@ -105,7 +112,7 @@ function changeActor(row:any){if(row.kind==='action')row.action=actionsFor(row)[
 function changeKind(row:any){delete row.params;if(row.kind==='switch')delete row.action;else row.action=actionsFor(row)[0].id}
 function changeAction(row:any){delete row.params}
 function setActionParameter(row:any,field:any,value:number|null){if(value===null||value===undefined){if(row.params)delete row.params[field.key]}else row.params={...row.params,[field.key]:value*(field.scale||1)}}
-function moveAction(index:number,offset:number){const [row]=draft.value.timeline.splice(index,1);draft.value.timeline.splice(index+offset,0,row)}
+function moveAction(index:number,offset:number){const rows=draft.value.timeline,a=rows.indexOf(tableRows.value[index]),b=rows.indexOf(tableRows.value[index+offset]);[rows[a],rows[b]]=[rows[b],rows[a]]}
 function openTimelineJson(){timelineText.value=JSON.stringify(draft.value.timeline,null,2);error.value='';jsonDialog.value=true}
 function applyTimelineJson(){try{const timeline=JSON.parse(timelineText.value);validateTeamDpsConfiguration({...draft.value,timeline});draft.value.timeline=timeline;jsonDialog.value=false;error.value=''}catch(e){fail(e)}}
 const actionSupport=[

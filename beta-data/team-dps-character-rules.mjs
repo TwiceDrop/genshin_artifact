@@ -1,6 +1,12 @@
 import {characterPackages} from './team-engine/character-packages.mjs';
 export {teamTalentUnlocked} from './team-engine/character-levels.mjs';
 
+export function defaultTeamCharacter(name){
+ const character={name,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9};
+ changeTeamConstellation(character,characterPackages[name].defaultConstellation??0);
+ return character;
+}
+
 export const TEAM_CONSTELLATION_TALENTS=Object.fromEntries(
  Object.values(characterPackages).map(character=>[character.id,character.constellationTalents]),
 );

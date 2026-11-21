@@ -6,7 +6,7 @@ import {compareEventPosition} from './event-order.mjs';
 export const characterRules=characterPackages;
 export function normalizeTeamProfiles(input){
  const rules=input.map(p=>characterRules[p.character.name]),elements=rules.map(r=>r.element);
- const modeled=new Set([...rules.flatMap(r=>r.modeled),'ResonanceHydro2','ResonanceCryo2',...AUTO_EQUIPMENT_BUFFS]);
+ const modeled=new Set([...rules.flatMap(r=>r.modeled),'ResonanceHydro2','ResonanceCryo2',...(elements.filter(el=>el==='Geo').length>=2?['ResonanceGeo2']:[]),...(input.some(p=>p.weapon.name==='GoldenFrostboundOath')?['GoldenFrostboundOath']:[]),...AUTO_EQUIPMENT_BUFFS]);
  const levels=rules.reduce((n,r)=>n+(r.teamSkillLevels?.(elements)||0),0);
  return input.map((p,i)=>{const x=structuredClone(p);x.character.skill2=Math.min(14,x.character.skill2+levels);x.buffs=(x.buffs||[]).filter(b=>!modeled.has(b.source_buff||b.name));rules[i].normalize(x);return x;});
 }

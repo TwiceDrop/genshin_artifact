@@ -2,9 +2,9 @@ import {equipmentNativeParameters} from './equipment-native-parameters.mjs';
 import {createNativeGraphCompiler} from './team-dps-native-compiler.mjs';
 import {LEGACY_EFFECT_SLOTS} from './legacy-effect-slots.mjs';
 import {characterPackages} from './team-engine/character-packages.mjs';
-import {nativeBackends,normalizeNativeDamage,prepareNativeDamageEffects} from './team-engine/native-bindings.mjs';
+import {nativeBackends,extensionLunarAttributes,normalizeNativeDamage,prepareNativeDamageEffects} from './team-engine/native-bindings.mjs';
 import {createNativeDamageProjector} from './team-engine/native-projection.mjs';
-import {isStellarConduct,isStellarSwirl,nativeDamageFields} from './team-engine/native-damage-fields.mjs';
+import {isStellarConduct,isStellarSwirl,isMoonCrystallize,nativeDamageFields} from './team-engine/native-damage-fields.mjs';
 import {transformativeReaction} from './team-engine/transformative-reactions.mjs';
 import {attachTeamSources,describeTeamBuffSources} from './team-dps-source-detail.mjs';
 const statSlots={HPFixed:24,ATKFixed:28,DEFFixed:32,HPPercentage:25,ATKPercentage:29,DEFPercentage:33,ElementalMastery:4,Recharge:8,CriticalRate:37,CriticalDamage:52,HealingBonus:2};
@@ -123,7 +123,8 @@ export function createPortableNativeQuery({api,capture,libraries,extensionSlots,
   const originalGraph=compiler.graph(base.snapshot),result={};
   const constants=outputConstants.map(entry=>({...entry,graph:compiler.graph(entry.sampled.snapshot)}));
   // Category-specific crit in native skill results is not a stellar constant.
-  const graphOnly=new Set(isStellarConduct(event)||isStellarSwirl(event)?['critical','critical_damage']:transformativeReaction(event)?[transformativeReaction(event).bonus]:[]);
+  const graphOnly=new Set(isStellarConduct(event)||isStellarSwirl(event)||isMoonCrystallize(event)?['critical','critical_damage']:transformativeReaction(event)?[transformativeReaction(event).bonus]:[]);
+  if(ext&&isMoonCrystallize(event))for(const field of Object.keys(extensionLunarAttributes))graphOnly.add(field);
   for(const field of nativeDamageFields(event)){
    const slots=projection[field]||[],constant=graphOnly.has(field)?0:Object.values(base.result[field]||{}).reduce((a,b)=>a+b,0)-slots.reduce((n,i)=>n+originalGraph.get(i),0);
    let output=slots.reduce((n,i)=>m.add(n,graph.get(i)),constant);
@@ -134,8 +135,8 @@ export function createPortableNativeQuery({api,capture,libraries,extensionSlots,
    result[field]={compiled:output};
   }
   const sourceAdjustments=[];
-  if(isStellarConduct(event)||isStellarSwirl(event)){
-   const field=isStellarSwirl(event)?'direct_stellarswirl_compose':'direct_stellarconduct_compose';
+  if(isStellarConduct(event)||isStellarSwirl(event)||isMoonCrystallize(event)){
+   const field=isMoonCrystallize(event)?'direct_mooncrystallize_compose':isStellarSwirl(event)?'direct_stellarswirl_compose':'direct_stellarconduct_compose';
    const em=Object.values(result.em).reduce((n,v)=>m.add(n,v),0),value=m.div(m.mul(6,em),m.add(2000,em));
    result[field].compiled=m.add(m.sub(result[field].compiled,base.result[field]?.['精通']??0),value);
    sourceAdjustments.push({field,label:'精通',value,replace:true});

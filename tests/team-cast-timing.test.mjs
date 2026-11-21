@@ -56,7 +56,41 @@ test('public preview resolves Skirk burst state and Furina Arkhe without replaci
  axis.timeline=[row('e','member1','skill',0),row('q','member1','burst',1000)];
  preview=createSkillMultiplierPreview(api,axis);assert.equal(preview.casts.find(c=>c.id==='q').durationMs,700);
  axis.timeline=[row('c','member2','charged',0),row('e','member2','skill',1000),row('v','member4','skill',2000)];
- preview=createSkillMultiplierPreview(api,axis);assert.equal(preview.casts.find(c=>c.id==='e').frames,57);assert.ok(!preview.casts.some(c=>c.id==='v'));
+ preview=createSkillMultiplierPreview(api,axis);assert.equal(preview.casts.find(c=>c.id==='e').frames,57);assert.equal(preview.casts.find(c=>c.id==='v').frames,59);
+});
+
+test('documented skill, burst and normal timings reach tentative and committed previews',()=>{
+ const groups=[
+  [['Mona',50,127,29],['YaeMiko',37,114,28],['Qiqi',58,115,21],['Sucrose',68,65,28]],
+  [['Alyosha',31,55,34],['Odette',42,126,25],['Sandrone',46,128,53],['Vodyanitsa',59,102,26]],
+  [['Skirk',43,151,27],['Escoffier',35,110,22],['Furina',54,121,34],['Faruzan',35,71,26]],
+ ];
+ for(const group of groups){
+  const axis=createActionAxis('synthetic-frame-table',group.map(([name])=>name));
+  for(const [index,action] of ['skill','burst','normal.1'].entries()){
+   axis.timeline=group.map(([id],role)=>({id,actor:'member'+(role+1),action,kind:'action',timeMs:role*3000}));
+   const casts=previewActionCasts(axis);
+   assert.deepEqual(casts.map(row=>[row.id,row.frames]),group.map(row=>[row[0],row[index+1]]));
+   assert.deepEqual(createSkillMultiplierPreview(api,axis).casts,casts);
+  }
+ }
+});
+
+test('cast variants follow hold input, recasts and quick-arrow consumption',()=>{
+ const axis=createActionAxis('synthetic-variants',['Mona','Alyosha','Odette','Faruzan']);
+ const rows=[[1,'skill.hold',0],[2,'skill.hold',2],[3,'skill',5],[3,'skill',6],[3,'skill',7],
+  [3,'burst',9],[3,'skill',15],[4,'skill',18],[4,'charged',19],[4,'charged',21],[4,'aimed',23]];
+ axis.timeline=rows.map(([role,action,t],i)=>({id:String(i),actor:'member'+role,action,kind:'action',timeMs:t*1000}));
+ const casts=previewActionCasts(axis);
+ assert.deepEqual(casts.map(row=>row.frames),[80,142,42,76,42,126,42,35,60,96,26]);
+ assert.deepEqual(createSkillMultiplierPreview(api,axis).casts,casts);
+});
+
+test('phase changes size normal attacks and unmeasured actions have no numeric duration',()=>{
+ const axis=createActionAxis('synthetic-unknown',['Skirk','Sandrone','Vesna','Mitya']);
+ const rows=[[1,'normal.2'],[1,'skill'],[1,'normal.2'],[1,'skill.hold'],[2,'charged'],[3,'skill'],[4,'burst']];
+ axis.timeline=rows.map(([role,action],i)=>({id:String(i),actor:'member'+role,action,kind:'action',timeMs:i*1000}));
+ assert.deepEqual(previewActionCasts(axis).map(c=>[c.id,c.frames]),[['0',25],['1',43],['2',43]]);
 });
 test('timeline packing uses each block width, with adjoining blocks on one level',()=>{
  const rows=[{id:'e',timeMs:0,order:0,width:57.6},{id:'q',timeMs:900,order:1,width:128}];

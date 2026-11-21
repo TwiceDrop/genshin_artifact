@@ -1,7 +1,11 @@
 // The page owns task lifetime. Combat models and intermediate scores stay on
 // worker-to-worker ports instead of being deserialized on the page thread.
+// Keep one successful timing per execution path, only for this page session.
+const previousTimings=new Map();
 export function runTeamDpsWorkerTask(coordinator,scorers,input,artifacts,{mode,signal,onProgress,backend,parallelism,batchSize}){
  return new Promise((resolve,reject)=>{
+  const path=[mode,backend,parallelism].join('/'),key=JSON.stringify([input,artifacts]);
+  const previous=previousTimings.get(path),timing=previous?.key===key?previous:null;
   const workers=[coordinator,...scorers],ready=new Set(),channels=[];let settled=false,compileMs=0;
   const finish=(callback,value)=>{
    if(settled)return;settled=true;
@@ -24,8 +28,24 @@ export function runTeamDpsWorkerTask(coordinator,scorers,input,artifacts,{mode,s
     if(settled)return;
     if(data.type==='ready'){ready.add(worker);if(ready.size===workers.length)start();}
     if(data.type==='compiled')compileMs=data.compile_ms;
-    if(data.type==='progress')onProgress?.({...data.data,elapsed_ms:data.data.elapsed_ms+compileMs});
-    if(data.type==='result')finish(resolve,{...data.data,elapsed_ms:data.data.elapsed_ms+compileMs,compile_ms:compileMs,compute_backend:backend});
+    if(data.type==='progress'){
+     const p=data.data,elapsed=p.elapsed_ms;
+     let eta=p.eta_ms,scope='total';
+     if(p.phase==='compile'){
+      const fraction=p.compile_fraction;
+      const graphLeft=timing&&timing.compileMs>elapsed?timing.compileMs-elapsed:
+       fraction>0&&fraction<1?elapsed*(1-fraction)/fraction:null;
+      scope=timing?'total':'compile';
+      eta=graphLeft===null?null:graphLeft+(timing?.afterCompileMs??0);
+     }else if(eta==null&&timing&&timing.afterCompileMs>elapsed){
+      eta=timing.afterCompileMs-elapsed;
+     }
+     onProgress?.({...p,elapsed_ms:elapsed+compileMs,eta_ms:eta,eta_scope:scope,compute_backend:backend,scoring_workers:scorers.length});
+    }
+    if(data.type==='result'){
+     previousTimings.set(path,{key,compileMs,afterCompileMs:data.data.elapsed_ms});
+     finish(resolve,{...data.data,elapsed_ms:data.data.elapsed_ms+compileMs,compile_ms:compileMs,compute_backend:backend});
+    }
     if(data.type==='error')fail(data);
    };
   }

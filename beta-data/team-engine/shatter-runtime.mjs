@@ -7,7 +7,7 @@ export function createShatterRuntime({math:m,targets,actorIds,emitReaction,enque
  const ready=targets.map(()=>-Infinity),damageClocks=new Map();
  const and=(a,b)=>m.choose(a,b,0),possible=x=>typeof x==='object'||!!x;
  return {apply(e,ids){
-  if(!e.blunt&&e.element!=='Geo'||e.hitTriggers===false)return false;
+  if(!e.blunt&&e.element!=='Geo'||e.hitTriggers===false&&!e.reactionContact)return false;
   const gate=and(e.enabled??1,observeHit(e));if(!possible(gate))return false;
   let changed=false;
   for(const id of ids){

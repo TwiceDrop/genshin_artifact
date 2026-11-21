@@ -123,7 +123,7 @@
    <el-progress :percentage="progressPercent" :indeterminate="teamDpsProgressIndeterminate(progress)" :show-text="!teamDpsProgressIndeterminate(progress)"/>
    <p class="team-progress-phase">{{ teamDpsProgressText(progress) }} · {{ progress.total_teams }}组评估预算</p><p>已评估 {{ progress.evaluated_teams }} 组　剩余预算 {{ progress.remaining_teams }} 组</p>
    <p v-if="progress.visited_nodes">已访问 {{ progress.visited_nodes }} 个节点 · 剪枝 {{ progress.pruned_nodes }} 个分支</p>
-   <p>已用时间 {{ duration(elapsed) }}　预计剩余 {{ progress.eta_ms==null?'估算中':duration(progress.eta_ms) }}</p>
+   <p>已用时间 {{ duration(elapsed) }}　{{ progress.eta_scope==='compile'?'构图预计剩余':'预计剩余' }} {{ formatComputeTime(progress.eta_ms) }}</p>
    <template #footer><el-button @click="backgroundCalculation">后台计算</el-button><el-button @click="controller?.abort()">取消计算</el-button></template>
   </el-dialog>
   <el-dialog v-model="showResults" title="四人圣遗物搭配结果" width="94%" custom-class="team-dps-dialog team-dps-results cx-scope viewport-dialog">
@@ -152,7 +152,7 @@ import {teamDpsWeaponAvailable,teamDpsArtifactAvailable,INCOMPLETE_ARTIFACT_SETS
 import {MANUAL_WEAPON_OPTIONS,defaultWeaponOptions,WIDSITH_THEMES} from '../../../beta-data/team-dps-weapon-options.mjs'
 import {convertArtifact,convertArtifactName} from '@/utils/converter'
 import {teamDps} from '@/wasm/team_dps'
-import {changeTeamConstellation} from '../../../beta-data/team-dps-character-rules.mjs'
+import {changeTeamConstellation,defaultTeamCharacter} from '../../../beta-data/team-dps-character-rules.mjs'
 import {teamDpsObjectiveValue} from '../../../beta-data/team-dps-numeric-rules.mjs'
 import {TEAM_DPS_RESULT_VERSION,canRestoreTeamDpsResult,createTeamDpsResultPacker,unpackTeamDpsResult,teamDamageAnalysis,teamProbabilityText} from '../../../beta-data/team-dps-result-view.mjs'
 import {exportTeamDpsResult} from '../../wasm/team-dps-result-export.mjs'
@@ -178,6 +178,7 @@ import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../../../beta-data
 import {characterPackages} from '../../../beta-data/team-engine/character-packages.mjs'
 import {calculationHistory,calculationState} from '@/store/calculation-history'
 import {historyMembers,buildIds} from '@/algorithms/calculation-history.mjs'
+import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {teamDpsProgressText,teamDpsProgressIndeterminate} from '../../../beta-data/team-dps-progress.mjs'
 const props=defineProps<{configuration:any,taskKey:number,tasks:Record<string,any>,axisFileName:string,historyDetail?:any}>()
 const axisDurationMs=computed(()=>props.configuration.format==='mona-action-axis'?actionAxisDurationMs(props.configuration,members.value):props.configuration.durationMs)
@@ -199,7 +200,7 @@ const excludedArtifactConfigs=[...AUTO_ARTIFACT_SETS,...Object.keys(INCOMPLETE_A
 const weaponConditions=ref(roles.map(()=>defaultWeaponOptions())),widsithMode=ref(roles.map(()=>'average'))
 const manualWeaponConfigs=(r:number)=>MANUAL_WEAPON_OPTIONS[members.value[r].weapon.name]||[]
 const params=(name:string,configs:any[])=>configs?.length?{[name]:Object.fromEntries(configs.map(c=>[c.name,c.default]))}:'NoConfig'
-function fresh(role:string){const name=characterPackages[role].defaultWeapon;return {character:{name:role,level:90,ascend:false,constellation:0,skill1:9,skill2:9,skill3:9,params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
+function fresh(role:string){const name=characterPackages[role].defaultWeapon;return {character:{...defaultTeamCharacter(role),params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
 const names=ref(['','','','']),members=ref<any[]>(roles.map(fresh))
 const editingRole=ref(0),editingMember=computed(()=>members.value[editingRole.value])
 const weaponConfigs=(r:number)=>{const name=members.value[r].weapon.name;return (weaponData[name].configs||[]).filter((c:any)=>!AUTO_WEAPON_FIELDS[name]?.includes(c.name))}

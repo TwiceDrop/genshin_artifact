@@ -1,3 +1,4 @@
+import {moonCrystallizeOptions} from './moon-crystallize.mjs';
 import {characterPackages} from './character-packages.mjs';
 import {actionTime} from './rule-utils.mjs';
 import {eventKey,compareEvents} from './event-order.mjs';
@@ -12,7 +13,7 @@ export function createCharacterCombat(profiles,plan,{math:m,observeHit,refresh,s
  const known=new Map(rotation.events.map(e=>[eventKey(e),e])),plugins=new Map();
  const emitReaction=createReactionEmitter({actorIds:plan.slots,settings,math:m,observeHit,enqueue:e=>enqueue(e),initialFacts:rotation.reactionFacts,
   record:fact=>{current.reactionFacts.push(fact);refresh(current);}});
- const reactions=createElementalRuntime({actorIds:plan.slots,actorElements:profiles.map(p=>characterPackages[p.character.name].element),settings,math:m,observeHit,emitReaction,stellarEnabled:profiles.some(p=>characterPackages[p.character.name].enablesStellarConduct),replacesStellarPrism:profiles.some(p=>characterPackages[p.character.name].replacesStellarPrism),stellarSwirlEnabled:profiles.some(p=>characterPackages[p.character.name].element==='Anemo')&&profiles.some(p=>characterPackages[p.character.name].enablesStellarSwirl),enqueue:e=>enqueue(e.kind==='hit'?{...e,runtimeHit:true}:e)});
+ const reactions=createElementalRuntime({...moonCrystallizeOptions(profiles,e=>plan.covered('月之领域',e.time,e.rootOrder)),actorIds:plan.slots,actorElements:profiles.map(p=>characterPackages[p.character.name].element),settings,math:m,observeHit,emitReaction,stellarEnabled:profiles.some(p=>characterPackages[p.character.name].enablesStellarConduct),replacesStellarPrism:profiles.some(p=>characterPackages[p.character.name].replacesStellarPrism),stellarSwirlEnabled:profiles.some(p=>characterPackages[p.character.name].element==='Anemo')&&profiles.some(p=>characterPackages[p.character.name].enablesStellarSwirl),enqueue:e=>enqueue(e.kind==='hit'?{...e,runtimeHit:true}:e)});
  rotation.reactionAt=e=>reactions.at(e);
  rotation.characterState=(role,event)=>plugins.get(role)?.stateAt?.(event);
  rotation.elementalTargets=profiles.some(p=>characterPackages[p.character.name].usesElementalApplications)||plan.events.some(e=>e.application?.gauge>0);
@@ -67,9 +68,9 @@ export function createCharacterCombat(profiles,plan,{math:m,observeHit,refresh,s
      let low=0,high=current.events.length;
      while(low<high){const mid=(low+high)>>1;if(compareEvents(current.events[mid],event)<=0)low=mid+1;else high=mid;}
      current.events.splice(low,0,event);
-     // Equipment histories observe contacts, not transformative tick damage.
+     // Lunar weapons and sets also observe damage attributed to contributors.
      // The rotation itself is shared; only the contact-derived cache needs rebuilding.
-     if(triggersHit(event))refresh(current);
+     if(triggersHit(event)||event.damageModel==='reaction.lunarCrystallize')refresh(current);
     }
    }else for(const [,plugin]of subscribers)plugin.onEvent?.(event);
   },

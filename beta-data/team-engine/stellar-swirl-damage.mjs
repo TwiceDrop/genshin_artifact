@@ -1,3 +1,4 @@
+import {rankedReactionDamage} from './ranked-reaction-damage.mjs';
 import {numericSum} from './rule-utils.mjs';
 import {STELLAR_SWIRL_FIELDS} from './native-damage-fields.mjs';
 import {characterPackages} from './character-packages.mjs';
@@ -14,19 +15,9 @@ export const stellarSwirlModel={id:'reaction.stellarSwirl',evaluate(e,{math:m,nu
    const n=numeric.stellarConduct({base:m.mul(e.stellarSwirlMultiplier,reactionLevelBase(c.role)),coefficient:1,baseBonus:sum(d.direct_stellarswirl_base_compose),em,bonus,independent:0,flat:sum(d.direct_stellarswirl_extra_fixed),elevation:m.add(sum(d.elevate_stellarswirl_compose),sum(d.elevate_stellar_glimmer_reaction_compose)),resistance:res,targets:m.mul(e.enabled??1,c.enabled),critical:cr,criticalDamage:cd});
    return {...c,...n,cr,cd,em,res,bonus,flat:sum(d.direct_stellarswirl_extra_fixed),native:captured};
   }).sort((a,b)=>actorIds[a.role].localeCompare(actorIds[b.role]));
-  // Rank each actual critical outcome, then average. Ranking expected damage
-  // first is incorrect when different contributors can exchange rank on crit.
-  function weighted(values){return values.map((v,i)=>{
-   const rank=values.reduce((n,w,j)=>j===i?n:m.add(n,j<i?m.ge(w,v):m.gt(w,v)),0);
-   return m.mul(v,m.choose(m.eq(rank,0),.6,m.choose(m.eq(rank,1),.3,.05)));
-  });}
-  const normal=weighted(rows.map(r=>r.non_critical)),critical=weighted(rows.map(r=>r.critical)),expectation=rows.map(()=>0);
-  for(let bits=0;bits<2**rows.length;bits++){
-   const chance=rows.reduce((p,r,i)=>m.mul(p,bits&(1<<i)?r.cr:m.sub(1,r.cr)),1),damage=weighted(rows.map((r,i)=>bits&(1<<i)?r.critical:r.non_critical));
-   damage.forEach((v,i)=>{expectation[i]=m.add(expectation[i],m.mul(chance,v));});
-  }
+  const ranked=rankedReactionDamage(rows,m);
   rows.forEach((r,i)=>{
-   const value={non_critical:normal[i],critical:critical[i],expectation:expectation[i]},row=output.get(r.role)??{role:r.role,selected:zero(),actual:zero(),rows:[]};output.set(r.role,row);
+   const value=ranked[i],row=output.get(r.role)??{role:r.role,selected:zero(),actual:zero(),rows:[]};output.set(r.role,row);
    for(const k of keys){row.actual[k]=m.add(row.actual[k],value[k]);if(scored.includes(id))row.selected[k]=m.add(row.selected[k],value[k]);}
    if(trace&&scored.includes(id)){
     const detail=r.native.describe(r.native.damage);

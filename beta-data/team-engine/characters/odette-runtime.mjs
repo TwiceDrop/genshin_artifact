@@ -16,7 +16,7 @@ export function createOdetteRuntime({role,profile,math:m=scalarMath,reactions,en
  function dance(cause,delay,type,token,enabled){if(possible(enabled))timer(cause,delay,'odette.dance',{type,token,enabled});}
  function splendor(origin,n,token,enabled){if(possible(enabled))timer(origin,Math.floor(n*59.25)/60,'odette.splendor',{origin,n,token,enabled});}
  return {
-  stateAt(e){const row=history.findLast(h=>compareEventPosition(h.at,e)<=0);return {live:row?m.lt(e.time,row.doubleUntil):0,self:row?.self??0,others:row?.others??0,dream:row?m.lt(e.time,row.dreamUntil):0};},
+  stateAt(e){const row=history.findLast(h=>compareEventPosition(h.at,e)<=0);return {recastUntil:row?.recastUntil,live:row?m.lt(e.time,row.doubleUntil):0,self:row?.self??0,others:row?.others??0,dream:row?m.lt(e.time,row.dreamUntil):0};},
   onEvent(e){
    if(e.role!==role)return;const gate=e.enabled??1;if(!possible(gate))return;
    if(e.kind==='cast'&&e.action==='skill'){

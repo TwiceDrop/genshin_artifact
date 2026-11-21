@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {effect,numericSum,actionTime} from '../rule-utils.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
@@ -10,6 +11,7 @@ import {percent} from '../buff-preview-format.mjs';
 const c6AttackRatio=6,c6Uses=4;
 
 export const qiqi={
+ castFrames:castFrameTable({skill:58,burst:115,charged:76},[21,22,33,28,53]),
  id:'Qiqi',element:'Cryo',weaponType:'Sword',panelIndex:12,reactionStatIndex:0,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill3',5:'skill2'},defaultWeapon:'SacrificialSword',previewWeapon:'DullBlade',
  capabilities:{energy:80,shield:false,nightsoul:false,arkhe:false,region:'Liyue'},

@@ -15,7 +15,7 @@ import('../wasm/team-dps-native-api.mjs').then(api=>{
    let state={phase:'initialize',evaluated_teams:0,total_teams:total,remaining_teams:total,eta_ms:null};
    const update=(patch,force=false)=>{
     const changed=patch.phase&&patch.phase!==state.phase,backendChanged=patch.backendStage&&patch.backendStage!==state.backendStage;
-    if(changed)state={...state,segment:undefined,segments:undefined,backendStage:undefined};
+    if(changed)state={...state,segment:undefined,segments:undefined,backendStage:undefined,compile_fraction:undefined,eta_ms:null};
     state={...state,...patch};const now=performance.now();
     if(!force&&!changed&&!backendChanged&&now-updated<250)return;
     updated=now;progress({...state,elapsed_ms:now-started-compileMs});
@@ -27,7 +27,12 @@ import('../wasm/team-dps-native-api.mjs').then(api=>{
    // all candidates once, retaining observations for baseline and final detail.
    const equipped=new Set(input.team_dps.initial_ids.flat());
    const candidates=mode==='evaluate'?artifacts.filter(a=>equipped.has(a.id)):artifacts;
-   const model=compileTeamDpsModel(api,input,candidates,()=>update({phase:'compile'}),evaluatorFactory);
+   const compileEvaluator=(api,input,execution)=>evaluatorFactory(api,input,{...execution,
+    onTimelineProgress:fraction=>{
+     if(fraction>0&&fraction<1)update({compile_fraction:fraction},state.compile_fraction===undefined);
+    }
+   });
+   const model=compileTeamDpsModel(api,input,candidates,()=>update({phase:'compile'}),compileEvaluator);
    compileMs=performance.now()-started;
    self.postMessage({type:'compiled',compile_ms:compileMs});
    if(mode==='evaluate'){
@@ -35,7 +40,7 @@ import('../wasm/team-dps-native-api.mjs').then(api=>{
     computation=createTeamDpsComputation(model,candidates);
     const {results}=await computation.score([input.team_dps.initial_ids],{detail:true,onProgress:p=>update(p)}),row=results[0];
     const equippedRows=input.team_dps.initial_ids.map(ids=>Object.fromEntries(['flower','feather','sand','goblet','head'].map((slot,k)=>[slot,ids[k]])));
-    update({phase:'complete',evaluated_teams:1,remaining_teams:0},true);
+    update({phase:'complete',evaluated_teams:1,remaining_teams:0,eta_ms:0},true);
     complete({results:[{...row,artifacts:equippedRows}],baseline:row,artifacts:[equippedRows],evaluated_teams:1,search_complete:true,metric:input.team_dps.metric,objective:input.team_dps.objective||'damage',elapsed_ms:performance.now()-started-compileMs});return;
    }
    pool=createTeamDpsScorePool(ports,model,artifacts,{batchSize});
@@ -44,8 +49,10 @@ import('../wasm/team-dps-native-api.mjs').then(api=>{
     const results=await pool.score([team.map(build=>build.map(a=>a.id))],true,p=>update(p));
     return results[0];
    };
-   const score=teams=>{update({phase:'search',eta_ms:null},true);return pool.score(teams,false,p=>update(p));};
-   const result=await optimizeTeamDpsParallel(api,input,artifacts,score,parallelism,p=>update({...p,segment:undefined,segments:undefined,backendStage:undefined}),evaluatorFactory,{evaluateDetail});
+   const score=teams=>{update({phase:'search'});return pool.score(teams,false,p=>update(p));};
+   // Search snapshots are already throttled by the optimizer. Deliver them even
+   // when a scoring worker just reported backend progress for the same batch.
+   const result=await optimizeTeamDpsParallel(api,input,artifacts,score,parallelism,p=>update({...p,segment:undefined,segments:undefined,backendStage:undefined},true),evaluatorFactory,{evaluateDetail});
    complete({...result,elapsed_ms:performance.now()-started-compileMs});
   }catch(error){fail(error);}finally{pool?.dispose();computation?.dispose();for(const port of data.ports)port.close();}
  };

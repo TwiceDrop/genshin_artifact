@@ -25,7 +25,7 @@ export const CONDITIONAL_WEAPON_FIELDS={
  LightbearingMoonshard:['extra_active','rate'],
 };
 export function conditionalWeaponState(n,r,e,ctx){
- const {on,ownHits,ownReactions,activeRole,roots,hp,hit,count,refreshed,castActive,lastCast,entered,before,within,spaced,state,active:exists,math:m,history,profile}=ctx;
+ const {on,ownHits,ownReactions,lunarHits,moonLevel,activeRole,roots,hp,hit,count,refreshed,castActive,lastCast,entered,before,within,spaced,state,active:exists,math:m,history,profile}=ctx;
  const front=ownHits[r].filter(h=>h.onField),casts=roots.filter(h=>h.role===r&&h.kind==='cast'),skill=front.filter(h=>h.category==='skill');
  const na=hit(r,e,['normal'],Infinity).filter(h=>h.onField),ca=hit(r,e,['charged'],Infinity).filter(h=>h.onField);
  const nq=front.filter(h=>['normal','charged','plunge'].includes(h.category));
@@ -39,7 +39,7 @@ export function conditionalWeaponState(n,r,e,ctx){
  if(n==='EarthShaker')return {rate:active(ownReactions.flat().filter(h=>h.elements.includes('Pyro')),8)};
  if(n==='FangOfTheMountainKing')return {stack:count(skill,e,6,6,.5)}; // Current roster has no Burning/Burgeon source.
  if(n==='FruitfulHook')return {rate:active(front.filter(h=>h.category==='plunge'),10)};
- if(n==='MasterKey')return {enable:bool(active(ownReactions[r],12)),moon_state:0};
+ if(n==='MasterKey')return {enable:bool(active(ownReactions[r],12)),moon_state:moonLevel};
  if(n==='FlameForgedInsight')return {uptime:active(spaced(ownReactions[r].filter(h=>h.reaction==='ElectroCharged'),15),15)};
  if(n==='ATeaspoonOfTranscendence')return {atk_active:true,transcend_stacks:count(ca,e,5,3,.2)};
  if(n==='SongOfBrokenPines')return {rate:0}; // Shared Millennial Movement is applied once to the team.
@@ -77,7 +77,7 @@ export function conditionalWeaponState(n,r,e,ctx){
  if(n==='SacrificersStaff')return {stack:count(hit(r,e,['skill'],Infinity),e,6,3)};
  if(n==='LumidouceElegy')return {stack:0};
  if(n==='BloodsoakedRuins')return {after_burst_rate:castActive(r,'burst',e,3.5)?1:0,elegy_active:false};
- if(['ProspectorsShovel','BlackmarrowLantern'].includes(n))return {moon_state:0,moon_full:false};
+ if(['ProspectorsShovel','BlackmarrowLantern'].includes(n))return {moon_state:moonLevel,moon_full:moonLevel===2};
  if(n==='LostPrayerToTheSacredWinds')return {stack:on?Math.min(4,Math.floor((e.time-entered(e.time,e.rootOrder))/4)):0};
  if(n==='WindAndSong')return {rate:active(roots.filter(h=>h.role===r&&h.kind==='sprint'),5)};
  if(n==='SolarPearl')return {rate1:active(na,6),rate2:active(front.filter(h=>['skill','burst'].includes(h.category)),6)};
@@ -90,8 +90,14 @@ export function conditionalWeaponState(n,r,e,ctx){
  if(n==='ReliquaryOfTruth'){const on=castActive(r,'skill',e,12);return {false_secret_active:on,skill_active:on,true_moon_active:false,lunar_bloom_hit:false,skill_rate:on?1:0,lunar_rate:0,overlap_rate:0};}
  if(n==='DawningFrost'){const charged=active(ca,10),sk=active(skill,10);return {rate_charged:charged,charged_active:bool(charged),charged_rate:charged,rate_skill:sk,skill_active:bool(sk),skill_rate:sk};}
  if(n==='EtherlightSpindlelute'){const on=castActive(r,'skill',e,20);return {skill_active:on,rate:on?1:0};}
- if(n==='NocturnesCurtainCall')return {sacred_wine_uptime:0,lunar_active:false,rate:0};
- if(n==='LightbearingMoonshard')return {skill_active:false,extra_active:false,rate:0}; // No Lunar-Crystallize in this team.
+ if(n==='NocturnesCurtainCall'){
+  const live=m.max(active(lunarHits[r],12),active(ownReactions[r].filter(h=>h.reaction==='LunarCrystallize'),12));
+  return {sacred_wine_uptime:live,lunar_active:bool(live),rate:live};
+ }
+ if(n==='LightbearingMoonshard'){
+  const live=castActive(r,'skill',e,5)||active(roots.filter(h=>h.role===r&&h.action==='stride'),5);
+  return {skill_active:bool(live),extra_active:bool(live),rate:1};
+ }
  if(n==='SilverLight')return {stacks:count(casts.filter(h=>h.action==='skill'),e,12,2)};
  if(n==='TulaytullahsRemembrance'){
   const t=lastCast(r,'skill',e.time,e.rootOrder),valid=on&&t>=entered(e.time,e.rootOrder)&&e.time<t+12;

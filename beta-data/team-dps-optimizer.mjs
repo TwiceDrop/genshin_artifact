@@ -53,8 +53,16 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
  // Quantize only ranking keys; retain full-precision damage and use IDs for ties.
  const rank=value=>Number(value.toPrecision(12));
  const sort=(a,b)=>rank(b.value)-rank(a.value)||a.key.localeCompare(b.key);
- function progress(done=false,phase='search'){const now=performance.now();if(!done&&now-lastProgress<250)return;lastProgress=now;
-   onProgress({phase:done?'complete':phase,evaluated_teams:evaluated,total_teams:planned,remaining_teams:done?0:Math.max(0,planned-evaluated),feasible_teams:feasibleTeams,retained_results:found.length,visited_nodes:visitedNodes,pruned_nodes:prunedNodes,elapsed_ms:now-started,eta_ms:done?0:!branching&&evaluated?(planned-evaluated)*(now-started)/evaluated:null,best_damage:found[0]?.result[metric]??null});}
+ let searchStarted,reportedEstimate=false;
+ function progress(done=false,phase='search'){
+  const now=performance.now(),remaining=done?0:Math.max(0,planned-evaluated);
+  // Estimate time to use the remaining evaluation budget. Pruning may finish earlier.
+  const eta=phase==='search'&&evaluated>0?remaining*(now-searchStarted)/evaluated:null;
+  if(!done&&now-lastProgress<250&&(eta===null||reportedEstimate))return;
+  lastProgress=now;
+  reportedEstimate=eta!==null;
+  onProgress({phase:done?'complete':phase,evaluated_teams:evaluated,total_teams:planned,remaining_teams:remaining,feasible_teams:feasibleTeams,retained_results:found.length,visited_nodes:visitedNodes,pruned_nodes:prunedNodes,elapsed_ms:now-started,eta_ms:done?0:eta,best_damage:found[0]?.result[metric]??null});
+ }
  function* submit(team){
   if(scheduled>=budget)return;
   const key=teamKey(team);if(seen.has(key))return;seen.add(key);
@@ -71,7 +79,7 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
    // Feasibility comes first: ER/set repairs may lower damage before a legal build exists.
    beam.push(row);beam.sort((a,b)=>rank(a.distance)-rank(b.distance)||sort(a,b));if(beam.length>8)beam.length=8;
    if(row.distance===0){feasibleTeams++;found.push(row);found.sort(sort);if(found.length>limit)found.length=limit;}
-  progress();return row;
+  return row;
  }
  function exchange(team,r,slot,item){
   const next=team.map(b=>[...b]),owner=next.findIndex(b=>b[slot].id===item.id);
@@ -126,6 +134,7 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
   }
  }
  function* candidates(){
+  searchStarted=performance.now();
   yield* submit(initial);
   if(exact)yield* enumerate();
   else{
@@ -151,11 +160,11 @@ function createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory)
   artifacts:found.map(row=>entries(row.team)),evaluated_teams:evaluated,feasible_teams:feasibleTeams,legal_teams:completed?feasibleTeams:null,evaluation_budget:budget,search_complete:completed,elapsed_ms:performance.now()-started,metric,objective,
   ...(branching?{search_stats:{visited_nodes:visitedNodes,pruned_nodes:prunedNodes}}:{})};
  }
- return {candidates,accept,baselineTeam,bestTeam,finish};
+ return {candidates,accept,progress,baselineTeam,bestTeam,finish};
 }
 export function optimizeTeamDps(api,input,artifacts,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator){
  const evaluator=evaluatorFactory(api,input),search=createSearch(api,evaluator,input,artifacts,onProgress,evaluatorFactory),current=search.baselineTeam(),baseline=current?evaluator.evaluate(current,true):null;
- for(const job of search.candidates())if(job)search.accept(job,evaluator.evaluate(job.team));
+ for(const job of search.candidates())if(job){search.accept(job,evaluator.evaluate(job.team));search.progress();}
  return search.finish(baseline,evaluator.evaluate(search.bestTeam(),true));
 }
 export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,batchSize,onProgress=()=>{},evaluatorFactory=createTeamDpsEvaluator,{evaluateDetail}={}){
@@ -166,6 +175,7 @@ export async function optimizeTeamDpsParallel(api,input,artifacts,evaluateBatch,
   const jobs=pending;pending=[];
   const results=await evaluateBatch(jobs.map(job=>job.team.map(b=>b.map(a=>a.id))));
   for(let i=0;i<jobs.length;i++)search.accept(jobs[i],results[i]);
+  search.progress();
  }
  for(const job of search.candidates()){
   if(job)pending.push(job);

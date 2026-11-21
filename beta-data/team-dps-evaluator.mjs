@@ -29,10 +29,11 @@ import {scaleTalentPart} from './team-engine/rule-utils.mjs';
 import {compileDamageModels} from './team-engine/damage-models.mjs';
 import {snapshotEvent,mergeSnapshotDamage} from './team-engine/stat-snapshot.mjs';
 import {targetObservation} from './team-engine/hit-observation.mjs';
-import {isStellarConduct,isStellarSwirl} from './team-engine/native-damage-fields.mjs';
+import {isMoonCrystallize,isStellarConduct,isStellarSwirl} from './team-engine/native-damage-fields.mjs';
 import {transformativeReaction} from './team-engine/transformative-reactions.mjs';
+import {createGleamBlessing} from './team-engine/moon-crystallize.mjs';
 import {reactionLevelBase,nativeTransformativeBonus} from './team-engine/reaction-native.mjs';
-import {nativeBackends,normalizeNativeDamage,prepareNativeDamageEffects} from './team-engine/native-bindings.mjs';
+import {nativeBackends,extensionLunarAttributes,normalizeNativeDamage,prepareNativeDamageEffects} from './team-engine/native-bindings.mjs';
 import {visibleAtEnd} from './team-engine/completion-followups.mjs';
 export const sum=x=>Object.values(x||{}).reduce((a,b)=>a+b,0);
 const effect=(label,values)=>({name:'ExtensionEffect',config:{ExtensionEffect:{label,values}}});
@@ -70,8 +71,9 @@ export function createTeamDpsEvaluator(api,input,execution={}){
   constraints:(role,builds)=>panel(entries.map(entry=>entry.evaluator.constraints(role,builds))),
   evaluate(builds,trace=false){
    const outputs=[];
-   function run(entry,observed,labels){
+   function run(entry,observed,labels,start,width){
     const {evaluator,captured}=entry,context={observed};
+    if(execution.onTimelineProgress)context.onTimelineProgress=fraction=>execution.onTimelineProgress(start+width*fraction);
     captured.events=[];captured.rotation=null;
     try{
      const output=evaluator.evaluate(builds,trace,context),probability=context.probability;
@@ -79,10 +81,11 @@ export function createTeamDpsEvaluator(api,input,execution={}){
      outputs.push({output,weight:probability,captured:{events:captured.events,rotation:captured.rotation},label:[...entry.plan.labels,...labels].join(' / ')});
     }catch(error){
      if(!(error instanceof ProcOutcomeRequired))throw error;
-     for(const outcome of [0,1])run(entry,new Map([...observed,[error.trialKey,outcome]]),[...labels,error.label+'：'+(outcome?'触发':'未触发')]);
+     // Both replays cost work irrespective of their damage probabilities.
+     for(const outcome of [0,1])run(entry,new Map([...observed,[error.trialKey,outcome]]),[...labels,error.label+'：'+(outcome?'触发':'未触发')],start+outcome*width/2,width/2);
     }
    }
-   for(const entry of entries)run(entry,new Map(),[]);
+   entries.forEach((entry,index)=>run(entry,new Map(),[],index/entries.length,1/entries.length));
    if(branching){
     const weight=outputs.reduce((n,row)=>m.add(n,row.weight),0);
     for(const row of outputs){const outcome={label:row.label,probability:m.div(row.weight,weight)};for(const event of row.captured.events)execution.captureCombatEvent({...event,outcome});if(row.captured.rotation)execution.captureRotation({...row.captured.rotation,outcome});}
@@ -99,7 +102,7 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
  const refresh=next=>{currentRotation=next;equipment=createEquipmentAxisRules(profiles,next,settings,execution);};
  const readPanel=(x,r,e)=>{
   if(execution.query)return execution.query(x,r,e,false);
-  const panel=api.CommonInterface.get_attribute(x),converted=sum(teamDpsBuffComposition(x,['ElementalMasteryExtra']).ElementalMasteryExtra);
+  const panel=api.CommonInterface.get_attribute(prepareNativeDamageEffects(x,characterRules[x.character.name]).input),converted=sum(teamDpsBuffComposition(x,['ElementalMasteryExtra']).ElementalMasteryExtra);
   return {...panel,base_atk:{value:(panel.atk['角色基础攻击']??0)+(panel.atk['武器基础攻击']??0)},elemental_mastery_convertible:{value:sum(panel.elemental_mastery)-converted}};
  };
  const readDamage=(x,r,e)=>{
@@ -110,11 +113,22 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
   for(const [field,entries]of Object.entries(prepared.fields)){damage[field]={...damage[field]};for(const [label,value]of entries)damage[field][label]=(damage[field][label]??0)+value;}
   const reaction=transformativeReaction(e);
   if(reaction)return {...damage,[reaction.bonus]:nativeTransformativeBonus(api,x,damage,numeric.resistance(m.sub(enemy[reaction.element.toLowerCase()+'_res'],sum(damage.res_minus))),nativeBackends[characterRules[x.character.name].nativeBackend].transformativeCoefficients[reaction.native],reaction)};
+  if(isMoonCrystallize(e)){
+   const panel=readPanel(x,r,e),typed=teamDpsBuffComposition(x,['CriticalGeo','CriticalDamageGeo']);
+   const combine=(base,extra)=>Object.fromEntries([...new Set([...Object.keys(base),...Object.keys(extra)])].map(key=>[key,(base[key]??0)+(extra[key]??0)]));
+   if(characterRules[x.character.name].nativeBackend==='extension'){
+    const attributes=teamDpsBuffComposition(x,Object.values(extensionLunarAttributes));
+    for(const [field,attribute] of Object.entries(extensionLunarAttributes))damage[field]=attributes[attribute];
+    const em=sum(damage.em);damage.direct_mooncrystallize_compose={...damage.direct_mooncrystallize_compose,'精通':6*em/(2000+em)};
+   }
+   return {...damage,critical:combine(panel.critical,typed.CriticalGeo),critical_damage:combine(panel.critical_damage,typed.CriticalDamageGeo)};
+  }
   if(!isStellarConduct(e)&&!isStellarSwirl(e))return damage;
   const panel=readPanel(x,r,e);
   return {...damage,critical:panel.critical,critical_damage:panel.critical_damage};
  };
  const {events,activeRole,covered}=rotation;
+ const gleamBlessing=createGleamBlessing(profiles,rotation);
  const enemy=normalizeEnemy(settings.enemy);
  const characters=createCharacterRules(profiles,()=>currentRotation,m,settings);
  let effectState,effects;
@@ -163,6 +177,7 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
    ...(typeof bonus==='object'||bonus?[effect('极星辉域',{BonusCryo:bonus,BonusElectro:bonus})]:[])];
  };
  function evaluate(builds,trace=false,procContext={}){
+   const onTimelineProgress=procContext.onTimelineProgress??execution.onTimelineProgress;
    const outcomePrefix=JSON.stringify([settings.widsith_themes,[...(procContext.observed??[])]]);
    const choices=createOutcomeChoices(m,procContext.observed,execution.random?(id,p)=>execution.random(outcomePrefix+'/'+id,p):undefined);
    const outcomes=createHitOutcomes(m,choices.draw,role=>rotation.slots[role]);
@@ -219,6 +234,7 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
    const r=e.role,element=characters.hitElement(r,e);
    const state=equipmentState(builds,e),at=snapshotEvent(e),statState=e.statSnapshot?equipmentState(builds,at):state,values=attackBuffs(r,at,statState.panels),attackCount=values.length;
    const sourceAt=role=>source(role,builds[role],e,attackBuffs(role,e,state.panels),state.buffs[role]);
+   if(isMoonCrystallize(e))values.push(...gleamBlessing(e,at=>equipmentState(builds,at).panels,m));
    values.push(...characters.damageBuffs(r,{...e,element,targetIds},state.panels,sourceAt));
    values.push(...equipment.targetBuffs(builds[r],r,e,targetIds,builds));
    if(element==='Physical'&&currentRotation.reactionAt){
@@ -388,7 +404,12 @@ function createFixedTeamDpsEvaluator(api,input,execution,{profiles,rotation,effe
    ...(combat?{math:m,horizon:rotation.simulationHorizon??rotation.duration,minimumDuration:rotation.combatDurationFloor,prepareEvent:combat.prepare,followup:combat.followup,deferEndHit,finalizeDuration}:{}),
    beforeHit(event){runtimeEquipment.beforeHit(event);healingDamage.beforeHit(event);},
    hit:scoreHit,
-    afterEvent(event,enqueue){healingDamage.afterEvent(event,enqueue);combat?.after(event,enqueue);runtimeEquipment?.afterEvent(event,enqueue);if(capturedEvents)capturedEvents.push(event);else execution.captureCombatEvent?.(event);},
+    afterEvent(event,enqueue){
+     healingDamage.afterEvent(event,enqueue);combat?.after(event,enqueue);runtimeEquipment?.afterEvent(event,enqueue);
+     if(capturedEvents)capturedEvents.push(event);else execution.captureCombatEvent?.(event);
+     if(onTimelineProgress&&rotation.duration>0&&typeof event.time==='number')
+      onTimelineProgress(Math.min(1,Math.max(0,event.time/rotation.duration)));
+    },
   });
   const conditioned=procContext.observed?.size?conditionProcClocks(runtimeEquipment.clocks,procContext.observed,m):{probability:1};
   const visible=event=>finalizeDuration?visibleAtEnd(m,event,resolved.duration,rotation.endHit==='include'||['cast','switch','action','resource'].includes(event.kind)):1;

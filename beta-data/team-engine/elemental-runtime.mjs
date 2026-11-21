@@ -1,3 +1,4 @@
+import {createMoonCrystallize} from './moon-crystallize.mjs';
 import {scalarMath} from '../team-dps-numeric-rules.mjs';
 import {actionTime} from './rule-utils.mjs';
 import {eventKey,afterEvent,compareEventPosition} from './event-order.mjs';
@@ -13,28 +14,30 @@ import {createStellarSwirlRuntime} from './stellar-swirl-runtime.mjs';
 // Candidate-owned aura and reaction state. Timers go through the combat queue;
 // numeric gates change state, never the static list of reachable time slots.
 // Frozen is distinct from the ordinary Cryo aura underneath it.
-export function createElementalRuntime({math:m=scalarMath,actorIds,actorElements=[],settings={},stellarEnabled=false,replacesStellarPrism=false,stellarSwirlEnabled=false,enqueue,emitReaction,observeHit=e=>e.enabled??1}){
+export function createElementalRuntime({math:m=scalarMath,actorIds,actorElements=[],settings={},stellarEnabled=false,replacesStellarPrism=false,stellarSwirlEnabled=false,lunarCrystallizeEnabled=false,domainDoubleAt,enqueue,emitReaction,observeHit=e=>e.enabled??1}){
  const and=(a,b)=>m.choose(a,b,0),possible=x=>typeof x==='object'||!!x;
  // Facts from one contact must arrive in the same order as gauge resolution.
  // Fixed offsets also keep scalar/compiled positions equal when a candidate
  // disables an earlier reaction. Leave the next step for immediate damage.
- const reactionSteps={Shatter:0,Superconduct:2,StellarConduct:2,Frozen:4,ElectroCharged:6,Swirl:8,StellarSwirl:8};
+ const reactionSteps={Crystallize:8,LunarCrystallize:10,Shatter:0,Superconduct:2,StellarConduct:2,Frozen:4,ElectroCharged:6,Swirl:8,StellarSwirl:8};
  const publishReaction=(cause,definition)=>emitReaction({...cause,step:(cause.step??0)+reactionSteps[definition.reactionType]},definition);
  const targets=Array.from({length:settings.enemy_count??1},()=>({Cryo:{amount:0,decay:0},Electro:{amount:0,decay:0},Hydro:{amount:0,decay:0},Frozen:emptyFrozenAura(),superconductUntil:-Infinity}));
+ const crystalReady=targets.map(()=>-Infinity);
  const icds=new Map(),records=new Map(),reactionReady=new Map(),damageICDs=new Map(),scheduled=new Set(),before=new Map(),history=[],applications=[];
  const field={until:-Infinity,next:Infinity,pending:0},buff={until:-Infinity,count:0};let clock=0;
  const frozenWatches=targets.map(()=>-Infinity),frozenTimers=new Set();
+ const lunar=lunarCrystallizeEnabled?createMoonCrystallize({math:m,targets,actorIds,enqueue,emitReaction:publishReaction,domainDoubleAt}):null;
  const electrocharged=createElectrochargedRuntime({math:m,targets,actorIds,enqueue,emitReaction:publishReaction});
  const shatter=createShatterRuntime({math:m,targets,actorIds,enqueue,emitReaction:publishReaction,observeHit});
  const stellarSwirl=stellarSwirlEnabled?createStellarSwirlRuntime({math:m,targets,actorIds,actorElements,enqueue,emitReaction:publishReaction}):null;
  const swirl=createSwirlRuntime({math:m,targets,actorIds,enqueue,emitReaction:publishReaction,stellar:stellarSwirl});
  const lookup=(table,index)=>table.reduce((value,entry,i)=>m.choose(m.eq(index,i),entry,value),table[0]);
  const targetIds=e=>hitTargets(e,settings);
- function snapshot(){return {time:clock,targets:targets.map(t=>({...t,Cryo:{...t.Cryo},Electro:{...t.Electro},Hydro:{...t.Hydro},Frozen:{...t.Frozen}})),field:{...field},buff:{...buff},swirlUntil:stellarSwirl?.until()??-Infinity,swirl:stellarSwirl?.state()};}
+ function snapshot(){return {moon:lunar?.state(),time:clock,targets:targets.map(t=>({...t,Cryo:{...t.Cryo},Electro:{...t.Electro},Hydro:{...t.Hydro},Frozen:{...t.Frozen}})),field:{...field},buff:{...buff},swirlUntil:stellarSwirl?.until()??-Infinity,swirl:stellarSwirl?.state()};}
  const initial=snapshot();
  function view(row,time){
   const active=m.lt(time,row.buff.until),count=m.choose(active,row.buff.count,0),fieldActive=m.lt(time,row.field.until);
-  return {time,fieldActive,fieldUntil:row.field.until,next:row.field.next,pending:row.field.pending,radiance:active,swirlRadiance:m.choose(active,0,m.lt(time,row.swirlUntil)),count,
+  return {selenicDescent:m.lt(time,m.add(row.moon?.lastHarmony??-Infinity,4)),lastHarmony:row.moon?.lastHarmony??-Infinity,moonCages:m.lt(time,row.moon?.expires??-Infinity),time,fieldActive,fieldUntil:row.field.until,next:row.field.next,pending:row.field.pending,radiance:active,swirlRadiance:m.choose(active,0,m.lt(time,row.swirlUntil)),count,
    wanderingActive:row.swirl?m.max(m.choose(m.lt(time,row.swirl.vortexUntil),row.swirl.wandering,0),m.lt(time,row.swirl.wanderingAfter)):0,
    wanderingAnemoShred:row.swirl?m.lt(time,row.swirl.anemoShredUntil):0,
    coefficient:m.choose(active,lookup(STELLAR_CONDUCT_COEFFICIENTS,count),1),elementBonus:m.choose(active,lookup(STELLAR_CONDUCT_ELEMENT_BONUSES,count),0),buffUntil:row.buff.until,
@@ -139,15 +142,31 @@ export function createElementalRuntime({math:m=scalarMath,actorIds,actorElements
   if(possible(reacts))publishReaction(e,{reactionType:'Frozen',elements:['Hydro','Cryo'],targetIds:[id],enabled:reacts,instanceId:'freeze/'+id});
   return reacts;
  }
+ function crystallize(e,id,pass){
+  let remaining=e.application.gauge;
+  for(const element of ['Electro','Hydro','Cryo','Frozen']){
+   if(element==='Hydro'&&lunar){remaining=lunar.apply(e,id,pass,remaining);continue;}
+   const aura=targets[id][element];
+   if(aura.amount===0||remaining===0)continue;
+   const gate=and(pass,and(m.ge(e.time,crystalReady[id]),and(m.gt(remaining,0),m.gt(aura.amount,0))));
+   if(!possible(gate))continue;
+   const cost=m.min(aura.amount,m.mul(.5,remaining));
+   aura.amount=m.choose(gate,m.sub(aura.amount,cost),aura.amount);
+   remaining=m.choose(gate,m.sub(remaining,m.mul(2,cost)),remaining);
+   crystalReady[id]=m.choose(gate,e.time+1,crystalReady[id]);
+   publishReaction(e,{reactionType:'Crystallize',elements:['Geo',element==='Frozen'?'Cryo':element],targetIds:[id],enabled:gate,instanceId:element+'/'+id});
+  }
+ }
  function apply(e){
   const app=e.application;
-  if(!app||app.gauge<=0||!['Cryo','Electro','Hydro','Anemo'].includes(e.element))return;
+  if(!app||app.gauge<=0||!['Cryo','Electro','Hydro','Anemo','Geo'].includes(e.element))return;
   const enabled=e.enabled??1;if(!possible(enabled))return;
   const gate=and(enabled,observeHit(e)),existed=m.lt(e.time,field.until);let any=0;
   for(const id of targetIds(e)){
    const target=targets[id],pass=passes(e,id,app,gate);any=m.max(any,pass);
    electrocharged.changed(id,e.time,pass);
    applications.push({eventId:e.eventId,time:e.time,role:e.role,targetId:id,element:e.element,gauge:app.gauge,enabled:pass});
+   if(e.element==='Geo'){crystallize(e,id,pass);electrocharged.changed(id,e.time,pass);continue;}
    if(e.element==='Anemo'){swirl.apply(e,id,pass);continue;}
    let reacted=0,remaining=app.gauge;
    if(e.element==='Cryo'){
@@ -170,6 +189,7 @@ export function createElementalRuntime({math:m=scalarMath,actorIds,actorElements
    // while retaining its own ordinary decay rate. Hydro is not capped.
    const taxed=m.mul(.8,app.gauge),amount=e.element==='Electro'?m.choose(and(m.eq(target.Frozen.amount,0),m.gt(target.Hydro.amount,0)),m.min(taxed,target.Hydro.amount),taxed):taxed;
    aura.amount=m.choose(attach,m.max(aura.amount,amount),aura.amount);
+   lunar?.record(e,id,attach);
    stellarSwirl?.record(e,id,pass,attach,m.gt(target.Frozen.amount,0));
    electrocharged.changed(id,e.time,pass);
    if(e.element==='Hydro'||e.element==='Electro'){
@@ -177,12 +197,12 @@ export function createElementalRuntime({math:m=scalarMath,actorIds,actorElements
     electrocharged.apply(e,id,ec);
    }
   }
-  const key=actorIds[e.role],ready=records.get(key)??-Infinity,record=['Hydro','Anemo'].includes(e.element)?0:and(existed,and(any,m.ge(e.time,ready)));
+  const key=actorIds[e.role],ready=records.get(key)??-Infinity,record=['Hydro','Anemo','Geo'].includes(e.element)?0:and(existed,and(any,m.ge(e.time,ready)));
   field.pending=m.choose(record,m.min(12,m.add(field.pending,1)),field.pending);records.set(key,m.choose(record,actionTime(e.time+.1),ready));
   remember(e);
  }
  return {
-  targetIds,applications,
+  targetIds,applications,projectiles:(e,id,members,enabled)=>lunar.projectiles(e,id,members,enabled),
   enableWandering(e,duration,enabled){stellarSwirl?.enableWandering(e,duration,enabled);remember(e);},
   refreshField(e,duration,enabled){
    const create=and(enabled,m.ge(e.time,field.until));field.next=m.choose(create,actionTime(e.time+4),field.next);field.pending=m.choose(create,0,field.pending);
@@ -194,9 +214,10 @@ export function createElementalRuntime({math:m=scalarMath,actorIds,actorElements
   currentAura:(element,id)=>targets[id][element].amount,
   watchFrozen(ids,until){for(const id of ids){frozenWatches[id]=Math.max(frozenWatches[id],until);watchFrozenTarget(id);}},
   prepare(e){
+   if(e.mechanic==='lunar.launch')lunar.launch(e);
    swirl.prepare(e);
    const frozenBefore=targets.map(t=>t.Frozen.amount);
-   decay(e.time);
+   decay(e.time);lunar?.advance(e.time);
    stellarSwirl?.prepare(e);
    if(e.mechanic==='reaction.vortex.expire')remember(e);
    frozenBefore.forEach((amount,id)=>frozenLost(e,id,amount,'decay'));

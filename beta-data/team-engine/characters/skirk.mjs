@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {createSkirkRuntime} from './skirk-runtime.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {effect,hydroCryo,actionTime} from '../rule-utils.mjs';
@@ -10,6 +11,8 @@ const rifts={key:'absorbedRifts',label:'吸收裂隙',min:0,max:3,integer:true,s
 const extinctionBonuses=level=>[.03+.005*level,.06+.006*level,.08+.008*level,.1+.01*level];
 const normalTiers=[1,1.1,1.2,1.7],burstTiers=[1,1.05,1.15,1.6],c4AttackTiers=[0,.1,.2,.4];
 
+const ordinaryFrames=castFrameTable({skill:43,burst:151,charged:53},[27,25,43,23,72]);
+const sevenPhaseFrames=castFrameTable({skill:43,burst:41,charged:54},[30,43,42,60,72]);
 export const skirk={
  id:'Skirk',element:'Cryo',panelIndex:9,reactionStatIndex:0,usesElementalApplications:true,separateAtkRatio:true,ratioLabel:'丝柯克·万流归寂',
  nativeBackend:'legacy',constellationTalents:{3:'skill3',5:'skill2'},
@@ -53,7 +56,7 @@ export const skirk={
   return [];
  },
  // Hold duration is player-controlled and is not present in the axis input.
- castFrames:(a,rotation)=>a.actionId==='skill.hold'?undefined:a.action==='skill'?43:a.action==='burst'?(rotation.covered('skirkPhase',a.time,a.rootOrder)?41:151):undefined,
+ castFrames:(a,rotation)=>(rotation.covered('skirkPhase',a.time,a.rootOrder)?sevenPhaseFrames:ordinaryFrames)(a),
  teamSkillLevels:elements=>hydroCryo(elements)===4?1:0,
  normalize:p=>{p.character.params={Skirk:{death_crossing_stacks:0,team_has_hydro_cryo:false,c2_atk_bonus:false}};},
  // The symbolic binding weights the 50→51 native delta with clamped excess.

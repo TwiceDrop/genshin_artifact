@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {effect,actionTime} from '../rule-utils.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
 import {createAlyoshaRuntime} from './alyosha-runtime.mjs';
@@ -21,6 +22,7 @@ const basicDefinitions=[
 }));
 const basicActions=defineActionRecipes(basicDefinitions);
 export const alyosha={
+ castFrames:castFrameTable({skill:31,'skill.hold':142,burst:55,charged:63},[34,38,65,62]),
  id:'Alyosha',element:'Electro',weaponType:'Polearm',panelIndex:9,reactionStatIndex:0,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill2',5:'skill3'},defaultWeapon:'FavoniusLance',previewWeapon:'BeginnersProtector',
  capabilities:{energy:70,shield:false,nightsoul:false,arkhe:false},

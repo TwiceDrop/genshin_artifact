@@ -1,0 +1,315 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/58",
+  "id": "zibai-lunar-crystallize",
+  "title": "兹白 · 队伍1输出轴",
+  "endHit": "include",
+  "initialActiveSlot": "member2",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Zibai"
+    },
+    {
+      "slot": "member2",
+      "character": "Columbina"
+    },
+    {
+      "slot": "member3",
+      "character": "Linnea"
+    },
+    {
+      "slot": "member4",
+      "character": "Illuga"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "columbina-e",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill.cycle",
+      "timeMs": 0
+    },
+    {
+      "id": "columbina-q",
+      "kind": "action",
+      "actor": "member2",
+      "action": "burst",
+      "timeMs": 500
+    },
+    {
+      "id": "enter-linnea",
+      "kind": "switch",
+      "actor": "member3",
+      "timeMs": 2800
+    },
+    {
+      "id": "linnea-refresh",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill.refresh",
+      "timeMs": 3300
+    },
+    {
+      "id": "enter-illuga",
+      "kind": "switch",
+      "actor": "member4",
+      "timeMs": 3800
+    },
+    {
+      "id": "illuga-q",
+      "kind": "action",
+      "actor": "member4",
+      "action": "burst",
+      "timeMs": 4000
+    },
+    {
+      "id": "illuga-e",
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 5500
+    },
+    {
+      "id": "enter-zibai",
+      "kind": "switch",
+      "actor": "member1",
+      "timeMs": 6000
+    },
+    {
+      "id": "zibai-e",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill.cycle",
+      "timeMs": 6500
+    },
+    {
+      "id": "initial-stride",
+      "kind": "action",
+      "actor": "member1",
+      "action": "stride",
+      "timeMs": 7000,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1
+      }
+    },
+    {
+      "id": "zibai-q",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 7200,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 6700
+      }
+    },
+    {
+      "id": "stride-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "stride",
+      "timeMs": 9500,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 9000
+      }
+    },
+    {
+      "id": "normal-1-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 10200,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 9700
+      }
+    },
+    {
+      "id": "normal-1-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 10867,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 10367
+      }
+    },
+    {
+      "id": "normal-1-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 11533,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 11033
+      }
+    },
+    {
+      "id": "normal-1-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 12200,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 11700
+      }
+    },
+    {
+      "id": "stride-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "stride",
+      "timeMs": 12700,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 12200
+      }
+    },
+    {
+      "id": "normal-2-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 13400,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 12900
+      }
+    },
+    {
+      "id": "normal-2-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 14400,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 13900
+      }
+    },
+    {
+      "id": "normal-2-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 15400,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 14900
+      }
+    },
+    {
+      "id": "normal-2-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 16400,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 15900
+      }
+    },
+    {
+      "id": "stride-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "stride",
+      "timeMs": 16900,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 16400
+      }
+    },
+    {
+      "id": "normal-3-1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 17600,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 17100
+      }
+    },
+    {
+      "id": "normal-3-2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 18267,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 17767
+      }
+    },
+    {
+      "id": "normal-3-3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 18933,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 18433
+      }
+    },
+    {
+      "id": "normal-3-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 19600,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 19100
+      }
+    },
+    {
+      "id": "stride-4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "stride",
+      "timeMs": 20100,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 19600
+      }
+    },
+    {
+      "id": "end",
+      "kind": "switch",
+      "actor": "member1",
+      "timeMs": 20500,
+      "when": {
+        "slot": "member1",
+        "constellationAtLeast": 1,
+        "otherwiseTimeMs": 20000
+      }
+    }
+  ]
+}

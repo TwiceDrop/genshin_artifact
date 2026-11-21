@@ -9,5 +9,7 @@ export const STELLAR_DAMAGE_FIELDS=[
 export const isStellarConduct=event=>event.damageModel==='reaction.stellarConduct';
 export const isStellarSwirl=event=>['reaction.stellarSwirl','direct.stellarSwirl'].includes(event.damageModel);
 export const STELLAR_SWIRL_FIELDS=STELLAR_DAMAGE_FIELDS.map(name=>name.replaceAll('stellarconduct','stellarswirl'));
+export const isMoonCrystallize=e=>e.damageModel==='direct.lunarCrystallize'||e.damageModel==='reaction.lunarCrystallize';
+export const MOON_CRYSTALLIZE_FIELDS=['mooncrystallize_extra_fixed','direct_mooncrystallize_ratio','direct_mooncrystallize_extra_def_ratio','direct_mooncrystallize_compose','direct_mooncrystallize_extra_fixed','mooncrystallize_base_compose','enhance_moon_reaction_compose','critical_moon_reaction','critical_damage_moon_reaction','moon_reaction_damage_multiplier','elevate_mooncrystallize_compose','elevate_moon_reaction_compose'];
 export const isSuperconduct=event=>event.damageModel==='reaction.superconduct';
-export const nativeDamageFields=event=>isStellarConduct(event)?[...NATIVE_DAMAGE_FIELDS,...STELLAR_DAMAGE_FIELDS]:isStellarSwirl(event)?[...NATIVE_DAMAGE_FIELDS,...STELLAR_SWIRL_FIELDS]:transformativeReaction(event)?[...NATIVE_DAMAGE_FIELDS,transformativeReaction(event).bonus]:NATIVE_DAMAGE_FIELDS;
+export const nativeDamageFields=event=>isMoonCrystallize(event)?[...NATIVE_DAMAGE_FIELDS,...MOON_CRYSTALLIZE_FIELDS]:isStellarConduct(event)?[...NATIVE_DAMAGE_FIELDS,...STELLAR_DAMAGE_FIELDS]:isStellarSwirl(event)?[...NATIVE_DAMAGE_FIELDS,...STELLAR_SWIRL_FIELDS]:transformativeReaction(event)?[...NATIVE_DAMAGE_FIELDS,transformativeReaction(event).bonus]:NATIVE_DAMAGE_FIELDS;

@@ -1,3 +1,7 @@
+import {zibai} from './characters/zibai.mjs';
+import {columbina} from './characters/columbina.mjs';
+import {linnea} from './characters/linnea.mjs';
+import {illuga} from './characters/illuga.mjs';
 import {skirk} from './characters/skirk.mjs';
 import {furina} from './characters/furina.mjs';
 import {escoffier} from './characters/escoffier.mjs';
@@ -17,5 +21,5 @@ import {faruzan} from './characters/faruzan.mjs';
 // One registration point. Catalogs are projections of these packages, not
 // independent character lists. The runtime and UI import the same definitions.
 export const characterPackages=Object.fromEntries(
- [skirk,furina,escoffier,vodyanitsa,mona,alyosha,yaeMiko,qiqi,odette,sandrone,mitya,valeriy,sucrose,vesna,faruzan].map(character=>[character.id,character]),
+ [skirk,furina,escoffier,vodyanitsa,mona,alyosha,yaeMiko,qiqi,odette,sandrone,mitya,valeriy,sucrose,vesna,faruzan,zibai,columbina,linnea,illuga].map(character=>[character.id,character]),
 );

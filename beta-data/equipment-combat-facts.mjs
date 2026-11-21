@@ -54,7 +54,9 @@ export function equipmentPickups(profiles,rotation,reactions,{math:m=scalarMath,
   if(possible(taken))pickups.push({...h,source,enabled:taken});
  }
  const elements=profiles.map(p=>characters[p.character.name].element),crystals=[];
- for(const h of rotation.events){
+ if(rotation.model==='actions')for(const h of reactions.filter(h=>h.reaction==='Crystallize')){
+  crystals.push({...h,source:h.role,role:rotation.activeRole(h.time,h.rootOrder),elements:h.elements.filter(el=>el!=='Geo')});
+ }else for(const h of rotation.events){
   if(elements[h.role]!=='Geo'||equipmentHitElement(profiles[h.role],h)!=='Geo')continue;
   const compatible=[...new Set(elements.filter(el=>['Pyro','Hydro','Electro','Cryo'].includes(el)))],enabled=history.gate(h);
   if(compatible.length&&possible(enabled))crystals.push({...h,enabled,role:rotation.activeRole(h.time,h.rootOrder),source:h.role,elements:compatible,order:h.order+.02});

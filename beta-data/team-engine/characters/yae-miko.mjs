@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {effect,numericSum,actionTime} from '../rule-utils.mjs';
 import {elementalApplication as application} from '../ice-electro-reactions.mjs';
 import {YAE_TIMING,createYaeRuntime} from './yae-miko-runtime.mjs';
@@ -7,6 +8,7 @@ export {YAE_TIMING};
 // Duration follows the updated talent's 14 + 10 seconds after creation.
 const enhancedRatio=.8;
 export const yaeMiko={
+ castFrames:castFrameTable({skill:37,burst:114,charged:96},[28,40,79]),
  id:'YaeMiko',element:'Electro',weaponType:'Catalyst',panelIndex:7,reactionStatIndex:0,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill2',5:'skill3'},defaultWeapon:'KagurasVerity',previewWeapon:'ApprenticesNotes',
  capabilities:{energy:90,shield:false,nightsoul:false,arkhe:false},

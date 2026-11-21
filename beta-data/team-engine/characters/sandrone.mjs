@@ -1,9 +1,11 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
 import {effect,numericSum,actionTime} from '../rule-utils.mjs';
 import {createSandroneRuntime,SANDRONE_TIMING} from './sandrone-runtime.mjs';
 export {SANDRONE_TIMING};
 
 export const sandrone={
+ castFrames:castFrameTable({skill:46,burst:128},[53,46,87]),
  enablesStellarSwirl:true,
  id:'Sandrone',element:'Cryo',weaponType:'Claymore',panelIndex:10,reactionStatIndex:0,enablesStellarConduct:true,usesElementalApplications:true,
  nativeBackend:'legacy',constellationTalents:{3:'skill1',5:'skill3'},defaultWeapon:'FavoniusGreatsword',previewWeapon:'WasterGreatsword',

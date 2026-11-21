@@ -5,7 +5,7 @@
 ## 版本
 
 - 本地软件版本 7.2.5-EA／7.2.05EA，Android 70205／7.2.05EA。
-- TeamDPS 规则 `mona-team-engine/58`，动作轴注册 15 人（见 `beta-data/team-engine/character-packages.mjs`）。
+- TeamDPS 规则 `mona-team-engine/58`，动作轴注册 19 人（见 `beta-data/team-engine/character-packages.mjs`）。兹白、哥伦比娅、莉奈娅、叶洛亚可独立选入自定义队伍。月结晶涵盖角色直伤与月笼谐奏，哥伦比娅的月感电和月绽放尚未接入。可导入的循环样例见 [兹白队伍轴](../../examples/team-dps/zibai-lunar-crystallize.json)，默认 20 秒，兹白一命起 20.5 秒。
 - 当前功能：单次伤害、单人配装、四人固定轴 DPS。
 - 使用统计（`docs/specs/usage-stats/`）已接入桌面和 Android。本地发布配置已填写上报地址；2026-11-12 发布准备时服务健康检查返回 200，非法功能请求返回 400 且未写入数据。首次提示选择前不上报，可在设置关闭；本次未做 Android 真机上报验收。部署步骤见 `docs/dev/usage-stats-rollout.md`。
 - 四人轴以初始满能、无循环充能、无敌人来伤为基础；已记录的近似时序不能当成实测。

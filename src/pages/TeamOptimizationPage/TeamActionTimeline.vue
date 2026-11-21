@@ -36,7 +36,9 @@
 import {computed,ref,shallowRef,watch,onBeforeUnmount,nextTick} from 'vue'
 import {characterData} from '@/assets/character'
 import locale from '@/i18n/generated/zh-cn.json'
-import {TEAM_ACTION_CATALOG as catalog} from '../../../beta-data/team-engine/action-config.mjs'
+import {defaultTeamCharacter} from '../../../beta-data/team-dps-character-rules.mjs'
+import {usesPrimaryTime} from '../../../beta-data/team-engine/action-timing.mjs'
+import {TEAM_ACTION_CATALOG as catalog,actionAxisTimeline} from '../../../beta-data/team-engine/action-config.mjs'
 import {TIMELINE_SCALE as scale,TIMELINE_LABEL_WIDTH as labelWidth,pointerTime,edgeVelocity,stackBlocks,findTimelineSnap,nudgeActionTime,actionBlockWidth} from './timeline-layout.mjs'
 import {createTeamPreviewSession} from './team-preview-session.mjs'
 import {previewActionCasts} from '../../../beta-data/team-engine/action-cast-preview.mjs'
@@ -46,21 +48,23 @@ const viewport=ref(null),selectedId=ref(''),drag=ref(null),preview=shallowRef(nu
 const hoverBuff=shallowRef(null)
 const buffTooltip=ref(null)
 const constellationOverrides=ref({})
-const buffConstellations=computed(()=>props.axis.members.map((member,r)=>constellationOverrides.value[member.slot]??props.characters?.[r]?.constellation??0))
+const timelineProfiles=computed(()=>props.axis.members.map((member,r)=>({character:props.characters?.[r]??defaultTeamCharacter(member.character)})))
+const buffConstellations=computed(()=>props.axis.members.map((member,r)=>constellationOverrides.value[member.slot]??timelineProfiles.value[r].character.constellation))
 watch(()=>JSON.stringify([props.axis.id,props.axis.members]),()=>{constellationOverrides.value={}},{immediate:true})
 const label=m=>locale[characterData[m.character].nameLocale]
 const seconds=n=>Number(n.toFixed(3))
 const actionLabel=row=>row.kind==='switch'?'切换至':catalog[props.axis.members.find(m=>m.slot===row.actor).character].find(a=>a.id===row.action).label
 const selectedIndex=computed(()=>props.axis.timeline.findIndex(row=>row.id===selectedId.value))
-const selected=computed(()=>props.axis.timeline[selectedIndex.value])
+const visibleRows=computed(()=>actionAxisTimeline(props.axis,timelineProfiles.value))
+const selected=computed(()=>visibleRows.value.find(row=>row.id===selectedId.value))
 const parameters=computed(()=>selected.value?.kind==='action'?catalog[props.axis.members.find(m=>m.slot===selected.value.actor).character].find(a=>a.id===selected.value.action).parameters||[]:[])
 const castInput=computed(()=>JSON.parse(JSON.stringify({axis:props.axis,characters:props.characters})))
 const castTimings=computed(()=>previewActionCasts(castInput.value.axis,castInput.value.characters))
-const timedRows=computed(()=>props.axis.timeline.map((row,order)=>{const durationMs=castTimings.value.find(c=>c.id===row.id)?.durationMs;return {...row,order,durationMs,width:actionBlockWidth(durationMs)}}))
+const timedRows=computed(()=>visibleRows.value.map(row=>{const durationMs=castTimings.value.find(c=>c.id===row.id)?.durationMs;return {...row,durationMs,width:actionBlockWidth(durationMs)}}))
 const dragWidth=computed(()=>{
  const d=drag.value;if(!d)return undefined
  const row=JSON.parse(JSON.stringify({...d.row,timeMs:d.timeMs})),input=castInput.value
- const timeline=d.isNew?[...input.axis.timeline,row]:input.axis.timeline.map(a=>a.id===row.id?row:a)
+ const timeline=d.isNew?[...input.axis.timeline,row]:input.axis.timeline.map(a=>a.id===row.id?editedRow(a,row):a)
  const timing=previewActionCasts({...input.axis,timeline},input.characters).find(c=>c.id===row.id)
  return actionBlockWidth(timing?.durationMs)
 })
@@ -94,7 +98,15 @@ function showBuff(event,entry){
 const stats={atk:'攻击力',hp:'生命值上限',def:'防御力',em:'元素精通'}
 const ratios=values=>Object.entries(values).filter(([,v])=>v!==0).map(([key,v])=>`${Number((v*100).toFixed(2))}%${stats[key]}`).join(' + ')||'0'
 function commit(rows){emit('update:timeline',rows)}
-function replace(row){commit(props.axis.timeline.map(old=>old.id===row.id?row:old))}
+function editedRow(old,updated){
+ const row={...updated};delete row.order
+ const when=old.when
+ if(when&&when.otherwiseTimeMs!==undefined){
+  if(!usesPrimaryTime(props.axis,old,timelineProfiles.value))return {...row,timeMs:old.timeMs,when:{...when,otherwiseTimeMs:row.timeMs}}
+ }
+ return row
+}
+function replace(row){commit(props.axis.timeline.map(old=>old.id===row.id?editedRow(old,row):old))}
 function updateTime(value){replace({...selected.value,timeMs:Math.round(value*1000)})}
 function setParameter(field,value){const row={...selected.value,params:{...selected.value.params}};if(value===undefined||value===null)delete row.params[field.key];else row.params[field.key]=value*(field.scale||1);if(!Object.keys(row.params).length)delete row.params;replace(row)}
 function nudge(direction){if(selected.value&&!props.disabled)replace({...selected.value,timeMs:nudgeActionTime(selected.value.timeMs,direction)})}

@@ -25,7 +25,7 @@ export function createSkillMultiplierPreview(api,axis,characters,includeEffects=
  for(const event of rotation.events){
   if(event.enabled!==undefined&&!event.enabled)continue;
   const {role}=event,rule=charactersRules.rules[role],instance=charactersRules.instances[role];
-  if(transformativeReaction(event)||event.damageModel==='reaction.stellarSwirl'){
+  if(transformativeReaction(event)||['reaction.stellarSwirl','reaction.lunarCrystallize'].includes(event.damageModel)){
    roles[role].hits.push({time:event.time,label:event.label,element:event.element,onField:event.onField,eventId:event.eventId,part:event.part,damageModel:event.damageModel,base:empty(),effective:empty(),modifiers:[]});continue;
   }
   const profile=structuredClone(profiles[role]);instance.prepare?.(profile,event);

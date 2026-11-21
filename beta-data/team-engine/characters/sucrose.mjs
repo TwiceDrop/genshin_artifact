@@ -1,3 +1,4 @@
+import {castFrameTable} from '../cast-frame-table.mjs';
 import {effect,actionTime} from '../rule-utils.mjs';
 import {scalarMath} from '../../team-dps-numeric-rules.mjs';
 import {teamTalentUnlocked} from '../character-levels.mjs';
@@ -50,6 +51,7 @@ export function createSucroseRuntime({role,profile,settings={},math:m=scalarMath
  };
 }
 export const sucrose={
+ castFrames:castFrameTable({skill:68,burst:65,charged:71},[28,38,46,65]),
  id:'Sucrose',element:'Anemo',weaponType:'Catalyst',panelIndex:8,reactionStatIndex:0,usesElementalApplications:true,nativeBackend:'legacy',
  constellationTalents:{3:'skill2',5:'skill3'},defaultWeapon:'SacrificialFragments',previewWeapon:'ApprenticesNotes',capabilities:{energy:80,shield:false,nightsoul:false,arkhe:false},isBlunt:e=>[6,7].includes(e.index),
  nativeDamage:Object.fromEntries(Array.from({length:14},(_,index)=>[index,{category:index<4?'normal':index===4?'charged':index<8?'plunge':index===8?'skill':'burst',element:index<10?'Anemo':['Pyro','Hydro','Electro','Cryo'][index-10],...(index>=5&&index<=7?{plungeImpact:index!==5}:{})}])),

@@ -1,3 +1,4 @@
+import {moonCrystallizeOptions} from './moon-crystallize.mjs';
 import {characterRules} from './registry.mjs';
 import {chronological,actionTime} from './rule-utils.mjs';
 import {equipmentTimeline} from './equipment-timeline.mjs';
@@ -44,7 +45,7 @@ export function compileActionAxis(c,profiles,settings={},execution={}){
  // horizon. Damage remains clipped; resource diagnostics are trimmed below.
  const enqueue=event=>{const e=inheritCompletion(event,cause);if(e.time<=simulationHorizon||e.kind==='timer'&&e.finalizePlan){if(e.followup&&e.completionRoot!==undefined&&(e.enabled??1))followupEnds.set(e.completionRoot,Math.max(followupEnds.get(e.completionRoot)??-Infinity,e.time));if(scheduler){if(e.kind==='hit')e.order??=hitOrder++;scheduler.enqueue(e);}else pending.push(e);}};
  const emitReaction=createReactionEmitter({actorIds:slots,settings,enqueue,record:fact=>reactionFacts.push(fact)});
- const reactions=execution.runtime?undefined:createElementalRuntime({actorIds:slots,actorElements:profiles.map(p=>characterRules[p.character.name].element),settings,enqueue,emitReaction,stellarEnabled:profiles.some(p=>characterRules[p.character.name].enablesStellarConduct),replacesStellarPrism:profiles.some(p=>characterRules[p.character.name].replacesStellarPrism),stellarSwirlEnabled:profiles.some(p=>characterRules[p.character.name].element==='Anemo')&&profiles.some(p=>characterRules[p.character.name].enablesStellarSwirl)});
+ const reactions=execution.runtime?undefined:createElementalRuntime({...moonCrystallizeOptions(profiles,e=>covered('月之领域',e.time,e.rootOrder)),actorIds:slots,actorElements:profiles.map(p=>characterRules[p.character.name].element),settings,enqueue,emitReaction,stellarEnabled:profiles.some(p=>characterRules[p.character.name].enablesStellarConduct),replacesStellarPrism:profiles.some(p=>characterRules[p.character.name].replacesStellarPrism),stellarSwirlEnabled:profiles.some(p=>characterRules[p.character.name].element==='Anemo')&&profiles.some(p=>characterRules[p.character.name].enablesStellarSwirl)});
  function hit(a,template,offset=0,suffix='',phase=20){
   const time=actionTime(a.time+offset);if(!inside(time))return;
   for(let part=0;part<(template.hits??template.parts??1);part++){

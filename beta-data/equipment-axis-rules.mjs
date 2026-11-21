@@ -1,3 +1,4 @@
+import {characterPackages} from './team-engine/character-packages.mjs';
 import {createCombatHistory} from './team-engine/combat-history.mjs';
 import {eventKey,eventBefore,compareEvents as order} from './team-engine/event-order.mjs';
 // Shared equipment rules consume combat facts, not a particular rotation or build.
@@ -50,7 +51,7 @@ export const AUTO_WEAPON_FIELDS={
  TomeOfTheEternalFlow:['stack'],CashflowSupervision:['stack'],LightOfFoliarIncision:['rate'],SturdyBone:['rate'],CinnabarSpindle:['rate'],
  SerenitysCall:['rate','full_moon'],Emberwell:['reaction_active','stellar_active','reaction_rate','stellar_rate'],WhitelakeFrostfeather:['stack','rate'],
  WintersHeavyHeart:['cryo_count','electro_count','radiance','rate'],NewBough:['stacks','radiance','rate'],
- NightweaversLookingGlass:['northernmost_runo_active','crescent_verse_active','skill_rate','lunar_rate','overlap_rate'],FracturedHalo:['after_skill_burst','has_shield'],
+ GoldenFrostboundOath:['rate','rate2'],NightweaversLookingGlass:['northernmost_runo_active','crescent_verse_active','skill_rate','lunar_rate','overlap_rate'],FracturedHalo:['after_skill_burst','has_shield'],
 };
 export const AUTO_ARTIFACT_SETS=['TenacityOfTheMillelith','NoblesseOblige','ScrollOfTheHeroOfCinderCity','Instructor','SongOfDaysPast','ArchaicPetra','ViridescentVenerer','DeepwoodMemories','GoldenTroupe','BlizzardStrayer','FinaleOfTheDeepGalleries','MarechausseeHunter','DesertPavilionChronicle','RealmMirrorNight','SpinMoonSerenade','ObsidianCodex','HeavensGift','HeartOfTheFurnace','ScarletProof','VourukashasGlow','HeartOfDepth','MartialArtist','GildedDreams','HuskOfOpulentDreams','PaleFlame','VermillionHereafter','NymphsDream','CrimsonWitch','NighttimeWhispersInTheEchoingWoods','FragmentOfHarmonicWhimsy','LongNightsOath','RetracingBolide'];
 export const AUTO_EQUIPMENT_BUFFS=new Set(['ThrillingTalesOfDragonSlayers','SymphonistOfScents','VodyanitsaSignature','FreedomSworn','XiphosMoonlight','WanderingEvenstar','AThousandFloatingDreams','KeyOfKhajNisut','PeakPatrolSong','AthameArtis','StarcallersWatch','AngelosHeptades','CranesEchoingCall','HakushinRing','SapwoodBlade','Moonpiercer','TenacityOfTheMillelith4','NoblesseOblige4','ScrollOfTheHeroOfCinderCity4','Instructor4','SongOfDaysPast4','ArchaicPetra4','ViridescentVenerer4','DeepwoodMemories4','HeavensGift4','HeartOfTheFurnace4','SpinMoonSerenade','RealmMirrorNight','NightweaversLookingGlass','FracturedHalo']);
@@ -72,8 +73,11 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
  const roots=rotation.roots.slice().sort(order);
  const element=profiles.map(p=>characters[p.character.name].element);
  const capabilities=TEAM_DPS_CHARACTER_CAPABILITIES,hasShield=profiles.some(p=>capabilities[p.character.name]?.shield);
- const state=(role,name,e)=>name==='shield'?(rotation.model==='actions'?profiles.reduce((n,p,j)=>capabilities[p.character.name]?.shield?m.max(n,m.lt(e.time,rotation.characterState?.(j,e)?.shieldUntil??-Infinity)):n,0):hasShield):roots.some(s=>s.kind==='state'&&s.state===name&&s.role===role&&within(s,e,s.durationMs/1000));
+ const state=(role,name,e)=>name==='shield'?(rotation.model==='actions'?m.max(active(pickups.crystals,h=>within(h,e,15)),profiles.reduce((n,p,j)=>capabilities[p.character.name]?.shield?m.max(n,m.lt(e.time,rotation.characterState?.(j,e)?.shieldUntil??-Infinity)):n,0)):hasShield):roots.some(s=>s.kind==='state'&&s.state===name&&s.role===role&&within(s,e,s.durationMs/1000));
  const reactions=equipmentReactionFacts(events.map(h=>({...h,element:equipmentHitElement(profiles[h.role],h)})),element,roots,rotation.reactionFacts,{resolvedOnly:rotation.model==='actions'}),energy=equipmentEnergy(profiles,rotation,{math:m,history}),pickups=equipmentPickups(profiles,rotation,reactions,{math:m,history});
+ const moonLevel=Math.min(2,profiles.filter(p=>characterPackages[p.character.name]?.moonsign).length),doubleGeo=element.filter(el=>el==='Geo').length>=2;
+ const lunarReactions=reactions.filter(h=>h.reaction==='LunarCrystallize');
+ const lunarHits=profiles.map((_,r)=>rotation.events.filter(h=>['reaction.lunarCrystallize','direct.lunarCrystallize'].includes(h.damageModel)).flatMap(h=>h.contributors?h.contributors.filter(c=>c.role===r).map(c=>({...h,enabled:m.mul(h.enabled??1,c.enabled)})):h.role===r?[h]:[]));
  const defaults=defaultWeaponOptions(),manual=(r,n)=>({...defaults[n],...weapon_conditions[r]?.[n]});
  const songs=profiles.map((_,r)=>widsithTriggers(rotation,r));
  const hp=rotation.hpEvents.slice().sort(order);
@@ -185,7 +189,7 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
     FinaleOfTheDeep:()=>({rate1:spaced(roots.filter(h=>h.role===r&&h.kind==='cast'&&h.action==='skill'),10).some(h=>within(h,e,15))?1:0,rate2:0}),
     FlowingPurity:()=>({rate1:spaced(roots.filter(h=>h.role===r&&h.kind==='cast'&&h.action==='skill'),10).some(h=>within(h,e,15))?1:0,rate2:0}),
     LightOfFoliarIncision:()=>({rate:foliar[r].get(eventKey(e))??0}),SturdyBone:()=>({rate:bone[r].get(eventKey(e))??0}),CinnabarSpindle:()=>({rate:spindle[r].get(eventKey(e))??0}),
-    SerenitysCall:()=>({reaction_active:bool(active(ownR,h=>within(h,e,12))),moon_full:false,rate:active(ownR,h=>within(h,e,12)),full_moon:false}),
+    SerenitysCall:()=>({reaction_active:bool(active(ownR,h=>within(h,e,12))),moon_full:moonLevel===2,rate:active(ownR,h=>within(h,e,12)),full_moon:moonLevel===2}),
     WhitelakeFrostfeather:()=>({stacks:count(skill,e,8,3),stack:count(skill,e,8,3),rate:1}),
     NightweaversLookingGlass:()=>({skill_active:['Hydro','Dendro'].includes(element[r])&&bool(active(skill,h=>within(h,e,4.5))),lunar_bloom_active:false,northernmost_runo_active:['Hydro','Dendro'].includes(element[r])&&bool(active(skill,h=>within(h,e,4.5))),crescent_verse_active:false,skill_rate:1,lunar_rate:0,overlap_rate:0}),FracturedHalo:()=>({after_skill_burst:castActive(r,'skill',e,20)||castActive(r,'burst',e,20),has_shield:false}),
    }[n]?.();if(patch)Object.assign(w,patch);
@@ -199,7 +203,7 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
     }
     w.rate=active?1:0;
    }
-   Object.assign(w,conditionalWeaponState(n,r,e,{on,ownHits,ownReactions,activeRole,roots,hp,hit,count,refreshed,castActive,lastCast,entered,before,within,spaced,state,active,math:m,history,profile:p}));
+   Object.assign(w,conditionalWeaponState(n,r,e,{on,ownHits,ownReactions,lunarHits,moonLevel,activeRole,roots,hp,hit,count,refreshed,castActive,lastCast,entered,before,within,spaced,state,active,math:m,history,profile:p}));
    if(['LithicSpear','LithicBlade'].includes(n))w.liyue_count=profiles.filter(p=>capabilities[p.character.name].region==='Liyue').length;
    if(['AlleyHunter','SerpentSpine'].includes(n))w.stack=fieldWeaponState(n,rotation,r,e);
    if(n==='DaybreakChronicles')Object.assign(w,{rate:0,magus:false});
@@ -228,6 +232,9 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
    if(['WavebreakersFin','MouunsMoon','Akuoumaru'].includes(n))w.energy=0;
    if(n==='Slingshot')Object.assign(w,{is_effect:true,rate:0});
    if(n==='Deathmatch')w.ge2=false;
+   if(n==='GoldenFrostboundOath'){
+    w.rate=m.max(active(ownHits[r],h=>h.category==='skill'&&within(h,e,6)),active(lunarHits[r],h=>within(h,e,6)));w.rate2=0;
+   }
    if(n==='MoonweaverDawn'){w.energy_cost=capabilities[p.character.name].energy;w.max_energy=w.energy_cost;}
    if(n==='BlackTassel')w.rate=enemy_is_slime?1:0;
    const aura=auraWeapons[n];
@@ -266,7 +273,7 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
   put('NymphsDream',()=>{const rows=hit(r,e,['normal','charged','plunge','skill','burst'],8),categories=new Set(rows.map(h=>h.category)),stacks=[...categories].reduce((value,cat)=>m.add(value,active(rows,h=>h.category===cat)),0);return {w1:flag(m.eq(stacks,1)),w2:flag(m.eq(stacks,2)),w3:flag(m.ge(stacks,3)),rate:1};});
   put('CrimsonWitchOfFlames',()=>({level:refreshed(roots.filter(h=>h.role===r&&h.kind==='cast'&&h.action==='skill'),e,10,3)}));
   for(const name of ['Lavawalker','Thundersoother','DisenchantmentInDeepShadow'])put(name,()=>({rate:0}));
-  put('FlowerOfParadiseLost',()=>({stack:0}));put('AubadeOfMorningstarAndMoon',()=>({rate:0,is_ascendant_gleam:false}));
+  put('FlowerOfParadiseLost',()=>({stack:0}));put('AubadeOfMorningstarAndMoon',()=>({rate:moonLevel&&(!on||e.time-entered(e.time,e.rootOrder)<3)?1:0,is_ascendant_gleam:moonLevel===2}));
   put('ADayCarvedFromRisingWinds',()=>({rate:active(hit(r,e,['normal','charged','skill','burst'],6)),is_completed_witch_homework:false}));
   put('HuskOfOpulentDreams',()=>({level:huskStacks(profiles,rotation,r,e,m)}));put('NighttimeWhispersInTheEchoingWoods',()=>({rate1:castActive(r,'skill',e,10)?1:0,rate2:0}));
   for(const [name,config]of Object.entries(health.artifactState(r,e)))put(name,()=>(config));
@@ -280,6 +287,17 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
   const any=(name,qualifies)=>profiles.reduce((n,_,j)=>m.max(n,m.choose(qualifies(j),has(j,name),0)),0);
   const stellarWeapon=stellarEquipmentEffect(profiles[r].weapon,e,{math:m,history,rotation,reactions:ownReactions[r],teamReactions:reactions,hits:ownHits[r],casts:roots.filter(h=>h.role===r&&h.kind==='cast'&&h.action==='skill'),elements:element});
   if(stellarWeapon)add(stellarWeapon.label,stellarWeapon.values);
+  if(moonLevel){
+   const faith=any('SpinMoonSerenade',j=>m.max(active(ownHits[j],h=>h.element!=='Physical'&&within(h,e,8)),active(lunarHits[j],h=>within(h,e,8))));
+   const resolve=j=>active(lunarReactions,h=>activeRole(h.time,h.rootOrder)===j&&within(h,e,4));
+   const conviction=any('RealmMirrorNight',resolve);
+   add('纺月的夜歌4',{ElementalMastery:60*moonLevel,EnhanceMoonReaction:.1},faith);
+   add('穹境示现之夜4·月辉明光',{EnhanceMoonReaction:.1},conviction);
+   add('穹境示现之夜4·暴击率',{CriticalBase:.15*moonLevel},and(has(r,'RealmMirrorNight'),resolve(r)));
+  }
+  if(doubleGeo&&rotation.model==='actions'){
+   add('双岩共鸣',{ShieldStrength:.15,BonusBase:activeRole(e.time,e.rootOrder)===r?m.mul(.15,state(r,'shield',e)):0});
+  }
   add('游医2',{IncomingHealingBonus:.2},m.ge(count(r,'TravelingDoctor'),2));
   add('被怜爱的少女4',{IncomingHealingBonus:.2},any('MaidenBeloved',j=>castActive(j,'skill',e,10)||castActive(j,'burst',e,10)));
   add('昔日宗室之仪4',{ATKPercentage:.2},any('NoblesseOblige',j=>castActive(j,'burst',e,12)));
@@ -308,6 +326,10 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
    for(const h of ownReactions[j]){
     const grant=cinderElements(h,element[j],capabilities[profiles[j].character.name]?.nightsoul&&state(j,'nightsoul',{...h,rootOrder:h.rootOrder+.5}));
     if(!grant)continue;for(const el of grant.elements){const a=cinder[el]??[0,0];if(within(h,e,15))a[0]=m.max(a[0],m.choose(and(gate(h),has(j,'ScrollOfTheHeroOfCinderCity')),grant.first,0));if(within(h,e,20))a[1]=m.max(a[1],m.choose(and(gate(h),has(j,'ScrollOfTheHeroOfCinderCity')),grant.second,0));cinder[el]=a;}
+   }
+   if(name==='GoldenFrostboundOath'&&r!==j&&rotation.model==='actions'){
+    const favor=m.max(active(ownHits[j],h=>h.category==='skill'&&within(h,e,6)),active(lunarHits[j],h=>within(h,e,6)));
+    add('霜结的誓金枝',{BonusGeo:.15+.05*refine,EnhanceMoonCrystallize:.15+.05*refine},and(favor,rotation.reactionAt(e).moonCages));
    }
    if(name==='ThrillingTalesOfDragonSlayers'&&ttds[j].some(h=>h.role===r&&within(h,e,10)))add('讨龙英杰谭',{ATKPercentage:thrillingTalesAttack(refine)});
    if(name==='SymphonistOfScents')add('香韵奏者·甘美回奏',{ATKPercentage:symphonistAttack(refine)},sweet(j,r,e));
@@ -365,7 +387,7 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
  }
  function needsIndividualTargets(r,build){
   if(rotation.model!=='actions')return false;
-  return element.includes('Anemo')||!!auraWeapons[profiles[r].weapon.name]||targetSets.some(name=>{const count=execution.setCount?execution.setCount(r,name):build.filter(a=>a.set_name===name).length;return typeof count==='object'||count>=4;});
+  return doubleGeo||element.includes('Anemo')||!!auraWeapons[profiles[r].weapon.name]||targetSets.some(name=>{const count=execution.setCount?execution.setCount(r,name):build.filter(a=>a.set_name===name).length;return typeof count==='object'||count>=4;});
  }
  // These are target conditions, not caster attributes. Only a damage query
  // applies them; ordinary panel reads and cast snapshots remain target-neutral.
@@ -383,6 +405,10 @@ export function createEquipmentAxisRules(profiles,rotation,{frozen=true,weapon_c
  function targetBuffs(build,r,e,ids,builds){
   if(rotation.model!=='actions'||!ids.length)return [];
   const target=rotation.reactionAt(e).targets[ids[0]],out=[];
+  if(doubleGeo&&e.element==='Geo'){
+   const live=active(events.filter(h=>h.onField&&within(h,e,15)&&(!h.targetIds||h.targetIds.includes(ids[0]))).map(h=>({...h,enabled:and(gate(h),state(h.role,'shield',h))})));
+   out.push(equipmentEffect('双岩共鸣',{ResMinusGeo:m.mul(.2,live)}));
+  }
   for(const el of ['Cryo','Electro','Hydro']){
    let enabled=0;
    for(let j=0;j<profiles.length;j++){

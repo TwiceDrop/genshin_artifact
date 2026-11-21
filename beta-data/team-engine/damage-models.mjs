@@ -1,11 +1,12 @@
 import {characterPackages} from './character-packages.mjs';
 import {damageModelId} from './damage-contract.mjs';
 import {stellarConductModel,directStellarSwirlModel,transformativeModels} from './reaction-damage.mjs';
+import {directMoonCrystallize,moonHarmony} from './moon-crystallize-damage.mjs';
 import {stellarSwirlModel} from './stellar-swirl-damage.mjs';
 
 // Shared mechanisms (for example a future reaction module) register here;
 // character-specific models live in their character package. Both use one table.
-export const sharedDamageModels=[stellarConductModel,directStellarSwirlModel,stellarSwirlModel,...transformativeModels];
+export const sharedDamageModels=[directMoonCrystallize,moonHarmony,stellarConductModel,directStellarSwirlModel,stellarSwirlModel,...transformativeModels];
 
 // Installed JS definitions are compiled once with the team, never supplied as
 // executable code in an axis. Each candidate supplies fresh stateful services.
