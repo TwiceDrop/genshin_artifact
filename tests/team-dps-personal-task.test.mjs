@@ -13,7 +13,7 @@ import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../beta-data/team-
 import {AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS} from '../beta-data/equipment-axis-rules.mjs';
 import * as equipment from '../beta-data/team-dps-equipment-support.mjs';
 import * as options from '../beta-data/team-dps-weapon-options.mjs';
-import {changeTeamConstellation} from '../beta-data/team-dps-character-rules.mjs';
+import {changeTeamConstellation,defaultTeamCharacter} from '../beta-data/team-dps-character-rules.mjs';
 import {teamDpsObjectiveValue} from '../beta-data/team-dps-numeric-rules.mjs';
 import * as resultView from '../beta-data/team-dps-result-view.mjs';
 import {normalizeEnemy} from '../beta-data/enemy-interface.mjs';
@@ -28,7 +28,7 @@ test('personal task survives remount and UID changes, preserves snapshots and re
  let script=fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/TeamDpsPage.vue',import.meta.url),'utf8').match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'');
  script+='\nglobalThis.ui={members,names,initialHp,budget,count,selectedIndex,output,resultContext,weaponConditions,sortMetric,objective,sortedResults,saveTask,changeTeamConstellation};';
  function mount(axis=importedAxis()){
-  const close=[],scope=effectScope(),env={characterPackages,...equipment,...options,...resultView,normalizeEnemy,...teamDpsHistoryStandIns(),changeTeamConstellation,teamDpsObjectiveValue,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,ref,shallowRef,computed,watch,nextTick,
+  const close=[],scope=effectScope(),env={characterPackages,...equipment,...options,...resultView,normalizeEnemy,...teamDpsHistoryStandIns(),changeTeamConstellation,defaultTeamCharacter,teamDpsObjectiveValue,AUTO_WEAPON_FIELDS,AUTO_ARTIFACT_SETS,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,ref,shallowRef,computed,watch,nextTick,
    defineProps:()=>({configuration:axis,taskKey:7,tasks}),defineEmits:()=>((_,e)=>{assert.equal(e.key,7);assert.equal(e.accountId,1);tasks[e.uid]=structuredClone(e.state);}),
    onBeforeUnmount:f=>close.push(f),onDeactivated:()=>{},onActivated:()=>{},recordUsage:()=>{},recordCharacterUsage:()=>{},usageStatsDebugInfo:()=>({}),patchDebugInfo:()=>({}),usePresetStore:()=>presets,useArtifactStore:()=>inventory,useMiyousheStore:()=>mys,useAccountStore:()=>account,useEnemy:()=>({enemyConfig:ref({level:90})}),
    characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],weaponByType:{Sword:[],Polearm:[],Catalyst:[]},upgradeArtifactConfig:x=>x,convertArtifactName:x=>x,
