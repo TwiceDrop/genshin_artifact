@@ -1,7 +1,6 @@
 <template>
-    <!-- 托管网页版每次打开都提示。 -->
     <el-dialog v-model="visible" title="版本迁移通知" :width="deviceIsPC ? '480px' : '92%'" :show-close="false" append-to-body @closed="onClosed">
-        <p class="web-version-notice">莫娜占卜铺正逐步迁移至本地程序版，{{ displayVersion }} 将是托管网页版的最后一个更新版本。请及时备份网页版中的全部数据，并将备份导入本地程序版。</p>
+        <p class="web-version-notice">莫娜占卜铺正逐步迁移至本地程序版。请及时备份网页版中的全部数据，并将备份导入本地程序版。</p>
         <p class="web-version-notice">您可以通过登录莫娜占卜铺同步数据，或在设置页选择「导出数据」进行迁移。</p>
         <p class="web-version-notice">您可以点击下方按钮加入 QQ 群下载本地程序版，也可以前往 CNB 或 GitHub 下载。</p>
         <div class="web-version-links">
@@ -23,8 +22,7 @@ import {isNative} from '@/platform/native.mjs'
 import {shouldShowWebVersionNotice} from '@/platform/web-version.mjs'
 import {deviceIsPC} from '@/utils/device'
 
-const displayVersion = process.env.MONA_VERSION
-const visible = ref(shouldShowWebVersionNotice({native: isNative, hostname: location.hostname}))
+const visible = ref(shouldShowWebVersionNotice({native: isNative, tauri: window.__MONA_TAURI__ === true}))
 const router = useRouter()
 let exportRequested = false
 
