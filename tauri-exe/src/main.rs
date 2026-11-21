@@ -20,7 +20,7 @@ use windows_sys::Win32::{
 };
 
 const PAYLOAD: &[u8] = include_bytes!("../payload.tar.gz");
-const BUILD_REVISION: &str = "20261121-7206-r2";
+const PAYLOAD_REVISION: &str = env!("MONA_PAYLOAD_SHA256");
 // Fixed: the port is part of the WebView storage origin, so changing it loses saved data.
 const PORT: u16 = 47504;
 
@@ -63,12 +63,12 @@ fn prepare_update(runtime: &Path, data: &Path, server_pid: u32, request: &str) -
 
 fn start_backend(app: tauri::AppHandle, root: &Path, data: &Path) -> Result<Backend, Box<dyn Error>> {
     fs::create_dir_all(data)?;
-    let runtime = root.join(BUILD_REVISION);
+    let runtime = root.join(PAYLOAD_REVISION);
     if !runtime.join(".ready").is_file() {
         fs::create_dir_all(&runtime)?;
         let gzip = flate2::read::GzDecoder::new(Cursor::new(PAYLOAD));
         tar::Archive::new(gzip).unpack(&runtime)?;
-        fs::write(runtime.join(".ready"), BUILD_REVISION)?;
+        fs::write(runtime.join(".ready"), PAYLOAD_REVISION)?;
     }
     let stderr = OpenOptions::new().create(true).append(true).open(data.join("backend.log"))?;
     let mut child = Command::new(runtime.join("runtime/node.exe"))
