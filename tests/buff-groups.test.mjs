@@ -1,9 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import buffs from '../src/assets/_gen_buff.js'
+import characters from '../src/assets/_gen_character.js'
 import { groupCharacterBuffs, characterBuffProfile, buffAvailability, bindBuffConfig, availableCharacterBuffs, groupSelectedBuffs } from '../src/algorithms/buff-groups/index.mjs'
-const read = name => JSON.parse(fs.readFileSync(new URL(`../src/assets/_gen_${name}.js`,import.meta.url),'utf8').replace(/^.*\nexport default /,'').trim().replace(/;$/,''))
-const buffs = read('buff'), characters = read('character')
 const rules = JSON.parse(fs.readFileSync(new URL('../src/algorithms/buff-groups/ownership.json',import.meta.url)))
 
 test('bulk addition excludes locked constellations and existing buffs, including repeat clicks', () => {
@@ -33,12 +33,15 @@ test('selected character grouping preserves editable entries, IDs and disabled s
     assert.strictEqual(grouped.other[0],entries[3])
     assert.equal(groupSelectedBuffs(entries.filter(e => e.id !== 2),buffs,rules).characters.length,1)
 })
-test('every published character buff has a reviewed owner and appears exactly once', () => {
+test('every character buff has a reviewed owner and each selectable buff appears exactly once', () => {
     const expected = Object.values(buffs).filter(b => b.genre === 'Character')
     assert.deepEqual(Object.keys(rules).sort(), expected.map(b=>b.name).sort())
     for (const rule of Object.values(rules)) assert.ok(characters[rule.character] || rule.character === 'Traveler')
     const groups = groupCharacterBuffs(Object.values(buffs), rules)
-    assert.equal(groups.flatMap(g=>g.buffs).length, expected.length)
+    // Old presets can contain the combined Mitya buff. The picker offers its individual effects.
+    assert.equal(buffs.MityaSupport.selectable, false)
+    const selectable = expected.filter(b => b.selectable !== false).map(b => b.name)
+    assert.deepEqual(groups.flatMap(g => g.buffs.map(b => b.name)).sort(), selectable.sort())
     assert.equal(groups.find(g=>g.character==='Odette').buffs.length,6)
     assert.ok(groups.every(g=>g.character !== 'Unmapped'))
 })
