@@ -784,7 +784,7 @@ import {weaponData} from '@weapon'
 import {attributeComparison} from '@/algorithms/attribute-comparison.mjs'
 import {rosterAttributes} from '@/algorithms/roster-attributes.mjs'
 import {generateDsl} from '@/algorithms/dsl-generator.mjs'
-import {isDirectDamageReaction, visibleDamageReactionKeys} from '@/algorithms/reaction-labels.mjs'
+import {directReactionSkillIndices} from '@/algorithms/direct-reaction-skills.mjs'
 import type {ComputedRef} from 'vue'
 import {useTargetFunction} from "@/composables/targetFunction"
 import type {ArtifactPosition, IArtifact, IArtifactWasm} from "@/types/artifact"
@@ -1750,15 +1750,9 @@ const damageSkillGroups = computed(() => {
         items: group.items.filter(hit => mode.available(hit.index)),
     })).filter(group => group.items.length)
 })
-const directReactionSkills = computed(() => {
-    const indices = new Set<number>()
-    for (const group of damageSkillGroups.value) {
-        for (const hit of group.items) {
-            if (visibleDamageReactionKeys(skillCalculation(hit.index).value).some(isDirectDamageReaction)) indices.add(hit.index)
-        }
-    }
-    return indices
-})
+const directReactionSkills = computed(() => directReactionSkillIndices(
+    characterName.value, damageSkillGroups.value, (index: number) => skillCalculation(index).value,
+))
 watch([damageSkillGroups, characterSkillIndex], ([groups, index]) => {
     const mode = damageMode.value
     if (!mode || groups.some(group => group.items.some(hit => hit.index === index))) return
