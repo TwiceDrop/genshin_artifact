@@ -1,4 +1,4 @@
-import { avatars, weaponNames, artifactSetNames } from './enka-catalog.mjs'
+import { avatars, weaponNames, enkaArtifactSetName } from './enka-catalog.mjs'
 
 const positions = { EQUIP_BRACER: 1, EQUIP_NECKLACE: 2, EQUIP_SHOES: 3, EQUIP_RING: 4, EQUIP_DRESS: 5 }
 const properties = {
@@ -12,7 +12,7 @@ function property(id, value) {
 }
 function relic(item) {
     const flat = item.flat, main = flat.reliquaryMainstat
-    return { id: item.itemId, pos: positions[flat.equipType], icon: flat.icon, set: { name: artifactSetNames[flat.setNameTextMapHash] },
+    return { id: item.itemId, pos: positions[flat.equipType], icon: flat.icon, set: { name: enkaArtifactSetName(flat.setId, flat.setNameTextMapHash) },
         rarity: flat.rankLevel, level: item.reliquary.level - 1, main_property: property(main?.mainPropId, main?.statValue),
         sub_property_list: (flat.reliquarySubstats || []).map(stat => property(stat.appendPropId, stat.statValue)) }
 }

@@ -56,6 +56,15 @@ test('public showcase maps talents, ascension, refinement and equipped artifact 
     validateUidPackage({ format: 'mona-uid', version: 1, uid, characters: [{ entry: { uid, key }, preset }],
         snapshot, history: [], artifacts: [] }, catalog)
 })
+test('showcase relics use the stable set ID when the upstream text hash changes', () => {
+    const data = showcase()
+    const item = data.avatarInfoList[0].equipList[1]
+    Object.assign(item.flat, { setId: 15031, icon: 'UI_RelicIcon_15031_4', setNameTextMapHash: '1249831355' })
+    const snapshot = enkaSnapshot(uid, data, catalog)
+    assert.equal(snapshot.characters[0].relics[0].set.name, '逐影猎人')
+    const { gear } = createMysConverter(catalog).character(snapshot.characters[0], uid, snapshot.source)
+    assert.equal(gear[0].setName, 'MarechausseeHunter')
+})
 test('private or empty showcases report no data, and a missing character does not block supported characters', () => {
     assert.throws(() => enkaSnapshot(uid, { playerInfo: {} }, catalog), /公开角色详情/)
     const data = showcase()
