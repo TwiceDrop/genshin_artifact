@@ -2098,7 +2098,7 @@ dependencies = [
 
 [[package]]
 name = "mona-tauri"
-version = "7.2.6-hotfix1"
+version = "7.2.6-hotfix2"
 dependencies = [
  "flate2",
  "rfd",

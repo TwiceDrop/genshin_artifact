@@ -1,6 +1,6 @@
 {
   "name": "genshin_artifacts",
-  "version": "7.2.6-hotfix1",
+  "version": "7.2.6-hotfix2",
   "private": true,
   "scripts": {
     "start": "node server/local.mjs",
@@ -69,6 +69,6 @@
     "unplugin-icons": "^0.14.5",
     "unplugin-vue-components": "^0.19.6"
   },
-  "displayVersion": "7.2.06-hotfix1",
-  "updateVersion": "7.2.06.01"
+  "displayVersion": "7.2.06.02",
+  "updateVersion": "7.2.06.02"
 }

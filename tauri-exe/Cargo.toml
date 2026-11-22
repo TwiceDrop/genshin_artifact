@@ -1,6 +1,6 @@
 [package]
 name = "mona-tauri"
-version = "7.2.6-hotfix1"
+version = "7.2.6-hotfix2"
 edition = "2021"
 description = "莫娜占卜铺 Tauri 2"
 license = "MIT"
