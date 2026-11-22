@@ -20,6 +20,14 @@ export const ADDITIONAL_DAMAGE_REACTIONS = Object.freeze([
     ...STELLAR_DAMAGE_REACTIONS,
 ])
 
+const DIRECT_DAMAGE_REACTIONS = Object.freeze([
+    ...STELLAR_DAMAGE_REACTIONS, 'direct_moonelectro', 'direct_mooncrystallize', 'direct_moonbloom',
+])
+
+export function isDirectDamageReaction(key) {
+    return DIRECT_DAMAGE_REACTIONS.includes(key)
+}
+
 export function damageReactionLabel(key) {
     return DAMAGE_REACTION_LABELS[key] || '其他伤害'
 }
@@ -54,7 +62,7 @@ export function stellarDamageResults(analysis = {}) {
 export function visibleDamageReactionKeys(analysis = {}) {
     analysis ||= {}
     const finite = key => Number.isFinite(analysis[key]?.expectation)
-    const direct = ['direct_stellarconduct', 'direct_stellarswirl', 'direct_moonelectro', 'direct_mooncrystallize', 'direct_moonbloom'].filter(finite)
+    const direct = DIRECT_DAMAGE_REACTIONS.filter(finite)
     if (direct.length) return direct
     const keys = ['normal', 'melt', 'vaporize', 'spread', 'aggravate']
     return keys.filter(finite)

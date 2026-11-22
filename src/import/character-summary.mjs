@@ -6,6 +6,10 @@ const ELEMENT_ALIAS = { Fire: 'Pyro', Water: 'Hydro', Wind: 'Anemo', Electric: '
 const WEAPON_NAMES = { Sword: '单手剑', Claymore: '双手剑', Polearm: '长柄武器', Bow: '弓', Catalyst: '法器' }
 const shownNumber = value => value !== undefined && value !== null && Number.isFinite(Number(value)) ? String(Number(value)) : '—'
 
+export function isPickerCharacter(name, label) {
+    return !name?.startsWith('Manekin') && !/^奇偶(?:$|\s*[·・])/.test(label || '')
+}
+
 export function fourPieceSet(gear, artifacts, locale) {
     const counts = new Map(), positions = new Set()
     for (const item of gear) {
@@ -33,6 +37,7 @@ export function characterSummary(entry, { preset, raw, characters, weapons, arti
         : (raw?.relics || []).map(r => ({ position: r.pos, setName: r.set?.name || Object.keys(artifacts).find(k => ['flower', 'feather', 'sand', 'cup', 'head'].some(p => locale[artifacts[k][p]?.text] === r.name)) }))
     return {
         key: entry.key, uid: entry.uid, presetName: entry.presetName, label,
+        characterName: meta?.name, avatar: meta?.avatar || raw?.base?.icon,
         splash: meta?.splash || meta?.avatar || raw?.base?.icon || '',
         element, elementLabel: ELEMENT_NAMES[element] || '未知元素', weaponType: WEAPON_NAMES[meta?.weapon] || '未知武器类型',
         constellation: shownNumber(character?.constellation ?? entry.constellation ?? raw?.base?.actived_constellation_num),

@@ -37,6 +37,11 @@ function equipmentStats(record, level, ascend) {
     return {values, stage}
 }
 
+export function weaponBaseStats({name, level, ascend}) {
+    const arm = catalog.weapons[name]
+    return equipmentStats(arm, Math.min(level, arm.maxLevel), ascend).values
+}
+
 // This is the character roster's Details view. Only direct stat properties from
 // the game tables apply here. Combat abilities, conversions and party effects
 // are evaluated by the damage kernel, never by this display calculation.
@@ -44,14 +49,14 @@ export function rosterAttributes({character, weapon, artifacts}) {
     const unit = catalog.characters[character.name]
     const arm = catalog.weapons[weapon.name]
     const characterStats = equipmentStats(unit, character.level, character.ascend)
-    const weaponStats = equipmentStats(arm, Math.min(weapon.level, arm.maxLevel), weapon.ascend)
+    const weaponStats = weaponBaseStats(weapon)
     const result = Object.fromEntries(Object.values(panelKeys).map(key => [key, {}]))
     const base = {}
     for (const [prop, key] of Object.entries(baseKeys)) {
         base[key] = characterStats.values[prop]
         result[key][baseLabels[key]] = base[key]
     }
-    const weaponAttack = weaponStats.values.FIGHT_PROP_BASE_ATTACK
+    const weaponAttack = weaponStats.FIGHT_PROP_BASE_ATTACK
     base.atk += weaponAttack
     result.atk['武器基础攻击'] = weaponAttack
     result.critical['初始值'] = 0.05
@@ -69,7 +74,7 @@ export function rosterAttributes({character, weapon, artifacts}) {
         for (const [prop, value] of Object.entries(properties)) add(prop, value, label)
     }
     addGroup(characterStats.values, '角色副属性')
-    addGroup(weaponStats.values, '武器副词条')
+    addGroup(weaponStats, '武器副词条')
     for (const effect of unit.fixed) {
         if (effect.constellation !== undefined && character.constellation >= effect.constellation)
             addGroup(effect.stats, '命之座')

@@ -305,10 +305,18 @@
         </el-dialog>
 
         <el-dialog v-model="showDefaultCharacters" custom-class="cx-scope viewport-dialog" title="默认角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
-            <default-character-picker v-if="showDefaultCharacters" @select="selectDefaultCharacter" />
+            <default-character-picker v-if="showDefaultCharacters" @select="name => pendingCharacterSwitch = { source: 'default', name }" />
         </el-dialog>
         <el-dialog v-model="showMyCharacters" custom-class="cx-scope viewport-dialog" title="米游社 · 选择角色" :width="deviceIsPC ? 'min(1000px, 94vw)' : '96%'" destroy-on-close>
-            <miyoushe-character-picker v-if="showMyCharacters" @apply="name => { usePreset(name); showMyCharacters = false }" />
+            <miyoushe-character-picker v-if="showMyCharacters" @apply="name => pendingCharacterSwitch = { source: 'saved', name }" />
+        </el-dialog>
+        <el-dialog :model-value="!!pendingCharacterSwitch" @update:model-value="open => { if (!open) pendingCharacterSwitch = null }"
+            custom-class="cx-scope" title="切换角色" width="min(400px, 92vw)">
+            是否保留当前 BUFF、圣遗物等计算条件？
+            <template #footer>
+                <el-button @click="finishCharacterSwitch(false)">{{ pendingCharacterSwitch?.source === 'saved' ? '否，使用角色预设' : '否，清空' }}</el-button>
+                <el-button type="primary" @click="finishCharacterSwitch(true)">是，保留</el-button>
+            </template>
         </el-dialog>
         <el-alert v-if="betaCalculationError" type="error" :closable="false" show-icon :title="betaCalculationError" style="margin-bottom:16px" />
         <div class="calc-content cx-scope" data-theme="mist">
@@ -439,7 +447,7 @@
                                 <div class="calc-field"><span>武器等级</span><select-weapon-level v-model="weaponLevel" aria-label="武器等级" /></div>
                                 <label class="calc-field"><span>{{ t('misc.refine') }}</span><el-input-number v-model="weaponRefine" controls-position="right" :min="1" :max="weaponMaxRefine" :aria-label="t('misc.refine')" /></label>
                             </div>
-                            <weapon-display :weapon-name="weaponName" />
+                            <weapon-display :weapon="weaponInterface" />
                             <div class="weapon-extra-config" v-if="weaponNeedConfig">
                                 <item-config
                                     v-model="weaponConfig"
@@ -576,7 +584,7 @@
                 :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
                 @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
             <div class="calc-workspace">
-                <character-hero-card class="hero-row" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
+                <character-hero-card class="hero-row" :character-name="characterName" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
                     :element-label="t('ele', scoreCharacters[characterName].element)" :avatar="scoreCharacters[characterName].avatar"
                     :splash="scoreCharacters[characterName].splash" :level="characterLevel" :constellation="characterConstellation"
                     :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon"
@@ -667,7 +675,7 @@
                     </template>
                 </character-hero-card>
                 <div class="calc-editor">
-                        <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" @details="handleDisplayAnalysis">
+                        <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" :direct-reaction-skills="directReactionSkills" @details="handleDisplayAnalysis">
                             <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
                             <damage-panel v-if="!betaCalculationError && characterDamageAnalysis" layout="feature"
                                 :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
@@ -745,6 +753,7 @@ import SelectedBuffGroups from '@/components/display/SelectedBuffGroups.vue'
 import { protectedPresetArtifactIds, artifactGroupCharacterNames } from '@/algorithms/artifact-ownership.mjs'
 import { deriveSingleTeamContext } from '@/algorithms/single-team-context.mjs'
 import WeaponDisplay from "@/components/display/WeaponDisplay.vue"
+import {weaponEffectSummary} from '@/algorithms/weapon-effect-summary.mjs'
 import SaveAsKumi from "./SaveAsKumi.vue"
 import TransformativeDamage from "./TransformativeDamage"
 import ValueDisplay from "./ValueDisplay"
@@ -754,7 +763,7 @@ import ArtifactConfig from "./ArtifactConfig.vue"
 import DamageAnalysis from "@/components/display/DamageAnalysis"
 import {useCharacter, useCharacterSkill} from "@/composables/character"
 import {isTraveler, travelerElements} from '../../../beta-data/traveler-model.mjs'
-import {useEnemy} from "@/composables/enemy"
+import {newEnemyConfig, useEnemy} from "@/composables/enemy"
 import {useCharacterWeapon} from "@/composables/weapon"
 import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
 import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
@@ -771,6 +780,8 @@ import {weaponData} from '@weapon'
 import {attributeComparison} from '@/algorithms/attribute-comparison.mjs'
 import {rosterAttributes} from '@/algorithms/roster-attributes.mjs'
 import {generateDsl} from '@/algorithms/dsl-generator.mjs'
+import {isDirectDamageReaction, visibleDamageReactionKeys} from '@/algorithms/reaction-labels.mjs'
+import type {ComputedRef} from 'vue'
 import {useTargetFunction} from "@/composables/targetFunction"
 import type {ArtifactPosition, IArtifact, IArtifactWasm} from "@/types/artifact"
 import IconEpCaretRight from "~icons/ep/caret-right"
@@ -782,14 +793,14 @@ import IconEpFolder from "~icons/ep/folder"
 import IconEpLock from "~icons/ep/lock"
 import IconEpUnlock from "~icons/ep/unlock"
 import {useComputeConstraint} from "@/composables/constraint"
-import {BuffEntry, useBuff} from "@/composables/buff"
+import {useBuff} from "@/composables/buff"
 import {type PresetEntry, usePresetStore} from "@/store/pinia/preset"
 import {useArtifactStore} from "@/store/pinia/artifact"
 import type {IPreset, ITeamContextSource} from "@/types/preset"
 import {RandomIDProvider} from "@/utils/idProvider"
 import {use5Artifacts} from "@/composables/artifact"
 import {positions} from "@/constants/artifact"
-import {positionToIndex, displayedTag, displayedTagParts} from "@/utils/artifacts"
+import {positionToIndex, displayedTag, displayedTagParts, newDefaultArtifactConfigForWasm} from "@/utils/artifacts"
 import {useMona} from "@/wasm/mona"
 import {useKumiStore} from "@/store/pinia/kumi"
 import SimpleLoading from "@/components/loading/SimpleLoading.vue"
@@ -815,6 +826,7 @@ const DefaultCharacterPicker = defineAsyncComponent(() => import('@/components/s
 const MiyousheCharacterPicker = defineAsyncComponent(() => import('@/components/import/MiyousheCharacterPicker.vue'))
 const showMyCharacters = ref(false)
 const showDefaultCharacters = ref(false)
+const pendingCharacterSwitch = ref<{ source: 'default' | 'saved', name: string } | null>(null)
 // 配装前穿着的五件（圣遗物 ID），供「恢复原装备」使用；从计算历史恢复的结果没有这份记录
 const preOptimizationIds = ref<number[] | null>(null)
 const optimizeSettingsOpen = ref(false)
@@ -828,7 +840,8 @@ onDeactivated(() => {
     optimizeSettingsOpen.value = characterDrawerOpen.value = weaponDrawerOpen.value = false
     artifactsDrawerOpen.value = attributesDrawerOpen.value = false
     buffDrawerOpen.value = teammateDrawerOpen.value = enemyDrawerOpen.value = false
-    showDefaultCharacters.value = false
+    pendingCharacterSwitch.value = null
+    showMyCharacters.value = showDefaultCharacters.value = false
 })
 // 角色卡各入口打开对应抽屉；圣遗物卡片直接打开评分详情。
 function openHeroSection(section: string) {
@@ -900,11 +913,30 @@ const {
     characterLocale,
 } = useCharacter()
 
-function selectDefaultCharacter(name: string) {
-    characterName.value = name
-    characterConstellation.value = 0
-    characterSkill1.value = characterSkill2.value = characterSkill3.value = 8
-    showDefaultCharacters.value = false
+function finishCharacterSwitch(keepConditions: boolean) {
+    const selection = pendingCharacterSwitch.value
+    if (!selection) return
+    if (!keepConditions) {
+        buffs.value = []
+        teamContextSources.value = []
+        teamContextStellarMode.value = false
+        restoredTeamContext.value = null
+        enemyConfig.value = newEnemyConfig()
+        fumo.value = 'None'
+        clearArtifacts()
+        artifactConfig.value = newDefaultArtifactConfigForWasm()
+        artifactEffectMode.value = 'auto'
+    }
+    if (selection.source === 'saved') {
+        usePreset(selection.name, undefined, keepConditions ? 'current' : 'preset')
+    } else {
+        resetArtifactComparison(keepConditions)
+        characterName.value = selection.name
+        characterConstellation.value = 0
+        characterSkill1.value = characterSkill2.value = characterSkill3.value = 8
+    }
+    pendingCharacterSwitch.value = null
+    showMyCharacters.value = showDefaultCharacters.value = false
 }
 
 const {
@@ -1177,53 +1209,39 @@ function getPresetItem() {
     return snapshotPreset(item) as IPreset
 }
 
-function usePreset(name: string, historyItem?: IPreset) {
+function usePreset(name: string, historyItem?: IPreset, conditions: 'preset' | 'current' = 'preset') {
     const entry: PresetEntry = presetStore.presets.value[name]
     if (!historyItem && (!entry || !entry.item)) {
         return
     }
 
-    resetArtifactComparison()
+    resetArtifactComparison(conditions === 'current')
 
     const saved = historyItem || entry.item
     const item = restorePresetConfiguration(saved)
-    artifactEffectMode.value = item.artifactEffectMode ?? (saved.artifactConfig || saved.singleConfig ? 'custom' : 'auto')
     optimizationMode.value = item.optimizationMode ?? 'damage'
     panelSearchOptions.value = item.panelSearch ? deepCopy(item.panelSearch) : newPanelSearchOptions()
-    if (item.artifactIds) {
-        artifactIds.value = [0, 1, 2, 3, 4].map(i => historyItem || artifactStore.getArtifact(item.artifactIds![i]) ? item.artifactIds![i] : -1)
-    }
-
-    const idGenerator = new RandomIDProvider()
-
-    // use buffs
-    if (item.buffs) {
-        const newBuffs: BuffItem[] = []
-        for (let buff of item.buffs) {
-            const newBuff: BuffEntry = {
-                id: idGenerator.generateId(),
-                name: buff.name,
-                config: buff.config,
-                lock: buff.lock,
-                source_id: buff.source_id,
-                source_character: buff.source_character,
-                source_effect: buff.source_effect,
-            }
-            newBuffs.push(newBuff)
+    if (conditions === 'preset') {
+        artifactEffectMode.value = item.artifactEffectMode ?? (saved.artifactConfig || saved.singleConfig ? 'custom' : 'auto')
+        artifactConfig.value = item.singleConfig
+        if (item.artifactIds) {
+            artifactIds.value = [0, 1, 2, 3, 4].map(i => historyItem || artifactStore.getArtifact(item.artifactIds![i]) ? item.artifactIds![i] : -1)
         }
-        buffs.value = newBuffs
+        if (item.buffs) {
+            const idGenerator = new RandomIDProvider()
+            buffs.value = item.buffs.map(buff => ({...buff, id: idGenerator.generateId()}))
+        }
+        teamContextSources.value = Array.isArray(item.teamContext) ? deepCopy(item.teamContext) : []
+        teamContextStellarMode.value = item.teamContextStellarMode === true
+        enemyConfig.value = item.enemy!
+        fumo.value = item.infusion!
     }
-    teamContextSources.value = Array.isArray(item.teamContext) ? deepCopy(item.teamContext) : []
-    teamContextStellarMode.value = item.teamContextStellarMode === true
 
     applyPresetIdentity(item, {
         characterName, characterLevel, characterConstellation, characterSkill1, characterSkill2, characterSkill3, characterConfig, travelerResonance,
     }, {weaponName, weaponLevel, weaponRefine, weaponConfig})
-    enemyConfig.value = item.enemy!
-    fumo.value = item.infusion!
     characterSkillIndex.value = item.skill!.index
     characterSkillConfig.value = item.skill!.config
-    artifactConfig.value = item.singleConfig
 
     // use target function
     const tf = item.targetFunction
@@ -1341,7 +1359,7 @@ async function handleSelectBuff(name: string, options?: { config?: any, keepOpen
 const showDamageAnalysisDialog = ref(false)
 const damageAnalysisComponent = ref<null | InstanceType<typeof DamageAnalysis>>(null)
 
-const damageAnalysisWasmInterface = computed(() => {
+const damageAnalysisContext = computed(() => {
     // console.log("123")
     return {
         character: characterInterface.value,
@@ -1350,22 +1368,33 @@ const damageAnalysisWasmInterface = computed(() => {
         ...(restoredTeamContext.value ? {team_context:restoredTeamContext.value} : teamContextSources.value.length ? {team_context:teamContextResult.value.team_context} : {}),
         artifacts: artifactWasmFormat.value,
         artifact_config: artifactConfig.value,
-        skill: characterSkillInterface.value,
         enemy: enemyInterface.value,
     }
 })
 
-const damageCalculation = computed(() => {
+const damageAnalysisWasmInterface = computed(() => ({...damageAnalysisContext.value, skill: characterSkillInterface.value}))
+
+function calculateSkillDamage(index: number) {
     try {
-    let fumo2 = null
-    if (fumo.value !== "None") {
-        fumo2 = fumo.value
+        const input = {...damageAnalysisContext.value, skill: {index, config: characterSkillConfig.value}}
+        const value = mona.CalculatorInterface.get_damage_analysis(input, fumo.value === 'None' ? null : fumo.value)
+        return {value, error: ''}
+    } catch (error: any) {
+        return {value: null, error: error.message || String(error)}
     }
-    const temp = mona.CalculatorInterface.get_damage_analysis(damageAnalysisWasmInterface.value, fumo2)
-    // console.log(temp)
-    return { value: temp, error: '' }
-    } catch (error: any) { return { value: null, error: error.message || String(error) } }
-})
+}
+
+// The list and the selected result share each hit's analysis. Changing the selection reuses it.
+const skillCalculations = new Map<number, ComputedRef<ReturnType<typeof calculateSkillDamage>>>()
+function skillCalculation(index: number) {
+    let calculation = skillCalculations.get(index)
+    if (!calculation) {
+        calculation = computed(() => calculateSkillDamage(index))
+        skillCalculations.set(index, calculation)
+    }
+    return calculation.value
+}
+const damageCalculation = computed(() => skillCalculation(characterSkillIndex.value))
 const characterDamageAnalysis = computed(() => damageCalculation.value.value)
 
 const showTransformativeDamage = ref(false)
@@ -1674,8 +1703,8 @@ const heroStats = computed(() => {
 })
 const heroWeapon = computed(() => {
     const data = weaponData[weaponName.value]
-    const effect = data.effect ? String(ta(data.effect)).replace(/<[^>]+>/g, '').split(/[。；]/)[0] : ''
-    return { name: weaponLocale.value, icon: data.url, level: weaponLevel.value, refine: weaponRefine.value, effect }
+    const effect = data.effect ? weaponEffectSummary(ta(data.effect), weaponRefine.value) : ''
+    return { name: weaponLocale.value, icon: data.url, level: weaponLevel.value, refine: weaponRefine.value, effect, equipment: weaponInterface.value }
 })
 // 计算条件卡的三行摘要
 const conditionRows = computed(() => {
@@ -1703,6 +1732,15 @@ function openCondition(key: string) {
 
 // 伤害卡左侧的技能列表
 const damageSkillGroups = computed(() => characterSkillGroups(characterData[characterName.value], ta))
+const directReactionSkills = computed(() => {
+    const indices = new Set<number>()
+    for (const group of damageSkillGroups.value) {
+        for (const hit of group.items) {
+            if (visibleDamageReactionKeys(skillCalculation(hit.index).value).some(isDirectDamageReaction)) indices.add(hit.index)
+        }
+    }
+    return indices
+})
 
 // 顶部条「配装目标」按钮上显示的名字
 const optimizeTargetLabel = computed(() => {
@@ -1832,16 +1870,17 @@ function saveComparisonHistory() {
     const id = recordComparisonHistory('手动保存')
     ElMessage[id ? 'success' : 'warning'](id ? '已保存当前角色配装到对比历史' : '当前没有穿戴圣遗物')
 }
-function resetArtifactComparison() {
+function resetArtifactComparison(keepConditions: boolean) {
     resetComparisonBaseline()
     preOptimizationIds.value = null
-    artifactSnapshot.value = null
-    restoredTeamContext.value = null
+    if (!keepConditions) {
+        artifactSnapshot.value = null
+        restoredTeamContext.value = null
+    }
     panelResultSnapshot.value = null
     optimizationResults.value = []
     optimizationResultIndex.value = 0
 }
-watch(characterName, resetArtifactComparison)
 
 const heroResult = computed(() => {
     const count = optimizationResults.value.length
@@ -2013,7 +2052,7 @@ const optimizationRemaining = computed(() => remainingOptimizationTime(optimizat
 const optimizationStage = computed(() => ({set4:'四件套',set22:'二加二',set2:'两件套',any:'不限套装',enumeration:'逐组搜索',panelCompile:'面板构图'} as Record<string,string>)[optimizationProgress.value.searchStage] || '')
 const numberOfGroups = (value: number | null) => value == null ? '统计中' : value.toLocaleString('zh-CN')
 let optimizationClock: ReturnType<typeof setInterval> | undefined
-onBeforeUnmount(() => { calculationPageActive=false;optimizationInBackground=true;clearInterval(optimizationClock) })
+onBeforeUnmount(() => { calculationPageActive=false;optimizationInBackground=true;optimizationAbortController=undefined;clearInterval(optimizationClock) })
 const optimizationDebugEnabled = ref(false)
 const optimizationDebugRecord = shallowRef<any>(null)
 const optimizationError = ref('')
@@ -2038,6 +2077,8 @@ function handleOptimizeArtifact() {
     const originalEquipment = snapshotEquipment(artifactItems.value)
     const originalIds = [...artifactIds.value]
     const originalKey = comparisonKey.value, originalAccount = accountStore.currentAccountId.value
+    const originalGeneration = accountStore.reloadGeneration.value
+    const originalPreset = miscCurrentPresetName.value
     const originalOwnershipFilter = ownershipFilterKey.value
     const panelMode = optimizationMode.value === 'panel'
     let panelSnapshot: any
@@ -2085,7 +2126,11 @@ function handleOptimizeArtifact() {
         debug?.complete(results); triggerRef(optimizationDebugRecord)
         recordUsage('action.single-optimize')
         recordCharacterUsage('action.single-optimize', [optimizeInterface.character.name])
-        if (optimizationInBackground || !calculationPageActive) return
+        // A background damage search still updates its matching calculator, including a cached page.
+        if (controller !== optimizationAbortController || (panelMode && optimizationInBackground)) return
+        if (optimizationInBackground && (originalGeneration !== accountStore.reloadGeneration.value ||
+            originalPreset !== miscCurrentPresetName.value || optimizationMode.value !== 'damage' ||
+            originalIds.some((id, index) => id !== artifactIds.value[index]))) return
         if (originalKey !== comparisonKey.value || originalAccount !== accountStore.currentAccountId.value || originalOwnershipFilter !== ownershipFilterKey.value) { showOptimizationProgress.value=false; return }
         if (JSON.stringify(panelMode?getPanelOptimizeInterface():getOptimizeArtifactWasmInterface()) !== JSON.stringify(optimizeInterface) || JSON.stringify(getArtifactsToBeCalculated()) !== JSON.stringify(artifacts)) { showOptimizationProgress.value=false; return }
         const end = new Date()

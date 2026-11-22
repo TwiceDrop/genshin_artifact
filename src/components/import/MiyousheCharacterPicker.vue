@@ -18,7 +18,7 @@
         <div class="character-picker-list">
             <button v-for="entry in visibleEntries" :key="entry.key" type="button" class="character-picker-row"
                 :disabled="disabled || !!entry.error" :aria-label="`选择${entry.label}，${entry.uid}`" @click="emit('apply', entry.presetName)">
-                <span class="character-art-frame"><img v-if="entry.splash" class="character-art" :src="entry.splash" :alt="`${entry.label}立绘`" loading="lazy" /></span>
+                <span class="character-art-frame"><CharacterPortrait v-if="entry.splash" class="character-art" :character-name="entry.characterName" :splash="entry.splash" :avatar="entry.avatar" :alt="`${entry.label}立绘`" loading="lazy" /></span>
                 <span class="character-body">
                     <span class="character-identity-line"><strong>{{ entry.label }}</strong><span class="character-element"><img v-if="elementIcons[entry.element]" :src="elementIcons[entry.element]" :alt="`${entry.elementLabel}元素`" />{{ entry.elementLabel }}</span></span>
                     <span class="character-tags"><b>{{ entry.constellation }}命</b><span>{{ entry.weaponType }}</span></span>
@@ -45,8 +45,9 @@ import characters from '@/assets/_gen_character'
 import weapons from '@/assets/_gen_weapon'
 import artifacts from '@/assets/_gen_artifact'
 import locale from '@/i18n/generated/zh-cn.json'
-import { characterSummary, ELEMENT_NAMES } from '@/import/character-summary.mjs'
+import { characterSummary, ELEMENT_NAMES, isPickerCharacter } from '@/import/character-summary.mjs'
 import elementIcons from "@/assets/element-icons"
+import CharacterPortrait from '@/components/display/CharacterPortrait.vue'
 defineProps({ disabled: Boolean })
 const emit = defineEmits(['apply'])
 const element = ref('all')
@@ -59,6 +60,7 @@ const entries = computed(() => store.data.value.entries.map(entry => {
 }))
 const multipleUids = computed(() => new Set(entries.value.map(e => e.uid)).size > 1)
 const uidEntries = computed(() => entries.value.filter(e => String(e.uid) === selectedUid.value))
-const visibleEntries = computed(() => uidEntries.value.filter(e => element.value === 'all' || e.element === element.value))
+const visibleEntries = computed(() => uidEntries.value.filter(e =>
+    isPickerCharacter(e.characterName, e.label) && (element.value === 'all' || e.element === element.value)))
 </script>
 <style scoped src="../select/character-picker.css"></style>

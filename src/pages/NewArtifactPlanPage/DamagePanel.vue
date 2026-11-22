@@ -7,7 +7,7 @@
                 <span v-if="tableData[0].expectation.before !== null" class="feature-before">{{ tableData[0].expectation.before }} →</span>
                 <span class="feature-number" :class="tableData[0].expectation.direction">{{ tableData[0].expectation.current }}</span>
                 <span v-if="tableData[0].expectation.before !== null" class="feature-change" :class="tableData[0].expectation.direction">{{ tableData[0].expectation.delta }}（{{ tableData[0].expectation.percent }}）</span>
-                <span class="feature-tag">{{ tableData[0].name }}</span>
+                <span class="feature-tag" :class="{ 'direct-reaction-tag': isDirectDamageReaction(tableData[0].key) }">{{ tableData[0].name }}</span>
             </div>
             <div class="feature-sub">
                 <div v-for="key in ['critical', 'nonCritical']" :key="key">
@@ -16,7 +16,7 @@
                 </div>
             </div>
             <div v-for="row in tableData.slice(1)" :key="row.name" class="feature-row">
-                <span class="feature-row-name">{{ row.name }}</span>
+                <span class="feature-row-name" :class="{ 'feature-tag direct-reaction-tag': isDirectDamageReaction(row.key) }">{{ row.name }}</span>
                 <span v-for="column in damageColumns" :key="column.key"><small>{{ t(column.label) }}</small><b :class="row[column.key].direction"><template v-if="row[column.key].before !== null"><s>{{ row[column.key].before }}</s> → </template>{{ row[column.key].current }}</b></span>
             </div>
         </div>
@@ -54,7 +54,7 @@
 <script>
 import {sameHitBaseline} from '@/algorithms/single-result-comparison.mjs'
 import { damageComparison } from '@/algorithms/damage-comparison.mjs'
-import { visibleDamageReactionKeys, damageReactionLabel } from '@/algorithms/reaction-labels.mjs'
+import { visibleDamageReactionKeys, damageReactionLabel, isDirectDamageReaction } from '@/algorithms/reaction-labels.mjs'
 import {useI18n} from "@/i18n/i18n";
 
 export default {
@@ -100,6 +100,7 @@ export default {
             return this.visibleKeys.map(key => {
                 const old = sameHitBaseline(this.analysisFromWasm, this.baseline, key) == null ? null : this.baseline[key]
                 return {
+                    key,
                     expectation: damageComparison(this.analysisFromWasm[key].expectation, old?.expectation),
                     critical: damageComparison(this.analysisFromWasm[key].critical, old?.critical),
                     nonCritical: damageComparison(this.analysisFromWasm[key].non_critical, old?.non_critical),
@@ -112,7 +113,7 @@ export default {
         const { t } = useI18n()
 
         return {
-            t
+            t, isDirectDamageReaction
         }
     }
 }
@@ -126,6 +127,12 @@ export default {
 .feature-number { font: 800 72px/1 "Noto Serif SC", "Source Han Serif SC", serif; letter-spacing: -.01em; color: var(--cx-letter); }
 .feature-change { font-size: 16px; font-weight: 600; }
 .feature-tag { align-self: center; height: 26px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--cx-step-2); color: var(--cx-dim); font-size: 12px; }
+.direct-reaction-tag {
+    box-sizing: border-box;
+    border: 1px solid var(--cx-gold);
+    background: var(--cx-gold);
+    color: var(--cx-gold-on);
+}
 .feature-sub { display: flex; flex-wrap: wrap; gap: 12px 40px; }
 .feature-sub span { display: block; color: var(--cx-dim); font-size: 13px; }
 .feature-sub b { font-size: 28px; color: var(--cx-letter); }

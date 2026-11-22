@@ -48,6 +48,8 @@ Windows 安装器的简体中文界面使用 Inno Setup 社区翻译 `installer/
 
 游戏图片、角色/武器/圣遗物名称及资料属于相应权利人，本项目 MIT 许可不覆盖这些权利。
 
+计算器角色卡和角色选择列表共用 `src/images/character-portraits/` 中的竖版立绘。素材来自米游社战绩角色立绘与[《原神》官网角色展示页](https://ys.mihoyo.com/main/character/natlan)的移动端透明立绘。
+
 ## 本次测试服扩展
 
 `mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。

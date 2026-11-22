@@ -10,7 +10,7 @@
                 <div v-for="group in groups" :key="group.title" class="dmg-group">
                     <span class="dmg-group-title">{{ group.title }}</span>
                     <button v-for="skill in group.items" :key="skill.index" type="button"
-                            :class="{ on: skill.index === modelValue }" :aria-pressed="skill.index === modelValue"
+                            :class="{ on: skill.index === modelValue, 'direct-reaction': directReactionSkills.has(skill.index) }" :aria-pressed="skill.index === modelValue"
                             @click="emit('update:modelValue', skill.index)">{{ skill.label }}</button>
                 </div>
             </nav>
@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import type {SkillGroup} from "@/utils/character-skill-groups"
 
-defineProps<{ groups: SkillGroup[], modelValue: number }>()
+defineProps<{ groups: SkillGroup[], modelValue: number, directReactionSkills: Set<number> }>()
 const emit = defineEmits<{ (e: "update:modelValue", value: number): void, (e: "details"): void }>()
 </script>
 
@@ -107,6 +107,8 @@ const emit = defineEmits<{ (e: "update:modelValue", value: number): void, (e: "d
         color: var(--cx-letter);
         font-weight: 600;
     }
+
+    &.direct-reaction { color: var(--cx-gold); }
 }
 
 .dmg-card button:focus-visible {

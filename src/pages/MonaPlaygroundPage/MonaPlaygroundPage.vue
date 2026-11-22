@@ -105,7 +105,7 @@
                         ></select-weapon-level>
                     </div>
 
-                    <weapon-display :weapon-name="weaponName"></weapon-display>
+                    <weapon-display :weapon="weaponInterface"></weapon-display>
 
                     <div class="config-weapon-refine">
                         <h3 class="common-title2">精炼</h3>

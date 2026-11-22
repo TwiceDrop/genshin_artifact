@@ -18,7 +18,10 @@
 .character-picker-row:disabled { cursor: default; opacity: .7; }
 .character-uid:focus-visible, .character-element-tabs button:focus-visible, .character-picker-row:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
 .character-art-frame { flex: none; width: 84px; height: 104px; border-radius: 12px; overflow: hidden; background: var(--cx-step-2); }
-.character-art { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.character-art {
+    display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center;
+    transform-origin: var(--picker-portrait-origin); transform: scale(var(--picker-portrait-zoom));
+}
 .character-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .character-identity-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .character-identity-line strong { font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

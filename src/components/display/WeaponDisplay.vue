@@ -9,7 +9,7 @@
             <div class="detail">
                 <img class="image" :src="data.url" >
                 <div class="detail-body">
-                    <p class="name">{{ ta(nameLocaleIndex) }}</p>
+                    <p class="name">{{ ta(nameLocaleIndex) }}<WeaponBaseStats :weapon="weapon" /></p>
                     <p class="description" v-if="data.effect && ta(effectLocaleIndex)" v-html="ta(effectLocaleIndex)"></p>
                 </div>
 
@@ -20,16 +20,18 @@
 
 <script>
 import { weaponData } from "@weapon"
+import WeaponBaseStats from "./WeaponBaseStats.vue"
 import {useI18n} from "../../i18n/i18n";
 
 export default {
     name: "WeaponDisplay",
+    components: {WeaponBaseStats},
     props: {
-        weaponName: { },
+        weapon: {type: Object, required: true},
     },
     computed: {
         data() {
-            return weaponData[this.weaponName]
+            return weaponData[this.weapon.name]
         },
 
         nameLocaleIndex() {
@@ -81,7 +83,11 @@ p {
         .description {
             margin: 0;
             word-break: break-all;
-            //width: 400px;
+
+            // Generated weapon text sets the refinement color inline.
+            :deep(span[style*="#409eff" i]) {
+                color: var(--cx-gold) !important;
+            }
         }
     }
 }

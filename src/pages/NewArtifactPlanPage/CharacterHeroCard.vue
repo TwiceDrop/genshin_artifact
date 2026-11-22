@@ -16,7 +16,7 @@
             <button v-if="result.canRestore" type="button" class="hero-result-btn ghost" @click="emit('result', 'restore')">恢复原装备</button>
         </div>
         <div class="hero-art" aria-hidden="true">
-            <img :key="portraitSrc" :src="portraitSrc" alt="" @error="portraitFailed = true" />
+            <CharacterPortrait :character-name="characterName" :avatar="avatar" :splash="splash" alt="" />
         </div>
 
         <div class="hero-id">
@@ -37,10 +37,10 @@
             <button type="button" class="hero-weapon" @click="emit('open', 'weapon')">
                 <img :src="weapon.icon" alt="" />
                 <span class="hero-weapon-text">
-                    <span class="hero-weapon-name">{{ weapon.name }}</span>
+                    <span class="hero-weapon-name">{{ weapon.name }}<WeaponBaseStats :weapon="weapon.equipment" /></span>
                     <span class="hero-weapon-sub">Lv {{ weapon.level }} · 精炼 {{ weapon.refine }}<template v-if="weapon.effect"> · {{ weapon.effect }}</template></span>
                 </span>
-                <span class="hero-more">更换 ›</span>
+                <span class="hero-more">设置/更换 ›</span>
             </button>
 
         </div>
@@ -75,7 +75,9 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch, onMounted, onActivated, onDeactivated, onBeforeUnmount} from "vue"
+import CharacterPortrait from "@/components/display/CharacterPortrait.vue"
+import WeaponBaseStats from "@/components/display/WeaponBaseStats.vue"
+import {onMounted, onActivated, onDeactivated, onBeforeUnmount} from "vue"
 import AttributeComposition from "@/components/display/AttributePanel/AttributeComposition.vue"
 
 interface Stat {
@@ -84,6 +86,7 @@ interface Stat {
 }
 
 const props = defineProps<{
+    characterName: string
     name: string
     elementIcon?: string
     elementLabel?: string
@@ -92,7 +95,7 @@ const props = defineProps<{
     level: string
     constellation: number
     talents: number[]
-    weapon: { name: string, icon: string, level: string, refine: number, effect: string }
+    weapon: { name: string, icon: string, level: string, refine: number, effect: string, equipment: { name: string, level: number, ascend: boolean } }
     stats: Stat[]
     // 有配装结果时显示结果条；index 为 0 表示当前不是任何一套候选（如已恢复原装备）
     result?: { index: number, count: number, note: string, detail?: string, error?: string, canRestore: boolean, busy?: boolean } | null
@@ -126,18 +129,6 @@ onMounted(bindResultKeyboard)
 onActivated(bindResultKeyboard)
 onDeactivated(unbindResultKeyboard)
 onBeforeUnmount(unbindResultKeyboard)
-
-// 立绘：米游社头像地址 .../character_icon/UI_AvatarIcon_X.png 对应透明底立绘
-// .../character_image/UI_AvatarIcon_X@2x.png；不是这种地址的角色用自带 splash，
-// 图片加载失败时显示头像（2026-11-15 开发者确认，见 docs/specs/calculator-redesign 决定 4）。
-const portraitFailed = ref(false)
-watch(() => props.avatar, () => { portraitFailed.value = false })
-const portraitSrc = computed(() => {
-    if (portraitFailed.value) return props.avatar
-    const match = /^(https:\/\/upload-bbs\.mihoyo\.com\/game_record\/genshin)\/character_icon\/(UI_AvatarIcon_[A-Za-z0-9_]+)\.png/.exec(props.avatar)
-    if (match) return `${match[1]}/character_image/${match[2]}@2x.png`
-    return props.splash || props.avatar
-})
 </script>
 
 <style lang="scss" scoped>
@@ -237,7 +228,7 @@ const portraitSrc = computed(() => {
         top: -6px;
         width: 320px;
         max-width: none;
-        transform: translateX(-50%);
+        transform: translateX(calc(0% - var(--portrait-focus-x, 50%)));
     }
 
     // 立绘右侧和底部渐隐到夜空色
