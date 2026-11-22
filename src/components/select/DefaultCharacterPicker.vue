@@ -9,7 +9,7 @@
         <div class="character-picker-list">
             <button v-for="character in visibleCharacters" :key="character.name" type="button" class="character-picker-row"
                 :aria-label="`选择${ta(character.nameLocale)}`" @click="emit('select', character.name)">
-                <span class="character-art-frame"><CharacterPortrait class="character-art" :character-name="character.name" :splash="character.splash" :avatar="character.avatar" :alt="`${ta(character.nameLocale)}立绘`" loading="lazy" /></span>
+                <span class="character-art-frame"><CharacterPortrait thumbnail :character-name="character.name" :splash="character.splash" :avatar="character.avatar" :alt="`${ta(character.nameLocale)}立绘`" loading="lazy" /></span>
                 <span class="character-body">
                     <span class="character-identity-line"><strong>{{ ta(character.nameLocale) }}</strong><span class="character-element"><img :src="elementIcons[character.element]" :alt="`${ELEMENT_NAMES[character.element]}元素`" />{{ ELEMENT_NAMES[character.element] }}</span></span>
                     <span class="character-tags"><b>0命</b></span>

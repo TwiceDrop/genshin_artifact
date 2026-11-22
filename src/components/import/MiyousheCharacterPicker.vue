@@ -18,7 +18,7 @@
         <div class="character-picker-list">
             <button v-for="entry in visibleEntries" :key="entry.key" type="button" class="character-picker-row"
                 :disabled="disabled || !!entry.error" :aria-label="`选择${entry.label}，${entry.uid}`" @click="emit('apply', entry.presetName)">
-                <span class="character-art-frame"><CharacterPortrait v-if="entry.splash" class="character-art" :character-name="entry.characterName" :splash="entry.splash" :avatar="entry.avatar" :alt="`${entry.label}立绘`" loading="lazy" /></span>
+                <span class="character-art-frame"><CharacterPortrait v-if="entry.splash" thumbnail :character-name="entry.characterName" :splash="entry.splash" :avatar="entry.avatar" :alt="`${entry.label}立绘`" loading="lazy" /></span>
                 <span class="character-body">
                     <span class="character-identity-line"><strong>{{ entry.label }}</strong><span class="character-element"><img v-if="elementIcons[entry.element]" :src="elementIcons[entry.element]" :alt="`${entry.elementLabel}元素`" />{{ entry.elementLabel }}</span></span>
                     <span class="character-tags"><b>{{ entry.constellation }}命</b><span>{{ entry.weaponType }}</span></span>
