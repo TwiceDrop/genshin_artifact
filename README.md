@@ -1,6 +1,6 @@
 # 莫娜占卜铺
 
-原神圣遗物配装与伤害计算工具。最新正式版 **7.2.06**，提供 Windows Tauri 程序、Windows ZIP 便携包和两种 Android APK。
+原神圣遗物配装与伤害计算工具。最新正式版 **7.2.06.02**，提供 Windows Tauri 程序、Windows 安装器、Windows ZIP 便携包和两种 Android APK。
 
 ## 项目特色
 
@@ -25,14 +25,15 @@
 
 ## 安装说明
 
-在 [CNB 7.2.06 下载页（推荐）](https://cnb.cool/twicedrop/genshin_artifact/-/releases/tag/v7.2.06) 或 [GitHub 7.2.06 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.2.06) 选择对应版本：
+在 [CNB 7.2.06.02 下载页（推荐）](https://cnb.cool/twicedrop/genshin_artifact/-/releases/tag/7.2.06.02) 或 [GitHub 7.2.06.02 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/7.2.06.02) 选择对应版本：
 
 | 平台 | 下载与使用 |
 | --- | --- |
-| Windows 10/11（64 位） | 下载 [CNB Tauri EXE](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v7.2.06/genshin_artifact_V7.2.06_tauri_x64.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.2.06/genshin_artifact_V7.2.06_tauri_x64.exe)），退出旧版后打开下载的 EXE。7.2.05EA 用户需手动替换一次；从 7.2.06 起可在程序内更新。 |
-| Android · 正式版 | 下载 [CNB APK 安装包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v7.2.06/genshin_artifact_V7.2.06_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.2.06/genshin_artifact_V7.2.06_android.apk)），在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
-| Android · mobiletest | 下载 [CNB mobiletest APK](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v7.2.06/genshin_artifact_V7.2.06_mobiletest_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.2.06/genshin_artifact_V7.2.06_mobiletest_android.apk)）。使用独立包名 `com.mona.artifact.local.mobiletest`，可与正式版并存。两版功能相同，数据各自保存，可在设置页导出或导入。 |
-| Windows ZIP 便携版 | 下载 [CNB ZIP 便携包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v7.2.06/genshin_artifact_V7.2.06_web.zip)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.2.06/genshin_artifact_V7.2.06_web.zip)），解压后运行 `启动7.2.06.exe`。ZIP 已附带 Node.js；关闭日志窗口后软件驻留托盘，退出时使用托盘菜单。 |
+| Windows 10/11（64 位） | 下载 [CNB Tauri EXE](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_tauri_x64.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_tauri_x64.exe)），退出旧版后打开下载的 EXE。7.2.05EA 用户需手动替换一次；从 7.2.06 起可在程序内更新。 |
+| Windows 安装版（64 位） | 下载 [CNB 安装器](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_windows_x64_setup.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_windows_x64_setup.exe)），运行后按提示安装。 |
+| Android · 正式版 | 下载 [CNB APK 安装包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_android.apk)），在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
+| Android · mobiletest | 下载 [CNB mobiletest APK](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_mobiletest_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_mobiletest_android.apk)）。使用独立包名 `com.mona.artifact.local.mobiletest`，可与正式版并存。两版功能相同，数据各自保存，可在设置页导出或导入。 |
+| Windows ZIP 便携版 | 下载 [CNB ZIP 便携包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_web.zip)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_web.zip)），解压后运行 `启动7.2.06.02.exe`。ZIP 已附带 Node.js；关闭日志窗口后软件驻留托盘，退出时使用托盘菜单。 |
 
 ## 其他
 
@@ -42,5 +43,5 @@
 - **使用统计**：匿名统计功能和角色的使用情况，不包含 UID、圣遗物或计算配置；首次启动时告知，可随时在设置中关闭。
 - **数据保存**：在「设置 → 导出数据」可备份全部本地账号，导入后各自保存为新账号。浏览器数据按访问地址分别保存，切换端口或浏览器不会自动共享。
 - **HoYoLAB 登录**：当前为官方网页登录，Windows 已完成用户真实登录／同步验证；Android 已完成合成 WebView 测试，真实账号登录待实机验证。Windows 登录窗口需要 Microsoft Edge WebView2 Runtime。
-- **更新说明**：完整改动见 [7.2.06 更新日志](docs/release-7.2.06-final.md)。
+- **更新说明**：完整改动见 [7.2.06.02 更新日志](docs/release-7.2.06.02-final.md)。
 - **开源许可**：许可证见 [LICENSE](LICENSE)，第三方模块说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
