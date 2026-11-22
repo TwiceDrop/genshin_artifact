@@ -1,4 +1,5 @@
 import http from 'node:http'
+import { createEnkaReader } from './enka.mjs'
 import { randomBytes } from 'node:crypto'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -24,6 +25,7 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
     patchStore = new PatchStore({ directory: path.join(process.env.MONA_DATA_DIR || fileURLToPath(new URL('../.local-data/', import.meta.url)), 'patches') }),
     patchUpdater = new PatchUpdater({ store: patchStore }),
     credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
+    const readEnka = createEnkaReader()
     let cloud = cloudGateway
     let patchesActivated
     const sessions = new Map()
@@ -72,6 +74,9 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                 })
             }
             try {
+                if (url.pathname.startsWith('/api/enka/') && req.method === 'GET') {
+                    return json(await readEnka(url.pathname.slice('/api/enka/'.length)))
+                }
                 if (url.pathname === '/api/usage-stats' && req.method === 'POST') {
                     const result = await forwardUsageStats(decodeURIComponent(req.headers['x-mona-usage-stats-url'] || ''), await input(70000))
                     return json(result.data, result.status)

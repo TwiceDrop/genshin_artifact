@@ -1,5 +1,5 @@
 import { selectUidInventory } from './uid-inventory.mjs'
-import { artifactFingerprint } from './miyoushe.mjs'
+import { artifactFingerprint, snapshotSourceName } from './miyoushe.mjs'
 import { levelZeroMatches } from './level-zero-match.cjs'
 const clone = value => JSON.parse(JSON.stringify(value))
 const slots = ['flower', 'feather', 'sand', 'cup', 'head']
@@ -50,7 +50,7 @@ export function validateUidPackage(pack, catalog) {
         if (!keys.has(row.key) || !Array.isArray(row.items) || row.items.length !== 5) fail('对比历史归属无效')
         for (const a of row.items) if (a) artifact(a)
     }
-    if (pack.snapshot && (String(pack.snapshot.role?.uid) !== pack.uid || !['miyoushe', 'hoyolab'].includes(pack.snapshot.source) || pack.snapshot.version !== 1 || !Array.isArray(pack.snapshot.characters))) fail('原始快照 UID 不匹配')
+    if (pack.snapshot && (String(pack.snapshot.role?.uid) !== pack.uid || !['miyoushe', 'hoyolab', 'enka'].includes(pack.snapshot.source) || pack.snapshot.version !== 1 || !Array.isArray(pack.snapshot.characters))) fail('原始快照 UID 不匹配')
     // Reject dangerous object keys even inside nested calculation parameters.
     const inspect = (value, depth = 0) => {
         if (depth > 40) fail('嵌套层数过多')
@@ -95,8 +95,8 @@ export function importUidPackage(pack, { data, presets, inventory, addArtifact, 
         const row = { ...clone(entry), uid: pack.uid, artifactIds: mapIds(entry.artifactIds) }
         if (preset) {
             const existing = Object.values(presets).find(p => p.item.miyousheKey === entry.key)
-            let name = existing?.name || `${pack.snapshot?.source === 'hoyolab' ? 'HoYoLAB' : '米游社'} ${pack.uid} · ${entry.label}`
-            for (let n = 2; !existing && presets[name]; n++) name = `${pack.snapshot?.source === 'hoyolab' ? 'HoYoLAB' : '米游社'} ${pack.uid} · ${entry.label} (${n})`
+            let name = existing?.name || `${snapshotSourceName(pack.snapshot?.source)} ${pack.uid} · ${entry.label}`
+            for (let n = 2; !existing && presets[name]; n++) name = `${snapshotSourceName(pack.snapshot?.source)} ${pack.uid} · ${entry.label} (${n})`
             addPreset(name, { ...clone(preset), name, miyousheKey: entry.key, artifactIds: mapIds(preset.artifactIds || entry.artifactIds) })
             row.presetName = name
         }

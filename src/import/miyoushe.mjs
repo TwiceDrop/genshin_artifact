@@ -1,6 +1,8 @@
 import { resolveActiveTalents } from './character-talents.mjs'
 import { travelerName } from '../../beta-data/traveler-model.mjs'
 
+export const snapshotSourceName = source => ({ enka: 'Enka', hoyolab: 'HoYoLAB', miyoushe: '米游社' }[source] || '米游社')
+
 export const POSITIONS = ['flower', 'feather', 'sand', 'cup', 'head']
 const PROPERTY = { 2: 'lifeStatic', 3: 'lifePercentage', 5: 'attackStatic', 6: 'attackPercentage', 8: 'defendStatic', 9: 'defendPercentage', 20: 'critical', 22: 'criticalDamage', 23: 'recharge', 26: 'cureEffect', 28: 'elementalMastery', 30: 'physicalBonus', 40: 'fireBonus', 41: 'thunderBonus', 42: 'waterBonus', 43: 'dendroBonus', 44: 'windBonus', 45: 'rockBonus', 46: 'iceBonus' }
 const FLAT = new Set([2, 5, 8, 28])
@@ -75,7 +77,7 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
         if (new Set(gear.map(a => a.position)).size !== gear.length) throw new Error('圣遗物部位重复')
         return { key: `${uid}:${id}:${base.element || ''}`, label: locale[characters[name].nameLocale], id,
             gender: id === 10000007 ? 'Lumine' : id === 10000005 ? 'Aether' : undefined, element: characters[name].element, gear,
-            preset: { name: `${source === 'hoyolab' ? 'HoYoLAB' : '米游社'} ${uid} · ${locale[characters[name].nameLocale]}`, character: c, weapon: w,
+            preset: { name: `${snapshotSourceName(source)} ${uid} · ${locale[characters[name].nameLocale]}`, character: c, weapon: w,
                 targetFunction: { name: tf.name, params: defaults(tf.name, tf.config) }, buffs: [], artifactEffectMode: 'auto' } }
     }
     return { artifact, character }

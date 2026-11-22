@@ -4,6 +4,7 @@ import { usePresetStore } from './preset'
 import { selectUidInventory } from '@/import/uid-inventory.mjs'
 import { captureImportState, appendImportRecord } from '@/import/import-history.mjs'
 import { mergeEquipped } from '@/import/miyoushe.mjs'
+import { canonicalGameElement } from '@/import/character-summary.mjs'
 import { refreshGamePreset } from '@/utils/preset-workflow.mjs'
 
 const data = ref<any>({ snapshots: {}, entries: [] })
@@ -30,8 +31,16 @@ const selectedUid = computed({
     set: (uid: string) => { if (uidGroups.value.some(g => g.uid === String(uid))) data.value.selectedUid = String(uid) },
 })
 function importSnapshot(snapshot: any, converter: any, source = '米游社同步') {
-    if (snapshot?.version !== 1 || !['miyoushe', 'hoyolab'].includes(snapshot?.source) || !/^\d{8,10}$/.test(snapshot.role?.uid) || !Array.isArray(snapshot.characters) || snapshot.characters.length > 300) throw new Error('不是支持的米游社角色快照')
+    if (snapshot?.version !== 1 || !['miyoushe', 'hoyolab', 'enka'].includes(snapshot?.source) || !/^\d{8,10}$/.test(snapshot.role?.uid) || !Array.isArray(snapshot.characters) || snapshot.characters.length > 300) throw new Error('不是支持的米游社角色快照')
     const uid = String(snapshot.role.uid), converted: any[] = [], rejected: any[] = [], keys = new Set()
+    if (snapshot.source === 'enka') {
+        const byCharacter = new Map(data.value.entries.filter((row: any) => row.uid === uid)
+            .map((row: any) => [row.id + ':' + row.element, row.key.split(':')[2]]))
+        snapshot = { ...snapshot, characters: snapshot.characters.map((raw: any) => {
+            const element = byCharacter.get(raw.base?.id + ':' + canonicalGameElement(raw.base?.element))
+            return element === undefined ? raw : { ...raw, base: { ...raw.base, element } }
+        }) }
+    }
     for (const raw of snapshot.characters) {
         const key = `${uid}:${raw.base?.id}:${raw.base?.element || ''}`
         if (keys.has(key)) throw new Error('快照含重复角色')
@@ -47,7 +56,15 @@ function importSnapshot(snapshot: any, converter: any, source = '米游社同步
     const store = useArtifactStore(), presets = usePresetStore()
     const before = captureImportState(data.value, presets.presets.value, store.artifacts.value)
     const previous = Object.fromEntries(data.value.entries.map((e: any) => [e.key, e.artifactIds]))
-    const result: any = mergeEquipped(converted, selectUidInventory(uid, data.value, presets.presets.value, store.artifacts.value, true), (a: any) => store.addArtifact(a), previous)
+    let inventory = selectUidInventory(uid, data.value, presets.presets.value, store.artifacts.value, true)
+    if (snapshot.source === 'enka') {
+        // An identical piece can still be equipped on a character outside the public showcase.
+        const refreshed = new Set(converted.map(row => row.key))
+        const reserved = new Set(data.value.entries.filter((row: any) => row.uid === uid && !refreshed.has(row.key))
+            .flatMap((row: any) => row.artifactIds || []))
+        inventory = inventory.filter((piece: any) => !reserved.has(piece.id))
+    }
+    const result: any = mergeEquipped(converted, inventory, (a: any) => store.addArtifact(a), previous)
     const entries = converted.map(e => {
         const existing = Object.values(presets.presets.value).find((p: any) => p.item.miyousheKey === e.key)
         let name = existing?.name || e.preset.name
@@ -60,8 +77,15 @@ function importSnapshot(snapshot: any, converter: any, source = '米游社同步
         presets.addOrOverwrite(name, item)
         return { key: e.key, uid, id: e.id, gender: e.gender, element: e.element, label: e.label, presetName: name, artifactIds, equippedArtifacts: JSON.parse(JSON.stringify(e.gear)), level: e.preset.character.level, constellation: e.preset.character.constellation, updatedAt: snapshot.importedAt }
     })
-    const missing = data.value.entries.filter((e: any) => e.uid === uid && !keys.has(e.key)).map((e: any) => ({ ...e, warning: '本次同步未返回该角色，使用已保存数据' }))
-    data.value = { ...data.value, selectedUid: uid, snapshots: { ...data.value.snapshots, [uid]: snapshot }, entries: [...data.value.entries.filter((e: any) => e.uid !== uid), ...entries, ...rejected, ...missing] }
+    const missing = data.value.entries.filter((e: any) => e.uid === uid && !keys.has(e.key)).map((e: any) => snapshot.source === 'enka' ? e : { ...e, warning: '本次同步未返回该角色，使用已保存数据' })
+    let savedSnapshot = snapshot
+    if (snapshot.source === 'enka' && data.value.snapshots[uid]) {
+        const previous = data.value.snapshots[uid]
+        const retained = previous.characters.filter((c: any) => !keys.has(`${uid}:${c.base?.id}:${c.base?.element || ''}`))
+        const characters = [...snapshot.characters, ...retained]
+        savedSnapshot = { ...snapshot, role: { ...previous.role, ...snapshot.role }, characters, total: characters.length }
+    }
+    data.value = { ...data.value, selectedUid: uid, snapshots: { ...data.value.snapshots, [uid]: savedSnapshot }, entries: [...data.value.entries.filter((e: any) => e.uid !== uid), ...entries, ...rejected, ...missing] }
     data.value.uidArtifactIds = { ...data.value.uidArtifactIds, [uid]: [...new Set([...(data.value.uidArtifactIds?.[uid] || []), ...entries.flatMap(e => e.artifactIds)])] }
     data.value = appendImportRecord(data.value, before, presets.presets.value, store.artifacts.value, { source, uids: [uid] })
     return { ...result, imported: entries.length, rejected: rejected.length, warnings: [...(snapshot.failures || []), ...rejected.map(e => `${e.label}：${e.error || e.warning}`)] }

@@ -3,6 +3,7 @@ import { travelerName } from '../../beta-data/traveler-model.mjs'
 
 export const ELEMENT_NAMES = { Pyro: '火', Hydro: '水', Anemo: '风', Electro: '雷', Dendro: '草', Cryo: '冰', Geo: '岩' }
 const ELEMENT_ALIAS = { Fire: 'Pyro', Water: 'Hydro', Wind: 'Anemo', Electric: 'Electro', Grass: 'Dendro', Ice: 'Cryo', Rock: 'Geo' }
+export const canonicalGameElement = element => ELEMENT_ALIAS[element] || element
 const WEAPON_NAMES = { Sword: '单手剑', Claymore: '双手剑', Polearm: '长柄武器', Bow: '弓', Catalyst: '法器' }
 const shownNumber = value => value !== undefined && value !== null && Number.isFinite(Number(value)) ? String(Number(value)) : '—'
 
@@ -24,7 +25,7 @@ export function fourPieceSet(gear, artifacts, locale) {
 export function characterSummary(entry, { preset, raw, characters, weapons, artifacts, locale, inventory }) {
     const character = preset?.character, weapon = preset?.weapon
     const meta = characters[character?.name] || characters[travelerName(Number(raw?.base?.id ?? entry.id), raw?.base?.element ?? entry.element)] || Object.values(characters).find(c => locale[c.nameLocale] === entry.label)
-    const element = meta?.element || ELEMENT_ALIAS[raw?.base?.element] || raw?.base?.element || ''
+    const element = meta?.element || canonicalGameElement(raw?.base?.element) || ''
     const weaponMeta = weapons[weapon?.name]
     const label = meta ? locale[meta.nameLocale] : entry.label
     let talents = ['—', '—', '—'], talentError = ''

@@ -28,28 +28,33 @@
                     </div>
                     <div class="mys-actions">
                         <template v-if="!loggedIn || loginChoice">
-                            <el-button type="primary" round :disabled="busy" @click="login('miyoushe')">使用米游社登录</el-button>
+                            <el-button class="mys-login-closed" round aria-disabled="true" @click="error = '该登录方式暂时关闭，请尝试通过其他方式登录。'">使用米游社登录</el-button>
+                            <el-button type="primary" round :disabled="busy || webLoginPending" :aria-expanded="enkaOpen" @click="enkaOpen = !enkaOpen">使用 Enka API 登录</el-button>
                             <el-button round :disabled="busy" @click="login('hoyolab')">使用 HoYoLAB 登录</el-button>
                         </template>
                         <template v-if="loggedIn">
                             <el-select v-model="selectedUid" placeholder="选择原神账号" :disabled="busy">
                                 <el-option v-for="r in roles" :key="r.uid" :value="r.uid" :label="`${r.nickname} · ${r.uid} · ${r.regionName}`" />
                             </el-select>
-                            <el-button type="primary" round :loading="busy" :disabled="!selectedUid" @click="sync">同步全部角色</el-button>
-                            <el-button v-if="busy" round @click="cancelSync">取消同步</el-button>
-                            <el-button v-else round @click="refreshRoles">刷新绑定角色</el-button>
+                            <el-button type="primary" round :loading="busy && !enkaImporting" :disabled="!selectedUid || enkaImporting" @click="sync">同步全部角色</el-button>
+                            <el-button v-if="busy && !enkaImporting" round @click="cancelSync">取消同步</el-button>
+                            <el-button v-else round :disabled="busy" @click="refreshRoles">刷新绑定角色</el-button>
                         </template>
                         <el-button v-if="loggedIn" round :disabled="busy" @click="loginChoice = !loginChoice">添加 / 更新账号</el-button>
                         <el-button round :disabled="busy" @click="manualOpen = !manualOpen">手动录入 Cookie</el-button>
                     </div>
                     <p v-if="webLoginPending" class="mys-pending">请在 HoYoLAB 官方窗口完成登录。<el-button size="small" round @click="cancelLogin">取消登录</el-button></p>
+                    <form v-if="enkaOpen && (!loggedIn || loginChoice)" class="mys-manual" @submit.prevent="importEnka">
+                        <el-input v-model.trim="enkaUid" aria-label="原神 UID" placeholder="原神 UID" inputmode="numeric" maxlength="10" :disabled="busy" />
+                        <el-button type="primary" round native-type="submit" :disabled="busy || !enkaUid || webLoginPending">导入展柜角色</el-button>
+                    </form>
                     <div v-if="manualOpen" class="mys-manual">
                         <el-select v-model="loginPlatform" aria-label="Cookie 平台"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
                         <el-input v-model="manualCookie" type="password" autocomplete="off" placeholder="粘贴完整 Cookie（支持 v1 / v2）" aria-label="完整 Cookie" />
                         <el-button round :loading="busy" :disabled="!manualCookie.trim()" @click="addCookie">验证并保存 Cookie</el-button>
                     </div>
                 </div>
-                <el-progress v-if="busy && loggedIn" :percentage="progress.total ? Math.round(progress.completed / progress.total * 100) : 0" />
+                <el-progress v-if="busy && loggedIn && !enkaImporting" :percentage="progress.total ? Math.round(progress.completed / progress.total * 100) : 0" />
                 <p v-if="result" class="mys-result">已保存 {{ result.imported }} 名角色；新增 {{ result.added }} 件、复用 {{ result.reused }} 件圣遗物。{{ result.rejected ? `${result.rejected} 名角色待适配，原始数据已保留。` : '' }}</p>
                 <ul v-if="result?.warnings?.length" class="mys-warnings"><li v-for="(w, i) in result.warnings" :key="i">{{ w }}</li></ul>
             </section>
@@ -106,6 +111,9 @@ import { watchContent as presetsContent } from '@/store/pinia/preset'
 import { useAccountStore } from '@/store/pinia/account'
 import backend from '@/store/backend'
 import { isNative, MonaLocal, saveText } from '@/platform/native.mjs'
+import { fetchEnkaShowcase } from '@/platform/enka.mjs'
+import { enkaSnapshot } from '@/import/enka-showcase.mjs'
+import locale from '@/i18n/generated/zh-cn.json'
 import { mysApi } from '@/platform/mys-api.mjs'
 import { captureImportState, appendImportRecord, undoImportRecord } from '@/import/import-history.mjs'
 import { useKumiStore } from '@/store/pinia/kumi'
@@ -120,6 +128,7 @@ const roles = ref([]), selectedUid = ref(''), result = ref(null), progress = ref
 const savedAccounts = ref([]), activeId = ref(''), manualOpen = ref(false), manualCookie = ref('')
 const loginPlatform = ref('miyoushe'), loginChoice = ref(false), webLoginPending = ref(false)
 const platformName = platform => platform === 'hoyolab' ? 'HoYoLAB' : '米游社'
+const enkaOpen = ref(false), enkaUid = ref(''), enkaImporting = ref(false)
 const includeInventory = ref(true)
 const verificationNeeded = ref(false), verification = ref(null), submittingVerification = ref(false)
 let verificationContext = null
@@ -257,6 +266,19 @@ async function save(snapshot, accountId, source = snapshot.source === 'hoyolab' 
         if (disposed || run !== generation || accounts.currentAccountId.value !== accountId) throw new Error('同步已取消或莫娜账号已切换，数据未写入')
     })
 }
+async function importEnka() {
+    if (busy.value || webLoginPending.value) return
+    const run = ++generation, accountId = accounts.currentAccountId.value, uid = enkaUid.value
+    enkaImporting.value = true
+    busy.value = true; error.value = ''; result.value = null
+    try {
+        const data = await fetchEnkaShowcase(uid)
+        if (disposed || generation !== run || accounts.currentAccountId.value !== accountId) return
+        const snapshot = enkaSnapshot(uid, data, { characters, weapons, locale })
+        await save(snapshot, accountId, 'Enka 展柜导入')
+    } catch (e) { if (!disposed && generation === run) error.value = e.message }
+    finally { enkaImporting.value = false; if (generation === run) busy.value = false }
+}
 async function sync() {
     const run = ++generation, accountId = accounts.currentAccountId.value
     error.value = ''; result.value = null; busy.value = true; verificationNeeded.value = false
@@ -366,7 +388,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     window.removeEventListener('mona-cloud-cookie-imported', onCloudCookieImported)
     disposed = true; generation++; stopTimers(); manualCookie.value = ''; verification.value = null
-    if (webLoginPending.value || (busy.value && loggedIn.value)) api('cancel', 'POST').catch(() => {})
+    if (webLoginPending.value || (busy.value && loggedIn.value && !enkaImporting.value)) api('cancel', 'POST').catch(() => {})
 })
 </script>
 <style scoped>
@@ -404,6 +426,9 @@ onBeforeUnmount(() => {
 .mys-qr p { margin: 0; }
 .mys-qr span { color: var(--cx-dim); font-size: 13px; font-variant-numeric: tabular-nums; }
 .mys-actions, .mys-backup-more { display: flex; gap: 8px; flex-wrap: wrap; }
+.mys-actions .mys-login-closed, .mys-actions .mys-login-closed:hover, .mys-actions .mys-login-closed:focus {
+    background: var(--el-fill-color-light); color: var(--el-text-color-secondary); border-color: var(--el-border-color); cursor: not-allowed;
+}
 .mys-actions .el-select { flex: 1 1 200px; }
 .mys-pending { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--cx-dim); font-size: 13px; }
 .mys-manual { display: flex; flex-wrap: wrap; gap: 8px; }
