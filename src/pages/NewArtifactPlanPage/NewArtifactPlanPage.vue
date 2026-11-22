@@ -934,7 +934,7 @@ function finishCharacterSwitch(keepConditions: boolean) {
     if (selection.source === 'saved') {
         usePreset(selection.name, undefined, keepConditions ? 'current' : 'preset')
     } else {
-        resetArtifactComparison(keepConditions)
+        prepareCharacterSwitch(selection.name, keepConditions)
         characterName.value = selection.name
         characterConstellation.value = 0
         characterSkill1.value = characterSkill2.value = characterSkill3.value = 8
@@ -1207,10 +1207,9 @@ function usePreset(name: string, historyItem?: IPreset, conditions: 'preset' | '
         return
     }
 
-    resetArtifactComparison(conditions === 'current')
-
     const saved = historyItem || entry.item
     const item = restorePresetConfiguration(saved)
+    prepareCharacterSwitch(item.character.name, conditions === 'current')
     optimizationMode.value = item.optimizationMode ?? 'damage'
     panelSearchOptions.value = item.panelSearch ? deepCopy(item.panelSearch) : newPanelSearchOptions()
     if (conditions === 'preset') {
@@ -1894,16 +1893,24 @@ function saveComparisonHistory() {
     const id = recordComparisonHistory('手动保存')
     ElMessage[id ? 'success' : 'warning'](id ? '已保存当前角色配装到对比历史' : '当前没有穿戴圣遗物')
 }
-function resetArtifactComparison(keepConditions: boolean) {
+function resetCharacterResults() {
     resetComparisonBaseline()
     preOptimizationIds.value = null
+    resultSearchInput.value = null
+    showOptimizationResults.value = false
+    panelResultSnapshot.value = null
+    optimizationResults.value = []
+    optimizationResultIndex.value = 0
+}
+watch(characterName, resetCharacterResults, { flush: 'sync' })
+
+function prepareCharacterSwitch(nextName: string, keepConditions: boolean) {
+    // Reapplying the same character or another preset for them does not trigger the name watcher.
+    if (nextName === characterName.value) resetCharacterResults()
     if (!keepConditions) {
         artifactSnapshot.value = null
         restoredTeamContext.value = null
     }
-    panelResultSnapshot.value = null
-    optimizationResults.value = []
-    optimizationResultIndex.value = 0
 }
 
 const heroResult = computed(() => {
