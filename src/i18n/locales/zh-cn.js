@@ -116,6 +116,7 @@ export default {
         criticalDamage: "暴击伤害",
         critical: "暴击率",
         attackStatic: "攻击力",
+        baseAttack: "基础攻击力",
         attackPercentage: "攻击力%",
         elementalMastery: "元素精通",
         recharge: "元素充能效率",

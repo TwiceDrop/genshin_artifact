@@ -7,6 +7,7 @@
             :key="config.name"
             :params="config"
             :title="ta(config.title)"
+            :help="ta(config.help)"
             :type="config.type"
             :modelValue="value2[config.name]"
             @update:modelValue="handleInput(config.name, $event)"

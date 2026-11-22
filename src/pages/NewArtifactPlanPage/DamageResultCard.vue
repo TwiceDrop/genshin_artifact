@@ -43,13 +43,13 @@ const emit = defineEmits<{ (e: "update:modelValue", value: number): void, (e: "d
     margin-bottom: 14px;
 
     h3 {
-        margin: 0 auto 0 0;
+        margin: 0;
         font-size: 17px;
         font-weight: 700;
     }
 }
 
-.dmg-link {
+.dmg-link, :slotted(.damage-mode) {
     padding: 0;
     border: 0;
     background: none;
@@ -58,6 +58,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: number): void, (e: "d
     font-size: 13px;
     cursor: pointer;
 }
+.dmg-link { margin-left: auto; }
 
 .dmg-body {
     display: grid;

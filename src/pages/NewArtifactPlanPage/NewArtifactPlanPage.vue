@@ -676,6 +676,9 @@
                 </character-hero-card>
                 <div class="calc-editor">
                         <damage-result-card class="damage-card" v-model="characterSkillIndex" :groups="damageSkillGroups" :direct-reaction-skills="directReactionSkills" @details="handleDisplayAnalysis">
+                            <template v-if="damageMode" #actions>
+                                <button type="button" class="damage-mode" @click="openHeroSection('character')">当前模式：{{ damageMode.label }}（点击切换）</button>
+                            </template>
                             <el-alert v-if="comparisonDamage.error" :title="comparisonDamage.error" type="warning" :closable="false" />
                             <damage-panel v-if="!betaCalculationError && characterDamageAnalysis" layout="feature"
                                 :analysis-from-wasm="characterDamageAnalysis" :baseline="comparisonDamage.value"
@@ -775,6 +778,7 @@ import DamageResultCard from './DamageResultCard.vue'
 import CalcConditionsCard from './CalcConditionsCard.vue'
 import {buffColumnKey, BUFF_COLUMNS} from '@/algorithms/buff-groups/index.mjs'
 import {characterData} from '@character'
+import {previewDefaults} from '../../../beta-data/preview-7201-config.mjs'
 import {characterSkillGroups} from '@/utils/character-skill-groups'
 import {weaponData} from '@weapon'
 import {attributeComparison} from '@/algorithms/attribute-comparison.mjs'
@@ -947,18 +951,6 @@ const {
     characterSkillInterface,
 } = useCharacterSkill(characterName)
 
-let modeConfirmationOpen = false
-watch([characterName,characterSkillIndex,()=>characterConfig.value?.Mitya?.core_mode],async ([name,index,actual]) => {
-    const required = [7,8].includes(Number(index)) ? 2 : [11,12,13].includes(Number(index)) ? 1 : null
-    if (restoringHistory || name !== 'Mitya' || !required || ![1,2].includes(Number(actual)) || required === actual || modeConfirmationOpen) return
-    const labels = ['', '稳态', '过载']
-    modeConfirmationOpen = true
-    try {
-        await ElMessageBox.confirm(`当前选中伤害类型为${labels[required]}，但角色类型实际为${labels[Number(actual)]}，是否切换至${labels[required]}？`,'炉心模式不一致',{confirmButtonText:'是',cancelButtonText:'否',type:'warning'})
-        if (characterName.value === name && characterSkillIndex.value === index && characterConfig.value.Mitya.core_mode === actual) characterConfig.value.Mitya.core_mode = required
-    } catch (action) { if (action !== 'cancel' && action !== 'close') ElMessage.error(String(action)) }
-    finally { modeConfirmationOpen = false }
-})
 
 const fumo = ref("None")
 
@@ -1731,7 +1723,34 @@ function openCondition(key: string) {
 }
 
 // 伤害卡左侧的技能列表
-const damageSkillGroups = computed(() => characterSkillGroups(characterData[characterName.value], ta))
+function isMityaHitAvailable(index: number, {core_mode, beacons}: {core_mode: number, beacons: number}, constellation: number) {
+    if (index === 7 || index === 8) return core_mode === 2 && beacons > 0
+    if (index === 11 || index === 12) return core_mode === 1
+    if (index === 13) return core_mode === 1 && beacons > 0
+    if (index === 15) return core_mode !== 0 && constellation >= 4
+    return true
+}
+const damageMode = computed(() => {
+    if (characterName.value !== 'Mitya') return null
+    const settings = {...previewDefaults.Mitya, ...characterConfig.value?.Mitya}
+    const mode = settings.core_mode
+    const field = characterData.Mitya.config.find((field: any) => field.name === 'core_mode')
+    const constellation = characterConstellation.value
+    return {
+        label: field.options[mode],
+        preferredHit: [0, 11, 7][mode],
+        available: (index: number) => isMityaHitAvailable(index, settings, constellation),
+    }
+})
+const damageSkillGroups = computed(() => {
+    const groups = characterSkillGroups(characterData[characterName.value], ta)
+    const mode = damageMode.value
+    if (!mode) return groups
+    return groups.map(group => ({
+        ...group,
+        items: group.items.filter(hit => mode.available(hit.index)),
+    })).filter(group => group.items.length)
+})
 const directReactionSkills = computed(() => {
     const indices = new Set<number>()
     for (const group of damageSkillGroups.value) {
@@ -1741,6 +1760,11 @@ const directReactionSkills = computed(() => {
     }
     return indices
 })
+watch([damageSkillGroups, characterSkillIndex], ([groups, index]) => {
+    const mode = damageMode.value
+    if (!mode || groups.some(group => group.items.some(hit => hit.index === index))) return
+    characterSkillIndex.value = mode.available(mode.preferredHit) ? mode.preferredHit : groups[0].items[0].index
+}, {immediate: true})
 
 // 顶部条「配装目标」按钮上显示的名字
 const optimizeTargetLabel = computed(() => {

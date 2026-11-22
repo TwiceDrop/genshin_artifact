@@ -1945,7 +1945,7 @@ export default {
         "type": "bool"
       },
       {
-        "default": false,
+        "default": true,
         "name": "stellar_conduct_state",
         "title": 3058,
         "type": "bool"
@@ -5506,7 +5506,7 @@ export default {
     ],
     "config": [
       {
-        "default": false,
+        "default": true,
         "name": "stellar_conduct_state",
         "title": 3057,
         "type": "bool"
@@ -7279,7 +7279,7 @@ export default {
         "type": "float"
       },
       {
-        "default": false,
+        "default": true,
         "name": "stellar_conduct_state",
         "title": 3058,
         "type": "bool"
@@ -10941,7 +10941,7 @@ export default {
         "type": "float"
       },
       {
-        "default": false,
+        "default": true,
         "name": "enhanced_state",
         "title": 1254,
         "type": "bool"
@@ -13174,7 +13174,7 @@ export default {
         "name": "ordinary_mode",
         "title": 3527,
         "type": "bool",
-        "default": true
+        "default": false
       },
       {
         "name": "c1_active",
@@ -13321,7 +13321,7 @@ export default {
         "name": "radiance",
         "title": 3579,
         "type": "bool",
-        "default": false
+        "default": true
       },
       {
         "name": "disciplinary_stacks",

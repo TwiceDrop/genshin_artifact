@@ -1,7 +1,9 @@
 <template>
     <div>
-<!--        <h3 class="config-title">{{ // params.title }}</h3>-->
-        <h3 class="config-title">{{ title }}</h3>
+        <h3 class="config-title">{{ title }}<el-tooltip v-if="help" :trigger="['hover', 'focus']" placement="top" :show-after="150">
+            <button type="button" class="config-help" :aria-label="title + ' ?'">?</button>
+            <template #content><span class="config-help-text">{{ help }}</span></template>
+        </el-tooltip></h3>
         <template v-if="type === 'float'">
             <el-slider
                 :modelValue="modelValue"
@@ -105,6 +107,7 @@ export default {
         type: {},
         params: {},
         title: {},
+        help: String,
     },
     emits: ["update:modelValue"],
     methods: {
@@ -140,6 +143,32 @@ export default {
     font-size: 12px;
     color: #666666;
     margin: 0 0 12px 0;
+}
+
+.config-help {
+    display: inline-grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    margin-inline-start: 5px;
+    padding: 0;
+    vertical-align: middle;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: 1;
+    cursor: help;
+}
+
+.config-help-text {
+    display: block;
+    max-width: min(32em, calc(100vw - 48px));
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
 }
 
 // .config-item {

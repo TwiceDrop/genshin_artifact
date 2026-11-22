@@ -23,7 +23,7 @@
             <div class="hero-name">
                 <img v-if="elementIcon" :src="elementIcon" :alt="elementLabel" />
                 <h2>{{ name }}</h2>
-                <button type="button" class="hero-select-character" @click="emit('my-characters')">选择我的角色</button>
+                <button type="button" class="hero-select-character primary" @click="emit('my-characters')">选择我的角色</button>
                 <button type="button" class="hero-select-character" @click="emit('default-characters')">默认角色</button>
             </div>
 
@@ -281,6 +281,13 @@ onBeforeUnmount(unbindResultKeyboard)
 
     &:hover {
         background: var(--cx-step-2);
+    }
+
+    &.primary {
+        background: var(--cx-gold);
+        color: var(--cx-gold-on);
+
+        &:hover { filter: brightness(1.06); }
     }
 }
 

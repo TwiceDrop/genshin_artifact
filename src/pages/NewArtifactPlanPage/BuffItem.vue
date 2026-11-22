@@ -10,7 +10,6 @@
                     :icon="IconEpDelete"
                     :aria-label="`删除${displayName}`"
                     @click="emits('delete')"
-                    type="primary"
                 ></el-button>
                 <el-button
                     text
@@ -19,7 +18,6 @@
                     :icon="lock ? IconEpUnlock : IconEpLock"
                     :aria-label="`${lock ? '启用' : '停用'}${displayName}`"
                     @click="emits('toggle')"
-                    type="primary"
                 ></el-button>
             </div>
         </div>
@@ -118,9 +116,10 @@ const description = computed(() => {
 
         .buttons {
             display: flex;
-            //.button {
-            //    padding: 0;
-            //}
+
+            .button {
+                color: var(--cx-gold);
+            }
         }
     }
 

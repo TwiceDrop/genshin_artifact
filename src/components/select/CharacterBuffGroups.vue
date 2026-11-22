@@ -66,7 +66,11 @@ function clearConfigs(character) { const prefix = key(character) + ':'; for (con
 function setProfile(character, field, value) { if (value === '' || value == null) return; const number = Number(value); if (!Number.isInteger(number)) return; overrides.value[key(character)] = { ...overrides.value[key(character)], [field]: Math.min(field === 'constellation' ? 6 : 15, Math.max(field === 'constellation' ? 0 : 1, number)) } }
 function reset(character) { delete overrides.value[key(character)]; clearConfigs(character) }
 const groups = computed(() => groupCharacterBuffs(props.buffs,rules).filter(g => !buffElement.value || characters[g.character]?.element === buffElement.value).map(g => ({ ...g, label: characters[g.character] ? ta(characters[g.character].nameLocale) : g.character === 'Traveler' ? '旅行者 · 通用' : '未分类角色效果', badge: g.buffs[0].badge })).sort((a,b) => Number(profile(b.character).imported)-Number(profile(a.character).imported) || a.label.localeCompare(b.label,'zh-CN')))
-const visibleGroups = computed(() => groups.value.filter(g => (!focusedCharacter.value || focusedCharacter.value === g.character) && (!props.search || `${g.label} ${g.buffs.map(b => b.title+' '+b.description).join(' ')}`.toLowerCase().includes(props.search.toLowerCase()))))
+const visibleGroups = computed(() => {
+    const query = props.search.trim().toLowerCase()
+    return groups.value.filter(g => (!focusedCharacter.value || focusedCharacter.value === g.character)
+        && (g.label.toLowerCase().includes(query) || g.buffs.some(b => b.title.toLowerCase().includes(query))))
+})
 function changeElement() { focusedCharacter.value = ''; expanded.value = '' }
 function openCharacter(value) { expanded.value = value || '' }
 function availability(buff,g) { return buffAvailability(rules[buff.name],profile(g.character)) }

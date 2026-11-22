@@ -3087,7 +3087,7 @@ export default {
   "MityaDefault": {
     "name": "MityaDefault",
     "nameLocale": 3754,
-    "description": 0,
+    "description": 3811,
     "tags": [],
     "for": "Mitya",
     "badge": "/characters/mitya-avatar.png",
@@ -3096,7 +3096,7 @@ export default {
   "ValeriyDefault": {
     "name": "ValeriyDefault",
     "nameLocale": 3762,
-    "description": 0,
+    "description": 3812,
     "tags": [],
     "for": "Valeriy",
     "badge": "/characters/valeriy-avatar.png",

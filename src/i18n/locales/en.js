@@ -105,6 +105,7 @@ export default {
         criticalDamage: "Crit DMG",
         critical: "Crit Rate",
         attackStatic: "ATK",
+        baseAttack: "Base ATK",
         attackPercentage: "ATK%",
         elementalMastery: "Elemental Mastery",
         recharge: "Energy Recharge",
