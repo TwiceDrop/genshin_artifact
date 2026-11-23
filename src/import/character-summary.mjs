@@ -22,6 +22,11 @@ export function fourPieceSet(gear, artifacts, locale) {
     return name ? locale[artifacts[name]?.nameLocale] || name : '无'
 }
 
+function withFrozenGear(live, frozen = []) {
+    const covered = new Set(live.filter(Boolean).map(item => item.position))
+    return [...live, ...frozen.filter(item => !covered.has(item.position))]
+}
+
 export function characterSummary(entry, { preset, raw, characters, weapons, artifacts, locale, inventory }) {
     const character = preset?.character, weapon = preset?.weapon
     const meta = characters[character?.name] || characters[travelerName(Number(raw?.base?.id ?? entry.id), raw?.base?.element ?? entry.element)] || Object.values(characters).find(c => locale[c.nameLocale] === entry.label)
@@ -34,7 +39,8 @@ export function characterSummary(entry, { preset, raw, characters, weapons, arti
         try { talents = resolveActiveTalents(raw.skills, meta, locale).map(skill => shownNumber(skill.level)) }
         catch (error) { talentError = error.message }
     }
-    const gear = preset ? (preset.artifactIds || entry.artifactIds || []).map(id => inventory.get(id))
+    // Saved IDs that no longer resolve in the warehouse (restored or exported UID data) fall back to the entry's frozen in-game gear.
+    const gear = preset ? withFrozenGear((preset.artifactIds || entry.artifactIds || []).map(id => inventory.get(id)), entry.equippedArtifacts)
         : (raw?.relics || []).map(r => ({ position: r.pos, setName: r.set?.name || Object.keys(artifacts).find(k => ['flower', 'feather', 'sand', 'cup', 'head'].some(p => locale[artifacts[k][p]?.text] === r.name)) }))
     return {
         key: entry.key, uid: entry.uid, presetName: entry.presetName, label,
