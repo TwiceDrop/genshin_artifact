@@ -24,7 +24,11 @@ test('Android account service preserves cookies on failure, logout and cancellat
     delete globalThis[key]
     const cookie = id => `ltuid=${id}; ltoken=synthetic-token; cookie_token=synthetic-cookie;`
     await api('accounts', 'POST', { cookie: cookie(1) })
-    await api('accounts', 'POST', { cookie: cookie(2) })
+    const recordCookie = 'ltuid_v2=2;ltoken_v2=synthetic-read;ltmid_v2=synthetic-mid;'
+    await assert.rejects(api('accounts', 'POST', { cookie: recordCookie, platform: 'hoyolab' }), /cookie_token/)
+    const imported = await api('accounts', 'POST', { cookie: recordCookie, platform: 'miyoushe' })
+    assert.equal(imported.account.cookieVersion, 'v2')
+    assert.equal(imported.account.roles[0].uid, '111111111')
     assert.equal((await api('accounts')).accounts.length, 2)
     assert.ok(!(await api('accounts')).accounts.some(a => 'cookie' in a))
     await api('select', 'POST', { id: '1' })

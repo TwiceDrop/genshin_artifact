@@ -29,8 +29,8 @@ export function patchPublicKey(value) {
 }
 
 export class PatchUpdater {
-    constructor({store, fetchImpl = globalThis.fetch, now = () => new Date(), timeouts = {manifest: MANIFEST_TIMEOUT, file: FILE_TIMEOUT}}) {
-        Object.assign(this, {store, fetch: fetchImpl, now, timeouts})
+    constructor({store, registry = PATCH_KEY_BY_PATH, fileLimit = Infinity, fetchImpl = globalThis.fetch, now = () => new Date(), timeouts = {manifest: MANIFEST_TIMEOUT, file: FILE_TIMEOUT}}) {
+        Object.assign(this, {store, registry, fileLimit, fetch: fetchImpl, now, timeouts})
         this.etags = new Map()
         this.running = null
         this.state = {status: 'idle'}
@@ -93,7 +93,7 @@ export class PatchUpdater {
         if (!signatureResponse.ok) throw patchFailure('签名', `${signatureUrl} 返回 HTTP ${signatureResponse.status}，缺少签名`)
         const signature = await this.#bytes(signatureResponse, signatureUrl, 1024)
         await verifySignature(key, manifestBytes, signature)
-        const manifest = parseManifest(manifestBytes)
+        const manifest = parseManifest(manifestBytes, this.registry)
         const decided = result => { if (etag) this.etags.set(base, {etag, patch: result.status === 'not-applicable' ? null : result.patch}); return result }
 
         try { checkBaseVersion(manifest, version) } catch (error) {
@@ -105,13 +105,14 @@ export class PatchUpdater {
 
         const files = {}
         for (const file of manifest.files) {
-            const url = `${base}/files/${PATCH_KEY_BY_PATH.get(file.path)}.json`
+            if (file.size > this.fileLimit) throw patchFailure('清单', '补丁文件超过大小限制')
+            const url = `${base}/files/${this.registry.get(file.path)}.json`
             const response = await this.#get(url, this.timeouts.file)
             if (!response.ok) throw patchFailure('下载', `${url} 返回 HTTP ${response.status}`)
             files[file.path] = await this.#bytes(response, url, file.size)
         }
-        await verifyPatchPackage({manifest: manifestBytes, signature, files, publicKey: key, appVersion: version})
-        await this.store.install({manifest, files})
+        await verifyPatchPackage({manifest: manifestBytes, signature, files, publicKey: key, appVersion: version, registry: this.registry})
+        await this.store.install({manifest, files, manifestBytes, signature})
         return decided({status: 'installed', patch: manifest.patch})
     }
 }

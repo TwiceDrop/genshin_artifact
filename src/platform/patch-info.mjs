@@ -18,9 +18,9 @@ export async function refreshPatchInfo({fetchImpl = globalThis.fetch, version = 
             active: current.status === 'applied' ? {patch: current.patch, baseVersion: current.baseVersion, files: current.files} : null,
             // 补丁存在但没通过校验或不适用时，阶段和原因记在这里
             rejected: current.status === 'rejected' ? {stage: current.stage, reason: current.reason} : null,
-            pending, lastCheck,
+            pending, lastCheck, ...(body.auth && {auth: body.auth}),
         }
-        activePatch.value = snapshot.active?.patch ?? null
+        activePatch.value = snapshot.active?.patch ?? body.auth?.patch ?? null
     } catch (error) {
         activePatch.value = null
         snapshot = {unavailable: '读取内容补丁状态失败：' + error.message}

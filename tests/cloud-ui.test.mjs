@@ -16,7 +16,7 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
     globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window)
     globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window)
     const Vue = require('vue'), ElementPlus = require('element-plus')
-    const localCookie = 'ltuid=123456;ltoken=synthetic-ltoken;cookie_token=synthetic-cookie-token;account_id=123456;'
+    const localCookie = 'ltuid_v2=123456;ltoken_v2=synthetic-read-token;ltmid_v2=synthetic-mid;'
     const passphrase = '合成测试解密密码', nextPassphrase = '新的合成解密密码'
     const calls = [], vaults = new Map(), mysCalls = []
     let loggedIn = true, storedKey = null, failReplace = false
@@ -65,7 +65,7 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
     const click = async label => { const item = button(label); assert.ok(item, `button ${label}`); assert.equal(item.disabled, false, `${label} enabled`); item.click(); await settle() }
     const fill = async (label, text) => { const input = document.querySelector(`input[aria-label="${label}"], [aria-label="${label}"] input`); assert.ok(input, label); input.value = text; input.dispatchEvent(new dom.window.Event('input', { bubbles: true })); await settle() }
     const alert = () => document.querySelector('.el-alert')?.textContent || ''
-    const sentSecrets = () => calls.some(call => JSON.stringify(call.body ?? '').includes('synthetic-cookie-token') || JSON.stringify(call.body ?? '').includes('合成解密密码'))
+    const sentSecrets = () => calls.some(call => JSON.stringify(call.body ?? '').includes('synthetic-read-token') || JSON.stringify(call.body ?? '').includes('合成解密密码'))
     try {
         app.mount('#app'); await settle()
         // 第一台设备：设置解密密码，本机只存派生密钥
@@ -73,6 +73,13 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
         assert.deepEqual(Object.keys(storedKey).sort(), ['kdf', 'key', 'salt'])
         assert.equal(storedKey.key, (await deriveCookieKey(passphrase, { salt: storedKey.salt })).key)
         await click('加密上传所选 Cookie')
+        await click('手动输入 Cookie')
+        const cookieInput = document.querySelector('input[placeholder="Cookie"]')
+        cookieInput.value = localCookie
+        cookieInput.dispatchEvent(new dom.window.Event('input', { bubbles: true }))
+        await settle()
+        await click('加密上传 Cookie')
+        assert.equal(alert(), '')
         const sealed = vaults.get('miyoushe/123456')
         assert.ok(sealed, alert()); assert.equal(sealed.salt, storedKey.salt); assert.equal(sealed.version, 1); assert.equal(sealed.kdf.iterations, 600000)
         assert.equal(await decryptCookie(await deriveCookieKey(passphrase, { salt: sealed.salt }), sealed), localCookie)
@@ -91,8 +98,8 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
         await click('导入本机')
         assert.equal(imported.length, 1)
         assert.equal(imported[0].account.id, imported[0].accounts[0].id)
-        assert.equal(JSON.stringify(imported).includes('synthetic-cookie-token'), false)
-        assert.deepEqual(mysCalls, [{ path: 'accounts', method: 'POST', body: { cookie: localCookie, platform: 'miyoushe' } }])
+        assert.equal(JSON.stringify(imported).includes('synthetic-read-token'), false)
+        assert.deepEqual(mysCalls, [{ path: 'accounts', method: 'POST', body: { cookie: localCookie, platform: 'miyoushe', source: 'cloud-vault' } }])
 
         // 修改解密密码：409 时什么都不改；成功后云端密文换成新密钥加密
         const oldKey = structuredClone(storedKey)

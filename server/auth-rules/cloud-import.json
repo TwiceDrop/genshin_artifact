@@ -1,0 +1,16 @@
+{
+  "fields": {
+    "account_id": {"$read": "account_id"},
+    "account_id_v2": {"$read": "account_id_v2"},
+    "ltuid": {"$read": "ltuid"},
+    "ltuid_v2": {"$read": "ltuid_v2"},
+    "ltoken": {"$read": "ltoken"},
+    "ltoken_v2": {"$read": "ltoken_v2"},
+    "cookie_token": {"$read": "cookie_token"},
+    "cookie_token_v2": {"$read": "cookie_token_v2"},
+    "account_mid_v2": {"$read": "account_mid_v2"},
+    "ltmid_v2": {"$read": "ltmid_v2"},
+    "mid": {"$read": "mid"},
+    "mi18nLang": {"$read": "mi18nLang"}
+  }
+}

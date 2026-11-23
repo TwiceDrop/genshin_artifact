@@ -81,7 +81,11 @@ module.exports = {
                     return res.status(403).json({ error: "仅允许本机访问" })
                 }
                 localHandler ||= import("./server/local.mjs").then(({ createLocalRequestHandler }) =>
-                    createLocalRequestHandler(devServer.server))
+                    createLocalRequestHandler(devServer.server, {
+                        allowMiyousheQr: process.env.NODE_ENV === 'development',
+                        devAuthPatch: process.env.NODE_ENV === 'development' && customEnv.MONA_PATCH_PUBLIC_KEY && customEnv.MONA_PATCH_BASE_URL
+                            ? {version, publicKey: customEnv.MONA_PATCH_PUBLIC_KEY, baseUrl: customEnv.MONA_PATCH_BASE_URL} : undefined,
+                    }))
                 return localHandler.then(handle => handle(req, res)).catch(next)
             } })
             return middlewares

@@ -141,14 +141,28 @@ test("V2 SToken 使用同次扫码的 MID 兑换两项凭据", async () => {
 })
 
 test("战绩扫码只兑换 LToken，返回的读取凭据不带 SToken 或 CookieToken", async () => {
-  const client = new MihoyoApiClient({fetchImpl: async url => {
-    assert.equal(new URL(url).pathname, new URL(MIHOYO_API.ltoken).pathname)
-    return jsonResponse({retcode: 0, data: {ltoken: "synthetic-read-token"}})
+  const client = new MihoyoApiClient({fetchImpl: async (url, options) => {
+    assert.equal(String(url), MIHOYO_API.exchangeV2)
+    assert.equal(options.method, "POST")
+    assert.equal(options.headers["x-rpc-device_id"], "test-device")
+    assert.deepEqual(JSON.parse(options.body), {mid: "synthetic-mid", dst_token_type: 2, src_token: {token_type: 1, token: "v2_synthetic"}})
+    return jsonResponse({retcode: 0, data: {token: {token_type: 2, token: "synthetic-read-token"}}})
   }})
   const account = await client.exchangeQrLogin(
-    {uid: "123", mid: "synthetic-mid", stoken: "v2_synthetic"}, {recordOnly: true},
+    {uid: "123", mid: "synthetic-mid", stoken: "v2_synthetic"}, {recordOnly: true, device: "test-device"},
   )
-  assert.deepEqual(account, {accountId: "123", cookie: "ltoken=synthetic-read-token;ltuid=123;"})
+  assert.deepEqual(account, {accountId: "123", cookie: "ltoken_v2=synthetic-read-token;ltuid_v2=123;ltmid_v2=synthetic-mid;"})
+})
+
+test("V2 换票错误保留上游码，拒绝不同账号的凭证", async () => {
+  const input = {uid: "123", mid: "test-mid", stoken: "v2_test"}
+  for (const [data, message] of [
+    [{retcode: 1002}, /V2 LToken.*1002/],
+    [{retcode: 0, data: {token: {token_type: 2, token: "test"}, user_info: {aid: "456"}}}, /与本次扫码不符/],
+  ]) {
+    const client = new MihoyoApiClient({fetchImpl: async () => jsonResponse(data)})
+    await assert.rejects(client.exchangeQrLogin(input, {recordOnly: true, device: "test-device"}), message)
+  }
 })
 
 test("国服扫码经过绑定账号接口验证才接受读取凭据，拒绝时保留服务器错误码", async () => {
@@ -168,7 +182,7 @@ test("国服扫码经过绑定账号接口验证才接受读取凭据，拒绝�
     if (retcode === 0) {
       const state = await client.pollQR()
       assert.equal(state.roles[0].uid, "456")
-      assert.equal(communityAccount(client.cookie, "miyoushe", {recordOnly: true}).id, "123")
+      assert.equal(communityAccount(client.cookie, "miyoushe").id, "123")
       assert.doesNotMatch(JSON.stringify(state), /synthetic/)
     } else {
       await assert.rejects(client.pollQR(), {retcode})

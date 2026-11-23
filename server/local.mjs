@@ -5,6 +5,7 @@ import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { LocalUpdater } from './updates.mjs'
+import { createAuthPatchChannel } from './auth-patch-channel.mjs'
 import { PatchStore } from './patch-store.mjs'
 import { PatchUpdater } from './patch-updater.mjs'
 import { CloudGateway } from './cloud.mjs'
@@ -21,11 +22,12 @@ export function createLocalServer(options) {
 }
 
 export function createLocalRequestHandler(server, { clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
-    cloudGateway, updater = new LocalUpdater(),
+    cloudGateway, allowMiyousheQr = false, devAuthPatch, updater = new LocalUpdater(),
     patchStore = new PatchStore({ directory: path.join(process.env.MONA_DATA_DIR || fileURLToPath(new URL('../.local-data/', import.meta.url)), 'patches') }),
     patchUpdater = new PatchUpdater({ store: patchStore }),
     credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {
     const readEnka = createEnkaReader()
+    const authChannel = devAuthPatch && createAuthPatchChannel({...devAuthPatch, directory: path.join(path.dirname(patchStore.directory), 'auth-patches')})
     let cloud = cloudGateway
     let patchesActivated
     const sessions = new Map()
@@ -62,7 +64,7 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
             }
             const persistLogin = async s => {
                 if (s.cancelled) throw new Error('登录已取消')
-                const c = s.client, account = communityAccount(c.cookie, c.platform, { recordOnly: c.platform !== 'hoyolab' }), { id } = account
+                const c = s.client, account = communityAccount(c.cookie, c.platform), { id } = account
                 await credentialStore.upsert({ ...account, device: c.device, deviceSeed: c.deviceSeed, deviceFp: c.deviceFp,
                     roles: c.roles, status: 'saved', lastError: '', lastUsedAt: new Date().toISOString() })
                 s.accountId = id
@@ -100,10 +102,16 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                     patchesActivated ||= patchStore.activatePending()
                     await patchesActivated
                     const { overlay, ...current } = await patchStore.load(url.searchParams.get('version') || '')
-                    return json({ current, pending: await patchStore.pendingPatch(), lastCheck: patchUpdater.status() })
+                    return json({ current, pending: await patchStore.pendingPatch(), lastCheck: patchUpdater.status(), auth: await authChannel?.info() })
                 }
                 // 内容补丁的检查与下载：页面带上自己的版本、补丁地址和公钥；结果不抛错，失败原因在返回值里
-                if (url.pathname === '/api/patch/check' && req.method === 'POST') return json(await patchUpdater.check(await input()))
+                if (url.pathname === '/api/patch/check' && req.method === 'POST') {
+                    const body = await input()
+                    const [data, auth] = await Promise.all([patchUpdater.check(body), authChannel?.check()])
+                    if (!auth) return json(data)
+                    const primary = data.status === 'failed' || !['failed', 'installed'].includes(auth.status) ? data : auth
+                    return json({...primary, data, auth})
+                }
                 if (url.pathname === '/api/patch/status' && req.method === 'GET') return json(patchUpdater.status())
                 if (url.pathname.startsWith('/api/update/')) {
                     if (url.pathname === '/api/update/info' && req.method === 'GET') return json(updater.info())
@@ -128,7 +136,9 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                 }
                 if (url.pathname === '/api/mys/accounts' && req.method === 'POST') {
                     if (session?.busy) return json({ error: '同步中，请先取消' }, 409)
-                    const body = await input(), normalized = communityAccount(body.cookie, body.platform), client = clientFactory(normalized.platform)
+                    const body = await input()
+                    const programs = body.source === 'cloud-vault' && body.platform === 'miyoushe' ? await authChannel?.programs() : null
+                    const normalized = communityAccount(body.cookie, body.platform, programs?.cloudImport), client = clientFactory(normalized.platform)
                     client.cookie = normalized.cookie
                     // Validate ownership before accepting a manually supplied Cookie.
                     await client.getRoles()
@@ -155,6 +165,7 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                 if (url.pathname === '/api/mys/login' && req.method === 'POST') {
                     if (session?.busy) return json({ error: '同步中，请先取消' }, 409)
                     const { platform = 'miyoushe' } = await input()
+                    if (platform === 'miyoushe' && !allowMiyousheQr) return json({ error: '该登录方式暂时关闭，请尝试通过其他方式登录。' }, 403)
                     const client = clientFactory(platform)
                     if (platform === 'hoyolab') {
                         activate(client)
@@ -165,6 +176,7 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                         }).catch(error => { if (!current.cancelled) current.loginError = error })
                         return json({ mode: 'web' })
                     }
+                    if (authChannel) client.exchangeProgram = (await authChannel.programs()).qrExchange
                     const qr = await client.createQR()
                     activate(client)
                     return json(qr)

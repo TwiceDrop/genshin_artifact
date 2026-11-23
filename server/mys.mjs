@@ -139,7 +139,7 @@ export class MysClient {
         }
         const status = response.data.stat
         if (status !== 'Confirmed') return { status: status === 'Scanned' ? status : 'Waiting' }
-        const account = await this.qr.exchangeQrLogin(JSON.parse(response.data.payload.raw), { recordOnly: true })
+        const account = await this.qr.exchangeQrLogin(JSON.parse(response.data.payload.raw), { recordOnly: true, device: this.device, program: this.exchangeProgram })
         const roles = await this.readBoundRoles(account.cookie)
         if (ticket !== this.ticket) return { status: 'Expired' }
         this.cookie = account.cookie

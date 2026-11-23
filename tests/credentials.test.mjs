@@ -61,7 +61,10 @@ test('saved login survives server restart/logout; 5003 preserves credentials; ma
     class FakeClient extends MysClient {
         async createQR() { return { url: 'https://user.mihoyo.com/qr', expiresAt: Date.now() + 120000 } }
         async pollQR() { this.cookie = cookie('123'); return { status: 'Confirmed' } }
-        async getRoles() { this.roles = [{ uid: '123456789', region: 'cn_gf01', nickname: '测试', regionName: '天空岛' }]; return this.roles }
+        async getRoles() {
+            if (this.cookie.includes('synthetic-expired')) throw new Error('绑定账号查询失败')
+            this.roles = [{ uid: '123456789', region: 'cn_gf01', nickname: '测试', regionName: '天空岛' }]; return this.roles
+        }
         async snapshot() {
             if (rejectRecord) { const error = new Error('角色列表读取失败（米游社 5003）'); error.retcode = 5003; throw error }
             return { characters: [], total: 0 }
@@ -71,7 +74,7 @@ test('saved login survives server restart/logout; 5003 preserves credentials; ma
     const close = async () => { if (server?.listening) await new Promise(resolve => server.close(resolve)) }
     t.after(close)
     async function start() {
-        server = createLocalServer({ clientFactory: () => new FakeClient(), credentialStore: new CredentialStore(file, testCodec) })
+        server = createLocalServer({ allowMiyousheQr: true, clientFactory: () => new FakeClient(), credentialStore: new CredentialStore(file, testCodec) })
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
         base = `http://127.0.0.1:${server.address().port}/api/mys/`; headers = { 'X-Mona-Local': '1', 'Content-Type': 'application/json' }
     }
@@ -96,7 +99,15 @@ test('saved login survives server restart/logout; 5003 preserves credentials; ma
     rejectRecord = false
     assert.equal((await api('import', 'POST', { uid: '123456789' })).status, 200)
     assert.equal((await api('accounts')).data.accounts[0].status, 'ready')
-    await api('accounts', 'POST', { cookie: cookie('456') })
+    const recordCookie = 'ltuid_v2=456;ltoken_v2=synthetic-read;ltmid_v2=synthetic-mid;'
+    assert.match((await api('accounts', 'POST', { cookie: recordCookie, platform: 'hoyolab' })).data.error, /cookie_token/)
+    const restored = await api('accounts', 'POST', { cookie: recordCookie, platform: 'miyoushe' })
+    assert.equal(restored.status, 200)
+    assert.equal(restored.data.account.cookieVersion, 'v2')
+    assert.equal(restored.data.account.roles[0].uid, '123456789')
+    const invalid = await api('accounts', 'POST', { cookie: recordCookie.replace('synthetic-read', 'synthetic-expired') })
+    assert.match(invalid.data.error, /绑定账号查询失败/)
+    assert.equal((await new CredentialStore(file, testCodec).get('456')).cookie, recordCookie)
     assert.equal((await api('accounts')).data.accounts.length, 2)
     await api('accounts/456', 'DELETE')
     assert.equal((await api('roles')).status, 401)

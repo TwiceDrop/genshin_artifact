@@ -28,7 +28,8 @@
                     </div>
                     <div class="mys-actions">
                         <template v-if="!loggedIn || loginChoice">
-                            <el-button class="mys-login-closed" round aria-disabled="true" @click="error = '该登录方式暂时关闭，请尝试通过其他方式登录。'">使用米游社登录</el-button>
+                            <el-button v-if="allowMiyousheQr" round :disabled="busy || webLoginPending" @click="login('miyoushe')">使用米游社登录</el-button>
+                            <el-button v-else class="mys-login-closed" round aria-disabled="true" @click="error = '该登录方式暂时关闭，请尝试通过其他方式登录。'">使用米游社登录</el-button>
                             <el-button type="primary" round :disabled="busy || webLoginPending" :aria-expanded="enkaOpen" @click="enkaOpen = !enkaOpen">使用 Enka API 登录</el-button>
                             <el-button round :disabled="busy" @click="login('hoyolab')">使用 HoYoLAB 登录</el-button>
                         </template>
@@ -125,6 +126,7 @@ import { useArtifactStore } from '@/store/pinia/artifact'
 import { usePresetStore } from '@/store/pinia/preset'
 const emit = defineEmits(['apply'])
 const store = useMiyousheStore(), accounts = useAccountStore()
+const allowMiyousheQr = process.env.NODE_ENV === 'development'
 const entries = computed(() => store.data.value.entries)
 const error = ref(''), busy = ref(false), loggedIn = ref(false), qrImage = ref(''), qrStatus = ref('等待扫码'), secondsLeft = ref(120)
 const roles = ref([]), selectedUid = ref(''), result = ref(null), progress = ref({ completed: 0, total: 0 }), fileInput = ref(null)

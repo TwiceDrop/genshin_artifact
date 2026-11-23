@@ -1,0 +1,11 @@
+{
+  "request": {
+    "mid": {"$read": "mid"},
+    "dst_token_type": 2,
+    "src_token": {"token_type": 1, "token": {"$read": "stoken"}}
+  },
+  "response": {
+    "token": {"token": {"$read": "token.token"}, "token_type": {"$read": "token.token_type"}},
+    "user_info": {"aid": {"$read": "user_info.aid"}, "mid": {"$read": "user_info.mid"}}
+  }
+}

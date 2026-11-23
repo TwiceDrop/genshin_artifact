@@ -7,7 +7,7 @@ import {compareVersions} from './update-sources.mjs'
 // 补丁包由三部分组成：
 //   manifest   清单文件的原始字节（JSON）：
 //              {patch, createdAt, baseVersion: {min, max}, files: [{path, sha256, size}]}
-//              baseVersion 两端都包含；path 必须是 PATCHABLE_DATA 里的路径；sha256 是小写十六进制
+//              baseVersion 两端都包含；path 必须在当前通道的登记表中；sha256 是小写十六进制
 //   signature  对清单原始字节的 ECDSA P-256 + SHA-256 签名，WebCrypto 的 r‖s 格式（64 字节）
 //   files      {登记表路径: 文件字节}
 // 签名覆盖的是清单的原始字节，不需要规范化；清单里的 sha256 再把每个文件钉住。
@@ -35,7 +35,7 @@ export async function verifySignature(publicKey, manifestBytes, signature) {
 }
 
 // 检查清单本身的格式和其中的路径；清单已经是对象
-export function checkManifest(manifest) {
+export function checkManifest(manifest, registry = PATCH_KEY_BY_PATH) {
     if (!manifest || typeof manifest !== 'object' || typeof manifest.patch !== 'string' || !manifest.patch) throw patchFailure('清单', '缺少补丁号')
     if (compareVersions(manifest.patch, '0') === null) throw patchFailure('清单', '补丁号无法识别：' + manifest.patch)
     if (typeof manifest.createdAt !== 'string' || Number.isNaN(Date.parse(manifest.createdAt))) throw patchFailure('清单', '创建时间无效')
@@ -45,17 +45,17 @@ export function checkManifest(manifest) {
     if (!Array.isArray(manifest.files) || !manifest.files.length) throw patchFailure('清单', '文件列表为空')
     const seen = new Set()
     for (const file of manifest.files) {
-        if (!PATCH_KEY_BY_PATH.has(file?.path)) throw patchFailure('路径', '不可替换的文件 ' + file?.path)
+        if (!registry.has(file?.path)) throw patchFailure('路径', '不可替换的文件 ' + file?.path)
         if (seen.has(file.path)) throw patchFailure('路径', '文件重复 ' + file.path)
         seen.add(file.path)
         if (!/^[0-9a-f]{64}$/.test(file.sha256) || !Number.isSafeInteger(file.size) || file.size < 0) throw patchFailure('清单', '文件记录无效 ' + file.path)
     }
 }
 
-export function parseManifest(manifestBytes) {
+export function parseManifest(manifestBytes, registry) {
     let manifest
     try { manifest = JSON.parse(new TextDecoder('utf-8', {fatal: true}).decode(manifestBytes)) } catch (error) { throw patchFailure('清单', '不是有效的 JSON：' + error.message) }
-    checkManifest(manifest)
+    checkManifest(manifest, registry)
     return manifest
 }
 
@@ -79,9 +79,9 @@ export function checkBaseVersion(manifest, appVersion) {
 
 // 校验整个补丁包，通过时返回清单对象；任何一步不通过都抛错，错误带 stage（签名、清单、路径、哈希、版本）。
 // 顺序：先验签名，签名不对的清单内容不去解析；再查清单、文件，最后查版本。
-export async function verifyPatchPackage({manifest: manifestBytes, signature, files, publicKey, appVersion}) {
+export async function verifyPatchPackage({manifest: manifestBytes, signature, files, publicKey, appVersion, registry}) {
     await verifySignature(publicKey, manifestBytes, signature)
-    const manifest = parseManifest(manifestBytes)
+    const manifest = parseManifest(manifestBytes, registry)
     await checkFiles(manifest, files)
     checkBaseVersion(manifest, appVersion)
     return manifest

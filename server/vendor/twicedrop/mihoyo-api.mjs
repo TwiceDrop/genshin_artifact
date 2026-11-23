@@ -12,6 +12,8 @@ export const MIHOYO_API = Object.freeze({
     "https://api-takumi.mihoyo.com/auth/api/getCookieAccountInfoBySToken",
   ltoken:
     "https://passport-api.mihoyo.com/account/auth/api/getLTokenBySToken",
+  exchangeV2:
+    "https://passport-api.mihoyo.com/account/ma-cn-session/app/exchange",
 })
 
 export class MihoyoApiError extends Error {
@@ -156,7 +158,7 @@ export class MihoyoApiClient {
     return { retcode: 0, message: response?.message, data: normalized }
   }
 
-  async exchangeQrLogin({ uid, mid, stoken }, { recordOnly = false } = {}) {
+  async exchangeQrLogin({ uid, mid, stoken }, { recordOnly = false, device, program } = {}) {
     const accountId = String(uid || "")
     if (!/^\d+$/.test(accountId) || !mid || !stoken) {
       throw new MihoyoApiError("INVALID_QR_CREDENTIAL", "扫码登录凭据无效")
@@ -164,6 +166,33 @@ export class MihoyoApiClient {
 
     const safeStoken = safeCookieValue(stoken)
     const safeMid = safeCookieValue(mid)
+    if (recordOnly) {
+      const body = program ? program.request({mid: safeMid, stoken: safeStoken}) :
+        { mid: safeMid, dst_token_type: 2, src_token: { token_type: 1, token: safeStoken } }
+      if (body?.dst_token_type !== 2 || body?.src_token?.token_type !== 1 || body.src_token.token !== safeStoken || body.mid !== safeMid) {
+        throw new MihoyoApiError("INVALID_EXCHANGE_PROGRAM", "登录补丁请求的票据类型无效")
+      }
+      const response = await this.requestJson(MIHOYO_API.exchangeV2, {
+        method: "POST",
+        headers: this.buildQrHeaders(device),
+        body: JSON.stringify(body),
+        redirect: "error",
+      })
+      if (response?.retcode !== 0) {
+        const code = Number.isInteger(response?.retcode) ? response.retcode : "未知"
+        throw new MihoyoApiError("LTOKEN_EXCHANGE_FAILED", `扫码已确认，V2 LToken 兑换失败（米游社 ${code}）`)
+      }
+      const raw = response.data || {}
+      const mapped = program ? program.response(raw) : raw
+      const { token, user_info: user } = mapped || {}
+      const mismatched = info => (info?.aid != null && String(info.aid) !== accountId)
+        || (info?.mid != null && info.mid !== safeMid)
+      if (mismatched(raw.user_info) || mismatched(user) || (raw.token?.token_type != null && raw.token.token_type !== 2)
+        || typeof token?.token !== "string" || !token.token || (token.token_type != null && token.token_type !== 2)) {
+        throw new MihoyoApiError("INVALID_EXCHANGE_RESPONSE", "V2 LToken 兑换结果与本次扫码不符")
+      }
+      return { accountId, cookie: `ltoken_v2=${safeCookieValue(token.token)};ltuid_v2=${accountId};ltmid_v2=${safeMid};` }
+    }
     const accountField = safeStoken.startsWith("v2_") ? `mid=${safeMid}` : `stuid=${accountId}`
     const cookieHeaders = { Accept: "application/json", Cookie: `stoken=${safeStoken}; ${accountField};` }
     const ltokenHeaders = { Accept: "application/json", Cookie: `stoken=${safeStoken}; mid=${safeMid};` }
@@ -175,7 +204,7 @@ export class MihoyoApiClient {
     ltokenUrl.searchParams.set("stoken", safeStoken)
 
     const [cookieData, ltokenData] = await Promise.all([
-      recordOnly ? null : this.requestJson(cookieUrl, { method: "GET", headers: cookieHeaders }),
+      this.requestJson(cookieUrl, { method: "GET", headers: cookieHeaders }),
       this.requestJson(ltokenUrl, { method: "GET", headers: ltokenHeaders }),
     ])
 
@@ -185,7 +214,6 @@ export class MihoyoApiClient {
     }
     const safeLtoken = safeCookieValue(ltoken)
     const recordCookie = `ltoken=${safeLtoken};ltuid=${accountId};`
-    if (recordOnly) return { accountId, cookie: recordCookie }
 
     const cookieToken = cookieData?.data?.cookie_token
     const returnedAccountId = String(cookieData?.data?.uid || accountId)

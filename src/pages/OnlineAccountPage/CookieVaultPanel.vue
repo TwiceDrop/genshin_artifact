@@ -165,7 +165,7 @@ function uploadCookie() { return run(async () => {
 // 解密后走本地米游社导入：存进本机已保存账号，之后在米游社导入里选择它拉取角色。
 function importVault(vault) { return run(async () => {
     const value = await open(await readVault(vault))
-    const { account } = await mysApi('accounts', 'POST', { cookie: value, platform: vault.platform })
+    const { account } = await mysApi('accounts', 'POST', { cookie: value, platform: vault.platform, source: 'cloud-vault' })
     const { accounts } = await cloudApi('local-accounts')
     localAccounts.value = accounts
     localAccountId.value = account.id

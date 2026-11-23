@@ -18,7 +18,7 @@ function mutate(operation) {
 async function persist(client = active) {
     const check = () => { if (cancelled || active !== client || !client?.cookie) throw new Error('登录已取消或账号已切换') }
     check()
-    const account = communityAccount(client.cookie, client.platform, { recordOnly: client.platform !== 'hoyolab' }), { id } = account
+    const account = communityAccount(client.cookie, client.platform), { id } = account
     const next = { ...account, device: client.device, deviceSeed: client.deviceSeed, deviceFp: client.deviceFp, roles: client.roles,
         status: 'ready', lastError: '', updatedAt: new Date().toISOString(), lastUsedAt: new Date().toISOString() }
     await mutate(accounts => {
@@ -68,7 +68,7 @@ export async function mobileMysApi(path, method = 'GET', body = {}) {
         }
         if (path === 'accounts' && method === 'POST') {
             const client = communityClient(body.platform, nativeFetch)
-            client.cookie = normalizeCookie(body.cookie).cookie
+            client.cookie = communityAccount(body.cookie, body.platform).cookie
             await client.getRoles(); activate(client); await persist()
             return { account: publicAccount((await all()).find(a => a.id === accountId)) }
         }

@@ -9,7 +9,7 @@
 import {mkdir, readFile, readdir, stat, writeFile} from 'node:fs/promises'
 import path from 'node:path'
 import {fileURLToPath, pathToFileURL} from 'node:url'
-import {PATCHABLE_DATA} from '../beta-data/data-overlay.mjs'
+import {AUTH_PROGRAMS, decodeAuthPrograms} from '../server/auth-programs.mjs'
 import {PATCH_KEY_BY_PATH, sha256Hex, verifyPatchPackage} from '../server/patch-package.mjs'
 import {compareVersions} from '../server/update-sources.mjs'
 
@@ -69,7 +69,8 @@ async function readData(root, file) {
 
 export async function buildPatchPackage({paths, baseMin, baseMax, patch, previous, out, sourceRoot = repositoryRoot, signingKeyFile, now = () => new Date()}) {
     if (!paths?.length) throw new Error('没有指定要打进补丁的数据文件')
-    for (const file of paths) if (!PATCH_KEY_BY_PATH.has(file)) throw new Error(`不在登记表内：${file}（可替换的有：${Object.values(PATCHABLE_DATA).join('、')}）`)
+    const registry = paths.some(file => AUTH_PROGRAMS.has(file)) ? AUTH_PROGRAMS : PATCH_KEY_BY_PATH
+    for (const file of paths) if (!registry.has(file)) throw new Error(`不在登记表内：${file}（可替换的有：${[...registry.keys()].join('、')}）`)
     if (new Set(paths).size !== paths.length) throw new Error('数据文件重复')
     if (!baseMin || !baseMax) throw new Error('需要 --base-min 和 --base-max')
     if (compareVersions(baseMin, '0') === null || compareVersions(baseMax, '0') === null) throw new Error('适用基础版本无法识别')
@@ -83,16 +84,17 @@ export async function buildPatchPackage({paths, baseMin, baseMax, patch, previou
 
     const files = {}
     for (const file of [...paths].sort()) files[file] = await readData(sourceRoot, file)
+    if (registry === AUTH_PROGRAMS) decodeAuthPrograms(files)
     const manifest = {patch, createdAt: now().toISOString(), baseVersion: {min: baseMin, max: baseMax},
         files: await Promise.all(Object.entries(files).map(async ([file, bytes]) => ({path: file, sha256: await sha256Hex(bytes), size: bytes.length})))}
     const manifestBytes = new TextEncoder().encode(JSON.stringify(manifest))
     const {privateKey, publicKey} = await loadSigningKey(signingKeyFile)
     const signature = new Uint8Array(await subtle.sign({name: 'ECDSA', hash: 'SHA-256'}, privateKey, manifestBytes))
     // 自检：用客户端同一个校验函数验一遍，不通过就不输出任何文件
-    await verifyPatchPackage({manifest: manifestBytes, signature, files, publicKey, appVersion: baseMin})
+    await verifyPatchPackage({manifest: manifestBytes, signature, files, publicKey, appVersion: baseMin, registry})
 
     await mkdir(path.join(out, 'files'), {recursive: true})
-    for (const file of manifest.files) await writeFile(path.join(out, 'files', PATCH_KEY_BY_PATH.get(file.path) + '.json'), files[file.path])
+    for (const file of manifest.files) await writeFile(path.join(out, 'files', registry.get(file.path) + '.json'), files[file.path])
     await writeFile(path.join(out, 'manifest.json'), manifestBytes)
     await writeFile(path.join(out, 'manifest.sig'), signature)
     return {patch, out, manifest, publicKey: toBase64(publicKey)}
