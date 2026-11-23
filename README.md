@@ -1,6 +1,6 @@
 # 莫娜占卜铺
 
-原神圣遗物配装与伤害计算工具。最新正式版 **7.2.06.02**，提供 Windows Tauri 程序、Windows 安装器、Windows ZIP 便携包和两种 Android APK。
+原神圣遗物配装与伤害计算工具。最新正式版 **7.2.06.03**，提供 Windows Tauri 程序、Windows 安装器、Windows ZIP 便携包和两种 Android APK。
 
 ## 项目特色
 
@@ -9,7 +9,7 @@
 - **动态圣遗物评分**：按当前技能或 DSL 伤害目标评价装备，查看单件替换提升、参照配装和评分依据；支持进度、取消及结果缓存，保留喵喵评分供切换。
 - **装备操作与外观**：圣遗物组按来源角色过滤，可一键清空当前五件已选装备；支持浅色、深色和跟随系统外观。
 - **7.2.04 修复**：处理动态评分的词条浮点精度与四舍五入问题，修复组过滤误放行装备，以及茜特菈莉二命遗漏队友 250 点元素精通的问题。
-- **国服／国际服角色导入**：米游社扫码登录、HoYoLAB 官方网页登录，导入角色养成、武器及已装备圣遗物，支持多账号、UID 数据管理、荧的七元素身份及重复导入去重。未装备的背包圣遗物可使用 GOODScanner 等工具扫描后通过文件导入，支持 GOODScanner GOOD v3、YAS GOOD v1 和原 Mona 格式。
+- **国服／国际服角色导入**：输入 UID 可通过 Enka 导入公开展柜中的角色、武器和已穿戴圣遗物。米游社扫码登录暂时关闭，仍可使用 HoYoLAB 官方网页登录。支持多账号、UID 数据管理、荧的七元素身份及重复导入去重。未装备的背包圣遗物可使用 GOODScanner 等工具扫描后通过文件导入，支持 GOODScanner GOOD v3、YAS GOOD v1 和原 Mona 格式。
 - **更直观的配装对比**：查看更换圣遗物前后的面板与伤害，结合动态伤害评分、角色喵喵评分、词条得分明细和 0～20 条最优词条收益曲线，判断提升方向。配装结果支持查看全部保留搭配、按期望／暴击／非暴击排序及点击换装。
 - **组合目标与计算控制**：DSL 生成器可按技能、附魔、参数及次数／权重构建单人配装目标，并保存为预设；配装显示实时进度和阶段耗时，支持主动取消，不再设置 600 秒自动终止。沃雅妮莎新增最大生命值目标，直伤星扩散／星超导支持可编辑伤害明细。
 - **四人固定轴DPS与联合配装**：导入四位角色的技能顺序，由内置角色规则派生命中、召唤物、天赋、命座和增益；支持CPU／GPU联合搜索、自动轴长、角色汇总与逐段倍率预览。当前动作轴支持丝柯克、芙宁娜、爱可菲、沃雅妮莎、莫娜、桑多涅、奥黛塔、阿罗夏、七七、八重神子、米提亚、瓦列里、砂糖、薇斯纳、珐露珊、兹白、哥伦比娅、莉奈娅和叶洛亚，共 19 人。
@@ -25,15 +25,15 @@
 
 ## 安装说明
 
-在 [CNB 7.2.06.02 下载页（推荐）](https://cnb.cool/twicedrop/genshin_artifact/-/releases/tag/7.2.06.02) 或 [GitHub 7.2.06.02 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/7.2.06.02) 选择对应版本：
+在 [CNB 7.2.06.03 下载页（推荐）](https://cnb.cool/twicedrop/genshin_artifact/-/releases/tag/7.2.06.03) 或 [GitHub 7.2.06.03 下载页](https://github.com/TwiceDrop/genshin_artifact/releases/tag/7.2.06.03) 选择对应版本：
 
 | 平台 | 下载与使用 |
 | --- | --- |
-| Windows 10/11（64 位） | 下载 [CNB Tauri EXE](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_tauri_x64.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_tauri_x64.exe)），退出旧版后打开下载的 EXE。7.2.05EA 用户需手动替换一次；从 7.2.06 起可在程序内更新。 |
-| Windows 安装版（64 位） | 下载 [CNB 安装器](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_windows_x64_setup.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_windows_x64_setup.exe)），运行后按提示安装。 |
-| Android · 正式版 | 下载 [CNB APK 安装包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_android.apk)），在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
-| Android · mobiletest | 下载 [CNB mobiletest APK](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_mobiletest_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_mobiletest_android.apk)）。使用独立包名 `com.mona.artifact.local.mobiletest`，可与正式版并存。两版功能相同，数据各自保存，可在设置页导出或导入。 |
-| Windows ZIP 便携版 | 下载 [CNB ZIP 便携包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_web.zip)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.02/genshin_artifact_V7.2.06.02_web.zip)），解压后运行 `启动7.2.06.02.exe`。ZIP 已附带 Node.js；关闭日志窗口后软件驻留托盘，退出时使用托盘菜单。 |
+| Windows 10/11（64 位） | 下载 [CNB Tauri EXE](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_tauri_x64.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_tauri_x64.exe)），退出旧版后打开下载的 EXE。7.2.05EA 用户需手动替换一次；从 7.2.06 起可在程序内更新。 |
+| Windows 安装版（64 位） | 下载 [CNB 安装器](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_windows_x64_setup.exe)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_windows_x64_setup.exe)），运行后按提示安装。 |
+| Android · 正式版 | 下载 [CNB APK 安装包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_android.apk)），在系统提示时允许安装。沿用本项目旧版包名和签名，可覆盖安装。 |
+| Android · mobiletest | 下载 [CNB mobiletest APK](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_mobiletest_android.apk)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_mobiletest_android.apk)）。使用独立包名 `com.mona.artifact.local.mobiletest`，可与正式版并存。两版功能相同，数据各自保存，可在设置页导出或导入。 |
+| Windows ZIP 便携版 | 下载 [CNB ZIP 便携包](https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_web.zip)（[GitHub](https://github.com/TwiceDrop/genshin_artifact/releases/download/7.2.06.03/genshin_artifact_V7.2.06.03_web.zip)），解压后运行 `启动7.2.06.03.exe`。ZIP 已附带 Node.js；关闭日志窗口后软件驻留托盘，退出时使用托盘菜单。 |
 
 ## 其他
 
@@ -43,5 +43,5 @@
 - **使用统计**：匿名统计功能和角色的使用情况，不包含 UID、圣遗物或计算配置；首次启动时告知，可随时在设置中关闭。
 - **数据保存**：在「设置 → 导出数据」可备份全部本地账号，导入后各自保存为新账号。浏览器数据按访问地址分别保存，切换端口或浏览器不会自动共享。
 - **HoYoLAB 登录**：当前为官方网页登录，Windows 已完成用户真实登录／同步验证；Android 已完成合成 WebView 测试，真实账号登录待实机验证。Windows 登录窗口需要 Microsoft Edge WebView2 Runtime。
-- **更新说明**：完整改动见 [7.2.06.02 更新日志](docs/release-7.2.06.02-final.md)。
+- **更新说明**：完整改动见 [7.2.06.03 更新日志](docs/release-7.2.06.03-final.md)。
 - **开源许可**：许可证见 [LICENSE](LICENSE)，第三方模块说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
