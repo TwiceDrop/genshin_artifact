@@ -1,4 +1,4 @@
-# 莫娜在线服务 7.2.06.03 部署包
+# 莫娜在线服务 7.2.06.04 部署包
 
 账号用邮箱验证码注册并设密码，登录可用「邮箱或用户名 + 密码」或邮箱验证码。米游社或 HoYoLAB Cookie 由客户端用用户自设的解密密码加密后上传，服务器只保存密文、不能解密，也不访问游戏接口；游戏数据由客户端解密后在本机拉取。客户端访问 API，API 和后台清理任务访问 PostgreSQL；数据库不开放公网端口。计算仍在客户端。
 
@@ -9,7 +9,7 @@
 解压部署包，保留 `online-service` 与 `server` 的相邻位置，然后执行：
 
 ```bash
-cd mona-online-service-7.2.06.03/online-service
+cd mona-online-service-7.2.06.04/online-service
 cp .env.example .env
 # 用编辑器填写 .env 中的 SERVICE_DOMAIN、ACME_EMAIL、SMTP_*、MAIL_FROM。
 # SERVICE_DOMAIN 只写域名，例如 api.example.com，不带 https:// 或路径。

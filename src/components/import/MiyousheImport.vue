@@ -71,7 +71,7 @@
                     <el-checkbox v-model="includeInventory">附带未标记 UID 的仓库圣遗物（归入此 UID）</el-checkbox>
                     <div class="mys-backup-more">
                         <el-button size="small" round :disabled="!Object.keys(store.data.value.snapshots).length || busy" @click="exportSnapshots">导出角色快照</el-button>
-                        <el-button size="small" round :disabled="busy" @click="fileInput?.click()">导入 UID 数据包 / 角色快照</el-button>
+                        <el-button size="small" round :disabled="busy" @click="fileInput?.click()">导入 UID 数据包 / 角色快照 / GOOD v3</el-button>
                     </div>
                     <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
                 </div>
@@ -97,6 +97,9 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import QRCode from 'qrcode'
+import { ElMessageBox } from 'element-plus'
+import { goodRosterSnapshot, validateGoodRoster } from '@/import/good-roster.mjs'
+import { convertGoodArtifacts } from '@/import/good'
 import MiyousheVerification from './MiyousheVerification.vue'
 import { recordUsage, recordUsageUnlessCancelled } from '@/usage-stats/index.mjs'
 import MiyousheCharacterPicker from './MiyousheCharacterPicker.vue'
@@ -260,11 +263,11 @@ async function login(platform = 'miyoushe') {
     } catch (e) { if (run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false }
 }
-async function save(snapshot, accountId, source = snapshot.source === 'hoyolab' ? 'HoYoLAB 同步' : '米游社同步') {
+async function save(snapshot, accountId, source = snapshot.source === 'hoyolab' ? 'HoYoLAB 同步' : '米游社同步', preserveEquipped = false) {
     const run = generation
     result.value = await saveGameSnapshot(snapshot, accountId, source, () => {
         if (disposed || run !== generation || accounts.currentAccountId.value !== accountId) throw new Error('同步已取消或莫娜账号已切换，数据未写入')
-    })
+    }, preserveEquipped)
 }
 async function importEnka() {
     if (busy.value || webLoginPending.value) return
@@ -335,6 +338,41 @@ async function exportUid() {
         recordUsageUnlessCancelled(await saveText(JSON.stringify(pack), 'application/json', `mona-uid-${pack.uid}.json`), 'action.data-export')
     } catch (e) { error.value = e.message }
 }
+async function restoreGood(file, accountId, source) {
+    let uid = validateGoodRoster(file), traveler
+    const checkAccount = () => {
+        if (disposed || accounts.currentAccountId.value !== accountId) throw new Error('账号已切换，请重新导入')
+    }
+    checkAccount()
+    try {
+        if (!uid) {
+            const input = await ElMessageBox.prompt('导入到原神 UID', '导入 GOOD v3', {
+                inputValue: store.selectedUid.value || '', inputPattern: /^\d{8,10}$/, inputErrorMessage: '请输入 8 至 10 位原神 UID',
+            })
+            uid = input.value
+            checkAccount()
+        }
+        if (file.characters.some(c => c?.key === 'Traveler')) {
+            const saved = store.data.value.entries.find(e => e.uid === uid && [10000005, 10000007].includes(e.id))
+            if (saved) traveler = saved.id === 10000005 ? 'Aether' : 'Lumine'
+            else {
+                const input = await ElMessageBox.prompt('此 UID 的旅行者是空还是荧？', '导入 GOOD v3', {
+                    inputPattern: /^(空|荧)$/, inputErrorMessage: '请输入空或荧',
+                })
+                traveler = input.value === '空' ? 'Aether' : 'Lumine'
+                checkAccount()
+            }
+        }
+    } catch (e) {
+        if (e === 'cancel' || e === 'close') return
+        throw e
+    }
+    const snapshot = goodRosterSnapshot(file, uid, { traveler, catalog: { characters, weapons, artifacts, locale },
+        data: store.data.value, presets: usePresetStore().presets.value, inventory: useArtifactStore().artifacts.value,
+        convertArtifacts: convertGoodArtifacts })
+    await save(snapshot, accountId, source, file.artifacts == null)
+    recordUsage('action.uid-data-restore')
+}
 async function restore(event) {
     const file = event.target.files?.[0], accountId = accounts.currentAccountId.value
     if (!file) return
@@ -342,6 +380,10 @@ async function restore(event) {
     try {
         if (file.size > 50 * 1024 * 1024) throw new Error('文件超过 50 MB')
         const raw = JSON.parse(await file.text())
+        if (raw?.format === 'GOOD') {
+            await restoreGood(raw, accountId, file.name)
+            return
+        }
         if (raw?.format === 'mona-uid') {
             if (disposed || accounts.currentAccountId.value !== accountId) throw new Error('账号已切换，请重新导入')
             const inventory = useArtifactStore(), presets = usePresetStore()

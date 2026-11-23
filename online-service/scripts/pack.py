@@ -26,7 +26,7 @@ for path in files:
         raise RuntimeError(f"Missing or linked package source: {path}")
 if not any(path.parent == service / "src" for path in files):
     raise RuntimeError("Backend source is missing")
-root_name = "mona-online-service-7.2.06.03"
+root_name = "mona-online-service-7.2.06.04"
 name = f"{root_name}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.zip"
 archive = output / name
 manifest = [{"path": path.relative_to(source).as_posix(), "bytes": path.stat().st_size} for path in files]

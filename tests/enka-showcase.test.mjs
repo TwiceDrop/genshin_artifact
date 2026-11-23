@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { enkaSnapshot } from '../src/import/enka-showcase.mjs'
+import * as goodRoster from '../src/import/good-roster.mjs'
 import { createMysConverter } from '../src/import/miyoushe.mjs'
 import { createEnkaReader } from '../server/enka.mjs'
 import { validateUidPackage } from '../src/import/uid-package.mjs'
@@ -99,11 +100,16 @@ test('login controls render, grey button shows the supplied message, and the gol
     const { descriptor } = parse(file)
     const compiled = compileScript(descriptor, { id: 'uid-login', inlineTemplate: true })
     const modules = Object.fromEntries(compiled.imports ? Object.values(compiled.imports).map(row => [row.source, {}]) : [])
-    const requests = [], writes = []
+    const requests = [], writes = [], prompts = []
     const stub = { render: () => null }
     const active = vue.ref('local-test')
     Object.assign(modules, {
         vue, './MiyousheCharacterPicker.vue': { default: stub }, './MiyousheVerification.vue': { default: stub },
+        'element-plus': { ElMessageBox: { prompt: async label => { prompts.push(label); return { value: uid } } } },
+        '@/import/good-roster.mjs': goodRoster,
+        '@/store/pinia/preset': { usePresetStore: () => ({ presets: vue.ref({}) }) },
+        '@/store/pinia/artifact': { useArtifactStore: () => ({ artifacts: vue.ref(new Map()) }) },
+        '@/usage-stats/index.mjs': { recordUsage() {} },
         '@/store/pinia/miyoushe': { useMiyousheStore: () => ({ data: vue.ref({ entries: [], snapshots: {} }), uidGroups: vue.ref([]), selectedUid: vue.ref('') }) },
         '@/store/pinia/account': { useAccountStore: () => ({ currentAccountId: active }) },
         '@/platform/mys-api.mjs': { mysApi: async path => { requests.push(path); return { accounts: [] } } },
@@ -143,6 +149,20 @@ test('login controls render, grey button shows the supplied message, and the gol
         assert.deepEqual(requests, ['accounts', uid])
         assert.deepEqual(writes, [[uid, 'local-test', 'Enka 展柜导入']])
         assert.match(document.querySelector('.mys-result').textContent, /已保存 1 名角色/)
+        const input = document.querySelector('input[type=file]')
+        const good = { format: 'GOOD', version: 3, source: 'yas-GOODScanner', characters: [
+            { key: 'Amber', level: 70, ascension: 4, constellation: 0, talent: { auto: 4, skill: 5, burst: 6 } },
+        ] }
+        Object.defineProperty(input, 'files', { value: [{ size: 200, name: 'GOODv3.json', text: async () => JSON.stringify(good) }] })
+        input.dispatchEvent(new window.Event('change'))
+        await settle()
+        assert.deepEqual(prompts, ['导入到原神 UID'])
+        assert.deepEqual(writes.at(-1), [uid, 'local-test', 'GOODv3.json'])
+        good.metadata = { uid: '999999998' }
+        input.dispatchEvent(new window.Event('change'))
+        await settle()
+        assert.equal(prompts.length, 1)
+        assert.deepEqual(writes.at(-1), ['999999998', 'local-test', 'GOODv3.json'])
     } finally { app.unmount(); dom.window.close() }
 })
 

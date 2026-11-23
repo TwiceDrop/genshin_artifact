@@ -11,7 +11,7 @@ import { useAccountStore } from '@/store/pinia/account'
 import backend from '@/store/backend'
 import { useMona } from '@/wasm/mona'
 
-export async function saveGameSnapshot(snapshot, accountId, source, checkActive) {
+export async function saveGameSnapshot(snapshot, accountId, source, checkActive, preserveEquipped = false) {
     const mona = await useMona()
     checkActive()
     if (useAccountStore().currentAccountId.value !== accountId) throw new Error('莫娜账号已切换，数据未写入')
@@ -24,7 +24,7 @@ export async function saveGameSnapshot(snapshot, accountId, source, checkActive)
             return errors[1] < errors[0]
         },
     })
-    const store = useMiyousheStore(), imported = store.importSnapshot(snapshot, converter, source)
+    const store = useMiyousheStore(), imported = store.importSnapshot(snapshot, converter, source, preserveEquipped)
     const saved = JSON.parse(JSON.stringify({ miyoushe: store.data.value, artifacts: artifactsContent(), presets: presetsContent() }))
     // Preserve the existing account persistence ordering before reporting completion.
     await new Promise(resolve => setTimeout(resolve, 0))

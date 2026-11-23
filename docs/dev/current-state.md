@@ -4,8 +4,8 @@
 
 ## 版本
 
-- 当前源码版本 7.2.6-hotfix3，显示版本与更新标签均为 7.2.06.03。Android versionCode 为 70209。
-- 本版支持按 UID 导入 Enka 公开展柜，修复角色列表立绘缩放和套装显示。详见 [7.2.06.03 更新说明](../release-7.2.06.03-final.md)。
+- 当前源码版本 7.2.6-hotfix4，显示版本与更新标签均为 7.2.06.04。Android versionCode 为 70210。
+- 本版支持 GOOD v3 导入。详见 [7.2.06.04 更新说明](../release-7.2.06.04-final.md)。
 - 米游社扫码登录入口暂时关闭。Enka 公开展柜导入已验证角色、武器和穿戴圣遗物。开发服务已接入本机内容补丁接口。
 - TeamDPS 规则 `mona-team-engine/58`，动作轴注册 19 人（见 `beta-data/team-engine/character-packages.mjs`）。兹白、哥伦比娅、莉奈娅、叶洛亚可独立选入自定义队伍。月结晶涵盖角色直伤与月笼谐奏，哥伦比娅的月感电和月绽放尚未接入。可导入的循环样例见 [兹白队伍轴](../../examples/team-dps/zibai-lunar-crystallize.json)，默认 20 秒，兹白一命起 20.5 秒。
 - 当前功能：单次伤害、单人配装、四人固定轴 DPS。

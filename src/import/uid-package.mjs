@@ -50,7 +50,7 @@ export function validateUidPackage(pack, catalog) {
         if (!keys.has(row.key) || !Array.isArray(row.items) || row.items.length !== 5) fail('对比历史归属无效')
         for (const a of row.items) if (a) artifact(a)
     }
-    if (pack.snapshot && (String(pack.snapshot.role?.uid) !== pack.uid || !['miyoushe', 'hoyolab', 'enka'].includes(pack.snapshot.source) || pack.snapshot.version !== 1 || !Array.isArray(pack.snapshot.characters))) fail('原始快照 UID 不匹配')
+    if (pack.snapshot && (String(pack.snapshot.role?.uid) !== pack.uid || !['miyoushe', 'hoyolab', 'enka', 'good'].includes(pack.snapshot.source) || pack.snapshot.version !== 1 || !Array.isArray(pack.snapshot.characters))) fail('原始快照 UID 不匹配')
     // Reject dangerous object keys even inside nested calculation parameters.
     const inspect = (value, depth = 0) => {
         if (depth > 40) fail('嵌套层数过多')

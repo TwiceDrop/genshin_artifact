@@ -1,12 +1,28 @@
 import { resolveActiveTalents } from './character-talents.mjs'
 import { travelerName } from '../../beta-data/traveler-model.mjs'
 
-export const snapshotSourceName = source => ({ enka: 'Enka', hoyolab: 'HoYoLAB', miyoushe: '米游社' }[source] || '米游社')
+export const snapshotSourceName = source => ({ good: 'GOOD', enka: 'Enka', hoyolab: 'HoYoLAB', miyoushe: '米游社' }[source] || '米游社')
 
 export const POSITIONS = ['flower', 'feather', 'sand', 'cup', 'head']
 const PROPERTY = { 2: 'lifeStatic', 3: 'lifePercentage', 5: 'attackStatic', 6: 'attackPercentage', 8: 'defendStatic', 9: 'defendPercentage', 20: 'critical', 22: 'criticalDamage', 23: 'recharge', 26: 'cureEffect', 28: 'elementalMastery', 30: 'physicalBonus', 40: 'fireBonus', 41: 'thunderBonus', 42: 'waterBonus', 43: 'dendroBonus', 44: 'windBonus', 45: 'rockBonus', 46: 'iceBonus' }
 const FLAT = new Set([2, 5, 8, 28])
 const BREAKS = [20, 40, 50, 60, 70, 80]
+const propertyIds = Object.fromEntries(Object.entries(PROPERTY).map(([id, name]) => [name, Number(id)]))
+
+// Encode local equipment in the portable game snapshot format.
+export function snapshotRelic(piece, setName) {
+    function encode(tag) {
+        const id = propertyIds[tag.name]
+        return { property_type: id, value: FLAT.has(id) ? tag.value : Number((tag.value * 100).toFixed(6)) }
+    }
+    return { pos: POSITIONS.indexOf(piece.position) + 1, rarity: piece.star, level: piece.level, set: { name: setName },
+        main_property: encode(piece.mainTag), sub_property_list: piece.normalTags.map(encode) }
+}
+
+export function snapshotWeapon(weapon, name) {
+    return { name, level: weapon.level, affix_level: weapon.refine,
+        promote_level: BREAKS.filter(level => level < weapon.level || (level === weapon.level && weapon.ascend)).length }
+}
 function integer(value, min, max, label) {
     if (value === undefined || value === null || value === '') throw new Error(`${label}缺失`)
     const n = Number(value)

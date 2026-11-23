@@ -5,6 +5,9 @@ import path from 'node:path'
 import http from 'node:http'
 import { createRequire, Module } from 'node:module'
 import { fileURLToPath } from 'node:url'
+import { goodRosterSnapshot, validateGoodRoster } from '../src/import/good-roster.mjs'
+import { createMysConverter } from '../src/import/miyoushe.mjs'
+import { exportUidPackage, validateUidPackage } from '../src/import/uid-package.mjs'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const require = createRequire(path.join(root, 'package.json'))
 const ts = require('typescript'), vue = require('vue'), compiler = require('@vue/compiler-sfc')
@@ -24,6 +27,7 @@ function load(file) {
     cache.set(absolute, m)
     m.filename = absolute
     m.require = spec => {
+        if (spec === '@/utils/preset') return { upgradePresetItem: () => { throw new Error('Unexpected legacy preset') } }
         if (spec === '@/assets/artifacts') return { artifactsData: artifacts }
         if (spec === '@/assets/character') return { characterData: characters }
         if (spec === '@/assets/_gen_artifact') return { __esModule: true, default: artifacts }
@@ -60,6 +64,53 @@ const fixture = () => good([
     artifact('goblet', 'cryo_dmg_', { setKey: 'SilkenMoonsSerenade' }),
     artifact('circlet', 'critDMG_', { setKey: 'CelestialGift' })
 ])
+
+test('GGScanner roster imports linked equipment, preserves partial scans and archives a new character without a weapon', () => {
+    const uid = '999999999'
+    const catalog = { characters, artifacts, locale, weapons: meta('weapon'), targets: meta('tf') }
+    store.init(null)
+    const roster = load('src/store/pinia/miyoushe.ts').useMiyousheStore()
+    const presets = load('src/store/pinia/preset.ts').usePresetStore()
+    roster.init(null)
+    presets.init(null)
+    const converter = createMysConverter(catalog)
+    const ayaka = { key: 'KamisatoAyaka', level: 80, ascension: 6, constellation: 3, talent: { auto: 7, skill: 8, burst: 9 } }
+    const file = { ...good([artifact('flower', 'hp'), artifact('plume', 'atk', {location: ''})]), characters: [ayaka],
+        weapons: [{key: 'HarbingerOfDawn', level: 80, ascension: 6, refinement: 5, location: ayaka.key}],
+        metadata: {uid, nickname: '合成角色档案'} }
+    function run(input, traveler) {
+        const snapshot = goodRosterSnapshot(input, uid, { catalog, traveler, data: roster.data.value, presets: presets.presets.value,
+            inventory: store.artifacts.value, convertArtifacts: convertGoodArtifacts })
+        return roster.importSnapshot(snapshot, converter, '扫描文件', input.artifacts == null)
+    }
+    assert.equal(validateGoodRoster(file), uid)
+    assert.deepEqual([run(file).added, run(file).added], [1, 0])
+    const first = roster.data.value.entries[0], item = () => presets.getPreset(first.presetName).item
+    const ids = [...item().artifactIds]
+    assert.deepEqual([item().character.skill1, item().character.skill2, item().character.skill3], [6, 7, 11])
+    assert.equal(item().character.ascend, true)
+    assert.equal(item().weapon.refine, 5)
+    const partial = {format: 'GOOD', version: 3, characters: [{...ayaka, level: 90}, {...ayaka, key: 'Traveler', element: 'geo'}]}
+    assert.equal(validateGoodRoster(partial), '')
+    assert.equal(run(partial, 'Lumine').imported, 2)
+    assert.deepEqual(item().artifactIds, ids)
+    assert.equal(store.artifacts.value.size, 1)
+    assert.equal(item().character.level, 90)
+    const archived = roster.data.value.entries.find(e => e.id === 10000007)
+    assert.match(archived.error, /武器/)
+    assert.equal(archived.presetName, undefined)
+    assert.equal(roster.data.value.snapshots[uid].characters.length, 2)
+    const pack = exportUidPackage(uid, roster.data.value, presets.presets.value, store.artifacts.value, false)
+    assert.equal(validateUidPackage(pack, catalog).snapshot.source, 'good')
+    assert.equal(pack.characters.find(row => row.entry.id === 10000007).preset, null)
+    const restored = {...partial, characters: [partial.characters[1]], weapons: [{...file.weapons[0], location: 'Traveler'}]}
+    assert.equal(run(restored, 'Lumine').imported, 1)
+    const traveler = roster.data.value.entries.find(e => e.id === 10000007)
+    assert.equal(presets.getPreset(traveler.presetName).item.character.name, 'LumineGeo')
+    assert.equal(roster.data.value.entries.length, 2)
+    assert.throws(() => goodRosterSnapshot(file, '999999998', {}), /UID/)
+    assert.throws(() => validateGoodRoster({...file, characters: []}), /没有角色/)
+})
 const contents = () => JSON.stringify([...store.artifacts.value.values()])
 const groups = () => JSON.stringify(kumi.kumi.value)
 
@@ -192,7 +243,7 @@ test('actual file reader and page save callback reach shared import and wait for
         '/element.js': fs.readFileSync(require.resolve('element-plus/dist/index.full.js'))
     }
     const html = '<!doctype html><html><body><div id="app"></div><script src="/vue.js"></script><script src="/element.js"></script><script>' +
-        'const {ref,computed}=Vue; const ImportBlock={template:' + JSON.stringify(upload.template.content) + ',setup(props,{expose}){' +
+        'const {ref,computed,watch}=Vue; const useRoute=()=>({path:"/artifacts",query:{}}),useRouter=()=>({}); const ImportBlock={template:' + JSON.stringify(upload.template.content) + ',setup(props,{expose}){' +
         'return (new Function("ref","defineProps","defineExpose",' + JSON.stringify(uploadCode + '\nreturn {isDragover,file,hasFile,fileName,fileInput,handleDragEnter,handleDragLeave,handleDragover,handleClick,handleSelectFile,handleDrop,props};') + '))(ref,()=>props,expose);}};' +
         'Vue.createApp({components:{ImportBlock},setup(){const t=x=>x;const ElLoading={service:()=>({close(){window.events.push("close")}})};const ElMessage=e=>window.messages.push(e.message);window.events=[];window.messages=[];' +
         'const presetStore={presets:{value:{}}},useKumiStore=()=>({kumi:{value:[]}}),useMiyousheStore=()=>({data:{value:{}}}),artifactImportContext=()=>null,recordUsage=id=>window.events.push("usage:"+id);' +
@@ -213,6 +264,7 @@ test('actual file reader and page save callback reach shared import and wait for
             return result
         })
         await page.goto('http://127.0.0.1:' + server.address().port)
+        assert.deepEqual(errors, [])
         await page.locator('input[type=file]').setInputFiles({ name: '任意文件名.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(fixture())) })
         await page.getByRole('button', { name: '导入', exact: true }).click()
         await page.waitForFunction(() => window.events.includes('close'))

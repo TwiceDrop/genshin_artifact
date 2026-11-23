@@ -8,8 +8,8 @@ android {
         manifestPlaceholders = [monaAppName: '莫娜占卜铺']
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 70209
-        versionName "7.2.06.03"
+        versionCode 70210
+        versionName "7.2.06.04"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
