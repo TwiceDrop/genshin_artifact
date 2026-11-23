@@ -70,5 +70,10 @@
     "unplugin-vue-components": "^0.19.6"
   },
   "displayVersion": "7.2.06.03",
-  "updateVersion": "7.2.06.03"
+  "updateVersion": "7.2.06.03",
+  "overrides": {
+    "vue": {
+      "@vue/server-renderer": "3.5.42"
+    }
+  }
 }
