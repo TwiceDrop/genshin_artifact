@@ -280,7 +280,7 @@ async function openHitAnalysis(hit:any,probability?:number){
  await nextTick();
  if(showHitAnalysis.value&&activeHit.value===detail)showHitBranch();
 }
-function showHitBranch(){const h=activeHit.value.hit;hitAnalysisComponent.value!.setValue(teamDamageAnalysis(h.branches?h.branches[hitBranch.value].analysis:h.analysis))}
+function showHitBranch(){const h=activeHit.value.hit;hitAnalysisComponent.value!.setValue(teamDamageAnalysis(h.branches?h.branches[hitBranch.value].analysis:h.analysis,h))}
 async function selectResult(index:number){
  selectedIndex.value=index+1;healthBranch.value=0;showResults.value=false;showHitAnalysis.value=false;activeHit.value=null;
  const batch=output.value,snapshot=resultContext.value,row=batch.results[index];

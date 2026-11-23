@@ -14,9 +14,20 @@ export function teamEventRows(trace){
  });
 }
 export const canRestoreTeamDpsResult=(saved,axis,engineRulesVersion)=>saved?.resultVersion===TEAM_DPS_RESULT_VERSION&&saved.engineRulesVersion===engineRulesVersion&&JSON.stringify(saved.axis)===JSON.stringify(axis);
-export const teamDamageAnalysis=analysis=>Object.fromEntries(Object.entries(analysis).map(([field,values])=>[
- field,field!=='normal'&&values&&typeof values==='object'&&!Array.isArray(values)?Object.fromEntries(Object.entries(values).filter(([,value])=>value!==0).map(([key,value])=>[key==='compiled'?'未分项合计':key,value])):values,
+export function teamDamageAnalysis(analysis, hit) {
+ const fields=Object.fromEntries(Object.entries(analysis).map(([field,values])=>[
+ field,field!=='lunar_event'&&values&&typeof values==='object'&&!Array.isArray(values)&&!Object.hasOwn(values,'expectation')?Object.fromEntries(Object.entries(values).filter(([,value])=>value!==0).map(([key,value])=>[key==='compiled'?'未分项合计':key,value])):values,
 ]));
+ // Older direct-hit histories saved the scaling stat and gate on the event itself.
+ if(!fields.lunar_event && fields.direct_mooncrystallize && hit?.lunarStat) {
+  fields.lunar_event={stat:hit.lunarStat,targets:(fields.target_count??1)*(hit.enabled??1)};
+ }
+ if(fields.direct_mooncrystallize && hit?.contacts?.length) {
+  const selected=hit.contacts.filter(contact=>hit.targetIds.includes(contact.targetId));
+  if(selected.length)fields.lunar_event={...fields.lunar_event,observedCritical:selected.reduce((n,c)=>n+Number(c.critical),0)/selected.length};
+ }
+ return fields;
+}
 
 // Saved tasks also support JSON-backed storage. Preserve IEEE sentinel values
 // in results; all ordinary parameters retain their existing representation.

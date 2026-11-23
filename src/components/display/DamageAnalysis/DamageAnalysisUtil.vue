@@ -30,6 +30,7 @@ export default {
     name: "DamageAnalysisUtil",
     props: {
         arr: {},
+        precision: {type: Number, default: 2},
         title: {
             default: "title"
         },
@@ -42,7 +43,7 @@ export default {
         }}
     },
     methods: {
-        formatValue(value) { return String(Number(Number.parseFloat(value).toFixed(2))) },
+        formatValue(value) { return String(Number(Number.parseFloat(value).toFixed(this.precision ?? 2))) },
         updateValue(item,event) {
             item.value = Number.parseFloat(event.target.value)
             event.target.value = this.formatValue(item.value)
@@ -56,7 +57,8 @@ export default {
                     s += parseFloat(item.value)
                 }
             }
-            return Math.round(s*100)/100
+            const scale = 10 ** (this.precision ?? 2)
+            return Math.round(s * scale) / scale
         }
     }
 }

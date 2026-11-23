@@ -14,7 +14,8 @@
         <span class="damage-display" v-else-if="selectedActualResult">{{ formatStellarDamage(selectedActualResult.expectation) }}</span>
     </div>
 
-    <stellar-damage-detail v-if="selectedStellarDetail" :state="selectedStellarDetail" :kind="damageType" />
+    <lunar-damage-detail v-if="selectedLunar" :state="selectedLunar" :calculation="lunarPreview" />
+    <stellar-damage-detail v-else-if="selectedStellarDetail" :state="selectedStellarDetail" :kind="damageType" />
     <section v-else-if="selectedStellarResult" class="stellar-detail">
         <el-descriptions :column="3" border>
             <el-descriptions-item label="期望伤害">{{ formatStellarDamage(selectedStellarResult.expectation) }}</el-descriptions-item>
@@ -24,7 +25,7 @@
     </section>
 
 
-    <div v-if="!selectedStellarResult" class="header-row" style="overflow: auto; margin-bottom: 16px;">
+    <div v-if="!selectedStellarResult && !selectedLunar" class="header-row" style="overflow: auto; margin-bottom: 16px;">
         <div>
             <div class="big-title base-damage-region" :title="Math.round(baseDamageSpread*100)/100" v-if="damageType === 'spread'">{{ baseRegionName }}</div>
             <div class="big-title base-damage-region" :title="Math.round(baseDamageAggravate*100)/100" v-else-if="damageType === 'aggravate'">{{ baseRegionName }}</div>
@@ -150,7 +151,7 @@
         </div>
     </div>
 
-    <div v-if="isDamage && !selectedStellarResult" class="header-row" style="overflow: auto">
+    <div v-if="isDamage && !selectedStellarResult && !selectedLunar" class="header-row" style="overflow: auto">
         <div>
             <div class="big-title def-minus">防御乘区</div>
             <div class="header-row">
@@ -181,6 +182,7 @@
 import DamageAnalysisUtil from "./DamageAnalysisUtil"
 import StellarDamageDetail from './StellarDamageDetail.vue'
 import {STELLAR_DETAIL_KEYS,stellarDetail,stellarDetailState,stellarDetailResult} from '@/algorithms/stellar-detail.mjs'
+import {lunarDetailState, lunarCalculation} from '@/algorithms/lunar-detail.mjs'
 import { LEVEL_MULTIPLIER } from "@/constants/levelMultiplier"
 import { damageReactionOptions, defaultDamageReaction } from "@/algorithms/reaction-labels.mjs"
 
@@ -212,6 +214,7 @@ export default {
             reactionOptions: [],
             nativeResults: {},
             stellarDetailStates: {},
+            lunarStates: {},
             independentState: [],
             finalIndependentState: [],
             element: "Pyro",
@@ -284,6 +287,12 @@ export default {
             this.reactionOptions = damageReactionOptions(analysis, { includeUncalibrated: true })
             this.stellarResults = this.reactionOptions.filter(({ key }) => !['normal', 'melt', 'vaporize', 'spread', 'aggravate'].includes(key))
                 .map(option => ({ ...option, ...analysis[option.key], reason: analysis.reaction_availability?.[option.key]?.reason }))
+            this.lunarStates = {}
+            for (const {key} of this.reactionOptions) {
+                if (key.startsWith('direct_moon') || (key === 'normal' && analysis.damage_kind === 'lunarCrystallize')) {
+                    this.lunarStates[key] = lunarDetailState(analysis, key, this.characterName, this.enemyConfig)
+                }
+            }
             const preferred = defaultDamageReaction(analysis)
             this.damageType = preferred || this.reactionOptions[0]?.key || ''
             for (let key in map) {
@@ -301,8 +310,11 @@ export default {
         }
     },
     computed: {
+        selectedLunar() { return this.lunarStates[this.damageType] },
+        lunarPreview() { return this.selectedLunar && lunarCalculation(this.selectedLunar) },
         selectedStellarDetail() { return this.stellarDetailStates[this.damageType] },
         selectedActualResult() {
+            if (this.selectedLunar) return this.lunarPreview.result
             if (this.teamHit) {
                 const n = this.baseDamage * (1 + this.bonus) * this.defMultiplier * this.resRatio * this.eventProbability * this.targetCount
                 return {non_critical: n, critical: n * (1 + this.criticalDamage), expectation: n * (1 + this.critical * this.criticalDamage)}
@@ -317,6 +329,7 @@ export default {
             return this.stellarResults.find(result => result.key === this.damageType)
         },
         normalDamageName() {
+            if (this.nativeResults.damage_kind === 'lunarCrystallize') return '月笼谐奏'
             const map = {
                 "Pyro": "火元素伤害",
                 "Electro": "雷元素伤害",
