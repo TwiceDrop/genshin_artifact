@@ -53,3 +53,19 @@ Windows 安装器的简体中文界面使用 Inno Setup 社区翻译 `installer/
 ## 本次测试服扩展
 
 `mona_wasm/extension/` 为本项目新增 Rust 源码编译出的扩展内核。角色、武器数据来源及核对版本见 `beta-data/weapons-beta3.json`；发布名称不改变数据来源的测试服版本标记。
+
+## 圣遗物截图识别
+
+开发页对单件截图进行备用识别时使用本地 [PP-OCRv6_tiny_det ONNX](https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_det_onnx/tree/2ba1506c0380b8f0b03dd142459aac66d4421f6c)（Apache-2.0）定位文字行。
+
+开发页的米游社原神战绩分享图使用 [PP-OCRv6_tiny_rec ONNX](https://huggingface.co/PaddlePaddle/PP-OCRv6_tiny_rec_onnx/tree/2612ab37152ae0a677521bae4e1e3d4fb4cf7c30)（Apache-2.0）。`characters.json` 按模型 `inference.yml` 中的 CTC 字典顺序导出。模型、[ONNX Runtime Web 1.22.0](https://www.npmjs.com/package/onnxruntime-web/v/1.22.0) 的 WASM 运行时（MIT）及许可声明均保存在 `public/artifact-ocr/paddle-tiny/`。
+
+仓库在本机使用 [Tesseract.js 6.0.1](https://github.com/naptha/tesseract.js)、[tesseract.js-core 6.0.0](https://github.com/naptha/tesseract.js-core) 和 4.0.0_best_int 的 [chi_sim](https://www.npmjs.com/package/@tesseract.js-data/chi_sim) 与 [eng](https://www.npmjs.com/package/@tesseract.js-data/eng) 模型。浏览器脚本、LSTM 内核、语言模型、Apache-2.0 许可证及随包声明保存在 `public/artifact-ocr/`。
+
+## shadcn-vue Sidebar
+
+侧栏组件取自 [shadcn-vue](https://github.com/unovue/shadcn-vue/tree/d1bf1b3a2d1a824b19f32d7253a28a43797b8253/apps/v4/registry/new-york-v4/ui/sidebar)，在本地适配 Vue 3.2 和项目主题。MIT 许可证及版权声明见 [src/components/ui/sidebar/LICENSE](src/components/ui/sidebar/LICENSE)。
+
+## 角色天赋与命之座
+
+普通攻击、元素战技、元素爆发及六阶命之座的名称、效果与图标标识来自 [genshin-db](https://github.com/theBowja/genshin-db/tree/8e5badd60b5d894284ccc927a56c9683529d2592/src/data)。图标属于 HoYoverse，取自 [Enka Network](https://enka.network/) 与 [Yatta](https://gi.yatta.moe/)，保存在本地供离线显示。

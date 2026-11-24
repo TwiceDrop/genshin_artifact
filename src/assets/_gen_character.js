@@ -12830,14 +12830,6 @@ export default {
         "name": "burst_tactics_stacks",
         "title": 1411,
         "type": "float"
-      },
-      {
-        "default": 0,
-        "max": 12,
-        "min": 0,
-        "name": "stellarconduct_hits",
-        "title": 1593,
-        "type": "float"
       }
     ]
   },

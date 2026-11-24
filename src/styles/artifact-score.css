@@ -2,9 +2,24 @@
 .miao-score[data-grade="C"],
 .miao-score[data-grade="D"],
 .miao-score[data-grade="未齐装"],
-.miao-score[data-grade="待适配"] { color: #8a929e; }
-.miao-score[data-grade="A"] { color: #9b7bd3; }
+.miao-score[data-grade="待适配"] { color: var(--miao-low); }
+.miao-score[data-grade="A"] { color: var(--miao-a); }
 .miao-score[data-grade="S"],
 .miao-score[data-grade="SS"],
-.miao-score[data-grade="SSS"] { color: #b6872d; }
-.miao-score[data-grade="ACE"] { color: #d64f56; }
+.miao-score[data-grade="SSS"] { color: var(--miao-s); }
+.miao-score[data-grade="ACE"] { color: var(--miao-ace); }
+.miao-score[data-grade="MAX"] { color: var(--miao-max); }
+.miao-score {
+    --miao-low: #59657b;
+    --miao-a: #7050a6;
+    --miao-s: #285f97;
+    --miao-ace: #ae3449;
+    --miao-max: #92277a;
+}
+html[data-color-mode="dark"] .miao-score {
+    --miao-low: #b0bbcf;
+    --miao-a: #c8afff;
+    --miao-s: #94caff;
+    --miao-ace: #ff9b96;
+    --miao-max: #f6a0e3;
+}

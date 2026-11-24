@@ -35,7 +35,7 @@ export default {
         about: "关于本站",
         help: "帮助",
         exportTool: "导出工具",
-        setup: "设置",
+        setup: "设置/导出",
         bestSet: "最佳圣遗物",
     },
     misc: {

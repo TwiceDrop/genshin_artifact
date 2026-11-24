@@ -1,10 +1,54 @@
 <template>
     <section class="mys-import">
-        <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
-        <div class="mys-layout">
-            <section class="mys-card mys-account" aria-label="Cookie 账号管理">
-                <div class="mys-section-title"><h3>Cookie 账号管理</h3><span>{{ savedAccounts.length }} 个账号</span></div>
-                <el-button v-if="verificationNeeded && loggedIn && !isNative" type="primary" round :disabled="busy" @click="startVerification">完成验证</el-button>
+        <p v-if="error && !panelOpen" role="alert" class="mys-error">{{ error }}</p>
+        <section class="mys-card mys-characters" aria-label="已保存的角色">
+            <miyoushe-character-picker roster :disabled="busy">
+                <template #actions="{ openManual }">
+                    <UiDropdownMenu content-class="character-add-menu">
+                        <template #trigger>
+                            <UiButton ref="addTrigger" class="mys-add" aria-label="添加角色">
+                                <i-ep-plus /><span>添加角色</span><i-ep-arrow-down />
+                            </UiButton>
+                        </template>
+                        <UiDropdownMenuItem @select="openManual" :disabled="busy">
+                            <span class="add-source-icon"><i-ep-user /></span>手动添加角色
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem @select="openAction(panels.cookie)" :disabled="busy">
+                            <span class="add-source-icon"><i-ep-key /></span>
+                            <span class="add-source-label">Cookie 导入<small>米游社 / HoYoLAB</small></span>
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem @select="openAction(panels.enka)" :disabled="busy || webLoginPending">
+                            <span class="add-source-icon"><i-ep-connection /></span>
+                            <span class="add-source-label">UID 导入<small>Enka 展柜</small></span>
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem @select="openScreenshot" :disabled="busy">
+                            <span class="add-source-icon"><i-ep-picture /></span>
+                            <span class="add-source-label">识图导入<small>米游社原神战绩分享图</small></span>
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem @select="openAction('file')" :disabled="busy">
+                            <span class="add-source-icon"><i-ep-folder-opened /></span>
+                            <span class="add-source-label">导入文件<small>UID 数据包 / 角色快照 / GOOD v3</small></span>
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem @select="openAction(panels.account)" divided>
+                            <span class="add-tool-icon"><i-ep-user /></span>Cookie 账号管理
+                        </UiDropdownMenuItem>
+                        <UiDropdownMenuItem @select="openAction(panels.records)">
+                            <span class="add-tool-icon"><i-ep-clock /></span>导入记录
+                        </UiDropdownMenuItem>
+                    </UiDropdownMenu>
+                    <UiButton class="mys-add" @click="exportAllPresets"><i-ep-download /><span>导出角色</span></UiButton>
+                </template>
+            </miyoushe-character-picker>
+        </section>
+        <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
+        <input ref="screenshotInput" type="file" multiple accept="image/*" hidden @change="reviewScreenshots" />
+        <RosterScreenshotDialog v-if="screenshotFiles.length" :files="screenshotFiles" :save="saveScreenshot"
+            :return-focus="focusAddTrigger" @close="screenshotFiles=[]" />
+        <UiDialog v-model="panelOpen" v-if="!bindingCookie" :title="panel" :return-focus="focusAddTrigger" width="min(480px, 94vw)">
+            <p v-if="error" role="alert" class="mys-error">{{ error }}</p>
+            <section v-if="panel === panels.account" class="mys-card mys-account" aria-label="Cookie 账号管理">
+                <div class="mys-section-title"><span>{{ savedAccounts.length }} 个账号</span></div>
+                <UiButton v-if="verificationNeeded && loggedIn && !isNative" variant="primary" :disabled="busy" @click="startVerification">完成验证</UiButton>
                 <miyoushe-verification v-if="verification" :verification="verification" :submitting="submittingVerification" @complete="finishVerification" @cancel="cancelVerification" />
                 <div v-if="savedAccounts.length" class="mys-roster">
                     <div v-for="account in savedAccounts" :key="account.id" class="mys-character" :class="{ active: activeId === account.id }">
@@ -14,72 +58,46 @@
                             <small v-if="account.lastError" class="mys-warnings">{{ account.lastError }}</small>
                         </div>
                         <div class="mys-account-buttons">
-                            <el-button size="small" round :disabled="busy" @click="selectAccount(account.id)">使用</el-button>
-                            <el-button size="small" round type="danger" plain :disabled="busy" @click="deleteAccount(account.id)">删除 Cookie</el-button>
+                            <UiButton size="small" :disabled="busy" @click="selectAccount(account.id, true)">使用</UiButton>
+                            <UiButton size="small" variant="danger" :disabled="busy" @click="deleteAccount(account.id)">删除 Cookie</UiButton>
                         </div>
                     </div>
                 </div>
-                <div class="mys-login">
-                    <div v-if="qrImage && !loggedIn" class="mys-qr">
-                        <img :src="qrImage" alt="米游社登录二维码" width="200" height="200" />
-                        <p>{{ qrStatus }}</p>
-                        <span>{{ secondsLeft }} 秒</span>
-                        <el-button v-if="isNative" round @click="saveQr">保存登录二维码</el-button>
-                    </div>
-                    <div class="mys-actions">
-                        <template v-if="!loggedIn || loginChoice">
-                            <el-button v-if="allowMiyousheQr" round :disabled="busy || webLoginPending" @click="login('miyoushe')">使用米游社登录</el-button>
-                            <el-button v-else class="mys-login-closed" round aria-disabled="true" @click="error = '该登录方式暂时关闭，请尝试通过其他方式登录。'">使用米游社登录</el-button>
-                            <el-button type="primary" round :disabled="busy || webLoginPending" :aria-expanded="enkaOpen" @click="enkaOpen = !enkaOpen">使用 Enka API 登录</el-button>
-                            <el-button round :disabled="busy" @click="login('hoyolab')">使用 HoYoLAB 登录</el-button>
-                        </template>
-                        <template v-if="loggedIn">
-                            <el-select v-model="selectedUid" placeholder="选择原神账号" :disabled="busy">
-                                <el-option v-for="r in roles" :key="r.uid" :value="r.uid" :label="`${r.nickname} · ${r.uid} · ${r.regionName}`" />
-                            </el-select>
-                            <el-button type="primary" round :loading="busy && !enkaImporting" :disabled="!selectedUid || enkaImporting" @click="sync">同步全部角色</el-button>
-                            <el-button v-if="busy && !enkaImporting" round @click="cancelSync">取消同步</el-button>
-                            <el-button v-else round :disabled="busy" @click="refreshRoles">刷新绑定角色</el-button>
-                        </template>
-                        <el-button v-if="loggedIn" round :disabled="busy" @click="loginChoice = !loginChoice">添加 / 更新账号</el-button>
-                        <el-button round :disabled="busy" @click="manualOpen = !manualOpen">手动录入 Cookie</el-button>
-                    </div>
-                    <p v-if="webLoginPending" class="mys-pending">请在 HoYoLAB 官方窗口完成登录。<el-button size="small" round @click="cancelLogin">取消登录</el-button></p>
-                    <form v-if="enkaOpen && (!loggedIn || loginChoice)" class="mys-manual" @submit.prevent="importEnka">
-                        <el-input v-model.trim="enkaUid" aria-label="原神 UID" placeholder="原神 UID" inputmode="numeric" maxlength="10" :disabled="busy" />
-                        <el-button type="primary" round native-type="submit" :disabled="busy || !enkaUid || webLoginPending">导入展柜角色</el-button>
-                    </form>
-                    <div v-if="manualOpen" class="mys-manual">
-                        <el-select v-model="loginPlatform" aria-label="Cookie 平台"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
-                        <el-input v-model="manualCookie" type="password" autocomplete="off" placeholder="粘贴完整 Cookie（支持 v1 / v2）" aria-label="完整 Cookie" />
-                        <el-button round :loading="busy" :disabled="!manualCookie.trim()" @click="addCookie">验证并保存 Cookie</el-button>
-                    </div>
+                <div v-if="loggedIn" class="mys-actions">
+                    <select v-model="selectedUid" aria-label="选择原神账号" :disabled="busy">
+                        <option v-for="r in roles" :key="r.uid" :value="r.uid">{{ r.nickname }} · {{ r.uid }} · {{ r.regionName }}</option>
+                    </select>
+                    <UiButton variant="primary" :loading="busy && !enkaImporting" :disabled="!selectedUid || enkaImporting" @click="sync">同步全部角色</UiButton>
+                    <UiButton v-if="busy && !enkaImporting" @click="cancelSync">取消同步</UiButton>
+                    <UiButton v-else :disabled="busy" @click="refreshRoles">刷新绑定角色</UiButton>
                 </div>
-                <el-progress v-if="busy && loggedIn && !enkaImporting" :percentage="progress.total ? Math.round(progress.completed / progress.total * 100) : 0" />
-                <p v-if="result" class="mys-result">已保存 {{ result.imported }} 名角色；新增 {{ result.added }} 件、复用 {{ result.reused }} 件圣遗物。{{ result.rejected ? `${result.rejected} 名角色待适配，原始数据已保留。` : '' }}</p>
-                <ul v-if="result?.warnings?.length" class="mys-warnings"><li v-for="(w, i) in result.warnings" :key="i">{{ w }}</li></ul>
+                <progress v-if="busy && loggedIn && !enkaImporting" aria-label="同步进度" :value="progress.completed" :max="progress.total || 1" />
             </section>
 
-            <section class="mys-card mys-characters" aria-label="已保存的角色">
-                <div class="mys-section-title"><h3>已保存的角色</h3><span>{{ store.uidGroups.value.length }} 个 UID · 共 {{ entries.length }} 名</span></div>
-                <miyoushe-character-picker :disabled="busy" @apply="name => emit('apply', name)" />
-            </section>
-
-            <section class="mys-card mys-transfer" aria-label="手机互传">
-                <div class="mys-section-title"><h3>手机互传</h3></div>
-                <div class="mys-backup">
-                    <el-button type="primary" round :disabled="!store.selectedUid.value || busy" @click="exportUid">导出此 UID 到手机 / 电脑</el-button>
-                    <el-checkbox v-model="includeInventory">附带未标记 UID 的仓库圣遗物（归入此 UID）</el-checkbox>
-                    <div class="mys-backup-more">
-                        <el-button size="small" round :disabled="!Object.keys(store.data.value.snapshots).length || busy" @click="exportSnapshots">导出角色快照</el-button>
-                        <el-button size="small" round :disabled="busy" @click="fileInput?.click()">导入 UID 数据包 / 角色快照 / GOOD v3</el-button>
-                    </div>
-                    <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
+            <section v-if="panel === panels.cookie" class="mys-login">
+                <div class="mys-actions">
+                    <UiButton :disabled="busy || webLoginPending" @click="login('miyoushe')">使用米游社登录</UiButton>
+                    <UiButton :disabled="busy || webLoginPending" @click="login('hoyolab')">使用 HoYoLAB 登录</UiButton>
                 </div>
+                <div v-if="qrImage && !loggedIn" class="mys-qr">
+                    <img :src="qrImage" alt="米游社登录二维码" width="200" height="200" />
+                    <p>{{ qrStatus }}</p>
+                    <span>{{ secondsLeft }} 秒</span>
+                    <UiButton v-if="isNative" @click="saveQr">保存登录二维码</UiButton>
+                </div>
+                <p v-if="webLoginPending" class="mys-pending">请在 HoYoLAB 官方窗口完成登录。<UiButton size="small" @click="cancelLogin">取消登录</UiButton></p>
             </section>
-
-            <section class="mys-card mys-records" aria-label="导入记录">
-                <div class="mys-section-title"><h3>导入记录</h3><span>保存在当前莫娜账号 · {{ importRecords.length }} 条</span></div>
+            <div v-if="panel === panels.cookie" class="mys-manual">
+                <select v-model="loginPlatform" aria-label="Cookie 平台"><option value="miyoushe">米游社</option><option value="hoyolab">HoYoLAB</option></select>
+                <input v-model="manualCookie" type="password" autocomplete="off" placeholder="粘贴完整 Cookie（支持 v1 / v2）" aria-label="完整 Cookie" />
+                <UiButton :loading="busy" :disabled="!manualCookie.trim() || webLoginPending" @click="addCookie">验证并保存 Cookie</UiButton>
+            </div>
+            <form v-if="panel === panels.enka" class="mys-manual" @submit.prevent="importEnka">
+                <input v-model.trim="enkaUid" aria-label="原神 UID" placeholder="原神 UID" inputmode="numeric" maxlength="10" :disabled="busy" />
+                <UiButton variant="primary" type="submit" :disabled="busy || !enkaUid || webLoginPending">导入展柜角色</UiButton>
+            </form>
+            <section v-if="panel === panels.records" class="mys-card mys-records" aria-label="导入记录">
+                <div class="mys-section-title"><span>保存在当前莫娜账号 · {{ importRecords.length }} 条</span></div>
                 <p v-if="undoResult" class="mys-result">{{ undoResult }}</p>
                 <p v-if="!importRecords.length" class="mys-empty">暂无导入记录</p>
                 <div v-else class="mys-import-history">
@@ -88,53 +106,102 @@
                             <small>{{ record.characters }} 名角色新增／更新 · 新增 {{ record.added }} 件圣遗物</small>
                             <small v-if="record.status === 'undone'">已撤销 · {{ new Date(record.undoneAt).toLocaleString() }}{{ record.retained ? ` · 保留 ${record.retained} 项后续修改／引用` : '' }}</small>
                         </div>
-                        <el-button :disabled="busy || record.status === 'undone'" size="small" round type="danger" plain @click="undoImport(record.id)">{{ record.status === 'undone' ? '已撤销' : '撤销导入' }}</el-button>
+                        <UiButton :disabled="busy || record.status === 'undone'" size="small" variant="danger" @click="undoImport(record.id)">{{ record.status === 'undone' ? '已撤销' : '撤销导入' }}</UiButton>
                     </div>
                 </div>
             </section>
-        </div>
+            <character-import-result :result="result" />
+        </UiDialog>
+        <character-import-result v-if="!panelOpen" :result="result" />
     </section>
 </template>
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
+import UiDropdownMenu from '@/components/ui/UiDropdownMenu.vue'
+import UiDropdownMenuItem from '@/components/ui/UiDropdownMenuItem.vue'
 import QRCode from 'qrcode'
-import { ElMessageBox } from 'element-plus'
-import { goodRosterSnapshot, validateGoodRoster } from '@/import/good-roster.mjs'
-import { convertGoodArtifacts } from '@/import/good'
+import { restoreCharacterFile } from '@/import/restore-character-file.mjs'
+import { exportAllPresets } from '@/utils/export-presets'
+import CharacterImportResult from './CharacterImportResult.vue'
 import MiyousheVerification from './MiyousheVerification.vue'
-import { recordUsage, recordUsageUnlessCancelled } from '@/usage-stats/index.mjs'
+import { recordUsage } from '@/usage-stats/index.mjs'
 import MiyousheCharacterPicker from './MiyousheCharacterPicker.vue'
+import RosterScreenshotDialog from './RosterScreenshotDialog.vue'
+import sets from '@/assets/_gen_artifact'
+import { snapshotRelic, POSITIONS } from '@/import/miyoushe.mjs'
+import { wornArtifactIds } from '@/import/roster-equipment.mjs'
+import { canonicalGameElement } from '@/import/character-summary.mjs'
 import characters from '@/assets/_gen_character'
 import weapons from '@/assets/_gen_weapon'
-import artifacts from '@/assets/_gen_artifact'
-import targets from '@/assets/_gen_tf'
-import { saveGameSnapshot } from '@/import/save-game-snapshot.mjs'
+import { saveGameSnapshot, savePreparedSnapshot } from '@/import/save-game-snapshot.mjs'
+import { uidImportSession, bindCookieRole, cancelledImport } from '@/import/uid-import-session'
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { watchContent as artifactsContent } from '@/store/pinia/artifact'
 import { watchContent as presetsContent } from '@/store/pinia/preset'
 import { useAccountStore } from '@/store/pinia/account'
 import backend from '@/store/backend'
-import { isNative, MonaLocal, saveText } from '@/platform/native.mjs'
+import { isNative, MonaLocal } from '@/platform/native.mjs'
 import { fetchEnkaShowcase } from '@/platform/enka.mjs'
 import { enkaSnapshot } from '@/import/enka-showcase.mjs'
 import locale from '@/i18n/generated/zh-cn.json'
 import { mysApi } from '@/platform/mys-api.mjs'
-import { captureImportState, appendImportRecord, undoImportRecord } from '@/import/import-history.mjs'
+import { undoImportRecord } from '@/import/import-history.mjs'
 import { useKumiStore } from '@/store/pinia/kumi'
-import { exportUidPackage, importUidPackage } from '@/import/uid-package.mjs'
 import { useArtifactStore } from '@/store/pinia/artifact'
 import { usePresetStore } from '@/store/pinia/preset'
-const emit = defineEmits(['apply'])
 const store = useMiyousheStore(), accounts = useAccountStore()
-const allowMiyousheQr = process.env.NODE_ENV === 'development'
-const entries = computed(() => store.data.value.entries)
 const error = ref(''), busy = ref(false), loggedIn = ref(false), qrImage = ref(''), qrStatus = ref('等待扫码'), secondsLeft = ref(120)
 const roles = ref([]), selectedUid = ref(''), result = ref(null), progress = ref({ completed: 0, total: 0 }), fileInput = ref(null)
-const savedAccounts = ref([]), activeId = ref(''), manualOpen = ref(false), manualCookie = ref('')
-const loginPlatform = ref('miyoushe'), loginChoice = ref(false), webLoginPending = ref(false)
+const savedAccounts = ref([]), activeId = ref(''), manualCookie = ref('')
+const loginPlatform = ref('miyoushe'), webLoginPending = ref(false)
 const platformName = platform => platform === 'hoyolab' ? 'HoYoLAB' : '米游社'
-const enkaOpen = ref(false), enkaUid = ref(''), enkaImporting = ref(false)
-const includeInventory = ref(true)
+const panels = { cookie: 'Cookie 导入', account: 'Cookie 账号管理', enka: 'UID 导入（Enka 展柜）', records: '导入记录' }
+const panel = ref(''), panelOpen = ref(false), addTrigger = ref(null)
+const bindingCookie = ref(false)
+function focusAddTrigger() { addTrigger.value?.$el.focus() }
+const screenshotInput=ref(null), screenshotFiles=ref([])
+let screenshotSession
+function openScreenshot() {
+    screenshotSession=uidImportSession(accounts.currentAccountId.value, () => {
+        if (disposed) throw new Error('角色页已关闭')
+    })
+    screenshotInput.value.click()
+}
+function reviewScreenshots(event) {
+    const files=Array.from(event.target.files)
+    event.target.value=''
+    if (!files.length) return
+    error.value=''
+    result.value=null
+    screenshotFiles.value=files
+}
+async function saveScreenshot(snapshot) {
+    result.value = await savePreparedSnapshot(String(snapshot.role.uid), ({ roster, presets, inventory }) => {
+        for (const raw of snapshot.characters) {
+            const row = roster.data.value.entries.find(e => e.uid === snapshot.role.uid && Number(e.id) === raw.base.id &&
+                canonicalGameElement(e.element) === canonicalGameElement(raw.base.element))
+            if (!row) continue
+            // A cropped or unreadable slot must not unequip the player's current piece.
+            const ids = wornArtifactIds(row, presets.presets.value)
+            for (const [i, slot] of POSITIONS.entries()) {
+                if (raw.relics.some(r => r.pos === i + 1)) continue
+                const item = inventory.artifacts.value.get(ids[i]) ?? row.equippedArtifacts?.find(a => a.position === slot)
+                if (item) raw.relics.push(snapshotRelic(item, locale[sets[item.setName].nameLocale]))
+            }
+        }
+        return snapshot
+    }, '识图导入', screenshotSession)
+}
+function openAction(action) {
+    if (action === 'file') fileInput.value.click()
+    else {
+        panel.value = action
+        panelOpen.value = true
+    }
+}
+const enkaUid = ref(''), enkaImporting = ref(false)
 const verificationNeeded = ref(false), verification = ref(null), submittingVerification = ref(false)
 let verificationContext = null
 const importRecords = computed(() => store.data.value.importRecords || [])
@@ -185,14 +252,16 @@ async function refreshRoles() {
     } catch (e) { if (!disposed && run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false; await loadAccounts().catch(() => {}) }
 }
-async function selectAccount(id) {
-    const run = ++generation
+async function selectAccount(id, bind = false) {
+    const run = ++generation, accountId = accounts.currentAccountId.value
     stopTimers(); verificationNeeded.value = false; busy.value = true; error.value = ''; qrImage.value = ''; manualCookie.value = ''
     try {
         const data = await api('select', 'POST', { id })
         if (disposed || run !== generation) return
-        activeId.value = id; loginPlatform.value = data.account.platform || 'miyoushe'; webLoginPending.value = false; loginChoice.value = false; roles.value = data.roles; selectedUid.value = data.roles[0]?.uid || ''; loggedIn.value = true
+        activeId.value = id; loginPlatform.value = data.account.platform || 'miyoushe'; webLoginPending.value = false; roles.value = data.roles; loggedIn.value = true
+        selectedUid.value = data.roles.find(role => String(role.uid) === store.data.value.boundUid)?.uid || data.roles[0]?.uid || ''
         if (!data.roles.length) await refreshRoles()
+        if (bind) await bindCookieUid(accountId, run)
     } catch (e) { if (run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false }
 }
@@ -207,14 +276,17 @@ async function deleteAccount(id) {
 }
 async function addCookie() {
     const run = ++generation
+    const accountId = accounts.currentAccountId.value
     stopTimers(); verificationNeeded.value = false; busy.value = true; error.value = ''; qrImage.value = ''
     const cookie = manualCookie.value
     manualCookie.value = ''
     try {
         const data = await api('accounts', 'POST', { cookie, platform: loginPlatform.value })
         if (disposed || run !== generation) return
-        await loadAccounts(); manualOpen.value = false
+        await loadAccounts()
+        if (panel.value === panels.cookie) panel.value = panels.account
         activeId.value = data.account.id; roles.value = data.account.roles; selectedUid.value = roles.value[0]?.uid || ''; loggedIn.value = true
+        await bindCookieUid(accountId, run)
     } catch (e) { if (run === generation) error.value = e.message }
     finally { if (run === generation) busy.value = false }
 }
@@ -229,8 +301,9 @@ async function cancelLogin() {
     try { await api('cancel', 'POST') } catch (e) { error.value = e.message }
 }
 async function login(platform = 'miyoushe') {
-    loginPlatform.value = platform; loginChoice.value = false; webLoginPending.value = false
+    loginPlatform.value = platform; webLoginPending.value = false
     const run = ++generation
+    const accountId = accounts.currentAccountId.value
     stopTimers(); verificationNeeded.value = false; error.value = ''; busy.value = true; qrImage.value = ''; loggedIn.value = false; activeId.value = ''; roles.value = []; selectedUid.value = ''
     try {
         const qr = await api('login', 'POST', { platform })
@@ -252,11 +325,13 @@ async function login(platform = 'miyoushe') {
                     roles.value = state.roles ?? await api('roles')
                     if (run !== generation || disposed) return
                     selectedUid.value = roles.value[0]?.uid || ''
+                    if (panel.value === panels.cookie) panel.value = panels.account
                     if (!roles.value.length) error.value = '当前账号没有可导入的原神角色'
+                    await bindCookieUid(accountId, run)
                     await loadAccounts()
                     return
                 }
-                if (state.status === 'Expired') { stopTimers(); qrImage.value = ''; error.value = '二维码已过期，请刷新'; return }
+                if (state.status === 'Expired') { stopTimers(); webLoginPending.value = false; qrImage.value = ''; error.value = '二维码已过期，请刷新'; return }
                 qrStatus.value = state.status === 'Scanned' ? '已扫码，请在手机确认登录' : '等待扫码'
                 if (webLoginPending.value || secondsLeft.value > 0) timer = setTimeout(poll, 3000)
             } catch (e) { if (run === generation) { stopTimers(); error.value = e.message; qrImage.value = ''; webLoginPending.value = false } }
@@ -267,9 +342,19 @@ async function login(platform = 'miyoushe') {
 }
 async function save(snapshot, accountId, source = snapshot.source === 'hoyolab' ? 'HoYoLAB 同步' : '米游社同步', preserveEquipped = false) {
     const run = generation
+    if (panel.value === panels.enka || panel.value === panels.account) panelOpen.value = false
     result.value = await saveGameSnapshot(snapshot, accountId, source, () => {
         if (disposed || run !== generation || accounts.currentAccountId.value !== accountId) throw new Error('同步已取消或莫娜账号已切换，数据未写入')
     }, preserveEquipped)
+}
+async function bindCookieUid(accountId, run) {
+    try {
+        const uid = await bindCookieRole(roles.value, accountId, () => {
+            if (disposed || run !== generation) throw new Error('登录已取消')
+        }, () => { bindingCookie.value = true })
+        if (uid) selectedUid.value = uid
+    } catch (e) { if (!cancelledImport(e)) throw e }
+    finally { bindingCookie.value = false }
 }
 async function importEnka() {
     if (busy.value || webLoginPending.value) return
@@ -330,92 +415,28 @@ async function finishVerification(result) {
         if (!disposed && ownedRun === generation) { submittingVerification.value = false; verificationContext = null; busy.value = false }
     }
 }
-async function exportSnapshots() {
-    try { recordUsageUnlessCancelled(await saveText(JSON.stringify(Object.values(store.data.value.snapshots), null, 2), 'application/json', 'mona-miyoushe-characters.json'), 'action.data-export') }
-    catch (e) { error.value = e.message }
-}
-async function exportUid() {
-    try {
-        const pack = exportUidPackage(store.selectedUid.value, store.data.value, usePresetStore().presets.value, useArtifactStore().artifacts.value, includeInventory.value)
-        recordUsageUnlessCancelled(await saveText(JSON.stringify(pack), 'application/json', `mona-uid-${pack.uid}.json`), 'action.data-export')
-    } catch (e) { error.value = e.message }
-}
-async function restoreGood(file, accountId, source) {
-    let uid = validateGoodRoster(file), traveler
-    const checkAccount = () => {
-        if (disposed || accounts.currentAccountId.value !== accountId) throw new Error('账号已切换，请重新导入')
-    }
-    checkAccount()
-    try {
-        if (!uid) {
-            const input = await ElMessageBox.prompt('导入到原神 UID', '导入 GOOD v3', {
-                inputValue: store.selectedUid.value || '', inputPattern: /^\d{8,10}$/, inputErrorMessage: '请输入 8 至 10 位原神 UID',
-            })
-            uid = input.value
-            checkAccount()
-        }
-        if (file.characters.some(c => c?.key === 'Traveler')) {
-            const saved = store.data.value.entries.find(e => e.uid === uid && [10000005, 10000007].includes(e.id))
-            if (saved) traveler = saved.id === 10000005 ? 'Aether' : 'Lumine'
-            else {
-                const input = await ElMessageBox.prompt('此 UID 的旅行者是空还是荧？', '导入 GOOD v3', {
-                    inputPattern: /^(空|荧)$/, inputErrorMessage: '请输入空或荧',
-                })
-                traveler = input.value === '空' ? 'Aether' : 'Lumine'
-                checkAccount()
-            }
-        }
-    } catch (e) {
-        if (e === 'cancel' || e === 'close') return
-        throw e
-    }
-    const snapshot = goodRosterSnapshot(file, uid, { traveler, catalog: { characters, weapons, artifacts, locale },
-        data: store.data.value, presets: usePresetStore().presets.value, inventory: useArtifactStore().artifacts.value,
-        convertArtifacts: convertGoodArtifacts })
-    await save(snapshot, accountId, source, file.artifacts == null)
-    recordUsage('action.uid-data-restore')
-}
 async function restore(event) {
-    const file = event.target.files?.[0], accountId = accounts.currentAccountId.value
+    const file = event.target.files?.[0], accountId = accounts.currentAccountId.value, run = generation
     if (!file) return
-    busy.value = true; error.value = ''
+    busy.value = true; error.value = ''; result.value = null
     try {
-        if (file.size > 50 * 1024 * 1024) throw new Error('文件超过 50 MB')
-        const raw = JSON.parse(await file.text())
-        if (raw?.format === 'GOOD') {
-            await restoreGood(raw, accountId, file.name)
-            return
-        }
-        if (raw?.format === 'mona-uid') {
-            if (disposed || accounts.currentAccountId.value !== accountId) throw new Error('账号已切换，请重新导入')
-            const inventory = useArtifactStore(), presets = usePresetStore()
-            const before = captureImportState(store.data.value, presets.presets.value, inventory.artifacts.value)
-            const imported = importUidPackage(raw, { data: store.data.value, presets: presets.presets.value, inventory: inventory.artifacts.value,
-                addArtifact: a => inventory.addArtifact(a), updateArtifact: (id, a) => inventory.updateArtifact(id, a), addPreset: (name, item) => presets.addOrOverwrite(name, item), catalog: { characters, weapons, artifacts, targets } })
-            store.init(appendImportRecord(imported.data, before, presets.presets.value, inventory.artifacts.value, { source: file.name, uids: [raw.uid] }))
-            await new Promise(resolve => setTimeout(resolve, 0))
-            for (const [type, content] of Object.entries({ miyoushe: store.data.value, artifacts: artifactsContent(), presets: presetsContent() })) await backend.setItem(`mona_account_${type}_${accountId}`, JSON.parse(JSON.stringify(content)))
-            await backend.allReady()
-            result.value = { imported: imported.imported, added: imported.added, reused: raw.artifacts.length - imported.added }
-            recordUsage('action.uid-data-restore')
-            return
-        }
-        const snapshots = Array.isArray(raw) ? raw : [raw]
-        if (snapshots.length > 10) throw new Error('单次最多恢复 10 个 UID')
-        for (const snapshot of snapshots) await save(snapshot, accountId, file.name)
-        recordUsage('action.uid-data-restore')
+        const imported = await restoreCharacterFile(file, accountId, expected => {
+            if (disposed || run !== generation || accounts.currentAccountId.value !== expected) throw new Error('账号已切换，请重新导入')
+        })
+        if (imported) result.value = imported
     } catch (e) { error.value = e.message }
     finally { busy.value = false; event.target.value = '' }
 }
-function onCloudCookieImported({ detail: { accounts, account } }) {
+function onCloudCookieImported({ detail: { accounts, account, uid } }) {
     generation++
     stopTimers()
     savedAccounts.value = accounts
-    if (activeId.value !== account.id || !account.roles.some(role => role.uid === selectedUid.value)) {
+    if (uid) selectedUid.value = uid
+    else if (activeId.value !== account.id || !account.roles.some(role => role.uid === selectedUid.value)) {
         selectedUid.value = account.roles[0]?.uid || ''
     }
     activeId.value = account.id; roles.value = account.roles; loginPlatform.value = account.platform
-    loggedIn.value = true; busy.value = false; loginChoice.value = false; manualOpen.value = false
+    loggedIn.value = true; busy.value = false
     qrImage.value = ''; error.value = ''; manualCookie.value = ''; webLoginPending.value = false
     verification.value = null; verificationNeeded.value = false
 }
@@ -436,26 +457,17 @@ onBeforeUnmount(() => {
 })
 </script>
 <style scoped>
-/* 米游社导入（夜空风格）：UID 数据页和计算器的「导入我的角色」弹窗共用，颜色读 --cx-*（外层带 cx-scope）。
-   按自身宽度排版：宽时左栏放账号、互传、导入记录，右侧放角色；窄时角色在最前，其余三块依次在下。 */
-.mys-import { display: grid; gap: 14px; color: var(--cx-letter); container: mys / inline-size; }
-.mys-layout { display: grid; gap: 14px; align-items: start; }
-@container mys (min-width: 900px) {
-    .mys-layout { grid-template-columns: clamp(320px, 30%, 380px) minmax(0, 1fr); grid-template-rows: auto auto 1fr; }
-    .mys-account { grid-column: 1; grid-row: 1; }
-    .mys-transfer { grid-column: 1; grid-row: 2; }
-    .mys-records { grid-column: 1; grid-row: 3; }
-    .mys-characters { grid-column: 2; grid-row: 1 / span 3; }
-}
-/* 窄时角色排在最前，账号、互传、导入记录依次在下方 */
-@container mys (max-width: 899px) {
-    .mys-characters { order: -1; }
-}
-.mys-card { min-width: 0; display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; background: var(--cx-card); }
+.mys-import { display: grid; gap: 14px; color: var(--cx-letter); }
+.mys-add.ui-button { display: grid; grid-template-columns: 14px auto 14px; align-items: center; justify-content: center; gap: 5px; border-radius: 999px; color: var(--cx-gold); border: 1px dashed currentColor; }
+.mys-add svg { width: 14px; height: 14px; }
+.mys-account, .mys-records { display: grid; gap: 12px; }
+.mys-characters { min-width: 0; }
 .mys-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .mys-section-title h3 { margin: 0; font-size: 16px; font-weight: 700; }
-.mys-section-title span { color: var(--cx-dim); font-size: 13px; }
-.mys-import .el-button + .el-button { margin-left: 0; }
+.mys-section-title > span { color: var(--cx-dim); font-size: 13px; }
+.mys-error { margin: 0 0 10px; padding: 10px; color: var(--cx-up); background: var(--cx-step); border-radius: 7px; }
+.mys-manual input, .mys-manual select, .mys-actions select { min-width: 0; min-height: 36px; box-sizing: border-box; padding: 6px 10px; border: 1px solid var(--cx-step-2); border-radius: 7px; background: var(--cx-step); color: var(--cx-letter); font: inherit; font-size: 14px; }
+.mys-account progress { width: 100%; accent-color: var(--cx-gold); }
 
 /* 账号 */
 .mys-roster { max-height: 340px; overflow: auto; display: grid; gap: 8px; }
@@ -469,33 +481,35 @@ onBeforeUnmount(() => {
 .mys-qr img { border-radius: 12px; }
 .mys-qr p { margin: 0; }
 .mys-qr span { color: var(--cx-dim); font-size: 13px; font-variant-numeric: tabular-nums; }
-.mys-actions, .mys-backup-more { display: flex; gap: 8px; flex-wrap: wrap; }
-.mys-actions .mys-login-closed, .mys-actions .mys-login-closed:hover, .mys-actions .mys-login-closed:focus {
-    background: var(--el-fill-color-light); color: var(--el-text-color-secondary); border-color: var(--el-border-color); cursor: not-allowed;
-}
-.mys-actions .el-select { flex: 1 1 200px; }
+.mys-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mys-actions select { flex: 1 1 200px; }
 .mys-pending { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--cx-dim); font-size: 13px; }
 .mys-manual { display: flex; flex-wrap: wrap; gap: 8px; }
-.mys-manual .el-select { width: 120px; }
-.mys-manual .el-input { flex: 1 1 200px; }
+.mys-manual select { width: 120px; }
+.mys-manual input { flex: 1 1 200px; }
 .mys-result { margin: 0; color: var(--cx-down); font-size: 13px; line-height: 1.6; }
 .mys-warnings { margin: 0; padding-left: 18px; color: var(--cx-gold) !important; font-size: 12px; line-height: 1.7; max-height: 150px; overflow: auto; }
-
-/* 互传 */
-.mys-backup { display: grid; gap: 10px; justify-items: start; }
-.mys-backup .el-checkbox { height: auto; white-space: normal; }
-.mys-backup :deep(.el-checkbox__label) { color: var(--cx-dim); line-height: 1.5; }
 
 /* 导入记录 */
 .mys-import-history { max-height: 420px; overflow: auto; display: grid; gap: 8px; }
 .mys-import-record { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: var(--cx-step); }
 .mys-import-record strong { overflow-wrap: anywhere; }
 .mys-import-record small { display: block; color: var(--cx-dim); font-size: 12px; margin-top: 4px; line-height: 1.5; }
-.mys-import-record .el-button { flex-shrink: 0; }
+.mys-import-record button { flex-shrink: 0; }
 .mys-empty { margin: 0; padding: 18px 0; text-align: center; color: var(--cx-dim); font-size: 13px; }
 </style>
+
 <style>
-/* 放在弹窗里时弹窗本身就是卡片底色，各块去掉底色，只靠间距分开（选择器要带弹窗祖先，写在非 scoped 块里） */
-.el-dialog .mys-import .mys-card { padding: 0; background: transparent; }
-.el-dialog .mys-import .mys-layout { gap: 22px; }
+.character-add-menu { width: min(284px, calc(100vw - 24px)); }
+.character-add-menu :is(.add-source-icon, .add-tool-icon) {
+    display: grid;
+    place-items: center;
+    flex: 0 0 32px;
+    height: 32px;
+    font-size: 17px;
+}
+.character-add-menu .add-source-icon { color: var(--cx-gold); background: var(--cx-step); border-radius: 9px; }
+.character-add-menu .add-tool-icon { color: var(--cx-dim); }
+.character-add-menu .add-source-label { display: grid; gap: 3px; padding-block: 3px; font-weight: 600; }
+.character-add-menu .add-source-label small { color: var(--cx-dim); font-size: 12px; font-weight: 400; }
 </style>

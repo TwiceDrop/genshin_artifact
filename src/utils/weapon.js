@@ -1,5 +1,11 @@
 import { weaponData } from "@asset/weapon"
 
+import signatureWeapons from "@/assets/character-signature-weapons.json"
+
+export function characterSignatureWeapons(name) {
+    return signatureWeapons[name?.replace(/^(?:Aether|Lumine).+$/, 'Traveler')] || []
+}
+
 export function getWeaponDefaultConfigWasmInterface(name) {
     const data = weaponData[name]
     const hasConfig = data.configs && data.configs.length > 0

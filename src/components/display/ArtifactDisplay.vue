@@ -66,18 +66,19 @@
                 >
             </div>
             <div class="detail-div">
-                <p class="main-tag">{{ mainDisplayTag }}</p>
+                <p class="main-tag"><span :class="{ 'recommended-main': highlightedMainStat(props.item, recommendedTags) }">{{ mainDisplayTag }}</span></p>
                 <div v-if="props.twoColumn" class="secondary-grid">
-                    <p v-for="(tag, index) in secTagParts" :key="index" class="sec-tag">
-                        <span>{{ tag[0] }}</span><b>{{ tag[1] }}</b>
+                    <p v-for="(tag, index) in secTagParts" :key="index" class="sec-tag" :class="{ recommended: recommendedTags.includes(props.item.normalTags[index].name) }">
+                        <span>{{ tag[0] }}<ArtifactUpgradeCount :count="hits[index]" /></span><b>{{ tag[1] }}</b>
                     </p>
                 </div>
                 <p
                     v-for="(tag, index) in (props.twoColumn ? [] : secTags)"
                     :key="index"
                     class="sec-tag"
+                    :class="{ recommended: recommendedTags.includes(props.item.normalTags[index].name) }"
                 >
-                    {{ tag }}
+                    <span>{{ tag }}<ArtifactUpgradeCount :count="hits[index]" /></span>
                 </p>
             </div>
         </div>
@@ -97,8 +98,10 @@ import IconEpLock from "~icons/ep/lock"
 import IconEpDelete from "~icons/ep/delete"
 import IconEpEdit from "~icons/ep/edit"
 import {IArtifact, IArtifactContentOnly} from "@/types/artifact"
-import {displayedTag, displayedTagParts, positionToIndex} from "@/utils/artifacts"
+import {displayedTag, displayedTagParts, displayedUpgradeHits, positionToIndex} from "@/utils/artifacts"
+import ArtifactUpgradeCount from './ArtifactUpgradeCount.vue'
 import {useI18n} from "@/i18n/i18n"
+import { characterArtifactHighlights, highlightedMainStat } from '@/utils/character-artifact-highlights'
 
 // i18n
 const { t, ta } = useI18n()
@@ -107,6 +110,7 @@ interface Props {
     item: Omit<IArtifact, "id" | "contentHash">,
     selectable?: boolean,
     twoColumn?: boolean,
+    characterName?: string | null,
     shortRecharge?: boolean,
     extra?: string,
     buttons?: boolean,
@@ -140,6 +144,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits<Emits>()
+const recommendedTags = computed(() => characterArtifactHighlights(props.characterName))
+const hits = computed(() => displayedUpgradeHits(props.item))
 const isLocked = computed(() => props.locked ?? props.item.omit)
 
 const displayedTitle = computed(() => {
@@ -351,7 +357,10 @@ function defaultItem(): Omit<IArtifact, "id" | "contentHash"> {
         gap: 4px;
         min-width: 0;
         span { min-width: 0; overflow-wrap: anywhere; }
-        b { flex: none; white-space: nowrap; font-weight: 600; color: var(--cx-letter); }
+        b { flex: none; white-space: nowrap; font-weight: 600; color: var(--artifact-sub-color, var(--cx-letter)); }
     }
 }
+.sec-tag.recommended { --artifact-sub-color: var(--cx-gold); }
+.recommended-main { color: var(--cx-gold); }
+.sec-tag.recommended > span { color: var(--artifact-sub-color); }
 </style>

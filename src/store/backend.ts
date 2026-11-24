@@ -455,12 +455,23 @@ class MixedBackend {
 
     setItem(key: string, value: any, options: { source?: string } = {}) {
         const snapshot = JSON.parse(JSON.stringify(value))
+        return this.setSnapshot(key, snapshot, options.source || 'local')
+    }
+
+    // Queue immediately under the captured account key. Give the UI a frame before
+    // IndexedDB clones large equipment snapshots; hidden tabs must also make progress.
+    setSnapshot(key: string, snapshot: any, source: string, afterPaint = false) {
+        const paint = afterPaint && !document.hidden ? new Promise<void>(resolve => {
+            const deadline = setTimeout(resolve, 80)
+            requestAnimationFrame(() => setTimeout(() => { clearTimeout(deadline); resolve() }, 0))
+        }) : null
         return this.enqueue([key], async () => {
+            if (paint) await paint
             await this.checkConsistency()
             const meta = genMeta()
             await this.localBackend.setItem(key, snapshot, meta)
             await this.mirror([[key, snapshot]], [], meta)
-        }, { keys: [key], entries: [[key, snapshot]], source: options.source || 'local' })
+        }, { keys: [key], entries: [[key, snapshot]], source })
     }
 
     removeItem(key: string, options: { source?: string } = {}) {

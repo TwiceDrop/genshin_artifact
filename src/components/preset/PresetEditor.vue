@@ -1,12 +1,12 @@
 <template>
-    <el-dialog :model-value="true" :title="creating ? '新建自定义预设' : '编辑角色预设'"
+    <el-dialog :model-value="true" :title="settingsPreset ? '计算设置' : creating ? '新建自定义预设' : '编辑角色预设'"
         custom-class="cx-scope preset-editor-dialog viewport-dialog"
         width="min(960px, 96vw)" @update:model-value="value => { if (!value) $emit('close') }" :close-on-click-modal="false">
         <div class="preset-editor">
-            <label class="preset-name"><span>预设名称</span><el-input v-model="name" :disabled="!creating" aria-label="预设名称" /></label>
+            <label v-if="!settingsPreset" class="preset-name"><span>预设名称</span><el-input v-if="creating" v-model="name" aria-label="预设名称" /><el-input v-else :model-value="store.displayName(name)" disabled aria-label="预设名称" /></label>
             <el-tabs v-model="tab">
-                <el-tab-pane :label="t('misc.character')" name="character">
-                    <div class="form-grid">
+                <el-tab-pane v-if="!settingsPreset || c.characterNeedConfig" :label="t('misc.character')" name="character">
+                    <div v-if="!settingsPreset" class="form-grid">
                         <label><span>{{ t('misc.character') }}</span><select-character v-if="!gameIdentity" v-model="c.characterName" /><el-input v-else :model-value="c.characterLocale" disabled /></label>
                         <label><span>角色等级</span><select-character-level v-model="c.characterLevel" /></label>
                         <label><span>{{ t('misc.conste') }}</span><el-input-number v-model="c.characterConstellation" :min="0" :max="6" /></label>
@@ -17,15 +17,20 @@
                     <item-config v-if="c.characterNeedConfig" v-model="c.characterConfig" :item-name="c.characterName" :configs="c.characterConfigConfig" />
                 </el-tab-pane>
                 <el-tab-pane :label="t('misc.weapon')" name="weapon">
-                    <div class="form-grid">
+                    <div v-if="!settingsPreset" class="form-grid">
                         <label><span>{{ t('misc.weapon') }}</span><select-weapon v-model="w.weaponName" :type="c.characterWeaponType" /></label>
                         <label><span>武器等级</span><select-weapon-level v-model="w.weaponLevel" /></label>
                         <label><span>{{ t('misc.refine') }}</span><el-input-number v-model="w.weaponRefine" :min="1" :max="w.weaponMaxRefine" /></label>
                     </div>
+                    <section class="equipment-effects">
+                        <h3>当前武器效果</h3>
+                        <strong>{{ ta(weaponMeta.nameLocale) }} · 精炼 {{ w.weaponRefine }} 阶</strong>
+                        <p>{{ weaponEffect || '无' }}</p>
+                    </section>
                     <item-config v-if="w.weaponNeedConfig" v-model="w.weaponConfig" :item-name="w.weaponName" :configs="w.weaponConfigConfig" />
                 </el-tab-pane>
                 <el-tab-pane :label="t('misc.artifact')" name="artifacts">
-                    <div class="preset-artifacts">
+                    <div v-if="!settingsPreset" class="preset-artifacts">
                         <div v-for="(position, i) in positions" :key="position">
                             <strong>{{ t('misc', position) }}</strong>
                             <artifact-display v-if="a.artifactItems[i]" :item="a.artifactItems[i]" selectable :buttons="true"
@@ -33,6 +38,13 @@
                             <el-button @click="selectSlot = i">{{ t('calcPage.selectArt') }}</el-button>
                         </div>
                     </div>
+                    <section class="equipment-effects">
+                        <h3>当前圣遗物效果</h3>
+                        <div v-for="effect in setEffects" :key="effect.key">
+                            <strong>{{ effect.name }} · {{ effect.pieces }}件套</strong><p>{{ effect.text }}</p>
+                        </div>
+                        <p v-if="!setEffects.length">无</p>
+                    </section>
                     <item-config v-if="a.artifactNeedConfig2" v-model="a.artifactSingleConfig" :item-name="a.artifactConfigItemName" :configs="a.artifactConfig2Configs" />
                     <item-config v-if="a.artifactNeedConfig4" v-model="a.artifactSingleConfig" :item-name="a.artifactConfigItemName" :configs="a.artifactConfig4Configs" />
                 </el-tab-pane>
@@ -50,7 +62,7 @@
                             <buff-item :buff="buff" v-model:buffConfig="buff.config" @delete="b.deleteBuff(buff.id)" @toggle="b.toggleBuff(buff.id)" />
                             <label v-if="teamContext.length" class="manual-buff-source">手动 BUFF 来源
                                 <el-select v-model="buff.source_id" clearable placeholder="未关联队友" size="small">
-                                    <el-option v-for="source in teamContext" :key="source.sourceId" :label="source.presetName" :value="source.sourceId" />
+                                    <el-option v-for="source in teamContext" :key="source.sourceId" :label="characterPresetLabel(source.presetName)" :value="source.sourceId" />
                                 </el-select>
                             </label>
                         </template>
@@ -68,7 +80,7 @@
             </el-tabs>
         </div>
         <template #footer>
-            <el-button v-if="!creating" @click="creating = true; name = ''">另存为自定义</el-button>
+            <el-button v-if="!settingsPreset && !creating" @click="creating = true; name = ''">另存为自定义</el-button>
             <el-button @click="$emit('close')">{{ t('misc.cancel') }}</el-button>
             <el-button type="primary" @click="save">保存</el-button>
         </template>
@@ -86,6 +98,7 @@
 import {computed, reactive, ref, watch} from 'vue'
 import {ElMessage} from 'element-plus'
 import {usePresetStore} from '@/store/pinia/preset'
+import {useCharacterPresetLabel} from '@/composables/character-preset-label'
 import {useMiyousheStore} from '@/store/pinia/miyoushe'
 import {useCharacter, useCharacterSkill} from '@/composables/character'
 import {useCharacterWeapon} from '@/composables/weapon'
@@ -100,6 +113,11 @@ import {snapshotPreset} from '@/utils/preset-workflow.mjs'
 import {recordUsage} from '@/usage-stats/index.mjs'
 import {useI18n} from '@/i18n/i18n'
 import type {IPreset} from '@/types/preset'
+import type {IArtifact} from '@/types/artifact'
+import weapons from '@/assets/_gen_weapon'
+import artifacts from '@/assets/_gen_artifact'
+import {weaponEffectText} from '@/algorithms/weapon-effect-summary.mjs'
+import {equippedSetEffects} from '@/import/character-summary.mjs'
 import SelectCharacter from '@/components/select/SelectCharacter.vue'
 import SelectCharacterLevel from '@/components/select/SelectCharacterLevel.vue'
 import SelectWeapon from '@/components/select/SelectWeapon.vue'
@@ -115,32 +133,39 @@ import BuffItem from '@/pages/NewArtifactPlanPage/BuffItem.vue'
 import EnemyConfig from '@/pages/NewArtifactPlanPage/EnemyConfig.vue'
 import TeamBuffSources from './TeamBuffSources.vue'
 
-const props = defineProps<{presetName?: string}>()
-const emit = defineEmits(['close', 'saved'])
-const store = usePresetStore(), game = useMiyousheStore(), {t} = useI18n()
+const props = defineProps<{presetName?: string; settingsPreset?: IPreset; equippedItems?: (IArtifact | null)[]}>()
+const emit = defineEmits(['close', 'saved', 'save-settings'])
+const store = usePresetStore(), game = useMiyousheStore(), {t, ta} = useI18n()
+const characterPresetLabel = useCharacterPresetLabel()
 const character = useCharacter(), weapon = useCharacterWeapon(character.characterName, character.characterWeaponType)
 const skill = useCharacterSkill(character.characterName), target = useTargetFunction(character.characterName)
 const c = reactive(character), w = reactive(weapon), s = reactive(skill)
-const a = reactive(use5Artifacts()), b = reactive(useBuff())
+const a = reactive(use5Artifacts(() => props.equippedItems)), b = reactive(useBuff())
+const weaponMeta = computed(() => weapons[w.weaponName as keyof typeof weapons])
+const weaponEffect = computed(() => 'effect' in weaponMeta.value ? weaponEffectText(ta(weaponMeta.value.effect), w.weaponRefine) : '')
+const setEffects = computed(() => equippedSetEffects(a.artifactItems, artifacts, ta))
 const constraints = useComputeConstraint()
 const name = ref(props.presetName || ''), creating = ref(!props.presetName), tab = ref('character')
 const selectSlot = ref<number | null>(null), showBuffs = ref(false)
 const positions = ['flower', 'feather', 'sand', 'cup', 'head']
 
-const original = props.presetName ? store.getPreset(props.presetName)!.item : {
+const original = props.settingsPreset ?? (props.presetName ? store.getPreset(props.presetName)!.item : {
     name: '', character: c.characterInterface, weapon: w.weaponInterface,
     targetFunction: target.targetFunctionInterface.value, buffs: [], artifactIds: [-1, -1, -1, -1, -1],
     constraint: constraints.presetConstraint.value, filter: constraints.presetFilter.value,
     algorithm: constraints.algorithm.value, artifactEffectMode: 'auto', artifactConfig: newDefaultArtifactConfigForWasm(),
     useDSL: false, targetMode: 'normal', optimizationMode: 'damage', panelSearch: newPanelSearchOptions(),
     dslGenerator: {character: c.characterName, entries: []}, dslSource: '',
-} as IPreset
+} as IPreset)
 const base = restorePresetConfiguration(original)
 applyPresetIdentity(base, character, weapon)
-target.targetFunctionName.value = base.targetFunction.name
-target.targetFunctionConfig.value = base.targetFunction.params
-target.targetFunctionUseDSL.value = !!base.useDSL
-target.targetFunctionDSLSource.value = base.dslSource || ''
+if (props.settingsPreset && !c.characterNeedConfig) tab.value = 'weapon'
+if (!props.settingsPreset) {
+    target.targetFunctionName.value = base.targetFunction.name
+    target.targetFunctionConfig.value = base.targetFunction.params
+    target.targetFunctionUseDSL.value = !!base.useDSL
+    target.targetFunctionDSLSource.value = base.dslSource || ''
+}
 a.artifactIds = base.artifactIds || [-1, -1, -1, -1, -1]
 a.artifactSingleConfig = base.singleConfig
 b.buffs = (base.buffs || []).map((buff, id) => ({...buff, id}))
@@ -158,12 +183,21 @@ function handleSelectBuff(name: string, options?: {config?: any, keepOpen: boole
     if (!options?.keepOpen) showBuffs.value = false
 }
 function save() {
-    const item = snapshotPreset({...base, name: name.value, character: c.characterInterface, weapon: w.weaponInterface,
-        targetFunction: target.targetFunctionInterface.value, artifactIds: a.artifactIds, buffs: b.buffs,
-        teamContext: teamContext.value, teamContextStellarMode: stellarMode.value,
+    const conditions = snapshotPreset({ buffs: b.buffs, teamContext: teamContext.value, teamContextStellarMode: stellarMode.value,
         enemy: enemy.value, infusion: infusion.value, skill: s.characterSkillInterface,
         singleConfig: a.artifactSingleConfig, artifactConfig: a.artifactSingleConfig, artifactEffectMode: base.artifactEffectMode
-            ?? (original.artifactConfig || original.singleConfig ? 'custom' : 'auto')})
+            ?? (original.artifactConfig || original.singleConfig ? 'custom' : 'auto') })
+    if (props.settingsPreset) {
+        emit('save-settings', {
+            character: { params: c.characterConfig },
+            weapon: { name: w.weaponName, params: w.weaponConfig },
+            conditions
+        })
+        emit('close')
+        return
+    }
+    const item = snapshotPreset({...base, name: name.value, character: c.characterInterface, weapon: w.weaponInterface,
+        targetFunction: target.targetFunctionInterface.value, artifactIds: a.artifactIds, ...conditions})
     try {
         if (creating.value) store.createCustom(name.value, item)
         else store.addOrOverwrite(props.presetName!, item)
@@ -182,6 +216,10 @@ function save() {
 .form-grid label>:last-child{width:100%}
 .preset-artifacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:12px 0}
 .preset-artifacts>div{display:grid;gap:10px;align-content:start;min-width:0}
+.equipment-effects{margin:12px 0 16px}
+.equipment-effects h3{margin:0 0 8px}
+.equipment-effects strong{color:var(--cx-gold);font-size:13px}
+.equipment-effects p{margin:4px 0 10px;font-size:13px;line-height:1.6;white-space:pre-line}
 .polestar-controls{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}
 .polestar-controls label{display:flex;align-items:center;gap:10px}
 .manual-buff-source{display:flex;align-items:center;gap:8px;margin:8px 0}

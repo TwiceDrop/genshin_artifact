@@ -11,8 +11,8 @@ import {computed} from "vue"
 import {artifactsData} from "@/assets/artifacts"
 import type {IArtifact} from "@/types/artifact"
 
-const props = withDefaults(defineProps<{ item: IArtifact, size?: number }>(), { size: 58 })
-const image = computed(() => (artifactsData as any)[props.item.setName]?.[props.item.position]?.url)
+const props = withDefaults(defineProps<{ item: IArtifact, size?: number, src?: string }>(), { size: 58 })
+const image = computed(() => props.src || (artifactsData as any)[props.item.setName]?.[props.item.position]?.url)
 </script>
 
 <style lang="scss" scoped>

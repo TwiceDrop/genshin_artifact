@@ -29,7 +29,7 @@ import {type ArtifactPosition, type IArtifact, type IArtifactContentOnly} from "
 //     }
 // }
 
-const f = () => {
+export const createArtifactStore = () => {
     const artifacts: Ref<Map<number, IArtifact>> = ref(new Map())
     const hashes: Map<string, number> = reactive(new Map())
 
@@ -216,7 +216,7 @@ const f = () => {
     }
 }
 
-const s = f()
+const s = createArtifactStore()
 
 // watch(() => {
 //     return {

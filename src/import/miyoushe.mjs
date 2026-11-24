@@ -1,12 +1,12 @@
 import { resolveActiveTalents } from './character-talents.mjs'
 import { travelerName } from '../../beta-data/traveler-model.mjs'
 
-export const snapshotSourceName = source => ({ good: 'GOOD', enka: 'Enka', hoyolab: 'HoYoLAB', miyoushe: '米游社' }[source] || '米游社')
+export const snapshotSourceName = source => ({ screenshot: '识图导入', good: 'GOOD', enka: 'Enka', hoyolab: 'HoYoLAB', miyoushe: '米游社' }[source] || '米游社')
 
 export const POSITIONS = ['flower', 'feather', 'sand', 'cup', 'head']
 const PROPERTY = { 2: 'lifeStatic', 3: 'lifePercentage', 5: 'attackStatic', 6: 'attackPercentage', 8: 'defendStatic', 9: 'defendPercentage', 20: 'critical', 22: 'criticalDamage', 23: 'recharge', 26: 'cureEffect', 28: 'elementalMastery', 30: 'physicalBonus', 40: 'fireBonus', 41: 'thunderBonus', 42: 'waterBonus', 43: 'dendroBonus', 44: 'windBonus', 45: 'rockBonus', 46: 'iceBonus' }
 const FLAT = new Set([2, 5, 8, 28])
-const BREAKS = [20, 40, 50, 60, 70, 80]
+export const BREAKS = [20, 40, 50, 60, 70, 80]
 const propertyIds = Object.fromEntries(Object.entries(PROPERTY).map(([id, name]) => [name, Number(id)]))
 
 // Encode local equipment in the portable game snapshot format.
@@ -43,6 +43,13 @@ function defaults(name, config = []) {
 }
 const iconKey = url => String(url || '').match(/UI_(?:AvatarIcon|EquipIcon|RelicIcon)_[A-Za-z0-9_]+/)?.[0]
 
+export function snapshotWeaponStats(name, raw) {
+    const level = integer(raw.level, 1, 90, '武器等级')
+    const stage = integer(raw.promote_level, 0, 6, '武器突破')
+    return { name, level, ascend: BREAKS.includes(level) && stage > BREAKS.indexOf(level),
+        refine: integer(raw.affix_level, 1, 5, '武器精炼') }
+}
+
 export function createMysConverter({ characters, weapons, artifacts, targets, locale, inferAscend }) {
     const find = (data, api) => {
         const matches = Object.keys(data).filter(k => locale[data[k].nameLocale] === api?.name || (iconKey(api?.icon) && [data[k].avatar, data[k].url].some(url => iconKey(url) === iconKey(api.icon))))
@@ -74,8 +81,7 @@ export function createMysConverter({ characters, weapons, artifacts, targets, lo
         const skills = resolveActiveTalents(raw.skills, characters[name], locale)
         const c = { name, level, ascend: false, constellation: integer(base.actived_constellation_num, 0, 6, '命座'),
             skill1: integer(skills[0].level, 1, 15, '普攻天赋') - 1, skill2: integer(skills[1].level, 1, 15, '战技天赋') - 1, skill3: integer(skills[2].level, 1, 15, '爆发天赋') - 1, params: defaults(name, characters[name].config) }
-        const wl = integer(raw.weapon.level, 1, 90, '武器等级'), wp = integer(raw.weapon.promote_level, 0, 6, '武器突破')
-        const w = { name: weaponName, level: wl, ascend: BREAKS.includes(wl) && wp > BREAKS.indexOf(wl), refine: integer(raw.weapon.affix_level, 1, 5, '武器精炼'), params: defaults(weaponName, weapons[weaponName].configs) }
+        const w = { ...snapshotWeaponStats(weaponName, raw.weapon), params: defaults(weaponName, weapons[weaponName].configs) }
         if (BREAKS.includes(level)) {
             const promote = base.promote_level ?? raw.promote_level
             if (promote !== undefined) c.ascend = integer(promote, 0, 6, '角色突破') > BREAKS.indexOf(level)

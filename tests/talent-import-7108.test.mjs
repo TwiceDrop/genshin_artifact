@@ -10,6 +10,9 @@ import {characterSummary} from '../src/import/character-summary.mjs';
 import {normalizeTalentName} from '../src/import/character-talents.mjs';
 import * as importHistory from '../src/import/import-history.mjs';
 import * as uidInventory from '../src/import/uid-inventory.mjs';
+import { accountGameUid } from '../src/import/uid-import-review.mjs'
+import { canonicalGameElement } from '../src/import/character-summary.mjs'
+import * as presetWorkflow from '../src/utils/preset-workflow.mjs'
 const characters=read('src/assets/_gen_character.js'),weapons=read('src/assets/_gen_weapon.js'),artifacts=read('src/assets/_gen_artifact.js'),targets=read('src/assets/_gen_tf.js'),locale=read('src/i18n/generated/zh-cn.json');
 const converter=createMysConverter({characters,weapons,artifacts,targets,locale});
 const report={date:'2026-10-01',targetedItems:5,catalogScope:'134 catalog rows / 402 names; metadata only',items:[]};
@@ -28,6 +31,9 @@ function storeHarness(){
  const inventory={artifacts:vue.ref(new Map()),addArtifact(a){const id=this.artifacts.value.size;this.artifacts.value.set(id,{...a,id});return id;}};
  const presets={presets:vue.ref({}),addOrOverwrite(name,item){this.presets.value[name]={name,item};},getPreset(name){return this.presets.value[name];}};
  const modules={vue,'@/import/import-history.mjs':importHistory,'@/import/uid-inventory.mjs':uidInventory,'./artifact':{useArtifactStore:()=>inventory},'./preset':{usePresetStore:()=>presets},'@/import/miyoushe.mjs':{mergeEquipped}},exports={};
+    modules['@/import/uid-import-review.mjs'] = { accountGameUid }
+    modules['@/import/character-summary.mjs'] = { canonicalGameElement }
+    modules['@/utils/preset-workflow.mjs'] = presetWorkflow
  const source=fs.readFileSync('src/store/pinia/miyoushe.ts','utf8');
  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ESNext}}).outputText,{exports,require:key=>modules[key]});
  return {store:exports.useMiyousheStore(),presets};

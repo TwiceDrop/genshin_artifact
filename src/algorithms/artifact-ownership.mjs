@@ -15,7 +15,7 @@ export function otherCharacterArtifactIds(entries, uid, currentKey, inventory) {
 }
 
 export function protectedPresetArtifactIds({entries, uid, currentKey, inventory, presets, character,
-    enabled, gameAllowed, customAllowed}) {
+    enabled, gameAllowed, customAllowed, excludedPresets = []}) {
     const reserved = enabled && gameAllowed ? new Set()
         : otherCharacterArtifactIds(entries, uid, currentKey, inventory)
     if (!enabled || !customAllowed) {
@@ -26,7 +26,27 @@ export function protectedPresetArtifactIds({entries, uid, currentKey, inventory,
             }
         }
     }
+    for (const id of excludedPresetArtifactIds(excludedPresets, inventory)) reserved.add(id)
     return reserved
+}
+
+export function excludedPresetArtifactIds(excludedPresets, inventory) {
+    const reserved = new Set()
+    for (const preset of excludedPresets) {
+        for (const id of preset.ids) {
+            if (inventory.has(id)) reserved.add(id)
+        }
+    }
+    return reserved
+}
+
+export function updatePresetExclusion(data, roleKey, oldKey, newKey) {
+    const selected = data.excludedArtifactPresets?.[roleKey]
+    if (!selected?.includes(oldKey)) return
+    const next = selected.filter(key => key !== oldKey)
+    if (newKey) next.push(newKey)
+    if (next.length) data.excludedArtifactPresets[roleKey] = next
+    else delete data.excludedArtifactPresets[roleKey]
 }
 
 // A saved group's source is distinct from imported game equipment ownership.

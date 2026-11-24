@@ -82,7 +82,7 @@
             <div v-if="selected.kind === 'single'" class="buffs"><b>BUFF</b><span v-for="(name, j) in buffTitles(member.buffs)" :key="j">{{ name }}</span><span v-if="!member.buffs.length">无</span></div>
             <div v-if="selected.status === 'completed' && member.artifacts.length" class="history-artifacts">
               <template v-for="(item, j) in member.artifacts" :key="j">
-                <artifact-card v-if="item" :item="item" readonly />
+                <artifact-card v-if="item" :item="item" :highlight-tags="characterArtifactHighlights(member.character.name)" readonly />
                 <div v-else class="empty-artifact"><b>{{ slots[j] }}</b><span>未装备</span></div>
               </template>
             </div>
@@ -102,6 +102,7 @@ import { calculationHistory, calculationState } from '@/store/calculation-histor
 import { calculationDuration } from '@/algorithms/calculation-history.mjs'
 import { teamDpsProgressText, teamDpsProgressIndeterminate } from '../../beta-data/team-dps-progress.mjs'
 import ArtifactCard from '@/components/display/ArtifactCard.vue'
+import { characterArtifactHighlights } from '@/utils/character-artifact-highlights'
 import { characterData } from '@/assets/character'
 import { weaponData } from '@/assets/weapon'
 import { artifactsData } from '@asset/artifacts'

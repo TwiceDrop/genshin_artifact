@@ -1,6 +1,6 @@
 <template>
     <div class="setup-page cx-scope">
-        <h2>设置</h2>
+        <h2>{{ t("nav.setup") }}</h2>
 
         <section class="setup-card">
             <h3 id="setup-appearance">{{ t('setupPage.appearance') }}</h3>
@@ -66,6 +66,10 @@
             <button type="button" class="setup-plain" :disabled="transferring" @click="backupFile?.click()">导入数据</button>
             <input ref="backupFile" type="file" accept=".json,application/json" hidden @change="previewFile">
         </section>
+        <section class="setup-card" aria-labelledby="phone-transfer-title">
+            <h3 id="phone-transfer-title">手机互传</h3>
+            <phone-transfer />
+        </section>
         <el-dialog v-model="previewOpen" title="导入数据" width="min(480px, 92vw)" append-to-body
                    :close-on-click-modal="!transferring" :close-on-press-escape="!transferring" :show-close="!transferring" @closed="pendingBackup = null">
             <ul class="backup-preview">
@@ -84,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import PhoneTransfer from './PhoneTransfer.vue'
 import localforage from "localforage"
 import { computed, nextTick, ref, shallowRef } from 'vue'
 import { ElMessage } from 'element-plus'

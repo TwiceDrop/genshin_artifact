@@ -4,7 +4,8 @@ import objectHash from "object-hash"
 import {artifactsData} from "@/assets/artifacts"
 import { toSnakeCase, deepCopy } from "@/utils/common"
 import { wasmGetArtifactsRankByCharacter } from "@/wasm"
-import {convertArtifact, convertArtifactStatNameBack} from "@/utils/converter"
+import {convertArtifact, convertArtifactStatName, convertArtifactStatNameBack} from "@/utils/converter"
+import { artifactUpgradeHits } from '@/algorithms/artifact-upgrade-hits.mjs'
 import type {
     ArtifactPosition,
     ArtifactSetName, ArtifactStatName,
@@ -22,6 +23,10 @@ import { isPreviewLevelFour, levelZeroMatches, confirmedZeroDuplicates } from '@
 
 
 const artifactStore = useArtifactStore()
+
+export function displayedUpgradeHits(item: Pick<IArtifactContentOnly, 'star' | 'level' | 'normalTags'>) {
+    return artifactUpgradeHits(item.star, item.level, item.normalTags.map(tag => [convertArtifactStatName(tag.name), tag.value]))
+}
 
 // count min and max upgrade count
 export function howManyUpgradeCount(value: number, tagName: ArtifactStatName, star: number): [number, number] {

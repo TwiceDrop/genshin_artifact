@@ -2,6 +2,19 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { otherCharacterArtifactIds, protectedPresetArtifactIds } from '../src/algorithms/artifact-ownership.mjs'
 
+test('explicit preset exclusions combine with ownership rules and follow the selected equipment IDs', () => {
+    const inventory = new Map([0, 1, 2, 3, 4, 5].map(id => [id, {}]))
+    const first = { ids: [0, 2, -1] }, second = { ids: [2, 3, 99] }
+    const run = (excludedPresets, gameAllowed = true) => [...protectedPresetArtifactIds({
+        entries: [{ uid: '1', key: 'other', artifactIds: [5] }], uid: '1', inventory, presets: [],
+        character: 'Amber', enabled: true, customAllowed: true, gameAllowed, excludedPresets,
+    })].sort()
+    assert.deepEqual(run([first, second]), [0, 2, 3])
+    assert.deepEqual(run([second], false), [2, 3, 5])
+    second.ids = [4]
+    assert.deepEqual(run([second]), [4])
+})
+
 test('two source permissions protect shared gear, exempt all own custom presets and use actual game equipment', () => {
     const inventory = new Map([0,1,2,3,4,5,6].map(id => [id, {id}]))
     const game = [{uid:'111111111',key:'own',artifactIds:[0]}, {uid:'111111111',key:'other',artifactIds:[1,2]}]

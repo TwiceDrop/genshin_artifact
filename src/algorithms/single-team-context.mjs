@@ -1,4 +1,5 @@
 import {deriveTeamBuffs,TEAM_BUFF_SOURCES} from '../../beta-data/hybrid-team-optimizer.mjs';
+import {presetDisplayName} from '../utils/preset-workflow.mjs';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const SUPPORTED_SOURCES = new Set(TEAM_BUFF_SOURCES);
@@ -84,22 +85,23 @@ export function deriveSingleTeamContext(api, recipient, selectedSources, presets
     for (const selected of selectedSources) {
         const {presetName, sourceId, triggers = {}} = selected;
         const entry = presets?.[presetName], item = entry?.item || entry;
-        if (!item) {result.issues.push(`队友预设「${presetName}」已不存在，请重新选择。`);continue;}
+        const label = presetDisplayName(presetName, item);
+        if (!item) {result.issues.push(`队友预设「${label}」已不存在，请重新选择。`);continue;}
         const name = item.character?.name;
-        if (!SUPPORTED_SOURCES.has(name)) {result.issues.push(`队友预设「${presetName}」的角色效果尚未校准。`);continue;}
-        if (!item.weapon) {result.issues.push(`队友预设「${presetName}」缺少武器，请重新保存。`);continue;}
+        if (!SUPPORTED_SOURCES.has(name)) {result.issues.push(`队友预设「${label}」的角色效果尚未校准。`);continue;}
+        if (!item.weapon) {result.issues.push(`队友预设「${label}」缺少武器，请重新保存。`);continue;}
         if (name === recipient.character?.name) {result.issues.push(`队伍不能重复使用 ${name}。`);continue;}
-        if (!sourceId || sourceIds.has(sourceId)) {result.issues.push(`队友「${presetName}」的来源 ID 为空或重复。`);continue;}
+        if (!sourceId || sourceIds.has(sourceId)) {result.issues.push(`队友「${label}」的来源 ID 为空或重复。`);continue;}
         if (characterNames.has(name)) {result.issues.push(`当前仅支持一名 ${name} 作为 BUFF 来源。`);continue;}
         sourceIds.add(sourceId);characterNames.add(name);
         if (!Array.isArray(item.artifactIds)) {
-            result.issues.push(`队友预设「${presetName}」没有保存当前装备；请打开该预设并重新保存。`);continue;
+            result.issues.push(`队友预设「${label}」没有保存当前装备；请打开该预设并重新保存。`);continue;
         }
         const ids = item.artifactIds.filter(id => Number.isInteger(id) && id >= 0);
-        if (new Set(ids).size !== ids.length) {result.issues.push(`队友预设「${presetName}」重复使用了圣遗物。`);continue;}
-        if (ids.some(id => occupiedGear.has(id))) {result.issues.push(`队友预设「${presetName}」与当前角色或其他队友占用了同一件圣遗物。`);continue;}
+        if (new Set(ids).size !== ids.length) {result.issues.push(`队友预设「${label}」重复使用了圣遗物。`);continue;}
+        if (ids.some(id => occupiedGear.has(id))) {result.issues.push(`队友预设「${label}」与当前角色或其他队友占用了同一件圣遗物。`);continue;}
         const gear = ids.map(getArtifact);
-        if (gear.some(artifact => !artifact)) {result.issues.push(`队友预设「${presetName}」有圣遗物已从库存删除，请重新保存装备。`);continue;}
+        if (gear.some(artifact => !artifact)) {result.issues.push(`队友预设「${label}」有圣遗物已从库存删除，请重新保存装备。`);continue;}
         const recipientWithMode = {...recipient, team_effects:{...(recipient.team_effects || {}),
             on_field:triggers.recipientOnField !== false,
             stellar_mode:recipient.team_effects?.stellar_mode}};
@@ -112,7 +114,7 @@ export function deriveSingleTeamContext(api, recipient, selectedSources, presets
             result.sources.push({presetName,sourceId,characterName:name,artifactCount:gear.length,effectNames:effects.map(e=>e.name)});
             result.team_context.push({source_id:sourceId,preset_name:presetName,triggers:clone(triggers)});
         } catch (error) {
-            result.issues.push(`队友预设「${presetName}」无法计算来源面板：${error?.message || error}`);
+            result.issues.push(`队友预设「${label}」无法计算来源面板：${error?.message || error}`);
         }
     }
     result.buffs.push(...result.automatic);

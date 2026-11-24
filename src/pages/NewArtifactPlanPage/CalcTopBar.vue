@@ -56,6 +56,7 @@ const emit = defineEmits<{
 
 .calc-top-preset {
     display: flex;
+    max-width: 100%;
     align-items: center;
     gap: 8px;
 }

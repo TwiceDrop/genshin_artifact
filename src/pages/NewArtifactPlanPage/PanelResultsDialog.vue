@@ -20,7 +20,11 @@
   <el-button v-if="limit<results.length" @click="limit+=50">加载更多</el-button>
   <div v-if="detail" class="panel-build-detail">
    <h3>第 {{ detailIndex+1 }} 套</h3>
-   <div class="panel-difference"><span v-for="stat in PANEL_STATS" :key="stat.key">{{ stat.label }} {{ difference(detail.panel[stat.key]-snapshot.baseline[stat.key],stat) }}</span></div>
+   <div class="panel-difference">
+    <span v-for="stat in detailStats" :key="stat.key">
+     {{ stat.label }} <strong>{{ stat.total }}</strong> <small v-if="stat.delta">({{ stat.delta }})</small>
+    </span>
+   </div>
    <div class="panel-artifacts"><artifact-display v-for="item in detailArtifacts" :key="item.id" :item="item" /></div>
   </div>
  </el-dialog>
@@ -37,8 +41,14 @@ const rows=computed(()=>props.results.map((r,index)=>({...r,index})).sort((a,b)=
 const visibleRows=computed(()=>rows.value.slice(0,limit.value))
 const detail=computed(()=>props.results[detailIndex.value])
 const detailArtifacts=computed(()=>PANEL_SLOTS.map(slot=>props.snapshot.items[detail.value[slot.toLowerCase()]]))
-const format=(value,stat)=>stat.percent?(value*100).toFixed(1)+'%':value.toFixed(1)
-const difference=(value,stat)=>(value>0?'+':'')+format(value,stat)
+const panelNumber=(value,stat)=>(stat.percent?value*100:value).toFixed(1)
+const format=(value,stat)=>panelNumber(value,stat)+(stat.percent?'%':'')
+const detailStats=computed(()=>PANEL_STATS.map(stat=>{
+ const value=detail.value.panel[stat.key]
+ const change=Number(panelNumber(value,stat))-Number(panelNumber(props.snapshot.baseline[stat.key],stat))
+ return {key:stat.key,label:stat.label,total:format(value,stat),delta:change
+  ? (change>0?'+':'')+change.toFixed(1)+(stat.percent?' 个百分点':'') : ''}
+}))
 function apply(index){emit('select',index+1);emit('update:modelValue',false)}
 watch(()=>props.modelValue,open=>{if(open){sortMetric.value=props.snapshot.options.metric;sortDirection.value=props.snapshot.options.direction;detailIndex.value=Math.max(0,props.selectedIndex-1);limit.value=50}},{immediate:true})
 watch([sortMetric,sortDirection],()=>{limit.value=50})

@@ -35,7 +35,7 @@ export default {
         about: "About",
         help: "Help",
         exportTool: "Export Tools",
-        setup: "Settings",
+        setup: "Settings / Export",
         bestSet: "Best Set",
     },
     misc: {

@@ -4,7 +4,7 @@
                                 <el-select v-model="selectedTeamPresetNames" multiple filterable clearable
                                     placeholder="选择已保存的队友预设" style="width:100%">
                                     <el-option v-for="entry in availableTeamPresets" :key="entry.name"
-                                        :label="`${entry.name} · ${teamCharacterLabel(entry.item.character.name)}`"
+                                        :label="`${presetStore.displayName(entry.name)} · ${teamCharacterLabel(entry.item.character.name)}`"
                                         :value="entry.name" />
                                 </el-select>
                                 <template v-if="teamContextSources.length">
@@ -16,7 +16,7 @@
                                         </el-radio-group>
                                     </div>
                                     <div v-for="source in teamContextSources" :key="source.presetName" class="team-source-card">
-                                        <strong>{{ source.presetName }} · {{ teamCharacterLabel(presetStore.presets.value[source.presetName]?.item.character.name) }}</strong>
+                                        <strong>{{ presetStore.displayName(source.presetName) }} · {{ teamCharacterLabel(presetStore.presets.value[source.presetName]?.item.character.name) }}</strong>
                                         <span class="team-source-gear">{{ teamSourceGearLabel(source.presetName) }}</span>
                                         <label class="team-source-id">来源 ID
                                             <el-input v-model="source.sourceId" size="small" aria-label="BUFF 来源 ID" />

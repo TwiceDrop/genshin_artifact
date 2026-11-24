@@ -1,5 +1,6 @@
 import {isLimitedWeapon, normalizeLimitedWeapon, limitedWeaponEffects, bounded} from './limited-weapons.mjs';
 import {isSignatureWeapon, normalizeSignatureWeapon, chrysalisEffects, hymnAttackBonus} from './weapon-effects.mjs';
+import {isWeaponDetail, removeInactiveCarrierPassive, restoreWeaponSubstat} from './weapon-carrier-detail.mjs';
 
 const clone=x=>JSON.parse(JSON.stringify(x));
 const native=c=>['Vodyanitsa','Vesna'].includes(c?.name);
@@ -149,6 +150,20 @@ export function createLimitedWeaponFacade(base, original, data, signatureData = 
             }
             const input=args[0],out=prepare(input);
             const result=fn(out,...args.slice(1));
+            const equipped=input?.weapon;
+            if (isWeaponDetail(method) && equipped && equipped.name !== out.weapon?.name &&
+                (equipped.name === 'NewBough' || equipped.name === 'WintersHeavyHeart')) {
+                const actual=catalog.get(equipped.name).levels.find(r=>r.level===equipped.level&&r.ascend===equipped.ascend).subStat;
+                const previous=carrierSub(equipped);
+                if (equipped.name === 'NewBough') {
+                    restoreWeaponSubstat(result.critical, 'BUFF: 暴击率', -previous, 0);
+                    restoreWeaponSubstat(result.critical_damage, 'BUFF: 暴击伤害', actual, actual);
+                    removeInactiveCarrierPassive(result, '熔猎异端之刃被动');
+                } else {
+                    restoreWeaponSubstat(result.critical_damage, 'BUFF: 暴击伤害', actual-previous, actual);
+                    removeInactiveCarrierPassive(result, '流浪乐章被动等效');
+                }
+            }
             if(isLimitedWeapon(input?.weapon)&&result&&typeof result==='object'&&!Array.isArray(result)&&['CommonInterface','CalculatorInterface'].includes(className))result.weapon_effects=limitedWeaponEffects(input.weapon);
             if(input?.weapon?.name==='BeyondTheChrysalis'&&result&&typeof result==='object'&&!Array.isArray(result)&&['CommonInterface','CalculatorInterface'].includes(className))result.weapon_effects=chrysalisEffects(input.weapon);
             return result;

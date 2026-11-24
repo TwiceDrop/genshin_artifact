@@ -61,6 +61,8 @@ for (const [key, meta] of Object.entries(characters)) {
         if (talent && Object.keys(props(talent)).length) fixed.push({constellation: i + 1, stats: props(talent)})
     })
     units[key] = {growth, promotion: promotions(characterPromotions, 'avatarPromoteId', avatar.avatarPromoteId), fixed}
+    // AvatarExcelConfigData's base Elemental Mastery field in the pinned dataset.
+    if (avatar.AOBCHLDFLOD) units[key].baseElementalMastery = avatar.AOBCHLDFLOD
 }
 
 for (const [key, meta] of Object.entries(weapons)) {

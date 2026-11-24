@@ -17,11 +17,12 @@
             <div v-for="(artifact, index) in artifacts" :key="positions[index]" class="kumi-slot" :class="{ empty: !artifact }">
                 <button type="button" class="kumi-slot-main"
                         :aria-label="artifact ? `更换${slotLabel(index)}` : `选择${slotLabel(index)}`"
-                        :title="artifact ? `${slotLabel(index)} · ${mainText(artifact)}` : undefined"
-                        @click="emits('click', positions[index])">
+                        @pointerenter="showPreview($event, index)" @pointerleave="hidePreview"
+                        @focus="showPreview($event, index)" @blur="hidePreview" @keydown.esc="hidePreview"
+                        @click="hidePreview(); emits('click', positions[index])">
                     <template v-if="artifact">
                         <artifact-icon :item="artifact" :size="52" />
-                        <span class="kumi-slot-stat">{{ mainValue(artifact) }}</span>
+                        <span class="kumi-slot-stat" :class="{ recommended: highlightedMainStat(artifact, highlightTags) }">{{ mainValue(artifact) }}</span>
                     </template>
                     <template v-else>
                         <span class="kumi-slot-empty"><img :src="slotIcons[positions[index]]" alt="" /><b>+</b></span>
@@ -32,18 +33,26 @@
                         @click="emits('deleteArtifact', artifact.id)">×</button>
             </div>
         </div>
+        <el-popover v-if="preview && artifacts[preview.index]" :key="preview.index"
+                    virtual-triggering :virtual-ref="preview.anchor" :visible="true" :enterable="false"
+                    placement="bottom-start" :width="220" popper-class="cx-scope kumi-piece-popover">
+            <ArtifactPiecePreview :position="positions[preview.index]" :item="artifacts[preview.index]"
+                :highlight-tags="highlightTags" />
+        </el-popover>
     </section>
 </template>
 
 <script setup lang="ts">
 // 圣遗物套装卡片：组名、套装汇总、五个部位格。事件接口与改版前一致。
 import IconEpMoreFilled from "~icons/ep/more-filled"
-import {computed} from "vue"
+import {computed, onDeactivated, shallowRef} from "vue"
 import {positions} from "@/constants/artifact"
 import slotIcons from "@/assets/artifacts/icons"
 import {artifactsData} from "@/assets/artifacts"
 import {displayedTagParts} from "@/utils/artifacts"
 import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
+import ArtifactPiecePreview from "@/components/display/ArtifactPiecePreview.vue"
+import {highlightedMainStat} from "@/utils/character-artifact-highlights"
 import {useI18n} from "@/i18n/i18n"
 import type {KumiItem} from "@/types/kumi"
 import type {IArtifact, ArtifactPosition} from "@/types/artifact"
@@ -56,15 +65,24 @@ interface Emits {
     (e: "edit"): void
 }
 const emits = defineEmits<Emits>()
-const props = defineProps<{ data: KumiItem }>()
+const props = defineProps<{ data: KumiItem, highlightTags?: string[] }>()
 const { t, ta } = useI18n()
 const artifactStore = useArtifactStore()
+const preview = shallowRef<{ index: number, anchor: HTMLElement } | null>(null)
+function showPreview(event: FocusEvent | PointerEvent, index: number) {
+    if (!artifacts.value[index] || ('pointerType' in event && event.pointerType === 'touch')) return
+    preview.value = { index, anchor: event.currentTarget as HTMLElement }
+}
+function hidePreview() {
+    preview.value = null
+}
+onDeactivated(hidePreview)
 
 // 按部位排好的五件；缺的部位为 null
 const artifacts = computed(() => {
     const byPosition: Partial<Record<ArtifactPosition, IArtifact>> = {}
     for (const id of props.data.artifactIds ?? []) {
-        const artifact = id ? artifactStore.artifacts.value.get(id) : undefined
+        const artifact = id != null ? artifactStore.artifacts.value.get(id) : undefined
         if (artifact) byPosition[artifact.position] = artifact
     }
     return positions.map(position => byPosition[position] ?? null)
@@ -81,9 +99,6 @@ const summary = computed(() => {
 function slotLabel(index: number) {
     return t("misc", positions[index])
 }
-function mainText(artifact: IArtifact) {
-    return displayedTagParts(artifact.mainTag.name, artifact.mainTag.value).join(" ")
-}
 function mainValue(artifact: IArtifact) {
     return displayedTagParts(artifact.mainTag.name, artifact.mainTag.value)[1]
 }
@@ -94,6 +109,7 @@ function handleCommand(command: string) {
 </script>
 
 <style lang="scss" scoped>
+.kumi-slot-stat.recommended { color: var(--cx-gold); }
 .kumi-card {
     display: flex;
     flex-direction: column;

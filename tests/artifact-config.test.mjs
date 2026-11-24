@@ -48,21 +48,31 @@ test('single automatic sets distinguish the wearer from active character BUFF so
     for (const name of Object.keys(characters)) assert.equal(config(name).config_heart_of_the_furnace.rate, 1)
 })
 
-test('automatic damage and panel searches follow BUFF changes while manual values and previews are preserved', () => {
+test('all single-character calculations share active coverage and restore manual values in custom mode', () => {
     const manual = vue.ref(defaults()), mode = vue.ref('auto')
     const buffs = vue.reactive([{name: 'ShenheE'}])
     manual.value.config_scarlet_proof.rate = 0.35
     manual.value.config_heart_of_the_furnace.rate = 0
     const inputs = singleCalculatorInputs({character: {name: 'Venti'}, buffs}, [], manual, mode)
+    function checkAll() {
+        const config = inputs.optimize().artifact_config
+        for (const other of [inputs.preview.value.artifact_config, inputs.attributes.value.artifact_config,
+            inputs.gains.value.artifacts_config, inputs.panel().artifact_config]) {
+            assert.deepEqual(JSON.parse(JSON.stringify(other)), config)
+        }
+    }
     const previous = inputs.optimize().artifact_config
+    checkAll()
     assert.equal(previous.config_scarlet_proof.rate, 1)
     assert.equal(previous.config_heart_of_the_furnace.rate, 1)
     assert.equal(inputs.panel().artifact_config.config_scarlet_proof.rate, 1)
     buffs.pop()
     assert.equal(inputs.optimize().artifact_config.config_scarlet_proof.rate, 0)
     assert.equal(previous.config_scarlet_proof.rate, 1)
-    assert.equal(inputs.preview.value.artifact_config.config_scarlet_proof.rate, 0.35)
+    checkAll()
     mode.value = 'custom'
+    checkAll()
+    assert.equal(inputs.preview.value.artifact_config.config_scarlet_proof.rate, 0.35)
     assert.deepEqual(inputs.optimize().artifact_config, JSON.parse(JSON.stringify(manual.value)))
     assert.deepEqual(inputs.panel().artifact_config, inputs.optimize().artifact_config)
 })
@@ -164,7 +174,7 @@ test('Inazuma sets use only the wearer in automatic searches and preserve custom
     manual.value.config_vermillion_hereafter = {rate_q: 0.5, stack: 2}
     const {optimize, panel, preview} = singleCalculatorInputs({character: {name: 'Xiao'}, buffs: []}, [], manual, mode)
     for (const search of [optimize, panel]) assert.deepEqual(search().artifact_config.config_vermillion_hereafter, {rate_q: 1, stack: 4})
-    assert.equal(preview.value.artifact_config.config_vermillion_hereafter.stack, 2)
+    assert.equal(preview.value.artifact_config.config_vermillion_hereafter.stack, 4)
     mode.value = 'custom'
     assert.deepEqual(optimize().artifact_config.config_vermillion_hereafter, {rate_q: 0.5, stack: 2})
 })
@@ -205,7 +215,7 @@ test('disabling a Furina BUFF clears Hunter in both searches; manual and Days Pa
     check(0)
     active.push({name:'CustomBonus', source_id:'teammate'})
     check(3)
-    assert.equal(preview.value.artifact_config.config_marechaussee_hunter.stack, 1)
+    assert.equal(preview.value.artifact_config.config_marechaussee_hunter.stack, 3)
     mode.value = 'custom'
     check(1)
 })
@@ -317,7 +327,7 @@ test('single optimizer and damage preview use edits from both coverage controls,
     const a = harness(), config = a.artifactSingleConfig
     const page = fs.readFileSync(new URL('../src/pages/NewArtifactPlanPage/NewArtifactPlanPage.vue', import.meta.url), 'utf8')
     assert.match(page, /<artifact-config\s+v-model="artifactConfig"/)
-    assert.match(page, /<item-config\s+v-if="artifactConfig"\s+v-model="artifactConfig"/i)
+    assert.match(page, /<item-config\s+v-if="artifactEffectMode === 'custom'"\s+v-model="artifactConfig"/i)
     const {preview, optimize} = singleCalculatorInputs({}, [], config)
     const key = 'config_scarlet_proof'
     config.value = {...config.value, [key]: {rate: 0.5}}

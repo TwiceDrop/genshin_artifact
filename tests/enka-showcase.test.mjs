@@ -11,6 +11,7 @@ import * as inventoryFunctions from '../src/import/uid-inventory.mjs'
 import * as importHistory from '../src/import/import-history.mjs'
 import * as mys from '../src/import/miyoushe.mjs'
 import * as summaries from '../src/import/character-summary.mjs'
+import * as uidReview from '../src/import/uid-import-review.mjs'
 import * as presetsWorkflow from '../src/utils/preset-workflow.mjs'
 
 const require = createRequire(import.meta.url)
@@ -30,6 +31,70 @@ const catalogFile = name => JSON.parse(readFileSync(new URL('../src/assets/_gen_
 const catalog = { characters: catalogFile('character'), weapons: catalogFile('weapon'), artifacts: catalogFile('artifact'),
     targets: catalogFile('tf'), locale: JSON.parse(readFileSync(new URL('../src/i18n/generated/zh-cn.json', import.meta.url))) }
 const uid = '999999999'
+test('UID import refreshes the chosen local account, can create a separate copy, and skips routing for its current UID', async () => {
+    const vue = require('@vue/runtime-core')
+    const saved = id => ({ entries: [], snapshots: {}, boundUid: id })
+    const profiles = [saved('100000001'), saved('100000002'), saved('100000002')]
+    const accounts = { currentAccountId: vue.ref(1), reloadGeneration: vue.ref(0),
+        allAccounts: profiles.map((_, i) => ({ id: i + 1, name: '合成账户' + (i + 1) })) }
+    const calls = []
+    let action = 'refresh'
+    const store = { data: vue.ref(profiles[0]) }
+    const inventory = () => ({ artifacts: vue.ref(new Map()), artifactsByPosition: vue.ref({}), init() {} })
+    const preset = () => ({ presets: vue.ref({}), init() {} })
+    const { uidImportSession } = loadWith(readFileSync(new URL('../src/import/uid-import-session.js', import.meta.url), 'utf8'), {
+        vue, 'element-plus': { ElMessageBox: {
+            confirm(message, title) {
+                calls.push(title)
+                if (action === 'new') throw 'cancel'
+                if (action === 'close') throw 'close'
+                message.children[1].props.onChange({ target: { value: '3' } })
+            },
+            prompt() { calls.push('命名'); return { value: '副本' } }
+        } },
+        '@/store/backend': { default: { allReady() {}, getItem(key) {
+            const match = key.match(/^mona_account_miyoushe_(\d+)$/)
+            return match ? structuredClone(profiles[Number(match[1]) - 1]) : null
+        } } },
+        '@/store/pinia/account': { useAccountStore: () => accounts, getImportRevision: () => 0,
+            commitUidImport(id, name, data, check) {
+                check()
+                if (name) { id = profiles.length + 1; accounts.allAccounts.push({ id, name }) }
+                profiles[id - 1] = JSON.parse(JSON.stringify(data.miyoushe))
+                accounts.currentAccountId.value = id
+                store.data.value = profiles[id - 1]
+                return id
+            } },
+        '@/store/pinia/miyoushe': { useMiyousheStore: () => store },
+        '@/store/pinia/artifact': { createArtifactStore: inventory, useArtifactStore: inventory, watchContent: () => ({}) },
+        '@/store/pinia/preset': { createPresetStore: preset, usePresetStore: preset },
+        './import-history.mjs': importHistory, './uid-import-review.mjs': uidReview,
+        '@/assets/_gen_weapon': {}, '@/assets/_gen_artifact': {}, '@/i18n/generated/zh-cn.json': {}
+    })
+    const run = () => uidImportSession(accounts.currentAccountId.value).run('100000002', '合成导入', draft => {
+        draft.roster.data.value.nickname = '已更新'
+        return {}
+    })
+    await run()
+    assert.equal(accounts.currentAccountId.value, 3)
+    assert.equal(profiles[1].nickname, undefined)
+    assert.equal(profiles[2].nickname, '已更新')
+    await run()
+    assert.deepEqual(calls, ['已找到相同 UID'])
+    accounts.currentAccountId.value = 1
+    store.data.value = profiles[0]
+    action = 'close'
+    await assert.rejects(run(), e => e === 'close')
+    assert.equal(accounts.currentAccountId.value, 1)
+    action = 'new'
+    await run()
+    assert.equal(accounts.currentAccountId.value, 4)
+    assert.equal(accounts.allAccounts.at(-1).name, '副本')
+    assert.equal(profiles[3].boundUid, '100000002')
+    assert.equal(profiles[0].boundUid, '100000001')
+    assert.equal(profiles[0].nickname, undefined)
+})
+
 function showcase() {
     return { uid, ttl: 60, playerInfo: { nickname: '合成展柜' }, avatarInfoList: [{
         avatarId: 10000002, talentIdList: [21, 22, 23], propMap: { 4001: { val: '80' }, 1002: { val: '6' } },
@@ -91,7 +156,7 @@ test('only anonymous numeric UID lookups go upstream, respect TTL, and report er
     await assert.rejects(createEnkaReader(async () => Response.json({uid: '999999998'}))(uid), /UID/)
 })
 
-test('login controls render, grey button shows the supplied message, and the gold form saves to the active account', async () => {
+test('login controls render, Miyoushe QR login opens, and the gold form saves to the active account', async () => {
     const { JSDOM } = require('jsdom'), { parse, compileScript } = require('@vue/compiler-sfc')
     const dom = new JSDOM('<div id="app"></div>')
     for (const name of ['window', 'document', 'Element', 'SVGElement']) globalThis[name] = dom.window[name]
@@ -103,42 +168,85 @@ test('login controls render, grey button shows the supplied message, and the gol
     const requests = [], writes = [], prompts = []
     const stub = { render: () => null }
     const active = vue.ref('local-test')
+    let finishSave
+    function loadComponent(path, id) {
+        const source = readFileSync(new URL(path, import.meta.url), 'utf8')
+        const script = compileScript(parse(source).descriptor, { id, inlineTemplate: true })
+        return loadWith(script.content, { vue })
+    }
     Object.assign(modules, {
-        vue, './MiyousheCharacterPicker.vue': { default: stub }, './MiyousheVerification.vue': { default: stub },
+        '@/components/ui/UiButton.vue': loadComponent('../src/components/ui/UiButton.vue', 'button'),
+        '@/components/ui/UiDialog.vue': { default: { inheritAttrs: false, props: ['modelValue'], setup: (props, { slots }) =>
+            () => props.modelValue ? slots.default?.() : null } },
+        '@/components/ui/UiDropdownMenu.vue': { default: { inheritAttrs: false, setup: (_, { slots }) =>
+            () => [slots.trigger?.(), slots.default?.()] } },
+        '@/components/ui/UiDropdownMenuItem.vue': { default: { emits: ['select'], setup: (_, { slots, emit }) =>
+            () => vue.h('button', { onClick: () => emit('select') }, slots.default?.()) } },
+        './CharacterImportResult.vue': loadComponent('../src/components/import/CharacterImportResult.vue', 'import-result'),
+        vue, './MiyousheCharacterPicker.vue': { default: { inheritAttrs: false, render() { return this.$slots.actions?.({ openManual() {} }) } } }, './MiyousheVerification.vue': { default: stub },
         'element-plus': { ElMessageBox: { prompt: async label => { prompts.push(label); return { value: uid } } } },
+        qrcode: { default: { toDataURL: async () => 'data:image/png;base64,fixture' } },
+        '@/import/good': {}, '@/assets/_gen_artifact': {default: catalog.artifacts}, '@/assets/_gen_tf': {default: catalog.targets},
         '@/import/good-roster.mjs': goodRoster,
         '@/store/pinia/preset': { usePresetStore: () => ({ presets: vue.ref({}) }) },
         '@/store/pinia/artifact': { useArtifactStore: () => ({ artifacts: vue.ref(new Map()) }) },
         '@/usage-stats/index.mjs': { recordUsage() {} },
         '@/store/pinia/miyoushe': { useMiyousheStore: () => ({ data: vue.ref({ entries: [], snapshots: {} }), uidGroups: vue.ref([]), selectedUid: vue.ref('') }) },
         '@/store/pinia/account': { useAccountStore: () => ({ currentAccountId: active }) },
-        '@/platform/mys-api.mjs': { mysApi: async path => { requests.push(path); return { accounts: [] } } },
+        '@/platform/mys-api.mjs': { mysApi: async (path, method, body) => {
+            if (path === 'login') {
+                assert.equal(method, 'POST')
+                requests.push(body.platform)
+                if (body.platform === 'hoyolab') return { mode: 'web' }
+                return {url:'https://example.invalid/qr', expiresAt:Date.now()+120000}
+            }
+            requests.push(path)
+            return { accounts: [] }
+        } },
         '@/platform/enka.mjs': { fetchEnkaShowcase: async value => { requests.push(value); return showcase() } },
         '@/import/enka-showcase.mjs': { enkaSnapshot }, '@/assets/_gen_character': { default: catalog.characters },
         '@/assets/_gen_weapon': { default: catalog.weapons }, '@/i18n/generated/zh-cn.json': { default: catalog.locale },
-        '@/import/save-game-snapshot.mjs': { saveGameSnapshot: async (snapshot, account, label, check) => {
-            check(); writes.push([snapshot.role.uid, account, label]); return { imported: 1, added: 1, reused: 0 }
+        './uid-import-session': { uidImportSession: (account, check) => ({ account, check: () => check(account) }) },
+        './uid-import-review.mjs': {}, './role-presets.js': { isRolePresetFile: () => false },
+        '@/import/save-game-snapshot.mjs': { savePreparedSnapshot: async (uid, build, source, session) => {
+            session.check()
+            const snapshot = await build({ roster: modules['@/store/pinia/miyoushe'].useMiyousheStore(),
+                inventory: modules['@/store/pinia/artifact'].useArtifactStore(), presets: modules['@/store/pinia/preset'].usePresetStore() })
+            writes.push([snapshot.role.uid, session.account, source])
+            return { imported: 1, added: 0, reused: 0 }
+        }, saveGameSnapshot: async (snapshot, account, label, check) => {
+            check()
+            await new Promise(resolve => { finishSave = resolve })
+            writes.push([snapshot.role.uid, account, label])
+            return { imported: 1, added: 1, reused: 0 }
         } },
     })
+    const restoreFile = readFileSync(new URL('../src/import/restore-character-file.mjs', import.meta.url), 'utf8')
+    modules['@/import/restore-character-file.mjs'] = loadWith(restoreFile, { ...modules, '@/import/uid-package.mjs': {} })
     const app = vue.createApp(loadWith(compiled.content, modules).default)
-    app.component('el-button', { props: ['nativeType', 'type'], setup: (props, { slots }) => () =>
-        vue.h('button', { type: props.nativeType || 'button', 'data-kind': props.type }, slots.default?.()) })
-    app.component('el-input', { props: ['modelValue'], emits: ['update:modelValue'], setup: (props, { emit }) => () =>
-        vue.h('input', { value: props.modelValue, onInput: event => emit('update:modelValue', event.target.value) }) })
-    app.component('el-alert', { props: ['title'], setup: props => () => vue.h('div', { role: 'alert' }, props.title) })
-    for (const name of ['el-checkbox', 'el-select', 'el-option', 'el-progress']) app.component(name, stub)
-    const click = label => [...document.querySelectorAll('button')].find(button => button.textContent === label)
+    for (const icon of ['key', 'plus', 'arrow-down', 'user', 'connection', 'folder-opened', 'iphone', 'clock']) app.component('i-ep-' + icon, stub)
+    const click = label => [...document.querySelectorAll('button')].find(button => button.textContent.trim() === label)
     const settle = () => new Promise(resolve => setImmediate(resolve))
     try {
         app.mount('#app')
         await settle()
-        click('使用米游社登录').click()
+        click('Cookie 账号管理').click()
         await vue.nextTick()
-        assert.equal(document.querySelector('[role=alert]').textContent, '该登录方式暂时关闭，请尝试通过其他方式登录。')
-        assert.deepEqual(requests, ['accounts'])
-        const open = click('使用 Enka API 登录')
-        assert.equal(open.dataset.kind, 'primary')
-        open.click()
+        for (const label of ['使用米游社登录', '使用 HoYoLAB 登录', '使用 Enka API 登录', '手动录入 Cookie']) {
+            assert.equal(click(label), undefined)
+        }
+        click('Cookie 导入米游社 / HoYoLAB').click()
+        await vue.nextTick()
+        click('使用 HoYoLAB 登录').click()
+        await settle()
+        assert.ok(document.querySelector('.mys-pending'))
+        click('取消登录').click()
+        await settle()
+        click('使用米游社登录').click()
+        await settle()
+        assert.ok(document.querySelector('img[alt="米游社登录二维码"]'))
+        assert.deepEqual(requests, ['accounts', 'hoyolab', 'cancel', 'miyoushe'])
+        click('UID 导入Enka 展柜').click()
         await vue.nextTick()
         const field = document.querySelector('input[aria-label="原神 UID"]')
         field.value = uid
@@ -146,8 +254,12 @@ test('login controls render, grey button shows the supplied message, and the gol
         await vue.nextTick()
         click('导入展柜角色').click()
         await settle()
-        assert.deepEqual(requests, ['accounts', uid])
+        assert.equal(document.contains(field), false, '进入差异核对前应收起 UID 输入框')
+        finishSave()
+        await settle()
+        assert.deepEqual(requests, ['accounts', 'hoyolab', 'cancel', 'miyoushe', uid])
         assert.deepEqual(writes, [[uid, 'local-test', 'Enka 展柜导入']])
+        assert.equal(document.querySelector('input[aria-label="原神 UID"]'), null, '保存后应退出 UID 输入框')
         assert.match(document.querySelector('.mys-result').textContent, /已保存 1 名角色/)
         const input = document.querySelector('input[type=file]')
         const good = { format: 'GOOD', version: 3, source: 'yas-GOODScanner', characters: [
@@ -175,7 +287,8 @@ test('re-import preserves non-showcase characters and their gear, and matches ex
     const file = readFileSync(new URL('../src/store/pinia/miyoushe.ts', import.meta.url), 'utf8')
     const store = loadWith(file, { vue, './artifact': { useArtifactStore: () => inventory }, './preset': { usePresetStore: () => presets },
         '@/import/uid-inventory.mjs': inventoryFunctions, '@/import/import-history.mjs': importHistory, '@/import/miyoushe.mjs': mys,
-        '@/import/character-summary.mjs': summaries, '@/utils/preset-workflow.mjs': presetsWorkflow }).useMiyousheStore()
+        '@/import/character-summary.mjs': summaries, '@/import/uid-import-review.mjs': uidReview,
+        '@/utils/preset-workflow.mjs': presetsWorkflow }).useMiyousheStore()
     const old = enkaSnapshot(uid, showcase(), catalog)
     old.source = 'miyoushe'
     old.characters[0].base.element = 'Cryo'

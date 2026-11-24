@@ -58,6 +58,14 @@ export function scoreRanking(item) {
     return ranking
 }
 
+export function equippedScoreContext({ character, label, element, weaponName, weaponAffix, panel, items, sets, locale }) {
+    return { name: /^(Aether|Lumine)/.test(character.name) ? '旅行者' : label, label, options: {
+        elem: element.toLowerCase(), cons: character.constellation,
+        scoreMode: character.name === 'Vesna' && character.params?.Vesna?.radiance ? 'stellar' : 'normal',
+        weaponName, weaponAffix, charAttrs: panelScoreAttributes(panel), artisSets: scoreSetNames(items, sets, locale)
+    } }
+}
+
 export function scoreBuild(items, context) {
     const artifacts = items.filter(Boolean).map(toScoreArtifact)
     if (!context?.name || !supported(context.name)) {

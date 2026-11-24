@@ -4,6 +4,20 @@ import {rosterAttributes} from '../src/algorithms/roster-attributes.mjs'
 import {api, sum} from '../beta-tools/runtime.mjs'
 import {fixture, weapon} from '../beta-tools/interface-audit-7108.mjs'
 
+test('基础精通从 1 级起计入面板，与装备叠加且独立于战斗状态', () => {
+    for (const [name, initial] of [['Nefer', 100], ['Mitya', 100], ['Lauma', 200], ['Amber', 0]]) {
+        const input = fixture(name)
+        input.character.level = 1
+        input.artifacts = []
+        const bare = rosterAttributes(input)
+        assert.equal(sum(bare.elemental_mastery), initial, name)
+        input.character.level = 90
+        input.artifacts = fixture().artifacts.slice(0, 1)
+        const ascension = name === 'Lauma' ? 115.2 : 0
+        assert.equal(sum(rosterAttributes(input).elemental_mastery), initial + ascension + 20, name)
+    }
+})
+
 test('队外旅行者不显示共鸣和队伍加攻，战斗计算仍应用两者', () => {
     const input = fixture('AetherCryo')
     input.artifacts = []

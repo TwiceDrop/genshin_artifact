@@ -4,30 +4,25 @@
         @update:modelValue="$emit('update:modelValue', $event)"
     >
         <el-option
-            v-for="item in list"
-            :key="item"
-            :label="item"
-            :value="item"
+            v-for="entry in presetStore.allFlat.value"
+            :key="entry.name"
+            :label="characterPresetLabel(entry.name)"
+            :value="entry.name"
         ></el-option>
     </el-select>
 </template>
 
 <script setup>
 import {usePresetStore} from "@/store/pinia/preset"
+import {useCharacterPresetLabel} from '@/composables/character-preset-label'
 
 const presetStore = usePresetStore()
+const characterPresetLabel = useCharacterPresetLabel()
 
 const props = defineProps({
     modelValue: String
 })
 
-const list = computed(() => {
-    let results = []
-    for (let preset of presetStore.allFlat.value) {
-        results.push(preset.name)
-    }
-    return results
-})
 </script>
 
 <style scoped>

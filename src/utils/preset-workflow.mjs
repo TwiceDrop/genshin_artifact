@@ -1,9 +1,30 @@
-import {artifactFingerprint, POSITIONS} from '../import/miyoushe.mjs'
+import {artifactFingerprint, BREAKS, POSITIONS} from '../import/miyoushe.mjs'
 
 const copy = value => JSON.parse(JSON.stringify(value))
 
 export function presetSource(item) {
     return item.miyousheKey ? 'game' : 'custom'
+}
+
+export const gameRosterPresetLabel = uid => `游戏内-${uid}`
+
+export function presetDisplayName(name, item) {
+    const uid = item?.miyousheKey?.split(':')[0]
+    return uid ? gameRosterPresetLabel(uid) : name
+}
+
+export function presetEquipmentChanges(saved, next) {
+    const c = saved.character, w = saved.weapon
+    const changedLevel = (a, b) => a.level !== b.level || (BREAKS.includes(b.level) && !!a.ascend !== !!b.ascend)
+    const changes = []
+    if (changedLevel(c, next.character)) changes.push('角色等级')
+    if ((c.constellation ?? 0) !== (next.character.constellation ?? 0)) changes.push('命之座')
+    if (['skill1', 'skill2', 'skill3'].some(key => c[key] !== next.character[key])) changes.push('天赋等级')
+    if (POSITIONS.some((_, i) => (saved.artifactIds?.[i] ?? -1) !== (next.artifactIds?.[i] ?? -1))) changes.push('圣遗物')
+    if (w.name !== next.weapon.name) changes.push('武器')
+    if (changedLevel(w, next.weapon)) changes.push('武器等级')
+    if (w.refine !== next.weapon.refine) changes.push('精炼等阶')
+    return changes
 }
 
 export function customPresetNameError(presets, name) {
@@ -79,9 +100,9 @@ export function applyPresetArtifacts(item, ids, displayed, inventory) {
 
 export function filterPresets(entries, {source, uid, character, search}, characterLabel) {
     const query = search.trim().toLocaleLowerCase()
-    return entries.filter(({name, item}) => presetSource(item) === source
+    return entries.filter(({name, item, loadout}) => (loadout ? 'custom' : presetSource(item)) === source
         && (source !== 'game' || item.miyousheKey.split(':')[0] === uid)
         && (!character || item.character.name === character)
-        && (!query || `${name} ${characterLabel(item.character.name)}`.toLocaleLowerCase().includes(query)))
+        && (!query || `${loadout ? name : presetDisplayName(name, item)} ${name} ${characterLabel(item.character.name)}`.toLocaleLowerCase().includes(query)))
         .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
 }

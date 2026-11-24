@@ -1,7 +1,22 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { presetSource, createCustomPreset, refreshGamePreset, readPresetConfiguration,
+import { presetSource, presetDisplayName, filterPresets, createCustomPreset, refreshGamePreset, readPresetConfiguration,
     snapshotPreset, applyPresetArtifacts } from '../src/utils/preset-workflow.mjs'
+
+test('游戏内预设按 UID 显示和搜索，自定义和套装名称按原名显示', () => {
+    const name = '米游社 111111111 · 安柏'
+    const item = { miyousheKey: '111111111:10000021:Pyro', character: { name: 'Amber' } }
+    const game = { name, item }
+    const custom = { name, item: { character: item.character } }
+    const loadout = { name: '另一套', item, loadout: {} }
+    assert.equal(presetDisplayName(name, game.item), '游戏内-111111111')
+    assert.equal(presetDisplayName(name, custom.item), name)
+    const search = (source, search) => filterPresets([game, custom, loadout],
+        { source, uid: '111111111', search }, () => '安柏')
+    assert.deepEqual(search('game', '游戏内-111111111'), [game])
+    assert.deepEqual(search('custom', '另一套'), [loadout])
+    assert.deepEqual(search('custom', '游戏内-'), [])
+})
 
 test('分类不改旧配置；游戏刷新保留手动条件，另存自定义不再随来源同步', () => {
     const old = {

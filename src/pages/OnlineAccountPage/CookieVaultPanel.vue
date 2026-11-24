@@ -67,6 +67,8 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { cloudApi } from '@/platform/cloud.mjs'
 
 import { mysApi } from '@/platform/mys-api.mjs'
+import { bindCookieRole, cancelledImport } from '@/import/uid-import-session'
+import { useAccountStore } from '@/store/pinia/account'
 import { setOnlineUser } from '@/cloud/online-user.mjs'
 import { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase } from '@/cloud/cookie-crypto.mjs'
 import { communityAccount } from '../../../server/cookie.mjs'
@@ -164,12 +166,19 @@ function uploadCookie() { return run(async () => {
 }) }
 // 解密后走本地米游社导入：存进本机已保存账号，之后在米游社导入里选择它拉取角色。
 function importVault(vault) { return run(async () => {
+    const accountId = useAccountStore().currentAccountId.value, started = generation
     const value = await open(await readVault(vault))
     const { account } = await mysApi('accounts', 'POST', { cookie: value, platform: vault.platform, source: 'cloud-vault' })
     const { accounts } = await cloudApi('local-accounts')
     localAccounts.value = accounts
     localAccountId.value = account.id
-    window.dispatchEvent(new window.CustomEvent('mona-cloud-cookie-imported', { detail: { accounts, account } }))
+    let uid
+    try {
+        uid = await bindCookieRole(account.roles, accountId, () => {
+            if (disposed || started !== generation) throw new Error('账户已切换，请重新导入')
+        })
+    } catch (e) { if (cancelledImport(e)) return; throw e }
+    window.dispatchEvent(new window.CustomEvent('mona-cloud-cookie-imported', { detail: { accounts, account, uid } }))
     notice.value = `已存入本机：${accountLabel(account)}`
 }) }
 function deleteVault(vault) { return run(async () => { await cloudApi(vaultPath(vault), 'DELETE'); await loadVaults() }) }

@@ -35,6 +35,31 @@ const SANDRONE_SKILLS = [
     {index:21, original:15, name:'C4Resonator', label:'四命棱晶谐振炮·星扩散'},
     {index:22, original:17, name:'C6ClusterStellar', label:'六命集束射线·星扩散（单段）'},
 ];
+// Saved generator targets embed skill parameters in DSL independently of the preview.
+function withoutLegacySandroneHits(source) {
+    const tokens = dslTokens(source), edits = [];
+    for (let i = 0; i < tokens.length; i++) {
+        if (tokens[i].value !== 'Sandrone' || tokens[i+1]?.value !== '.' ||
+            tokens[i+2]?.type !== 'id' || tokens[i+3]?.value !== '(' || tokens[i+4]?.value !== '{') continue;
+        let depth = 0, start = null;
+        for (i += 5; i < tokens.length; i++) {
+            const token = tokens[i];
+            if (depth === 0 && (token.value === ',' || token.value === '}')) {
+                if (start !== null && start < tokens[i-1].end) edits.push([start, tokens[i-1].end]);
+                start = null;
+                if (token.value === '}') break;
+            }
+            if (depth === 0 && token.value === 'stellarconduct_hits' && tokens[i+1]?.value === ':') {
+                start = tokens[i+2]?.start;
+            }
+            if (['(', '[', '{'].includes(token.value)) depth++;
+            if ([')', ']', '}'].includes(token.value)) depth--;
+        }
+    }
+    for (const [start, end] of edits.reverse()) source = source.slice(0, start) + '0' + source.slice(end);
+    return source;
+}
+
 // Work on DSL tokens rather than substituting whole target strings. This
 // preserves user formulas, comments, and quoted text while allowing several
 // direct Stellar hits in the same expression.
@@ -169,6 +194,8 @@ export function createStellarSupportFacade(base, original) {
             }
         }
         if(sandrone) {
+            // Old presets supplied the field coefficient a second time through the skill.
+            if (x.skill?.config?.Sandrone) delete x.skill.config.Sandrone.stellarconduct_hits;
             const p=x.character.params?.Sandrone || {};
             // Native targets evaluate their own Conduct talent per candidate.
             // Synthetic Swirl targets emit a live ATK expression instead; never
@@ -292,6 +319,9 @@ export function createStellarSupportFacade(base, original) {
     function adjustStellarSupportDsl(source, input) {
         const state = stellarSupportState(input);
         if(native(input))return {source,input};
+        if (input.character.name === 'Sandrone' && source.includes('stellarconduct_hits')) {
+            source = withoutLegacySandroneHits(source);
+        }
         const tokens=dslTokens(source),bindings=dslDamageBindings(tokens),replacements=[],props=[];
         const references=[];
         for(let i=0;i+4<tokens.length;i++)if(tokens[i].type==='id'&&tokens[i+1].value==='.'&&tokens[i+3].value==='.'&&tokens[i+2].type==='id'&&tokens[i+4].type==='id')

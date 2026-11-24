@@ -1,5 +1,6 @@
 <template>
     <div class="art-page cx-scope">
+        <ArtifactScreenshotDialog v-if="screenshotOpen" @close="screenshotOpen = false" @confirm="saveScreenshot" />
         <artifact-score-dialog v-if="showScore" v-model="showScore" :item="scoreItem" :initial-character="scoreCharacter" />
         <!-- new artifact dialog -->
         <add-artifact-dialog
@@ -34,7 +35,7 @@
         <el-dialog v-model="detailOpen" :title="detailMode === 'edit' ? t('artPage.edit') : '圣遗物详情'"
             width="min(640px, 94vw)" custom-class="cx-scope viewport-dialog condition-settings-dialog"
             modal-class="condition-settings-overlay" append-to-body>
-            <artifact-detail v-if="openedArtifact && detailMode === 'view'" :item="openedArtifact" :score="openedScore"
+            <artifact-detail v-if="openedArtifact && detailMode === 'view'" :item="openedArtifact" :score="openedScore" :highlight-tags="highlightTags"
                 :score-label="scoreCharacter" :grade="openedScore === null ? undefined : getMarkClass(openedScore)"
                 @edit="startEditArtifact" @toggle-lock="toggleArtifact(openedArtifact.id)"
                 @delete="deleteOpenedArtifact" @score="showScore = true" />
@@ -68,6 +69,7 @@
                 <span class="art-count">共 {{ artifactStore.artifactsCount }} 件</span>
                 <span class="art-spacer"></span>
                 <button type="button" class="art-btn art-wide" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
+                <button type="button" class="art-btn art-wide" @click="screenshotOpen = true">截图导入</button>
                 <el-dropdown class="art-wide" trigger="click" @command="handleOutputCommand">
                     <button type="button" class="art-btn">{{ t("misc.export") }} <icon-ep-arrow-down aria-hidden="true" /></button>
                     <template #dropdown><el-dropdown-menu>
@@ -79,6 +81,7 @@
                     <button type="button" class="art-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
                     <template #dropdown><el-dropdown-menu>
                         <template v-if="narrowArt">
+                            <el-dropdown-item command="screenshot">截图导入</el-dropdown-item>
                             <el-dropdown-item command="importJson">{{ t("misc.import") }}</el-dropdown-item>
                             <el-dropdown-item command="exportJson">{{ t("artPage.exportMona") }}</el-dropdown-item>
                             <el-dropdown-item command="exportShare">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
@@ -124,7 +127,7 @@
         </header>
 
         <div v-if="pagedArtifacts.length" class="art-grid">
-            <artifact-card v-for="{ item, score } in pagedArtifacts" :key="item.id" :item="item" :score="score"
+            <artifact-card v-for="{ item, score } in pagedArtifacts" :key="item.id" :item="item" :score="score" :highlight-tags="highlightTags"
                 :score-label="scoreCharacter" :grade="score === null ? undefined : getMarkClass(score)"
                 :selected="item.id === openedArtifactId" @open="openArtifact(item.id)" />
         </div>
@@ -141,7 +144,8 @@
 <script setup lang="ts">
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import { scoreCharacterNames, rankingContext, scoreBuild, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
-import {importMonaJson} from '@/utils/artifacts'
+import { scoreContextHighlights } from '@/utils/character-artifact-highlights'
+import {importWarehouseFile} from '@/import/warehouse-file'
 import {artifactImportContext} from '@/import/level-zero-match.cjs'
 import {useKumiStore} from '@/store/pinia/kumi'
 import {useMiyousheStore} from '@/store/pinia/miyoushe'
@@ -170,6 +174,7 @@ import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
 import ArtifactDisplay from '@c/display/ArtifactDisplay';
 import ArtifactCard from '@/components/display/ArtifactCard.vue';
 import ArtifactDetail from './ArtifactDetail.vue';
+import ArtifactScreenshotDialog from './ArtifactScreenshotDialog.vue'
 import {useScreen} from '@/composables/screen';
 import EditArtifact from './EditArtifact';
 import ImportBlock from '@c/misc/ImportBlock';
@@ -234,6 +239,7 @@ const scoreItem = computed(() => artifactStore.artifacts.value.get(scoreArtifact
 const filterMainStat: Ref<ArtifactStatName[]> = ref([])
 const filterGe16 = ref(true)
 const scoreCharacter = ref('')
+const highlightTags = computed(() => scoreCharacter.value ? scoreContextHighlights(rankingContext(scoreCharacter.value)) : undefined)
 const scoreCharacterOptions = [...scoreCharacterNames].sort((a, b) => a.localeCompare(b, 'zh-CN'))
 
 const artifactsCurrentSlot = computed(() => {
@@ -318,6 +324,13 @@ watch(detailOpen, open => { if (!open) openedArtifactId.value = -1 })
 ///////////////////////////////////////////////////////////////////
 // new artifact
 const newDialogVisible = ref(false)
+const screenshotOpen = ref(false)
+function saveScreenshot(items: IArtifactContentOnly[]) {
+    if (!screenshotOpen.value) return
+    screenshotOpen.value = false
+    for (const item of items) artifactStore.addArtifact(item)
+    activeName.value = items.length === 1 ? items[0].position : 'all'
+}
 
 function handleClickAddArtifact() {
     newDialogVisible.value = true
@@ -392,10 +405,11 @@ watch(() => route.query.import, value => {
 async function importJson(text: string, deleteUnseen: boolean, backupKumiDir: boolean) {
     try {
         const rawObj = JSON.parse(text)
-        await importMonaJson(rawObj, deleteUnseen, backupKumiDir, artifactImportContext(
+        await importWarehouseFile(rawObj, deleteUnseen, backupKumiDir, artifactImportContext(
             presetStore.presets.value, useKumiStore().kumi.value, useMiyousheStore().data.value))
         recordUsage('action.artifact-file-import')
     } catch (e) {
+        if (e === 'close' || e === 'cancel') return
         console.error('圣遗物文件导入失败', e)
         ElMessage({
             message: e instanceof Error ? e.message : String(e),
@@ -510,6 +524,9 @@ function handleClickRecommendation() {
 // commands
 function handleDropdownCommand(command: string) {
     switch (command) {
+        case "screenshot":
+            screenshotOpen.value = true
+            break
         case "add":
             handleClickAddArtifact()
             break

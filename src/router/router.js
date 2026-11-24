@@ -9,13 +9,12 @@ import { createRouter, createWebHashHistory, createWebHistory } from "vue-router
 import {getRepo} from "@/api/repo"
 import {ElMessageBox} from "element-plus"
 import "element-plus/es/components/message-box/style/css"
-import {importMonaJson} from "@/utils/artifacts"
+import {importWarehouseFile} from "@/import/warehouse-file"
 import {useArtifactStore} from "@/store/pinia/artifact"
 import {followCloudSession, needsLogin} from "@/platform/login-gate.mjs"
 import {profileSync} from "@/cloud/profile-sync"
 
 const IntroPage = () => import(/* webpackChunkName: "intro-page" */ "@page/about/IntroPage")
-const CharacterPresetsPage = () => import(/* webpackChunkName: "character-presets-page" */ "@page/CharacterPresetsPage")
 const ExportToolPage = () => import(/* webpackChunkName: "help-page" */ "@page/helps/ExportToolPage")
 const KumiPage = () => import (/* webpackChunkName: "kumi-page" */ "@page/KumiPage")
 
@@ -32,7 +31,7 @@ const routes = [
         }
     },
     { path: '/calculation-history', component: () => import('@page/CalculationHistoryPage.vue'), meta: { title: '历史记录' } },
-    { path: '/uid-data', component: () => import('@page/UidDataPage.vue'), meta: { title: 'UID 数据' } },
+    { path: '/uid-data', component: () => import('@page/UidDataPage.vue'), meta: { title: '角色' } },
     {
         path: "/setup",
         component: SetupPage,
@@ -123,11 +122,7 @@ const routes = [
     },
     {
         path: "/presets",
-        component: CharacterPresetsPage,
-        meta: {
-            keepAlive: true,
-            title: "计算预设",
-        }
+        redirect: "/uid-data",
     },
 ]
 
@@ -175,7 +170,6 @@ router.beforeEach(async (to, from, next) => {
                 if (response.status === 200) {
                     const contentStr = response.data.content
                     const content = JSON.parse(contentStr)
-                    console.log(content)
 
                     if (artifactStore.artifactsCount.value > 0) {
                         await ElMessageBox.confirm("检测到本地存在圣遗物，是否继续导入", "注意", {
@@ -183,10 +177,10 @@ router.beforeEach(async (to, from, next) => {
                             cancelButtonText: "否",
                             type: "warning"
                         }).then(() => {
-                            importMonaJson(content, true)
+                            return importWarehouseFile(content, true)
                         }).catch(() => {})
                     } else {
-                        importMonaJson(content, true)
+                        await importWarehouseFile(content, true)
                     }
                 }
             } catch (e) {

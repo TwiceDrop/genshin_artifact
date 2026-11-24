@@ -5,16 +5,18 @@ import targets from '@/assets/_gen_tf'
 import locale from '@/i18n/generated/zh-cn.json'
 import { createMysConverter } from '@/import/miyoushe.mjs'
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
-import { watchContent as artifactsContent } from '@/store/pinia/artifact'
-import { watchContent as presetsContent } from '@/store/pinia/preset'
-import { useAccountStore } from '@/store/pinia/account'
-import backend from '@/store/backend'
+import { uidImportSession } from './uid-import-session'
+import { artifactFingerprint } from './miyoushe.mjs'
+import { selectUidInventory } from './uid-inventory.mjs'
 import { useMona } from '@/wasm/mona'
 
-export async function saveGameSnapshot(snapshot, accountId, source, checkActive, preserveEquipped = false) {
+export function saveGameSnapshot(snapshot, accountId, source, checkActive, preserveEquipped = false, session = uidImportSession(accountId, checkActive)) {
+    return savePreparedSnapshot(String(snapshot.role.uid), () => snapshot, source, session, preserveEquipped)
+}
+
+export async function savePreparedSnapshot(uid, build, source, session, preserveEquipped = false, warehouse = []) {
     const mona = await useMona()
-    checkActive()
-    if (useAccountStore().currentAccountId.value !== accountId) throw new Error('莫娜账号已切换，数据未写入')
+    session.check()
     const converter = createMysConverter({ characters, weapons, artifacts, targets, locale,
         inferAscend(c, w, hp) {
             if (!Number.isFinite(hp)) return undefined
@@ -24,11 +26,31 @@ export async function saveGameSnapshot(snapshot, accountId, source, checkActive,
             return errors[1] < errors[0]
         },
     })
-    const store = useMiyousheStore(), imported = store.importSnapshot(snapshot, converter, source, preserveEquipped)
-    const saved = JSON.parse(JSON.stringify({ miyoushe: store.data.value, artifacts: artifactsContent(), presets: presetsContent() }))
-    // Preserve the existing account persistence ordering before reporting completion.
-    await new Promise(resolve => setTimeout(resolve, 0))
-    for (const [type, content] of Object.entries(saved)) await backend.setItem(`mona_account_${type}_${accountId}`, content)
-    await backend.allReady()
-    return imported
+    return session.run(uid, source, async draft => {
+        const snapshot = await build(draft)
+        session.check()
+        const result = useMiyousheStore().importSnapshot(snapshot, converter, source, preserveEquipped, draft)
+        result.added += mergeUidWarehouse(uid, warehouse, draft)
+        return result
+    })
+}
+
+// GOOD includes unequipped pieces. Count identical pieces separately and reuse the ones just matched on the characters.
+export function mergeUidWarehouse(uid, pieces, { roster, presets, inventory }) {
+    if (!pieces.length) return 0
+    const data = roster.data.value, pool = new Map()
+    for (const piece of selectUidInventory(uid, data, presets.presets.value, inventory.artifacts.value, true)) {
+        const key = artifactFingerprint(piece)
+        if (!pool.has(key)) pool.set(key, [])
+        pool.get(key).push(piece.id)
+    }
+    const groups = data.uidArtifactIds ??= {}, owned = new Set(groups[uid])
+    let added = 0
+    for (const piece of pieces) {
+        let id = pool.get(artifactFingerprint(piece))?.pop()
+        if (id === undefined) { id = inventory.addArtifact(piece); added++ }
+        owned.add(id)
+    }
+    groups[uid] = [...owned]
+    return added
 }

@@ -82,7 +82,6 @@ module.exports = {
                 }
                 localHandler ||= import("./server/local.mjs").then(({ createLocalRequestHandler }) =>
                     createLocalRequestHandler(devServer.server, {
-                        allowMiyousheQr: process.env.NODE_ENV === 'development',
                         devAuthPatch: process.env.NODE_ENV === 'development' && customEnv.MONA_PATCH_PUBLIC_KEY && customEnv.MONA_PATCH_BASE_URL
                             ? {version, publicKey: customEnv.MONA_PATCH_PUBLIC_KEY, baseUrl: customEnv.MONA_PATCH_BASE_URL} : undefined,
                     }))
@@ -159,6 +158,12 @@ module.exports = {
         },
     },
     chainWebpack: config => {
+        if (process.env.NODE_ENV === 'production' && config.plugins.has('copy')) {
+            config.plugin('copy').tap(([options]) => {
+                options.patterns[0].globOptions.ignore.push('**/artifact-ocr/paddle-tiny/**')
+                return [options]
+            })
+        }
         // Let the browser parse the newer release WASM (the old webpack parser
         // cannot read its data-count section). Keep ordinary Rust builds intact.
         config.module.rule('release-wasm-asset').resourceQuery(/raw-wasm/).type('asset/resource')

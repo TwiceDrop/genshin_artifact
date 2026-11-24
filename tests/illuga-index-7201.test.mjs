@@ -9,6 +9,9 @@ import {fixture, optimizer} from '../beta-tools/interface-audit-7108.mjs';
 import {createMysConverter, mergeEquipped} from '../src/import/miyoushe.mjs';
 import * as importHistory from '../src/import/import-history.mjs';
 import * as uidInventory from '../src/import/uid-inventory.mjs';
+import { accountGameUid } from '../src/import/uid-import-review.mjs'
+import { canonicalGameElement } from '../src/import/character-summary.mjs'
+import * as presetWorkflow from '../src/utils/preset-workflow.mjs'
 
 const characters = read('src/assets/_gen_character.js'), weapons = read('src/assets/_gen_weapon.js');
 const artifacts = read('src/assets/_gen_artifact.js'), targets = read('src/assets/_gen_tf.js'), locale = read('src/i18n/generated/zh-cn.json');
@@ -46,6 +49,9 @@ function storeHarness() {
     const presets = {presets: vue.ref({}), addOrOverwrite(name, item) {this.presets.value[name] = {name, item};}, getPreset(name) {return this.presets.value[name];}};
     const modules = {vue, '@/import/import-history.mjs': importHistory, '@/import/uid-inventory.mjs': uidInventory,
         './artifact': {useArtifactStore: () => inventory}, './preset': {usePresetStore: () => presets}, '@/import/miyoushe.mjs': {mergeEquipped}}, exports = {};
+    modules['@/import/uid-import-review.mjs'] = { accountGameUid }
+    modules['@/import/character-summary.mjs'] = { canonicalGameElement }
+    modules['@/utils/preset-workflow.mjs'] = presetWorkflow
     vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/store/pinia/miyoushe.ts', 'utf8'), {compilerOptions: {module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ESNext}}).outputText, {exports, require: key => modules[key]});
     return {store: exports.useMiyousheStore(), presets};
 }

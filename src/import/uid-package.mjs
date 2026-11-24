@@ -1,4 +1,5 @@
 import { selectUidInventory } from './uid-inventory.mjs'
+import { existingRosterKey } from './uid-import-review.mjs'
 import { artifactFingerprint, snapshotSourceName } from './miyoushe.mjs'
 import { levelZeroMatches } from './level-zero-match.cjs'
 const clone = value => JSON.parse(JSON.stringify(value))
@@ -50,7 +51,7 @@ export function validateUidPackage(pack, catalog) {
         if (!keys.has(row.key) || !Array.isArray(row.items) || row.items.length !== 5) fail('对比历史归属无效')
         for (const a of row.items) if (a) artifact(a)
     }
-    if (pack.snapshot && (String(pack.snapshot.role?.uid) !== pack.uid || !['miyoushe', 'hoyolab', 'enka', 'good'].includes(pack.snapshot.source) || pack.snapshot.version !== 1 || !Array.isArray(pack.snapshot.characters))) fail('原始快照 UID 不匹配')
+    if (pack.snapshot && (String(pack.snapshot.role?.uid) !== pack.uid || !['miyoushe', 'hoyolab', 'enka', 'good', 'screenshot'].includes(pack.snapshot.source) || pack.snapshot.version !== 1 || !Array.isArray(pack.snapshot.characters))) fail('原始快照 UID 不匹配')
     // Reject dangerous object keys even inside nested calculation parameters.
     const inspect = (value, depth = 0) => {
         if (depth > 40) fail('嵌套层数过多')
@@ -65,6 +66,9 @@ export function validateUidPackage(pack, catalog) {
 
 export function importUidPackage(pack, { data, presets, inventory, addArtifact, updateArtifact, addPreset, catalog }) {
     validateUidPackage(pack, catalog)
+    const resolve = key => existingRosterKey(key, data.entries)
+    pack = { ...pack, characters: pack.characters.map(r => ({ ...r, entry: { ...r.entry, key: resolve(r.entry.key) } })),
+        history: pack.history.map(r => ({ ...r, key: resolve(r.key) })) }
     const pool = new Map(), used = new Set(), mapping = new Map()
     const existing = selectUidInventory(pack.uid, data, presets, inventory, true)
     const zeroMatches = levelZeroMatches(existing, pack.artifacts)

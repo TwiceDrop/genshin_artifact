@@ -141,17 +141,19 @@ html[data-color-mode] .el-dialog {
     background: var(--cx-card);
 }
 
-/* 页面里的确认气泡（el-popconfirm 加 :teleported="false"，渲染在 cx-scope 内才能取到这些变量） */
-html[data-color-mode] .cx-scope .el-popover.el-popper {
+/* 弹层可以位于主题容器内，也可以自带 cx-scope 并挂到 body。 */
+html[data-color-mode] :is(.cx-scope .el-popover.el-popper, .cx-scope.el-popover.el-popper) {
     --el-popover-bg-color: var(--cx-card);
     --el-popover-border-color: var(--cx-step-2);
     --el-popover-border-radius: 12px;
     --el-popover-padding: 12px 14px;
+    background: var(--cx-card);
+    border-color: var(--cx-step-2);
     color: var(--cx-letter);
     box-shadow: 0 10px 28px var(--cx-veil, rgba(0, 0, 0, .28));
 }
 
-html[data-color-mode] .cx-scope .el-popover.el-popper .el-popper__arrow::before {
+html[data-color-mode] :is(.cx-scope .el-popover.el-popper, .cx-scope.el-popover.el-popper) .el-popper__arrow::before {
     border-color: var(--cx-step-2);
     background: var(--cx-card);
 }

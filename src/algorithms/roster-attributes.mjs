@@ -45,7 +45,7 @@ export function weaponBaseStats({name, level, ascend}) {
 // This is the character roster's Details view. Only direct stat properties from
 // the game tables apply here. Combat abilities, conversions and party effects
 // are evaluated by the damage kernel, never by this display calculation.
-export function rosterAttributes({character, weapon, artifacts}) {
+export function rosterAttributes({character, weapon, artifacts}, artifactSource = () => '圣遗物词条') {
     const unit = catalog.characters[character.name]
     const arm = catalog.weapons[weapon.name]
     const characterStats = equipmentStats(unit, character.level, character.ascend)
@@ -62,6 +62,7 @@ export function rosterAttributes({character, weapon, artifacts}) {
     result.critical['初始值'] = 0.05
     result.critical_damage['初始值'] = 0.5
     result.recharge['初始值'] = 1
+    if (unit.baseElementalMastery) result.elemental_mastery['初始值'] = unit.baseElementalMastery
 
     function add(prop, value, label) {
         const percentKey = percentages[prop]
@@ -83,8 +84,10 @@ export function rosterAttributes({character, weapon, artifacts}) {
     }
     if (arm.passive.length) addGroup(arm.passive[weapon.refine - 1], '武器被动')
     const counts = new Map()
-    for (const item of artifacts) {
-        for (const [stat, value] of [item.main_stat, ...item.sub_stats]) add(artifactProps[stat], value, '圣遗物词条')
+    for (const [index, item] of artifacts.entries()) {
+        for (const [line, [stat, value]] of [item.main_stat, ...item.sub_stats].entries()) {
+            add(artifactProps[stat], value, artifactSource(index, line))
+        }
         counts.set(item.set_name, (counts.get(item.set_name) || 0) + 1)
     }
     for (const [set, count] of counts) {
@@ -93,4 +96,17 @@ export function rosterAttributes({character, weapon, artifacts}) {
         }
     }
     return result
+}
+
+export function rosterBaseValue(key, composition) {
+    if (!Object.hasOwn(baseLabels, key)) return null
+    const characterBase = composition[baseLabels[key]]
+    return key === 'atk' ? characterBase + composition['武器基础攻击'] : characterBase
+}
+
+export function rosterArtifactStat(stat, panel) {
+    const prop = artifactProps[stat]
+    const relativeTo = percentages[prop]
+    const key = relativeTo || panelKeys[prop]
+    return {key, factor: relativeTo ? rosterBaseValue(key, panel[key]) : 1}
 }

@@ -115,6 +115,7 @@
                                 v-for="artifactId in currentResultEntry[index]"
                                 :key="artifactId"
                                 :item="artifactStore.artifacts.value.get(artifactId)"
+                                :character-name="selectedCharacter(index)"
                                 :buttons="true"
                                 :lock-button="true"
                                 :delete-button="false"

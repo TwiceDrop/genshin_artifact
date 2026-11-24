@@ -7,7 +7,7 @@
 <!--        >-->
 <!--            <img class="image" :src="data.url" slot="reference" >-->
             <div class="detail">
-                <img class="image" :src="data.url" >
+                <slot name="image" :src="data.url"><img class="image" :src="data.url" alt="" /></slot>
                 <div class="detail-body">
                     <p class="name">{{ ta(nameLocaleIndex) }}<WeaponBaseStats :weapon="weapon" /></p>
                     <p class="description" v-if="data.effect && ta(effectLocaleIndex)" v-html="ta(effectLocaleIndex)"></p>

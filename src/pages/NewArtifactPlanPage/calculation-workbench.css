@@ -96,7 +96,7 @@
 @container single-gear (min-width: 660px) { .hero-equipment .artifacts { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @container single-gear (min-width: 1280px) { .hero-equipment .artifacts { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .panel-actions { border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 12px; }
-.team-context-control, .team-source-card, .polestar-field-control, .artifact-borrowing-control {
+.team-context-control, .team-source-card, .polestar-field-control {
     background: var(--surface-inset); border-color: var(--hairline); border-radius: var(--radius-control); }
 .damage-card :deep(.damage-values.expected .damage-number:not(.increase):not(.decrease)) { color: var(--accent); }
 .config-weapon :deep(.description) { color: var(--ink-secondary); }

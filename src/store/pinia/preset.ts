@@ -1,7 +1,7 @@
 import {upgradePresetItem} from "@/utils/preset"
 import {computed, reactive, type Ref, ref, watch} from "vue"
 import {type IPreset} from "@/types/preset"
-import {createCustomPreset, applyPresetArtifacts} from '@/utils/preset-workflow.mjs'
+import {createCustomPreset, applyPresetArtifacts, presetDisplayName} from '@/utils/preset-workflow.mjs'
 import {useArtifactStore} from './artifact'
 
 const VERSION = 3
@@ -33,7 +33,7 @@ export interface PresetEntry {
     updatedAt?: number
 }
 
-function f() {
+export function createPresetStore() {
     const presets: Ref<Record<string, PresetEntry>> = ref(loadPresetOrDefault(null))
 
     function init(payload: any) {
@@ -82,13 +82,14 @@ function f() {
         applyArtifacts,
         deletePreset,
         getPreset,
+        displayName: (name: string) => presetDisplayName(name, getPreset(name)?.item),
 
         allFlat,
         count
     }
 }
 
-const s = f()
+const s = createPresetStore()
 
 export function watchContent() {
     return s.presets.value

@@ -22,7 +22,7 @@ export function createLocalServer(options) {
 }
 
 export function createLocalRequestHandler(server, { clientFactory = communityClient, webLoginFactory = startHoyolabWebLogin, root = fileURLToPath(new URL('../dist/', import.meta.url)),
-    cloudGateway, allowMiyousheQr = false, devAuthPatch, updater = new LocalUpdater(),
+    cloudGateway, allowMiyousheQr = true, devAuthPatch, updater = new LocalUpdater(),
     patchStore = new PatchStore({ directory: path.join(process.env.MONA_DATA_DIR || fileURLToPath(new URL('../.local-data/', import.meta.url)), 'patches') }),
     patchUpdater = new PatchUpdater({ store: patchStore }),
     credentialStore = new CredentialStore(process.env.MONA_DATA_DIR ? path.join(process.env.MONA_DATA_DIR, 'miyoushe.dpapi') : fileURLToPath(new URL('../.local-data/miyoushe.dpapi', import.meta.url))) } = {}) {

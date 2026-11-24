@@ -7,6 +7,17 @@ const mainKeys = {
     windBonus: 'anemo_dmg_', rockBonus: 'geo_dmg_', dendroBonus: 'dendro_dmg_'
 }
 const equalValue = (a, b) => Number.isFinite(a) && Number.isFinite(b) && a.toFixed(5) === b.toFixed(5)
+// Compare the screenshot number at the precision displayed by the game.
+exports.matchDisplayedRarity = function (tag, level, set) {
+    if (!tag.value || level === '' || !set) return ''
+    const key = mainKeys[tag.name]
+    const matches = Object.entries(mainStats).filter(([rarity, stats]) => {
+        const value = stats[key]?.[level]
+        if (rarity < set.minStar || rarity > set.maxStar || value === undefined) return false
+        return Number(tag.value) === (key.endsWith('_') ? Number((value * 100).toFixed(1)) : Math.round(value))
+    })
+    return matches.length === 1 ? Number(matches[0][0]) : ''
+}
 function hasLevelZeroMain(a) {
     const key = mainKeys[a.mainTag.name], value = mainStats[a.star]?.[key]?.[0]
     return value !== undefined && equalValue(a.mainTag.value, key.endsWith('_') ? value : Math.round(value))

@@ -2,6 +2,7 @@ import {newEnemyConfig} from '@/composables/enemy'
 import {defaultCharacterSkill} from '@/composables/character'
 import {newDefaultArtifactConfigForWasm} from '@/utils/artifacts'
 import {readPresetConfiguration} from './preset-workflow.mjs'
+import {characterLevelLabel} from './character-level.mjs'
 import type {IPreset} from '@/types/preset'
 
 export function restorePresetConfiguration(item: IPreset): IPreset {
@@ -16,7 +17,7 @@ export function restorePresetConfiguration(item: IPreset): IPreset {
 export function applyPresetIdentity(item: IPreset, character: any, weapon: any) {
     const c = item.character, w = item.weapon
     character.characterName.value = c.name
-    character.characterLevel.value = c.level.toString() + (c.ascend ? '+' : '-')
+    character.characterLevel.value = characterLevelLabel(c.level, c.ascend)
     character.characterConstellation.value = c.constellation ?? 0
     character.characterSkill1.value = c.skill1 + 1
     character.characterSkill2.value = c.skill2 + 1

@@ -8,20 +8,20 @@
             </div>
         </div>
 
-        <div class="art-detail-main">
+        <div class="art-detail-main" :class="{ recommended: highlightedMainStat(item, highlightTags) }">
             <span>{{ main[0] }}</span>
             <b>{{ main[1] }}</b>
         </div>
 
         <div class="art-detail-subs">
             <div v-for="(sub, index) in subs" :key="index" :class="{ crit: sub.crit }">
-                <span>{{ sub.label }}</span><b>{{ sub.value }}</b>
+                <span>{{ sub.label }}<ArtifactUpgradeCount :count="hits[index]" /></span><b>{{ sub.value }}</b>
             </div>
         </div>
 
         <button type="button" class="art-detail-score" @click="emit('score')">
             <span>喵喵评分<template v-if="scoreLabel"> · {{ scoreLabel }}</template></span>
-            <b v-if="score !== null && score !== undefined">{{ score.toFixed(1) }} <small>{{ grade }}</small></b>
+            <b v-if="score !== null && score !== undefined" class="miao-score" :data-grade="grade">{{ score.toFixed(1) }} <small>{{ grade }}</small></b>
             <em>评分详情 ›</em>
         </button>
 
@@ -46,12 +46,14 @@ import IconEpLock from "~icons/ep/lock"
 import IconEpUnlock from "~icons/ep/unlock"
 import {computed} from "vue"
 import {artifactsData} from "@/assets/artifacts"
-import {displayedTagParts} from "@/utils/artifacts"
+import {displayedTagParts, displayedUpgradeHits} from "@/utils/artifacts"
+import ArtifactUpgradeCount from '@/components/display/ArtifactUpgradeCount.vue'
+import { highlightedMainStat, highlightedSubStat } from '@/utils/character-artifact-highlights'
 import {useI18n} from "@/i18n/i18n"
 import type {IArtifact} from "@/types/artifact"
 import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
 
-const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string }>()
+const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string, highlightTags?: string[] }>()
 const emit = defineEmits<{
     (e: "edit"): void
     (e: "toggle-lock"): void
@@ -66,9 +68,10 @@ const slotLabel = computed(() => t("misc", props.item.position))
 const effect2 = computed(() => set.value.effect2 ? ta(set.value.effect2) : "")
 const effect4 = computed(() => set.value.effect4 ? ta(set.value.effect4) : "")
 const main = computed(() => displayedTagParts(props.item.mainTag.name, props.item.mainTag.value))
+const hits = computed(() => displayedUpgradeHits(props.item))
 const subs = computed(() => props.item.normalTags.map(tag => {
     const [label, value] = displayedTagParts(tag.name, tag.value)
-    return { label, value, crit: tag.name === "critical" || tag.name === "criticalDamage" }
+    return { label, value, crit: highlightedSubStat(tag.name, props.highlightTags) }
 }))
 </script>
 
@@ -126,10 +129,11 @@ const subs = computed(() => props.item.normalTags.map(tag => {
         font-variant-numeric: tabular-nums;
     }
 
-    &.crit b {
+    &.crit :is(span, b) {
         color: var(--cx-gold);
     }
 }
+.art-detail-main.recommended :is(span, b) { color: var(--cx-gold); }
 
 .art-detail-score {
     display: flex;
@@ -229,3 +233,4 @@ const subs = computed(() => props.item.normalTags.map(tag => {
     outline-offset: 2px;
 }
 </style>
+<style scoped src="../../styles/artifact-score.css"></style>

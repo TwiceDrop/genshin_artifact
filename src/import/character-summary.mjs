@@ -11,14 +11,32 @@ export function isPickerCharacter(name, label) {
     return !name?.startsWith('Manekin') && !/^奇偶(?:$|\s*[·・])/.test(label || '')
 }
 
-export function fourPieceSet(gear, artifacts, locale) {
+export function equippedSetCounts(gear) {
     const counts = new Map(), positions = new Set()
     for (const item of gear) {
         if (!item || positions.has(item.position)) continue
         positions.add(item.position)
         if (item.setName) counts.set(item.setName, (counts.get(item.setName) || 0) + 1)
     }
-    const name = [...counts].find(([, count]) => count >= 4)?.[0]
+    return counts
+}
+
+export function equippedSetEffects(gear, artifacts, translate) {
+    const effects = []
+    for (const [setName, count] of equippedSetCounts(gear)) {
+        const set = artifacts[setName]
+        for (const pieces of [1, 2, 4]) {
+            const description = set?.['effect' + pieces]
+            if (pieces <= count && description != null) {
+                effects.push({ key: setName + pieces, name: translate(set.nameLocale), pieces, text: translate(description) })
+            }
+        }
+    }
+    return effects
+}
+
+export function fourPieceSet(gear, artifacts, locale) {
+    const name = [...equippedSetCounts(gear)].find(([, count]) => count >= 4)?.[0]
     return name ? locale[artifacts[name]?.nameLocale] || name : '无'
 }
 
@@ -27,9 +45,13 @@ function withFrozenGear(live, frozen = []) {
     return [...live, ...frozen.filter(item => !covered.has(item.position))]
 }
 
+export function rosterCharacterMeta(entry, preset, raw, characters, locale) {
+    return characters[preset?.character.name] || characters[travelerName(Number(raw?.base?.id ?? entry.id), raw?.base?.element ?? entry.element)] || Object.values(characters).find(c => locale[c.nameLocale] === entry.label)
+}
+
 export function characterSummary(entry, { preset, raw, characters, weapons, artifacts, locale, inventory }) {
     const character = preset?.character, weapon = preset?.weapon
-    const meta = characters[character?.name] || characters[travelerName(Number(raw?.base?.id ?? entry.id), raw?.base?.element ?? entry.element)] || Object.values(characters).find(c => locale[c.nameLocale] === entry.label)
+    const meta = rosterCharacterMeta(entry, preset, raw, characters, locale)
     const element = meta?.element || canonicalGameElement(raw?.base?.element) || ''
     const weaponMeta = weapons[weapon?.name]
     const label = meta ? locale[meta.nameLocale] : entry.label
@@ -40,7 +62,8 @@ export function characterSummary(entry, { preset, raw, characters, weapons, arti
         catch (error) { talentError = error.message }
     }
     // Saved IDs that no longer resolve in the warehouse (restored or exported UID data) fall back to the entry's frozen in-game gear.
-    const gear = preset ? withFrozenGear((preset.artifactIds || entry.artifactIds || []).map(id => inventory.get(id)), entry.equippedArtifacts)
+    const savedGear = !!preset || (!!entry.artifactIds && !!entry.equippedArtifacts)
+    const gear = savedGear ? withFrozenGear((preset?.artifactIds || entry.artifactIds || []).map(id => inventory.get(id)), entry.equippedArtifacts)
         : (raw?.relics || []).map(r => ({ position: r.pos, setName: r.set?.name || Object.keys(artifacts).find(k => ['flower', 'feather', 'sand', 'cup', 'head'].some(p => locale[artifacts[k][p]?.text] === r.name)) }))
     return {
         key: entry.key, uid: entry.uid, presetName: entry.presetName, label,
@@ -48,6 +71,9 @@ export function characterSummary(entry, { preset, raw, characters, weapons, arti
         splash: meta?.splash || meta?.avatar || raw?.base?.icon || '',
         element, elementLabel: ELEMENT_NAMES[element] || '未知元素', weaponType: WEAPON_NAMES[meta?.weapon] || '未知武器类型',
         constellation: shownNumber(character?.constellation ?? entry.constellation ?? raw?.base?.actived_constellation_num),
+        level: character?.level ?? entry.level ?? raw?.base?.level,
+        talentLevels: talents,
+        preset, raw, savedGear, equipped: savedGear ? gear.filter(Boolean) : entry.equippedArtifacts || [],
         talents: `天赋：${talents.join('、')}`,
         set: fourPieceSet(gear, artifacts, locale),
         weapon: `${locale[weaponMeta?.nameLocale] || raw?.weapon?.name || '未知武器'} 精炼${shownNumber(weapon?.refine ?? raw?.weapon?.affix_level)}阶 ${shownNumber(weapon?.level ?? raw?.weapon?.level)}级`,

@@ -4,8 +4,10 @@ import backend from "../backend"
 import { useArtifactStore, watchContent as artifactWatchContent } from "./artifact"
 import { useKumiStore, watchContent as kumiWatchContent } from "./kumi"
 import { usePresetStore, watchContent as presetWatchContent } from "./preset"
-import { useMiyousheStore, watchContent as miyousheWatchContent, watchComparisonSettings } from "./miyoushe"
+import { useMiyousheStore, watchContent as miyousheWatchContent, watchComparisonSettings, captureRosterForStorage } from "./miyoushe"
 import { statGainCache } from '../stat-gain-cache'
+import { connectSavedRolePresets } from '@/import/role-presets'
+import { singleDraftKey } from '../single-calculation-draft'
 
 interface Account {
     id: number;
@@ -124,6 +126,26 @@ const presetStore = usePresetStore()
 const kumiStore = useKumiStore()
 
 let loadingAccountData = false
+let importRevision = 0
+export const getImportRevision = () => importRevision
+
+export async function commitUidImport(targetId: number, name: string | null, content: Record<string, any>, check: () => void) {
+    const origin = accountStore.currentAccountId.value
+    const id = name === null ? targetId : accountStore.reserveAccountId()
+    const switchAccount = id !== origin
+    const writes: [string, any][] = Object.entries(content).map(([type, value]) => [`mona_account_${type}_${id}`, value])
+    const accounts = [...accountStore.allAccounts, ...(name === null ? [] : [{ id, name }])]
+    if (switchAccount) writes.push(['mona_accounts', { currentAccountId: id, allAccounts: accounts }])
+    const accountIndex = JSON.stringify(accountStore.allAccounts)
+    await backend.batch(writes, [], { beforeWrite() {
+        check()
+        if (switchAccount && accountIndex !== JSON.stringify(accountStore.allAccounts)) throw new Error('本地账户列表已变更，请重新导入')
+    } })
+    importRevision++
+    if (switchAccount) accountStore.init({ currentAccountId: id, allAccounts: accounts })
+    if (accountStore.currentAccountId.value === id) await loadAccountData()
+    return id
+}
 
 function nextTick() {
     return new Promise((resolve) => {
@@ -146,6 +168,7 @@ async function loadAccountData() {
     const kumiKey = `mona_account_kumi_${id}`
     kumiStore.init(await backend.getItem(kumiKey))
     useMiyousheStore().init(await backend.getItem(`mona_account_miyoushe_${id}`), await backend.getItem(`mona_account_comparison_settings_${id}`))
+    connectSavedRolePresets()
     accountStore.reloadGeneration.value++
     await nextTick()
     loadingAccountData = false
@@ -154,6 +177,7 @@ async function loadAccountData() {
 
 export async function changeAccount(id: number) {
     await backend.allReady()
+    await backend.setItem('mona_accounts', { ...accountWatchContent(), currentAccountId: id })
     accountStore.currentAccountId.value = id
     await loadAccountData()
 }
@@ -164,6 +188,7 @@ export async function deleteAccount(id: number) {
         return
     }
     accountStore.deleteAccount(id)
+    localStorage.removeItem(singleDraftKey(id))
     const artKey = `mona_account_artifacts_${id}`
     await backend.removeItem(artKey)
     const presetKey = `mona_account_presets_${id}`
@@ -228,7 +253,10 @@ function updateCurrentAccount(type: string, value: any) {
     }
     // console.log('update', type, loadingAccountData)
     const key = `mona_account_${type}_${accountStore.currentAccountId.value}`
-    backend.setItem(key, deepCopy(value))
+    if (['miyoushe', 'presets', 'artifacts'].includes(type)) importRevision++
+    if (type === 'miyoushe') backend.setSnapshot(key, captureRosterForStorage(value), 'local', true)
+    else if (type === 'presets') backend.setSnapshot(key, JSON.parse(JSON.stringify(toRaw(value))), 'local', true)
+    else backend.setItem(key, deepCopy(value))
     if (accountStore.syncStatus.value === 'synced') {
         accountStore.syncStatus.value = 'syncing'
         backend.allReady().then(() => accountStore.syncStatus.value = 'synced')
@@ -241,7 +269,7 @@ watch(artifactWatchContent, value => {
 }, { deep: true })
 watch(kumiWatchContent, value => updateCurrentAccount('kumi', value), { deep: true })
 watch(presetWatchContent, value => updateCurrentAccount('presets', value), { deep: true })
-watch(miyousheWatchContent, value => updateCurrentAccount('miyoushe', value), { deep: true })
+watch(miyousheWatchContent, value => updateCurrentAccount('miyoushe', toRaw(value)), { deep: true })
 watch(watchComparisonSettings, value => updateCurrentAccount('comparison_settings', value), { deep: true })
 
 function accountWatchContent() {

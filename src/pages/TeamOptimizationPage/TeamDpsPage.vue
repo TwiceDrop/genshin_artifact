@@ -21,7 +21,7 @@
      <header class="card-heading"><h3><i-ep-edit/>{{ labels[editingRole] }} · 装备配置</h3><el-button :disabled="busy" @click="openMemberSettings(editingRole)">配装设置</el-button></header>
      <div class="constellation-line"><span>命座</span><button v-for="n in 7" :key="n" :class="{active:editingMember.character.constellation===n-1}" :disabled="busy" :aria-pressed="editingMember.character.constellation===n-1" @click="changeTeamConstellation(editingMember.character,n-1)">C{{ n-1 }}</button></div>
      <el-form label-position="top" :disabled="busy">
-      <el-form-item label="角色预设"><el-select popper-class="team-dps-popper" v-model="names[editingRole]" filterable placeholder="选择角色预设"><el-option v-for="p in rolePresets(roles[editingRole])" :key="p.name" :value="p.name" :label="p.name"/></el-select></el-form-item>
+      <el-form-item label="角色预设"><el-select popper-class="team-dps-popper" v-model="names[editingRole]" filterable placeholder="选择角色预设"><el-option v-for="p in rolePresets(roles[editingRole])" :key="p.name" :value="p.name" :label="presetStore.displayName(p.name)"/></el-select></el-form-item>
       <div class="equipment-grid">
        <el-form-item label="武器" class="weapon-field"><div class="weapon-choice"><img :src="weaponData[editingMember.weapon.name].url" alt=""/><el-select popper-class="team-dps-popper" :model-value="editingMember.weapon.name" @update:model-value="changeWeapon(editingRole,$event)" filterable><el-option v-for="w in availableWeapons(roles[editingRole])" :key="w.name" :value="w.name" :label="locale[w.nameLocale]"/></el-select></div></el-form-item>
        <el-form-item label="精炼"><el-select popper-class="team-dps-popper" v-model="editingMember.weapon.refine"><el-option v-for="n in 5" :key="n" :value="n" :label="'R'+n"/></el-select></el-form-item>
@@ -73,7 +73,7 @@
    <section v-for="(role,r) in roles" :key="role" class="result-member">
     <h3>{{ labels[r] }} <span class="damage">期望 {{ number(selected.character_damage[r].expectation) }} · 暴击 {{ number(selected.character_damage[r].critical) }} · 非暴击 {{ number(selected.character_damage[r].non_critical) }}</span></h3>
     <div class="build-panel"><span>攻击力 {{ number(panelSum(selected.panels[r].atk)) }}</span><span>生命值上限 {{ number(panelSum(selected.panels[r].hp)) }}</span><span>暴击率 {{ number(panelSum(selected.panels[r].critical)*100) }}%</span><span>暴击伤害 {{ number(panelSum(selected.panels[r].critical_damage)*100) }}%</span><span>元素充能效率 {{ number(panelSum(selected.panels[r].recharge)*100) }}%</span></div>
-    <div class="gear"><artifact-display v-for="a in selectedItems[r]" :key="a.id" :item="a" :buttons="false" two-column short-recharge/></div>
+    <div class="gear"><artifact-display v-for="a in selectedItems[r]" :key="a.id" :item="a" :character-name="role" :buttons="false" two-column short-recharge/></div>
    </section>
    </section>
    <p v-if="detailBusy" role="status">正在计算明细…</p>

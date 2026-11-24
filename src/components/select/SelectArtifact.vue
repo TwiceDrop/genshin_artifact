@@ -19,6 +19,7 @@
                 v-for="artifact in artifactListDisplayed"
                 :key="artifact.id"
                 :item="artifact"
+                :highlight-tags="highlightTags"
                 @open="$emit('select', artifact.id)"
             ></artifact-card>
         </div>
@@ -51,6 +52,7 @@ const PAGE_SIZE = 20
 
 interface Props {
     position: ArtifactPosition | "any"
+    highlightTags?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {

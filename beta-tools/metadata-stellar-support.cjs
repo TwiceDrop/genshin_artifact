@@ -10,6 +10,7 @@ describe('QiqiC6StellarConduct','七七六命·洞玄（直接星烁伤害）','
 describe('SandroneTalent1','桑多涅·星耀祝礼·唯理为光','桑多涅将超导/冰扩散转为星超导/星扩散；每100点来源桑多涅攻击力提升对应星烁反应基础伤害0.7%，至多14%。填写来源桑多涅最终攻击力。');
 describe('SandroneC1','桑多涅一命·鎏金未凋，夕暮已远','解算模式期间，队伍所有角色造成的星烁反应伤害提升30%，包含星超导与星扩散。');
 const sand=characters.Sandrone;
+sand.configSkill=sand.configSkill.filter(field=>field.name!=='stellarconduct_hits');
 const entries=[['skillMap1',18,'重击冷凝射线·星扩散伤害'],['skillMap2',19,'棱晶弹·星扩散伤害'],['skillMap3',20,'聚能光束·星扩散伤害'],['skillMap2',21,'四命：棱晶谐振炮·星扩散伤害'],['skillMap3',22,'六命：集束射线·星扩散（单段）']];
 for(const [map,index,label]of entries){sand[map]=sand[map].filter(row=>row.index!==index);sand[map].push({index,text:t(label)});}
 sand.config.find(c=>c.name==='c1_team_stellar').title=t('一命：队伍星烁反应+30%（解算模式）');

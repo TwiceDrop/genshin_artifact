@@ -20,9 +20,9 @@
                     <table class="stat-table">
                         <thead><tr><th>详细词条</th><th>得分贡献</th></tr></thead>
                         <tbody>
-                            <tr class="main-stat"><td><small>主词条</small>{{ displayedTag(item.mainTag.name, item.mainTag.value) }}</td><td>{{ details ? details.main.toFixed(1) : '—' }}</td></tr>
+                            <tr class="main-stat"><td :class="{ recommended: highlightedMainStat(item, highlightedTags) }"><small>主词条</small>{{ displayedTag(item.mainTag.name, item.mainTag.value) }}</td><td>{{ details ? details.main.toFixed(1) : '—' }}</td></tr>
                             <tr v-for="(tag, index) in item.normalTags" :key="index" :class="{ effective: details?.subs[index]?.score > 0 }">
-                                <td>{{ displayedTag(tag.name, tag.value) }}</td><td>{{ details ? details.subs[index].score.toFixed(1) : '—' }}</td>
+                                <td :class="{ recommended: highlightedTags.includes(tag.name) }">{{ displayedTag(tag.name, tag.value) }}<ArtifactUpgradeCount :count="hits[index]" /></td><td>{{ details ? details.subs[index].score.toFixed(1) : '—' }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -52,7 +52,9 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { displayedTag } from '@/utils/artifacts'
+import { displayedTag, displayedUpgradeHits } from '@/utils/artifacts'
+import { scoreContextHighlights, highlightedMainStat } from '@/utils/character-artifact-highlights'
+import ArtifactUpgradeCount from './ArtifactUpgradeCount.vue'
 import sets from '@/assets/_gen_artifact'
 import characters from '@/assets/_gen_character'
 import locale from '@/i18n/generated/zh-cn.json'
@@ -64,17 +66,20 @@ const rankName = ref(props.initialCharacter), search = ref('')
 watch(() => [props.modelValue, props.item?.id, props.initialCharacter], () => { rankName.value = props.initialCharacter; search.value = '' })
 const dynamicRow=computed(()=>props.dynamicResult?.rows[['flower','feather','sand','cup','head'].indexOf(props.item?.position)])
 const set = computed(() => sets[props.item?.setName])
+const hits = computed(() => props.item ? displayedUpgradeHits(props.item) : [])
 const piece = computed(() => set.value?.[props.item?.position])
 const positionLabel = computed(() => ({ flower: '生之花', feather: '死之羽', sand: '时之沙', cup: '空之杯', head: '理之冠' }[props.item?.position]))
 const ranking = computed(() => scoreRanking(props.item))
 const visibleRanking = computed(() => ranking.value.characters.map((e, i) => ({ ...e, rank: i + 1 })).filter(e => e.name.includes(search.value.trim())))
 const inspection = computed(() => rankName.value ? rankingContext(rankName.value) : props.context || rankingContext(ranking.value.characters[0]?.name || ''))
+const highlightedTags = computed(() => scoreContextHighlights(inspection.value))
 const details = computed(() => scoreDetails(props.item, inspection.value, !rankName.value && props.context ? props.equipped : []))
 const build = computed(() => props.context ? scoreBuild(props.equipped, props.context) : null)
 const portraits = Object.fromEntries(Object.values(characters).map(c => [locale[c.nameLocale], c.splash || c.avatar]))
 </script>
 
 <style scoped>
+.stat-table td.recommended { color: var(--cx-gold); }
 .dynamic-detail{margin-bottom:20px}.dynamic-detail dl{display:grid;grid-template-columns:180px 1fr;gap:8px;font-size:13px}.dynamic-detail dd{margin:0}.dynamic-detail dt{color:var(--el-text-color-secondary)}
 
 .score-dialog{color:var(--el-text-color-primary);max-height:calc(88vh - 160px);overflow:auto;padding-right:8px}.score-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px}

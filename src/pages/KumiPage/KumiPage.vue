@@ -8,6 +8,7 @@
         >
             <select-artifact
                 :position="artifactPositionToBeSelected"
+                :highlight-tags="groupHighlights.get(underSelectionKumiId)"
                 @select="handleSelectArtifact"
             ></select-artifact>
         </el-dialog>
@@ -50,6 +51,7 @@
                         v-for="kumi in filteredKumiList"
                         :key="kumi.id"
                         :data="kumi"
+                        :highlight-tags="groupHighlights.get(kumi.id)"
                         @delete="handleDeleteKumi(kumi.id)"
                         @edit="handleEditKumi(kumi.id)"
                         @click="handleClickPosition(kumi.id, $event)"
@@ -71,6 +73,7 @@ import IconEpArrowDown from "~icons/ep/arrow-down"
 import KumiItem from "./KumiItem"
 import SelectArtifact from "@/components/select/SelectArtifact"
 import {useKumiStore} from "@/store/pinia/kumi"
+import {artifactGroupHighlights} from "@/utils/character-artifact-highlights"
 import type {KumiItem as TypeKumiItem} from "@/types/kumi"
 import {deviceIsPC} from "@/utils/device"
 
@@ -162,6 +165,7 @@ function handleClearDir(id: number) {
 const currentKumiList = computed((): TypeKumiItem[] => {
     return kumiStore.kumisByDirId.value[currentDirId.value]
 })
+const groupHighlights = computed(() => new Map(currentKumiList.value.map(group => [group.id, artifactGroupHighlights(group.title)] as const)))
 
 function handleNewKumi() {
     ElMessageBox.prompt(t("kumiPage.enterKumi"), t("kumiPage.newKumi"), {

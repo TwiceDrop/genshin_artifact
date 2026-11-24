@@ -4750,7 +4750,8 @@ export default {
     "nameLocale": 3584,
     "star": 5,
     "type": "Sword",
-    "url": "/beta/chrysalis.webp",
+    "url": "/beta/chrysalis-icon.webp",
+    "gacha": "/beta/chrysalis.webp",
     "effect": 3795,
     "configs": [
       {

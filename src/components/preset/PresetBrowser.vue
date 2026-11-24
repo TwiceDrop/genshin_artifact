@@ -12,11 +12,11 @@
         </div>
         <slot name="actions" :source="source" />
         <div v-if="entries.length" :class="['preset-list', {'preset-grid': !!$slots.default}]">
-            <template v-for="entry in entries" :key="entry.name">
+            <template v-for="entry in entries" :key="entry.key || entry.name">
                 <slot :entry="entry">
-                    <button type="button" class="preset-choice" @click="$emit('select', entry.name)">
+                    <button type="button" class="preset-choice" @click="$emit('select', entry.presetName || entry.name, entry.loadout)">
                         <img :src="characters[entry.item.character.name].avatar" alt="" />
-                        <span><strong>{{ entry.name }}</strong><span>{{ characterLabel(entry.item.character.name) }}</span></span>
+                        <span><strong>{{ entry.loadout ? entry.name : presets.displayName(entry.presetName || entry.name) }}</strong><span>{{ characterLabel(entry.item.character.name) }}</span></span>
                         <i-ep-arrow-right aria-hidden="true" />
                     </button>
                 </slot>
@@ -31,18 +31,20 @@ import {computed, ref, watch} from 'vue'
 import {usePresetStore} from '@/store/pinia/preset'
 import {useMiyousheStore} from '@/store/pinia/miyoushe'
 import {filterPresets, presetSource} from '@/utils/preset-workflow.mjs'
+import {rosterPresetChoices} from '@/import/role-presets'
 import characters from '@/assets/_gen_character'
 import {useI18n} from '@/i18n/i18n'
 
-const props = withDefaults(defineProps<{modelValue?: string, character?: string}>(), {modelValue: 'game', character: ''})
+const props = withDefaults(defineProps<{modelValue?: string, character?: string, roster?: boolean}>(), {modelValue: 'game', character: ''})
 const emit = defineEmits(['update:modelValue', 'select'])
 const source = computed({get: () => props.modelValue, set: value => emit('update:modelValue', value)})
 const presets = usePresetStore(), game = useMiyousheStore(), {ta} = useI18n()
 const search = ref(''), uid = ref(game.selectedUid.value)
 const characterLabel = (name: string) => ta(characters[name].nameLocale)
+const candidates = computed(() => props.roster ? rosterPresetChoices(game.data.value, presets.presets.value) : presets.allFlat.value)
 const uids = computed(() => {
-    const groups = new Map<string, string>(game.uidGroups.value.map(g => [g.uid, `${g.nickname} · ${g.uid}`]))
-    for (const {item} of presets.allFlat.value) {
+    const groups = new Map<string, string>(game.uidGroups.value.filter(g => g.uid).map(g => [g.uid, `${g.nickname} · ${g.uid}`]))
+    for (const {item} of candidates.value) {
         if (presetSource(item) === 'game') {
             const id = item.miyousheKey!.split(':')[0]
             if (!groups.has(id)) groups.set(id, id)
@@ -53,7 +55,7 @@ const uids = computed(() => {
 watch(uids, groups => {
     if (!groups.some(group => group.uid === uid.value)) uid.value = groups[0]?.uid || ''
 }, {immediate: true})
-const entries = computed(() => filterPresets(presets.allFlat.value, {
+const entries = computed(() => filterPresets(candidates.value, {
     source: source.value, uid: uid.value, character: props.character, search: search.value,
 }, characterLabel))
 </script>

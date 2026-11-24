@@ -1,32 +1,18 @@
 <template>
 <!--    <div class="root-div">-->
-    <aside class="nav-bar mona-scroll-hidden" v-if="geSmall && !bare">
-        <side-bar></side-bar>
+    <aside v-if="geSmall && !bare" class="nav-bar">
+        <side-bar collapsible />
     </aside>
-
-    <el-drawer
-        v-model="drawerVisible"
-        direction="ltr"
-        size="min(82%, 300px)"
-        :with-header="false"
-        custom-class="sb-drawer"
-        v-if="!geSmall && !bare"
-    >
-        <side-bar
-            :do-route="false"
-            @select="handleSelect"
-        ></side-bar>
-    </el-drawer>
+    <SidebarSheet v-if="!geSmall && !bare" v-model:open="drawerVisible" :label="t('nav.nav')">
+        <side-bar :do-route="false" @select="handleSelect" />
+    </SidebarSheet>
 
     <div class="header" v-if="!geSmall && !bare">
         <div class="flex-row" style="height: 100%">
-            <el-button
-                aria-label="打开全部功能"
-                :icon="IconEpMenu"
-                @click="drawerVisible = true"
-                class="header-menu"
-                link
-            ></el-button>
+            <button type="button" class="header-menu" aria-label="打开全部功能" aria-haspopup="dialog"
+                    :aria-expanded="drawerVisible" @click="drawerVisible = true">
+                <IconEpMenu aria-hidden="true" />
+            </button>
             <span class="header-title">{{ $route.meta.title }}</span>
             <small v-if="isNative" class="local-badge">本机离线版</small>
         </div>
@@ -71,15 +57,16 @@
     <nav v-if="!geSmall && !bare" class="mobile-bottom-nav" aria-label="手机主导航">
         <button :class="{ active: $route.path === '/calculate' }" @click="router.push('/calculate')"><i-ep-cpu /><span>计算</span></button>
         <button :class="{ active: $route.path === '/artifacts' }" @click="router.push('/artifacts')"><i-ep-help-filled /><span>圣遗物</span></button>
-        <button :class="{ active: $route.path === '/uid-data' }" @click="router.push('/uid-data')"><i-ep-user /><span>UID 数据</span></button>
-        <button @click="drawerVisible = true"><i-ep-menu /><span>全部功能</span></button>
+        <button :class="{ active: $route.path === '/uid-data' }" @click="router.push('/uid-data')"><i-ep-user /><span>{{ t("misc.character") }}</span></button>
+        <button aria-haspopup="dialog" :aria-expanded="drawerVisible" @click="drawerVisible = true"><i-ep-menu /><span>全部功能</span></button>
     </nav>
 <!--    </div>-->
 </template>
 
 <script setup lang="ts">
 import SideBar from "./SideBar.vue"
-import {onMounted} from "vue"
+import SidebarSheet from "@/components/ui/sidebar/SidebarSheet.vue"
+import {onMounted, watch} from "vue"
 import {loadOnlineUser} from "@/cloud/online-user.mjs"
 import { default as MonaFooter } from "./Footer.vue"
 import IconEpMenu from "~icons/ep/menu"
@@ -97,6 +84,8 @@ const router = useRouter()
 // 登录页等整屏页面（路由 meta.bare）不显示外框
 const route = useRoute()
 const bare = computed(() => !!route.meta.bare)
+
+watch([geSmall, () => route.fullPath], () => { drawerVisible.value = false })
 
 function handleSelect(index: string) {
     drawerVisible.value = false
@@ -161,15 +150,11 @@ html[data-color-mode="light"] {
     --sh-glow: #ffffff;
 }
 
-.sb-drawer .el-drawer__body {
-    padding: 0;
-    background: var(--sh-night);
-}
 </style>
 
 <style scoped lang="scss">
 $contentPadding: 24px;
-$side-bar-width: unquote("clamp(224px, 15vw, 256px)");
+$side-bar-width: var(--sidebar-rail-width);
 $header-height: 48px;
 .local-badge{margin-left:auto;margin-right:16px;color:var(--sh-dim);font-size:11px}
 .mobile-bottom-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);background:var(--sh-night);padding-bottom:env(safe-area-inset-bottom);z-index:1900}
@@ -180,6 +165,8 @@ $header-height: 48px;
 .nav-bar {
     width: $side-bar-width;
     height: 100vh;
+    height: 100dvh;
+    z-index: 1800;
     position: fixed;
     top: 0;
     bottom: 0;
@@ -199,6 +186,7 @@ $header-height: 48px;
     z-index: 2000;
 
     .header-menu {
+        display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; cursor: pointer;
         color: var(--sh-letter);
         font-size: 20px;
     }

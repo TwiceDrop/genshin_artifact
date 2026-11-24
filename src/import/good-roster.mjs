@@ -1,11 +1,11 @@
 import { avatars } from './enka-catalog.mjs'
 import mapping from './data/good-character-mapping.mjs'
+import { constellationTalentBonuses, travelerBonuses } from './constellation-talents.mjs'
 import { canonicalGameElement } from './character-summary.mjs'
-import { snapshotRelic, snapshotWeapon } from './miyoushe.mjs'
+import { POSITIONS, snapshotRelic, snapshotWeapon } from './miyoushe.mjs'
 
-const gameCharacters = new Map(Object.entries(avatars).map(([key, avatar]) =>
+export const gameCharacters = new Map(Object.entries(avatars).map(([key, avatar]) =>
     [avatar.name, { id: Number(key.split('-')[0]), element: avatar.element }]))
-const travelerBonuses = { Anemo: 'QE', Geo: 'QE', Electro: 'QE', Dendro: 'EQ', Hydro: 'EQ', Pyro: 'EQ', Cryo: 'QE' }
 
 export function validateGoodRoster(file) {
     if (file?.format !== 'GOOD' || file.version !== 3) throw new Error('角色导入需要 GOOD v3 文件')
@@ -45,13 +45,7 @@ function resolveRole(row, traveler) {
 // GOODScanner reports base talents; Mona accepts the levels shown on the character card.
 function snapshotSkills(row, name, meta, locale) {
     const levels = ['auto','skill','burst'].map(k => inRange(row.talent?.[k], 1, 10, '天赋'))
-    const order = row.key === 'Traveler' ? travelerBonuses[meta.element] : mapping.constellationTalents[name]
-    for (const [i, threshold] of [3, 5].entries()) {
-        if (row.constellation < threshold) continue
-        const slot = 'AEQ'.indexOf(order?.[i] || '?')
-        if (slot < 0) throw new Error('此角色的命座天赋等级尚未适配')
-        levels[slot] += 3
-    }
+    constellationTalentBonuses(name, row.constellation).forEach((bonus, i) => { levels[i] += bonus })
     if (name === 'Tartaglia') levels[0]++
     return levels.map((level, i) => ({ level, skill_type: 1, name: locale[meta['skillName' + (i + 1)]] }))
 }
@@ -92,7 +86,13 @@ export function goodRosterSnapshot(file, uid, { catalog, data, presets, inventor
                 relics = Object.values(convertArtifacts({ ...file, artifacts: equipped })).flat().map(encodeGear)
                 if (new Set(relics.map(r => r.pos)).size !== relics.length) throw new Error('同一角色的圣遗物部位重复')
             } else {
-                relics = old?.relics ?? (entry?.equippedArtifacts || (preset?.artifactIds || []).map(id => inventory.get(id)).filter(Boolean)).map(encodeGear)
+                const ids = preset?.artifactIds ?? entry?.artifactIds
+                if (ids && entry?.equippedArtifacts) {
+                    relics = POSITIONS.map((position, i) => inventory.get(ids[i]) ?? entry.equippedArtifacts.find(a => a.position === position))
+                        .filter(Boolean).map(encodeGear)
+                } else {
+                    relics = old?.relics ?? (entry?.equippedArtifacts || (ids || []).map(id => inventory.get(id)).filter(Boolean)).map(encodeGear)
+                }
             }
             roles.push({ base: { id: identity.id, name: locale[meta.nameLocale], element: old?.base.element ?? entry?.key.split(':')[2] ?? identity.element,
                 level, promote_level: ascension, actived_constellation_num: constellation }, skills, weapon, relics })

@@ -257,7 +257,7 @@ test('actual file reader and page save callback reach shared import and wait for
     try {
         const page = await browser.newPage()
         const errors = []; page.on('pageerror', e => errors.push(e.message))
-        await page.exposeFunction('importMonaJson', async (raw, remove, backup) => {
+        await page.exposeFunction('importWarehouseFile', async (raw, remove, backup) => {
             await new Promise(resolve => setTimeout(resolve, 50))
             const result = importMonaJson(raw, remove, backup)
             await page.evaluate(() => window.events.push('import-complete'))

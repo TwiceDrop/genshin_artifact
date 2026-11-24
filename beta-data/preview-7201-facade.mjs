@@ -1,6 +1,7 @@
 import {prepareLunarEquipmentBuffs} from './lunar-equipment-rules.mjs';
 import characterElements from './character-elements.mjs';
 import {createStarsealedEdictAdapter} from './starsealed-edict.mjs';
+import {isWeaponDetail,removeInactiveCarrierPassive} from './weapon-carrier-detail.mjs';
 import {previewDefaults} from './preview-7201-config.mjs';
 import {PREVIEW_BUFFS,previewBuffValues,previewRecipientOnField,expandMityaBuffs} from './preview-7201-buffs.mjs';
 import {EXTENSION_BUFF_REGISTRY} from './extension-buffs.mjs';
@@ -66,15 +67,19 @@ export function preparePreviewInput(input){
 }
 export function createPreview7201Facade(base,extension){const edict=createStarsealedEdictAdapter(base);return Object.fromEntries(Object.entries(base).map(([key,Class])=>[key,key==='TransformativeDamage'?Class:new Proxy(Class,{get(target,method){const fn=Reflect.get(target,method);if(typeof fn!=='function')return fn;return (...args)=>{
  const i=key==='DSLInterface'&&method==='run'?1:0;let input=args[i];
- if(input?.weapon?.name==='StarsealedEdict'){input=edict(input);args=[...args];args[i]=input;}
+ const usingEdict=input?.weapon?.name==='StarsealedEdict';
+ if(usingEdict){input=edict(input);args=[...args];args[i]=input;}
  if(!names.has(input?.character?.name)){
   if(input?.character&&(input.buffs||[]).some(b=>PREVIEW_BUFFS[b.name])){
    const seen=new Set();input={...input,buffs:expandMityaBuffs(input.buffs).flatMap(b=>{if(!PREVIEW_BUFFS[b.name])return [b];if(seen.has(b.name))return [];seen.add(b.name);return compilePreviewBuff(b,input).map(e=>{const values={...e.config.ExtensionEffect.values};for(const [scoped,plain]of [['StellarConductFlatElectro','StellarConductFlat'],['StellarConductCritDamageElectro','StellarConductCritDamage']])if(scoped in values){if(characterElements[input.character.name]==='Electro')add(values,plain,values[scoped]);delete values[scoped];}return {...e,config:{ExtensionEffect:{...e.config.ExtensionEffect,values}}};});})};args=[...args];args[i]=input;
   }
-  return fn(...args);
+  const result=fn(...args);
+  if(usingEdict&&isWeaponDetail(method))removeInactiveCarrierPassive(result,'流浪乐章被动等效');
+  return result;
  }
  const x=preparePreviewInput(input),forward=[...args];forward[i]=x;
  const result=extension[key][method](...forward);
+ if(usingEdict&&isWeaponDetail(method))removeInactiveCarrierPassive(result,'流浪乐章被动等效');
  if(key==='CalculatorInterface'&&method==='get_damage_analysis'){
   if(input.character.name==='Mitya'&&[8,12,13,15].includes(input.skill.index)){
    result.direct_stellarconduct=result.normal;result.normal=null;

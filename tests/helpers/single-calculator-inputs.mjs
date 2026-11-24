@@ -12,9 +12,10 @@ export function singleCalculatorInputs(input, artifacts, artifactConfig, artifac
     const builders = ast.statements.filter(node => ts.isFunctionDeclaration(node)
         ? ['getOptimizeArtifactWasmInterface','getPanelOptimizeInterface'].includes(node.name?.text)
         : ts.isVariableStatement(node) && node.declarationList.declarations.some(d =>
-            ['searchArtifactConfig','damageAnalysisWasmInterface'].includes(d.name.getText(ast))))
+            ['effectiveArtifactConfig','damageAnalysisContext','damageAnalysisWasmInterface',
+                'getAttributeWasmInterface','bonusPerStatWasmInterface'].includes(d.name.getText(ast))))
     const body = builders.map(node => node.getText(ast)).join('\n') +
-        '\n;({preview: damageAnalysisWasmInterface, optimize: getOptimizeArtifactWasmInterface, panel: getPanelOptimizeInterface})'
+        '\n;({preview: damageAnalysisWasmInterface, attributes: getAttributeWasmInterface, gains: bonusPerStatWasmInterface, optimize: getOptimizeArtifactWasmInterface, panel: getPanelOptimizeInterface})'
     const js = ts.transpileModule(body, {compilerOptions: {target: ts.ScriptTarget.ESNext}}).outputText
     return vm.runInNewContext(js, {
         computed, artifactConfig, artifactEffectMode, singleSearchArtifactConfig, characterName: ref(input.character?.name),

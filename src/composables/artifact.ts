@@ -7,7 +7,7 @@ import {toSnakeCase} from "@/utils/common"
 import {newDefaultArtifactConfigForWasm} from "@/utils/artifacts"
 import {useI18n} from "@/i18n/i18n"
 
-export function use5Artifacts() {
+export function use5Artifacts(equippedItems?: () => (IArtifact | null)[] | undefined) {
     const { t, ta } = useI18n()
     const artifactStore = useArtifactStore()
 
@@ -25,6 +25,8 @@ export function use5Artifacts() {
     })
 
     const artifactItems = computed(() => {
+        const equipped = equippedItems?.()
+        if (equipped) return equipped
         let temp: (IArtifact | null)[] = []
         for (let id of artifactIds.value) {
             if (id >= 0) {
