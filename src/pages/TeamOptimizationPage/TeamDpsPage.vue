@@ -60,6 +60,7 @@
   </div>
   </section>
   <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon/>
+  <CalcErrorDialog v-model="errorDialog" :message="error" @export="exportDebug"/>
   <template v-if="output">
    <section class="dps-card result-card">
    <header class="card-heading"><h3><i-ep-data-analysis/>计算结果</h3><el-button @click="showResults=true">查看搭配结果</el-button></header>
@@ -164,6 +165,7 @@ import {useEnemy} from '@/composables/enemy'
 import EnemyConfig from '@/pages/NewArtifactPlanPage/EnemyConfig.vue'
 import ArtifactConfig from '@/pages/NewArtifactPlanPage/ArtifactConfig.vue'
 import {upgradeArtifactConfig} from '@/utils/artifacts'
+import CalcErrorDialog from '@/components/CalcErrorDialog.vue'
 import ArtifactDisplay from '@/components/display/ArtifactDisplay.vue'
 import DamageAnalysis from '@/components/display/DamageAnalysis'
 import SelectWeaponLevel from '@/components/select/SelectWeaponLevel.vue'
@@ -207,6 +209,7 @@ const weaponConfigs=(r:number)=>{const name=members.value[r].weapon.name;return 
 const objective=ref('damage'),metric=ref('expectation'),sortMetric=ref('expectation'),count=ref(100),budget=ref(2000),minLevel=ref(0),initialHp=ref([100,100,100,100]),healthBranch=ref(0)
 const searchAlgorithm=ref('auto')
 const computeBackend=ref('gpu')
+const errorDialog=ref(false)
 const busy=ref(false),detailBusy=ref(false),error=ref(''),debug=ref(false),output=shallowRef<any>(null),selectedIndex=ref(1),showResults=ref(false)
 const showProgress=ref(false)
 let backgrounded=false,pageActive=true
@@ -223,6 +226,7 @@ const clock=ref(0),started=ref(0),progress=ref<any>({evaluated_teams:0,total_tea
 let controller:AbortController|null=null,detailController:AbortController|null=null,timer:ReturnType<typeof setInterval>|null=null,lastInput:any=null,loadedUid:string|null=null
 const taskAccount=accountStore.currentAccountId.value
 let restoringTask=false,taskRestored=false
+watch(error,message=>{if(message)errorDialog.value=true})
 const taskFields={names,members,editingRole,enemyConfig,frozen,enemyIsSlime,enemyCount,damageScope,narzissenkreuzEnabled,weaponConditions,widsithMode,objective,metric,sortMetric,count,budget,minLevel,initialHp,searchAlgorithm,computeBackend,selectedIndex,healthBranch,debug}
 const clone=(value:any)=>JSON.parse(JSON.stringify(value))
 const taskDefaults=clone(Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value])))

@@ -83,6 +83,7 @@
                 <el-button size="small" :disabled="!optimizationDebugRecord" @click="exportOptimizationDebug">导出调试包</el-button>
                 <span v-if="optimizationDebugRecord"> {{ optimizationDebugRecord.status === 'failed' ? '计算失败' : optimizationDebugRecord.status === 'completed' ? '计算完成' : optimizationDebugRecord.status === 'cancelled' ? '计算已取消' : '记录中' }} · 候选 {{ optimizationDebugRecord.summary?.candidateCount ?? 0 }} 件</span>
                 <el-alert v-if="optimizationError" type="error" :closable="false" title="配装计算未完成" :description="optimizationError" show-icon />
+                <CalcErrorDialog v-model="optimizationErrorDialog" :message="optimizationError" @export="exportOptimizationDebug" />
                 <details v-if="optimizationDebugRecord?.events.length"><summary>查看调试阶段与错误详情</summary><pre>{{ optimizationDebugDetail }}</pre></details>
             </div>
             <template v-if="optimizationMode === 'damage'">
@@ -728,6 +729,7 @@ import { scoreBuild, scoreSetNames, panelScoreAttributes, getMarkClass } from '@
 import {convertArtifact} from "@util/converter"
 import {deepCopy, downloadString} from "@/utils/common"
 import {createOptimizationDebug} from "@/wasm/optimization-debug.mjs"
+import CalcErrorDialog from "@/components/CalcErrorDialog.vue"
 import {usageStatsDebugInfo, recordUsage, recordUsageUnlessCancelled, recordCharacterUsage} from "@/usage-stats/index.mjs"
 import {patchDebugInfo} from "@/platform/patch-info.mjs"
 import {wasmSingleOptimize} from "@/wasm/single_optimize"
@@ -2081,6 +2083,7 @@ onBeforeUnmount(() => { calculationPageActive=false;optimizationInBackground=tru
 const optimizationDebugEnabled = ref(false)
 const optimizationDebugRecord = shallowRef<any>(null)
 const optimizationError = ref('')
+const optimizationErrorDialog = ref(false)
 const optimizationDebugDetail = computed(() => JSON.stringify({events:optimizationDebugRecord.value?.events,error:optimizationDebugRecord.value?.error},null,2))
 async function exportOptimizationDebug() {
     if (!optimizationDebugRecord.value) return
@@ -2093,10 +2096,19 @@ function handleOptimizeArtifact() {
     if (optimizationRunning.value || dynamicScoreState.value.running) return
     if (calculationState.active) { ElMessage.info('当前有计算线程正在进行'); return }
     optimizationError.value = ''
-    const debug = optimizationDebugEnabled.value ? createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}}) : null
+    const newDebug = () => createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}})
+    const debug = optimizationDebugEnabled.value ? newDebug() : null
     optimizationDebugRecord.value = debug?.record || null
     const debugEvent = (event: any) => { debug?.event(event); triggerRef(optimizationDebugRecord) }
-    const reportError = (error: any) => { optimizationError.value=error?.message||String(error); debug?.fail(error); triggerRef(optimizationDebugRecord); ElMessage.error(optimizationError.value) }
+    const reportError = (error: any) => {
+        optimizationError.value=error?.message||String(error)
+        // Without Debug mode there is no record yet; keep one holding only the failure so the error report can still be exported.
+        const failed = debug || newDebug()
+        failed.fail(error)
+        optimizationDebugRecord.value = failed.record
+        triggerRef(optimizationDebugRecord)
+        optimizationErrorDialog.value = true
+    }
 
     const start = new Date()
     const originalEquipment = snapshotEquipment(artifactItems.value)
