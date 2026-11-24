@@ -22,7 +22,11 @@ import {isNative} from '@/platform/native.mjs'
 import {shouldShowWebVersionNotice} from '@/platform/web-version.mjs'
 import {deviceIsPC} from '@/utils/device'
 
-const visible = ref(shouldShowWebVersionNotice({native: isNative, tauri: window.__MONA_TAURI__ === true}))
+const visible = ref(shouldShowWebVersionNotice({
+    development: process.env.NODE_ENV === 'development',
+    native: isNative,
+    tauri: window.__MONA_TAURI__ === true,
+}))
 const router = useRouter()
 let exportRequested = false
 
