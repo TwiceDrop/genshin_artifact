@@ -52,7 +52,7 @@ test('引导进度按设备保存，完成去重，重置只清空完成记录',
     assert.deepEqual(loadOnboardingState(storage).completedIds, ['quick-start'])
     resetOnboardingState(storage)
     assert.deepEqual(loadOnboardingState(storage), {...initial, welcomeDismissed: true})
-    assert.equal(storage.getItem('mona.firstUseDone'), null)
+    assert.equal(storage.getItem('mona.firstUseDone'), 'true')
 })
 
 test('外部写入无效 v1 数据时记录错误并保留本次会话进度', t => {
@@ -76,7 +76,7 @@ test('写入前读取其他窗口最新保存的完成记录和欢迎标记', ()
     assert.equal(saved.welcomeDismissed, true)
 })
 
-test('欢迎卡只读兼容旧标记，并检查所有本地账号', () => {
+test('欢迎卡兼容旧标记，检查所有本地账号，关闭后保存新旧标记', () => {
     const storage = memoryStorage()
     const eligible = accountData => shouldShowWelcome({
         state: loadOnboardingState(storage), firstUseDone: readFirstUseDone(storage), accountData,
@@ -88,9 +88,29 @@ test('欢迎卡只读兼容旧标记，并检查所有本地账号', () => {
     resetOnboardingState(storage)
     assert.equal(storage.getItem('mona.firstUseDone'), 'true')
     storage.setItem('mona.firstUseDone', 'false')
-    markWelcomeDismissed(storage)
-    assert.equal(storage.getItem('mona.firstUseDone'), 'false')
+    const expected = {version: 1, welcomeDismissed: true, completedIds: []}
+    assert.deepEqual(markWelcomeDismissed(storage), expected)
+    assert.deepEqual(JSON.parse(storage.getItem('mona.onboarding.v1')), expected)
+    assert.equal(storage.getItem('mona.firstUseDone'), 'true')
     assert.equal(eligible([{}]), false)
+})
+
+test('旧标记写入失败时记录原因，保留新键、返回值和会话进度', t => {
+    const storage = memoryStorage()
+    markGuideCompleted('quick-start', storage)
+    const setItem = storage.setItem
+    const denied = new Error('legacy key blocked')
+    storage.setItem = (key, value) => {
+        if (key === 'mona.firstUseDone') throw denied
+        return setItem(key, value)
+    }
+    const log = t.mock.method(console, 'error', () => {})
+    const expected = {version: 1, welcomeDismissed: true, completedIds: ['quick-start']}
+    assert.deepEqual(markWelcomeDismissed(storage), expected)
+    assert.deepEqual(JSON.parse(storage.getItem(ONBOARDING_STORAGE_KEY)), expected)
+    assert.equal(storage.getItem('mona.firstUseDone'), null)
+    assert.deepEqual(loadOnboardingState(storage), expected)
+    assert.ok(log.mock.calls.some(call => call.arguments.includes(denied)))
 })
 
 test('存储被禁用时记录错误，引导仍可在本次会话完成', t => {
