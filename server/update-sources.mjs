@@ -54,9 +54,12 @@ export function officialReleaseUrl(value) {
         return url.protocol === 'https:' && !url.username && !url.password && (github || cnb) ? url.href : null
     } catch { return null }
 }
-export function releaseAsset(release, kind) {
+export function findReleaseAsset(release, kind) {
     const pattern = {tauri: /_tauri_x64\.exe$/i, installer: /_windows_x64_setup\.exe$/i, portable: /_web\.zip$/i, android: /_android\.apk$/i, 'android-test': /_mobiletest_android\.apk$/i}[kind]
-    const asset = release.assets.find(item => pattern.test(item.name) && (kind !== 'android' || !/_mobiletest_android\.apk$/i.test(item.name)) && officialReleaseUrl(item.browser_download_url))
+    return release.assets.find(item => pattern.test(item.name) && (kind !== 'android' || !/_mobiletest_android\.apk$/i.test(item.name)) && officialReleaseUrl(item.browser_download_url))
+}
+export function releaseAsset(release, kind) {
+    const asset = findReleaseAsset(release, kind)
     if (!asset) throw new Error('发布版本缺少对应的更新包（' + kind + '）')
     return asset
 }

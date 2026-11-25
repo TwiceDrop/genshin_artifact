@@ -178,6 +178,10 @@ public class MonaLocalPlugin extends Plugin {
     }
     private long updateId() { return updatePreferences().getLong("downloadId", -1); }
 
+    @PluginMethod public void getApplicationId(PluginCall call) {
+        call.resolve(new JSObject().put("id", getContext().getPackageName()));
+    }
+
     @PluginMethod public void probeUpdate(PluginCall call) {
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             java.net.HttpURLConnection connection = null;
@@ -262,6 +266,7 @@ public class MonaLocalPlugin extends Plugin {
                 error = "下载不完整：收到 " + bytes + "／" + expected + " 字节";
             }
             return new JSObject().put("phase", phase).put("downloaded", bytes).put("total", expected).put("error", error)
+                .put("url", cursor.getString(cursor.getColumnIndexOrThrow(android.app.DownloadManager.COLUMN_URI)))
                 .put("nativeStatus", status).put("reason", reason).put("message", message)
                 .put("version", updatePreferences().getString("version", ""));
         }

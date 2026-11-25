@@ -69,7 +69,7 @@ import {recordUsage} from "@/usage-stats/index.mjs"
 import {createReleaseCheckCoordinator, isAutomaticUpdateEnabled, setAutomaticUpdateEnabled,
     MANUAL_UPDATE_EVENT, openReleaseDownload, UPDATE_SOURCES, releaseAsset,
     sourceUrl, getUpdatePlatform, probeUpdateSource,
-    startUpdateDownload, getUpdateStatus, cancelUpdateDownload, installDownloadedUpdate} from '@/platform/release-update.mjs'
+    startUpdateDownload, getUpdateStatus, getResumableUpdateStatus, cancelUpdateDownload, installDownloadedUpdate} from '@/platform/release-update.mjs'
 
 const updateVisible = ref(false), availableRelease = ref(null), suppressAutomaticUpdates = ref(false)
 const platform = ref(null), sources = ref([]), otherSourcesVisible = ref(false)
@@ -95,11 +95,13 @@ async function checkForUpdates(manual = false) {
             sources.value = []
             otherSource.value = 'github'
             updateError.value = ''
-            platform.value = await getUpdatePlatform()
-            if (platform.value.canInstall) {
-                progress.value = await getUpdateStatus()
-                if (progress.value.version !== release.version) progress.value = {phase: 'idle', downloaded: 0, total: 0}
-            }
+            platform.value = null
+            progress.value = {phase: 'idle', downloaded: 0, total: 0}
+            const detectedPlatform = await getUpdatePlatform()
+            try {
+                if (detectedPlatform.canInstall)
+                    progress.value = await getResumableUpdateStatus(release, detectedPlatform.kind)
+            } finally {platform.value = detectedPlatform}
         } else if (manual) ElMessage.success('当前已是最新版本（' + release.currentVersion + '）')
     } catch (error) {
         console.error(error)
