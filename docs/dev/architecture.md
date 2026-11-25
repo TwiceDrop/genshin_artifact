@@ -48,14 +48,7 @@ flowchart TD
 
 ## 发行形态
 
-| 形态 | 界面 | 本机能力由谁提供 | 存储位置由什么决定 | 构建入口 |
-| --- | --- | --- | --- | --- |
-| Windows 安装包、ZIP 便携包 | 用户的默认浏览器 | 托盘启动器拉起随包的 Node.js 运行本机服务，端口 4184 | 浏览器加 `http://127.0.0.1:4184` | `script/build-web-package.ps1`、`script/build-windows.ps1` |
-| 开发时本机运行 | 浏览器 | `npm start`，端口 4183 | 浏览器加 `http://127.0.0.1:4183` | `npm run build:local` |
-| Android | Capacitor WebView | `MonaLocalPlugin` 等原生插件 | 应用 ID `com.mona.artifact.local` | `script/build-android.ps1` |
-| Windows Tauri 封装 | WebView2 窗口 | 内嵌的 Node.js 运行同一套本机服务，端口 47504 | 应用标识 `com.mona.artifact.tauri` 下的 WebView 目录 | 仓库里没有构建脚本，载荷由 `tauri-exe/prepare-payload.py` 生成 |
-
-换形态前可在「设置 → 导出数据」备份所有本地账号，再到目标端导入。各启动器的端口与存储边界见[服务与多端打包](services-and-platforms.md)。
+Windows 安装器和便携包由托盘启动器拉起 Node 服务，在默认浏览器中展示页面。Tauri 把网页和同一本机服务封装进独立的 WebView2 窗口。Android 则由 Capacitor 承载网页，通过原生插件提供本机能力。各形态的端口、存储隔离、迁移方法和构建入口见[服务与多端打包](services-and-platforms.md)。
 
 ## 已知的结构问题
 
