@@ -75,6 +75,7 @@ test('all BUFF genres stay open through consecutive additions in both calculator
         const character = component('src/components/select/CharacterBuffGroups.vue', {
             vue, '@/assets/buff': { buffData }, '@/assets/_gen_character': { default: { Mona: { element: 'Hydro', nameLocale: 'Mona' } } },
             '@/assets/character': { characterByElement: { Hydro: [] } },
+            '@/assets/element-icons': { default: { Hydro: 'hydro.png' } },
             '@/i18n/i18n': { useI18n: () => ({ t: x => x, ta: x => x }) },
             '@/store/pinia/miyoushe': { useMiyousheStore: () => ({ uidGroups: vue.ref([]), selectedUid: vue.ref(''), data: vue.ref({ entries: [] }) }) },
             '@/store/pinia/preset': { usePresetStore: () => ({ presets: vue.ref({}) }) },
