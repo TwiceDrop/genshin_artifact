@@ -48,12 +48,7 @@ import SidebarMenu from "@/components/ui/sidebar/SidebarMenu.vue"
 import SidebarMenuItem from "@/components/ui/sidebar/SidebarMenuItem.vue"
 import SidebarMenuButton from "@/components/ui/sidebar/SidebarMenuButton.vue"
 import IconEpHouse from "~icons/ep/house"
-import IconEpDataAnalysis from "~icons/ep/data-analysis"
-import IconEpConnection from "~icons/ep/connection"
-import IconEpClock from "~icons/ep/clock"
-import IconEpBox from "~icons/ep/box"
-import IconEpCollection from "~icons/ep/collection"
-import IconEpCharacter from "~icons/ep/user-filled"
+import {useFeatureLinks} from "./useFeatureLinks"
 import IconEpDownload from "~icons/ep/download"
 import IconEpUser from "~icons/ep/user"
 import IconEpSetting from "~icons/ep/setting"
@@ -73,6 +68,7 @@ const version = process.env.MONA_VERSION
 const webTitle = process.env.MONA_TITLE
 
 const { t } = useI18n()
+const features = useFeatureLinks()
 const route = useRoute()
 const router = useRouter()
 const { currentAccountName } = useAccountStore()
@@ -81,16 +77,13 @@ const { currentAccountName } = useAccountStore()
 const groups = computed(() => [
     { key: "home", items: [
         { path: "/intro", label: t("nav.home"), icon: IconEpHouse },
-        { path: "/uid-data", label: t("misc.character"), icon: IconEpCharacter },
+        features.value.character,
     ] },
     { key: "compute", title: t("nav.compute"), items: [
-        { path: "/calculate", label: t("nav.calculate"), icon: IconEpDataAnalysis },
-        { path: "/team-optimization", label: t("nav.teamOptimize"), icon: IconEpConnection },
-        { path: "/calculation-history", label: "历史记录", icon: IconEpClock },
+        features.value.calculate, features.value.team, features.value.history,
     ] },
     { key: "repo", title: t("nav.repo"), items: [
-        { path: "/artifacts", label: t("nav.artifact"), icon: IconEpBox },
-        { path: "/artifacts-kumi", label: t("nav.kumi"), icon: IconEpCollection },
+        features.value.artifacts, features.value.kumi,
     ] },
     { key: "other", title: t("nav.other"), items: [
         { path: "/help/export-tools", label: t("nav.exportTool"), icon: IconEpDownload },

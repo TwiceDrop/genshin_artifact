@@ -1,5 +1,7 @@
 # 本地版：收益曲线与米游社导入
 
+本文保留早期本地版的实现记录和算例。「启动」与「米游社导入」两节描述当时的版本；当前启动命令见[构建与测试](dev/build-and-test.md)，当前导入入口与扫码状态见[玩家使用手册](user-guide.md)。
+
 ## 启动
 
 已在 Windows、Node.js 24.19.0 验证。首次构建需要 Node.js 20+、Git 和 7-Zip（默认 `C:/Program Files/7-Zip/7z.exe`，可通过 `SEVEN_ZIP` 指定）。

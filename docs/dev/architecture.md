@@ -1,5 +1,7 @@
 # 架构
 
+计算调用链、模块职责或发行形态变化时更新。
+
 项目由哪几块组成、一次计算怎么流过它们、每种发行形态装了什么。目录位置见根目录 `AGENTS.md` 的目录地图，术语见 `GLOSSARY.md`，各部分的技术选型见 `docs/dev/tech-stack.md`。
 
 ## 分层
@@ -46,14 +48,7 @@ flowchart TD
 
 ## 发行形态
 
-| 形态 | 界面 | 本机能力由谁提供 | 存储位置由什么决定 | 构建入口 |
-| --- | --- | --- | --- | --- |
-| Windows 安装包、ZIP 便携包 | 用户的默认浏览器 | 托盘启动器拉起随包的 Node.js 运行本机服务，端口 4174 | 浏览器加 `http://127.0.0.1:4174` | `script/build-web-package.ps1`、`script/build-windows.ps1` |
-| 开发时本机运行 | 浏览器 | `npm start`，端口 4183 | 浏览器加 `http://127.0.0.1:4183` | `npm run build:local` |
-| Android | Capacitor WebView | `MonaLocalPlugin` 等原生插件 | 应用 ID `com.mona.artifact.local` | `script/build-android.ps1` |
-| Windows Tauri 封装 | WebView2 窗口 | 内嵌的 Node.js 运行同一套本机服务，端口 47504 | 应用标识 `com.mona.artifact.tauri` 下的 WebView 目录 | 仓库里没有构建脚本，载荷由 `tauri-exe/prepare-payload.py` 生成 |
-
-每种形态各有一份存储，互相不共享，换形态要靠「UID 数据」导出再导入。
+Windows 安装器和便携包由托盘启动器拉起 Node 服务，在默认浏览器中展示页面。Tauri 把网页和同一本机服务封装进独立的 WebView2 窗口。Android 则由 Capacitor 承载网页，通过原生插件提供本机能力。各形态的端口、存储隔离、迁移方法和构建入口见[服务与多端打包](services-and-platforms.md)。
 
 ## 已知的结构问题
 
@@ -61,5 +56,5 @@ flowchart TD
 
 - **`beta-data/` 和 `beta-tools/` 的名字已经不符合内容。** 前者是正式的适配层，根目录平铺了一百多个文件，规则、数据 JSON、校验清单和笔记混在一起；后者同时放着 Node 运行入口、冒烟脚本和一次性数据提取脚本。
 - **版本号写进了文件名。** 测试、脚本、适配层模块里有几十个带 `7106`、`7108`、`7201` 的文件名，其中一部分仍在使用（例如 `preview-7201-facade.mjs`）。新文件不再带版本号，已有的不改名。
-- **Tauri 封装没有接进构建和发版流程。** 它依赖仓库外的 `../launcher/runtime` 和构建时才生成的 `runtime/hoyolab-login`，目前只是保留的源码。
+- **Tauri 封装有独立载荷生成步骤。** 生成载荷时需要 Node 运行时与预先构建的 HoYoLAB 登录窗口。定位和构建入口见[服务与多端打包](services-and-platforms.md)。
 - **上游遗留的配置仍在。** 备案、CDN、`www.mona-uranai.com` 代理这些开关服务于上游的线上站点，本项目只做本地发行。
