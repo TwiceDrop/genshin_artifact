@@ -189,8 +189,13 @@ test('4. real update component compiles and runs source selection, download prog
         openReleaseDownload: () => calls.push('external'), UPDATE_SOURCES: [{id: 'cnb', name: 'CNB.cool'}, {id: 'github', name: 'GitHub'}, {id: 'mirror', name: 'Mirror'}],
         sourceUrl, releaseAsset,
         getUpdatePlatform: async () => ({kind: 'portable', canInstall: true}),
+        getResumableUpdateStatus: async (release, kind) => {
+            assert.equal(release.version, 'v7.1.10')
+            assert.equal(kind, 'portable')
+            return {phase: 'idle', downloaded: 0, total: 0}
+        },
         probeUpdateSource: async (release, kind, source) => {calls.push('probe:'+source);return {speed: source === 'mirror' ? 2000 : 1000, elapsed: 10}},
-        getUpdateStatus: async () => ({phase: calls.includes('download') ? phases.shift() : 'idle', downloaded: 128, total: 128}),
+        getUpdateStatus: async () => ({phase: phases.shift(), downloaded: 128, total: 128}),
         startUpdateDownload: async (release, kind, source) => {calls.push('source:'+source,'download'); return {phase: 'pending', downloaded: 0, total: 128}},
         cancelUpdateDownload: async () => ({phase: 'cancelled'}), installDownloadedUpdate: async () => {calls.push('install')},
         setTimeout: callback => {callback()},
@@ -214,8 +219,7 @@ test('4. real update component compiles and runs source selection, download prog
     assert.deepEqual(calls, ['probe:github','probe:mirror','source:mirror','download','install'])
     calls.length = 0
     let completeStatus
-    bindings.getUpdateStatus = async () => calls.includes('download') ?
-        new Promise(resolve => {completeStatus = resolve}) : {phase: 'idle'}
+    bindings.getUpdateStatus = () => new Promise(resolve => {completeStatus = resolve})
     const cancelled = new Function(...Object.keys(bindings), body + '\nreturn {checkForUpdates, acceptUpdate, cancelDownload, progress};')(...Object.values(bindings))
     await cancelled.checkForUpdates(true)
     const pending = cancelled.acceptUpdate()
