@@ -1,16 +1,19 @@
 <template>
-    <div>
+    <div class="select-buff-root">
         <el-input
             v-model="searchString"
-            style="margin-bottom: 16px"
+            class="buff-search-input"
             :placeholder="t('misc.search')"
             clearable
         >
-            <template slot="append">
-                <i class="el-icon-search"></i>
+            <template #prefix>
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5" />
+                </svg>
             </template>
         </el-input>
-        <el-tabs v-model="activeTab">
+        <el-tabs v-model="activeTab" class="buff-tabs">
             <template
                 v-for="genre in genres"
                 :key="genre"
@@ -28,16 +31,14 @@
                         class="buff-item"
                         @click="handleClick(buff.name)"
                     >
-                        <img :src="buff.badge" class="buff-image" >
+                        <img :src="buff.badge" class="buff-image" loading="lazy">
                         <div class="detail-right">
                             <p class="buff-name">{{ buff.title }}</p>
                             <p v-if="buff.description" class="buff-description" v-html="buff.description"></p>
                         </div>
-                        
                     </div>
                 </el-tab-pane>
             </template>
-            
         </el-tabs>
     </div>
 </template>
@@ -133,51 +134,62 @@ function handleClick(name: string) {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.buff-search-input {
+    margin-bottom: 12px;
+}
+
+.search-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--cx-dim);
+}
+
 .tab-pane {
-    max-height: 50vh;
-    //overflow: auto;
-    //
-    //&::-webkit-scrollbar {
-    //    width: 4px;
-    //}
-    //
-    //&::-webkit-scrollbar-track {
-    //    background: rgb(247, 247, 247);
-    //    border-radius: 2px;
-    //}
-    //
-    //&::-webkit-scrollbar-thumb {
-    //    background: #d4d4d4;
-    //}
+    max-height: min(62vh, 560px);
 }
 
 .buff-item {
     display: flex;
-    //align-items: top;
-    padding: 8px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+    border: 1px solid transparent;
     cursor: pointer;
+    transition: background-color 140ms ease, border-color 140ms ease;
 
     &:hover {
-        background: rgb(243, 243, 243);
+        background: var(--cx-step);
+        border-color: var(--cx-step-2);
     }
 
     .buff-image {
-        height: 48px;
-        width: 48px;
+        height: 44px;
+        width: 44px;
+        flex-shrink: 0;
         border-radius: 50%;
+        background: var(--cx-step-2);
+        object-fit: contain;
+    }
+
+    .detail-right {
+        min-width: 0;
+        flex: 1;
     }
 
     .buff-name {
-        padding-left: 16px;
         margin: 0;
-        font-weight: bold;
+        font-weight: 600;
+        color: var(--cx-letter);
     }
 
     .buff-description {
-        padding-left: 16px;
-        margin-top: 4px;
-        margin-bottom: 0;
+        margin: 4px 0 0;
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--cx-dim);
     }
 }
 </style>
