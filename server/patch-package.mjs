@@ -1,4 +1,4 @@
-import {PATCHABLE_DATA} from '../beta-data/data-overlay.mjs'
+import {PATCHABLE_DATA} from './patchable-data.mjs'
 import {compareVersions} from './update-sources.mjs'
 
 // 内容补丁包的格式和校验。不依赖 Vue、浏览器专有 API 或 Node 专有 API，只用 WebCrypto 和标准类型，

@@ -27,8 +27,6 @@ test('packaged backend entry reports Tauri and waits for host acknowledgement be
     const root = await workspace(t), project = fileURLToPath(new URL('../', import.meta.url))
     await cp(path.join(project, 'server'), path.join(root, 'server'), {recursive: true,
         filter: file => !file.endsWith('.local.json')})
-    await mkdir(path.join(root, 'beta-data'))
-    await copyFile(path.join(project, 'beta-data/data-overlay.mjs'), path.join(root, 'beta-data/data-overlay.mjs'))
     await copyFile(path.join(project, 'tauri-exe/start-server.mjs'), path.join(root, 'start-server.mjs'))
     const metadata = {tag_name: tag, assets: [{name: exe, size: 4}]}
     await writeFile(path.join(root, 'source.mjs'), `globalThis.fetch = async url => {

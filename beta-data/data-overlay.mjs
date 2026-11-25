@@ -1,13 +1,5 @@
-// 内容补丁能替换的数据，以及把补丁数据盖到安装包原数据上的唯一入口。
-// 键与 composeKernelApi 的 data 参数一致；值是安装包里的原文件，补丁里同名的数据整份替换它。
-// 只放纯数据，规则代码和 wasm 内核不在这里（见 docs/specs/content-patch/spec.md）。
-export const PATCHABLE_DATA = Object.freeze({
-    weapons: 'beta-data/weapons-release-71.json',
-    signatureWeapons: 'beta-data/weapons-signature-release-71.json',
-    vodyanitsa: 'beta-data/vodyanitsa.json',
-    support: 'beta-data/extension-support.json',
-    characters: 'src/assets/_gen_character.js',
-})
+import {PATCHABLE_DATA} from '../server/patchable-data.mjs'
+export {PATCHABLE_DATA}
 
 const invalid = reason => Object.assign(new Error('内容补丁数据无效：' + reason), {code: 'DATA_OVERLAY_INVALID', stage: 'overlay'})
 

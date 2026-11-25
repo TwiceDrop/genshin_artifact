@@ -1,7 +1,7 @@
 import {CapacitorHttp} from '@capacitor/core'
 import {isNative, MonaLocal} from './native.mjs'
 import {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, sourceUrl, officialReleaseUrl,
-    fetchReleaseMetadata, releaseAsset, compareVersions} from '../../server/update-sources.mjs'
+    fetchReleaseMetadata, findReleaseAsset, releaseAsset, compareVersions} from '../../server/update-sources.mjs'
 export {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, releaseAsset, compareVersions, sourceUrl}
 export const MANUAL_UPDATE_EVENT = 'mona:check-release-update'
 export const AUTOMATIC_UPDATE_CHANGED_EVENT = 'mona:automatic-release-update-changed'
@@ -22,20 +22,22 @@ export function setAutomaticUpdateEnabled(enabled, storage) {
 }
 
 
-export function describeRelease(release, currentVersion, native = isNative) {
+export function describeRelease(release, currentVersion, native = isNative, apkKind = 'android') {
     const version = String(release.tag_name || '').trim()
     const difference = compareVersions(version, currentVersion)
     if (difference === null) throw new Error('发布版本号无法识别')
     const url = officialReleaseUrl(release.html_url)
     if (!url) throw new Error('发布版本地址无效')
     const assets = Array.isArray(release.assets) ? release.assets : []
-    const apk = assets.find(asset => /(?<!_mobiletest)_android\.apk$/i.test(asset.name || '') && officialReleaseUrl(asset.browser_download_url))
+    const apk = native && findReleaseAsset({assets}, apkKind)
     return {currentVersion, version, newer: difference > 0, url, assets,
-        downloadUrl: native && apk ? officialReleaseUrl(apk.browser_download_url) : url,
+        downloadUrl: apk ? officialReleaseUrl(apk.browser_download_url) : url,
         notes: String(release.body || '').trim() || '此版本未附更新日志。'}
 }
 export async function checkLatestRelease(currentVersion, fetchImpl = globalThis.fetch, native = isNative) {
-    return describeRelease(await fetchReleaseMetadata(fetchImpl, false, currentVersion), currentVersion, native)
+    const release = await fetchReleaseMetadata(fetchImpl, false, currentVersion)
+    const kind = native && isNative ? (await getUpdatePlatform()).kind : 'android'
+    return describeRelease(release, currentVersion, native, kind)
 }
 const local = () => !isNative && ['127.0.0.1', 'localhost'].includes(globalThis.location?.hostname)
 async function updateApi(action, body) {
@@ -59,9 +61,8 @@ export function createReleaseCheckCoordinator(currentVersion, fetchImpl) {
         if (!pending) {
             const request = (async () => {
                 if (fetchImpl) return checkLatestRelease(currentVersion, fetchImpl)
-                const release = local() ? await updateApi('latest', {currentVersion}) :
-                    await fetchReleaseMetadata(isNative ? nativeReleaseFetch : globalThis.fetch, false, currentVersion)
-                return describeRelease(release, currentVersion)
+                if (local()) return describeRelease(await updateApi('latest', {currentVersion}), currentVersion)
+                return checkLatestRelease(currentVersion, isNative ? nativeReleaseFetch : globalThis.fetch)
             })()
             pending = request
             const clear = () => {if (pending === request) pending = null}
@@ -71,7 +72,10 @@ export function createReleaseCheckCoordinator(currentVersion, fetchImpl) {
     }
 }
 export async function getUpdatePlatform() {
-    if (isNative) return {kind: 'android', canInstall: true}
+    if (isNative) {
+        const {id} = await MonaLocal.getApplicationId()
+        return {kind: id.endsWith('.mobiletest') ? 'android-test' : 'android', canInstall: true}
+    }
     if (local()) return updateApi('info')
     return {kind: 'portable', canInstall: false}
 }
@@ -88,6 +92,15 @@ export async function startUpdateDownload(release, kind, source) {
 }
 export async function getUpdateStatus() {
     return isNative ? MonaLocal.updateStatus() : updateApi('status')
+}
+export async function getResumableUpdateStatus(release, kind) {
+    const status = await getUpdateStatus()
+    const idle = {phase: 'idle', downloaded: 0, total: 0}
+    if (status.version !== release.version) return idle
+    if (!isNative) return status
+    const asset = findReleaseAsset(release, kind)
+    const matches = asset && UPDATE_SOURCES.some(source => sourceUrl(asset.browser_download_url, source.id) === status.url)
+    return matches ? status : idle
 }
 export async function cancelUpdateDownload() {
     return isNative ? MonaLocal.cancelUpdate() : updateApi('cancel', {})

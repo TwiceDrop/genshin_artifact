@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {mkdtemp, mkdir, writeFile, readFile, rm, access} from 'node:fs/promises'
+import {mkdtemp, mkdir, cp, writeFile, readFile, rm, access} from 'node:fs/promises'
 import path from 'node:path'
 import {tmpdir} from 'node:os'
 import http from 'node:http'
@@ -130,6 +130,7 @@ test('3. portable update accepts the default trailing-separator root and applies
             await writeFile(path.join(stage, name, name === 'dist' ? 'index.html' : 'program.txt'), 'new-' + name)
             await writeFile(path.join(target, name, name === 'dist' ? 'index.html' : 'program.txt'), 'old-' + name)
         }
+        await cp(path.resolve('server'), path.join(stage, 'server'), {recursive: true, filter: file => !file.endsWith('.local.json')})
         for (const name of ['启动7.1.10.exe', '启动7.1.10.bat', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'LICENSE.miao'])
             await writeFile(path.join(stage, name), 'fixture')
         await mkdir(path.join(target, '.local-data'))
@@ -160,6 +161,7 @@ test('3. portable update accepts the default trailing-separator root and applies
         await assert.rejects(access(path.join(target, '启动7.1.09.bat')))
         await access(path.join(target, '启动7.1.10.exe'))
         await access(path.join(target, '启动7.1.10.bat'))
+        execFileSync(process.execPath, ['--input-type=module', '-e', "await import('./server/local.mjs')"], {cwd: target, windowsHide: true})
     } finally {
         assert.ok(root.startsWith(path.join(tmpdir(), 'mona-update-zip-')))
         await rm(root, {recursive: true, force: true})
@@ -187,8 +189,13 @@ test('4. real update component compiles and runs source selection, download prog
         openReleaseDownload: () => calls.push('external'), UPDATE_SOURCES: [{id: 'cnb', name: 'CNB.cool'}, {id: 'github', name: 'GitHub'}, {id: 'mirror', name: 'Mirror'}],
         sourceUrl, releaseAsset,
         getUpdatePlatform: async () => ({kind: 'portable', canInstall: true}),
+        getResumableUpdateStatus: async (release, kind) => {
+            assert.equal(release.version, 'v7.1.10')
+            assert.equal(kind, 'portable')
+            return {phase: 'idle', downloaded: 0, total: 0}
+        },
         probeUpdateSource: async (release, kind, source) => {calls.push('probe:'+source);return {speed: source === 'mirror' ? 2000 : 1000, elapsed: 10}},
-        getUpdateStatus: async () => ({phase: calls.includes('download') ? phases.shift() : 'idle', downloaded: 128, total: 128}),
+        getUpdateStatus: async () => ({phase: phases.shift(), downloaded: 128, total: 128}),
         startUpdateDownload: async (release, kind, source) => {calls.push('source:'+source,'download'); return {phase: 'pending', downloaded: 0, total: 128}},
         cancelUpdateDownload: async () => ({phase: 'cancelled'}), installDownloadedUpdate: async () => {calls.push('install')},
         setTimeout: callback => {callback()},
@@ -212,8 +219,7 @@ test('4. real update component compiles and runs source selection, download prog
     assert.deepEqual(calls, ['probe:github','probe:mirror','source:mirror','download','install'])
     calls.length = 0
     let completeStatus
-    bindings.getUpdateStatus = async () => calls.includes('download') ?
-        new Promise(resolve => {completeStatus = resolve}) : {phase: 'idle'}
+    bindings.getUpdateStatus = () => new Promise(resolve => {completeStatus = resolve})
     const cancelled = new Function(...Object.keys(bindings), body + '\nreturn {checkForUpdates, acceptUpdate, cancelDownload, progress};')(...Object.values(bindings))
     await cancelled.checkForUpdates(true)
     const pending = cancelled.acceptUpdate()
