@@ -21,15 +21,15 @@ Status: ready-for-agent
 
 ## Solution
 
-用一套完整的「**引导中心 + 1 套快速上手 + 6 套按模块拆分的详细引导**」替换现有的 `FirstUseDialog.vue`：
+用一套完整的「**引导中心 + 1 套快速引导 + 6 套按模块拆分的详细引导**」替换现有的 `FirstUseDialog.vue`：
 
 1. **首次进入欢迎卡**（替代 `FirstUseDialog.vue`）：
    - 沿用现有触发条件：本机所有本地账号都没有圣遗物和预设、且未记录完成过首次欢迎、且等待用量统计提示关闭、不在 `/login`、`/setup#export-data`、`/import` 路由。
    - 兼容旧键 `mona.firstUseDone`：已为 `'true'` 的老用户不自动强弹欢迎卡，但随时可以手动打开引导中心。
-   - 提供 3 个清晰出口：**开始快速上手（约 1 分钟）**、**先导入我的数据**（展开云端 / UID / 圣遗物文件三个快捷入口，承接原弹窗能力）、**先自己逛逛**（关闭并提示常驻入口位置）。
+   - 提供 3 个清晰出口：**快速了解（3 步）**、**先导入我的数据**（展开云端 / UID / 圣遗物文件三个快捷入口，承接原弹窗能力）、**先自己逛逛**（关闭并提示常驻入口位置）。
 2. **常驻引导中心（Guide Hub）**：
    - 桌面端与手机端侧栏新增「使用引导」入口；设置页提供「打开使用引导」与「重置引导进度」；各核心页面顶栏提供低调的 `?` 按钮，点击直接启动**当前页面的详细引导**。
-   - 引导中心集中展示「快速上手」大卡与 6 套「详细引导」列表，显示每套引导的简介、步数与已完成状态，支持随时重看。
+   - 引导中心集中展示「快速了解」大卡与 6 套「详细引导」列表，显示每套引导的简介、步数与已完成状态，支持随时重看。
 3. **跨页聚光灯引导层（Overlay）**：
    - 纯数据驱动，业务页面仅添加稳定的 `data-tour="<key>"` 属性，不耦合引导状态逻辑。
    - 支持跨路由自动跳转、等待目标锚点渲染、自动滚动进视口、目标不可见时自动降级为居中卡片（永不卡死）。
@@ -41,23 +41,21 @@ Status: ready-for-agent
 
 ### 首次欢迎卡文案
 - 标题：`欢迎使用莫娜占卜铺`
-- 导语：`还没有圣遗物和预设。可以花 1 分钟快速了解核心功能，或先导入已有数据。`
-- 主按钮：`开始快速上手（约 1 分钟）`
+- 导语：`还没有圣遗物和预设。可以先 3 步快速了解核心用法，或直接导入已有数据。`
+- 主按钮：`快速了解（3 步）`
 - 次按钮：`先导入我的数据`（点击后展开/显示：`从云端账号导入`（仅已登录时显示）、`通过 UID 导入`、`导入圣遗物文件`）
 - 底部文字按钮：`先自己逛逛`
 - 关闭提示（Toast 或卡片底部小字）：`随时可以从侧栏「使用引导」或设置页重新打开。`
 
-### A. 快速引导：`quick-start`（5 步）
-- 标题：`1 分钟快速上手`
-- 简介：`串讲导航、导入数据、单人配装与进阶功能，快速跑通完整流程。`
+### A. 快速引导：`quick-start`（3 步，不跨页）
+- 标题：`快速了解`
+- 简介：`3 步认识导航与使用流程，各模块可按需单独查看详细引导。`
 
 | 步 | 路由 | 桌面锚点 / 手机锚点 | 标题 | 正文 |
 | --- | --- | --- | --- | --- |
-| 1 | `/intro` | `nav.sidebar` / `nav.mobile-bottom` | 认识主要功能区 | 这里可以快速切换角色（UID）、单次计算、多人优化和圣遗物仓库，所有常用功能都在这里直达。 |
-| 2 | `/artifacts` | `artifacts.import` / `artifacts.more` | 先准备圣遗物与角色 | 推荐在「圣遗物」页导入扫描器导出的 JSON（支持莫娜 / GOOD v3）或截图录入，也可以去「角色」页用 UID 导入角色面板。 |
-| 3 | `/calculate` | `calc.top-actions` / `calc.top-actions` | 单人自动配装 | 在「单次计算」选好角色或预设、设定配装目标，再点击「自动配装」，即可从仓库中算出最优搭配。 |
-| 4 | `/team-optimization` | `team.toolbar` / `team.toolbar` | 整队优化与更多工具 | 需要四人互不抢圣遗物或算完整循环 DPS 时来「多人优化」；常用 5 件可存成「圣遗物套装」，每次结果也会留在「历史记录」里方便对比。 |
-| 5 | `/intro` | `nav.guide` / `nav.mobile-menu` | 随时查看详细引导 | 需要深入了解某个模块时，点侧栏里的「使用引导」，或各页面顶部的「？」按钮，即可查看对应模块的详细步骤。 |
+| 1 | 当前页（不跳转） | `nav.sidebar` / `nav.mobile-bottom` | 认识主要功能区 | 左侧栏（手机端为底部导航）汇总了角色（UID）、单次计算、多人优化和圣遗物仓库，常用功能都能在这里直达。 |
+| 2 | 当前页（不跳转） | 无（居中展示） | 常见使用流程 | 一般先在「圣遗物」或「角色」页导入已有数据，再去「单次计算」自动配装；需要四人互不抢装备或算循环总伤时，再进「多人优化」。 |
+| 3 | 当前页（不跳转） | `nav.guide` / `nav.mobile-menu` | 按模块查看详细引导 | 每个核心页面顶栏都有「？」按钮，侧栏里也可以随时打开「使用引导」，需要哪一块再单独看哪一块的详细步骤。 |
 
 ### B. 详细引导（6 套）
 
@@ -135,10 +133,11 @@ Status: ready-for-agent
   - `!(usageStatsAvailable && usageStatsConsent.value === null)`（等用量统计弹窗先回答）；
   - 本机所有本地账号都没有圣遗物和预设（复用 `needsFirstUse`）；
   - `welcomeDismissed` 为 `false` 且旧键 `mona.firstUseDone !== 'true'`。
-- 关闭首次欢迎卡（无论点击开始快速上手、导入数据还是先自己逛逛），都同时标记 `welcomeDismissed = true`（并写入 `mona.firstUseDone = 'true'` 保持旧逻辑一致）。
+- 关闭首次欢迎卡（无论点击「快速了解（3 步）」「先导入我的数据」还是「先自己逛逛」），都同时标记 `welcomeDismissed = true`（并写入 `mona.firstUseDone = 'true'` 保持旧逻辑一致）。
 
 ### 3. 跨页跳转、锚点定位与降级策略
-- 切换步骤时若 `router.currentRoute.value.path !== step.route`，先 `await router.push(step.route)`，再等待 `nextTick` + 轮询查询 `[data-tour="<anchor>"]`（移动端 `!geSmall` 优先查 `step.mobileAnchor`，桌面端查 `step.anchor`，最多等 600ms，每 50ms 检查一次，且要求元素 `getBoundingClientRect()` 宽高均大于 0）。
+- 切换步骤时，仅当 `step.route` 有值且不同于当前路由，才执行 `await router.push(step.route)`。
+- 步骤未声明桌面或手机锚点时，直接设 `fallbackCentered = true` 并居中显示卡片。声明了锚点的步骤等待 `nextTick` 后轮询查询 `[data-tour="<anchor>"]`（移动端 `!geSmall` 优先查 `step.mobileAnchor`，桌面端查 `step.anchor`，最多等 600ms，每 50ms 检查一次，且要求元素 `getBoundingClientRect()` 宽高均大于 0）。
 - 若找到可见元素：调用 `scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })`，等待一帧后计算高亮框矩形并监听 `resize` / `scroll` 实时更新。
 - 若超时仍未找到可见元素：设 `fallbackCentered = true`，不渲染挖孔高亮，直接居中显示步骤卡片，用户依然可以点「下一步 / 上一步 / 结束」，不会卡死。
 - 键盘支持：引导激活时监听 `ArrowRight` / `Enter`（下一步）、`ArrowLeft`（上一步）、`Escape`（退出引导）。
@@ -159,9 +158,9 @@ Status: ready-for-agent
 ## Verification Plan
 
 - 单元测试（`node --test tests/onboarding.test.mjs`）：
-  1. 清单完整性校验：ID 唯一、步骤非空、所有 `route` 均在 `src/router/router.js` 中存在、无空标题/空正文。
+  1. 清单完整性校验：ID 唯一、步骤非空、已声明的 `route` 均在 `src/router/router.js` 中存在、无空标题/空正文，以及快速引导共 3 步且均无指定路由。
   2. 状态与持久化测试：`mona.onboarding.v1` 读写、完成状态去重、重置进度、读取旧标记、关闭欢迎卡时双写新旧键、旧键写入失败时保留返回值和会话进度。
   3. 锚点一致性测试：扫描 `src/` 下所有 `.vue` 文件，确认 `guides.mjs` 中声明的每一个 `anchor` 与 `mobileAnchor` 在源码中至少出现一次 `data-tour="<key>"`。
 - 兼容测试：`node --test tests/first-use.test.mjs` 保持通过。
 - 构建验证：`npm run build:local` 通过。
-- 人工验收（见 `issues/06-build-and-acceptance.md`）：桌面宽屏 + 手机窄屏、浅色 + 深色模式下的首次弹出、快速引导跨页流转、6 套详细引导与降级表现。
+- 人工验收（见 `issues/06-build-and-acceptance.md`）：桌面宽屏 + 手机窄屏、浅色 + 深色模式下的首次弹出、快速引导三步留在当前页且第二步直接居中、6 套详细引导与降级表现。

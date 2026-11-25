@@ -82,11 +82,17 @@ async function showStep(index, router) {
     try {
         // 等在途跳转结束，再根据最终路由执行最近一次切步。
         const navigate = async () => {
-            if (current === generation && router.currentRoute.value.path !== step.route) await router.push(step.route)
+            if (current === generation && step.route && router.currentRoute.value.path !== step.route) {
+                await router.push(step.route)
+            }
         }
         navigation = navigation.then(navigate, navigate)
         await navigation
         if (current !== generation) return
+        if (!step.anchor && !step.mobileAnchor) {
+            controller.fallbackCentered = true
+            return
+        }
         await nextTick()
         const deadline = performance.now() + 600
         while (current === generation && !visibleTarget(step) && performance.now() < deadline) {
