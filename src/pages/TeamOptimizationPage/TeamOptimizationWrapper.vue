@@ -1,9 +1,9 @@
 <template>
  <div class="team-configurations cx-scope">
-  <header class="toolbar">
-   <div class="toolbar-title"><h2><i-ep-data-analysis/>{{ managing?'管理计算配置':'多人优化' }}</h2><span v-if="!managing" class="technical-credit">技术支持：<a href="https://www.gensri.wiki/" target="_blank" rel="noopener noreferrer">强度研究院</a></span></div>
+  <header class="toolbar" data-tour="team.toolbar">
+   <div class="toolbar-title"><h2><i-ep-data-analysis/>{{ managing?'管理计算配置':'多人优化' }}<PageGuideButton guide-id="detail-team-dps" /></h2><span v-if="!managing" class="technical-credit">技术支持：<a href="https://www.gensri.wiki/" target="_blank" rel="noopener noreferrer">强度研究院</a></span></div>
    <div v-if="managing"><el-button @click="managing=false">返回计算</el-button><el-button :disabled="loading||saving" @click="createDraft">新建动作轴</el-button><el-button type="primary" :disabled="loading||saving" @click="fileInput?.click()">导入</el-button></div>
-   <el-button v-else :disabled="loading||saving" @click="openManager">管理计算配置</el-button>
+   <el-button v-else data-tour="team.manage-btn" :disabled="loading||saving" @click="openManager">管理计算配置</el-button>
   </header>
   <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="importFile"/>
   <el-alert v-if="error" :title="error" type="error" :closable="false"/>
@@ -44,9 +44,9 @@
    </div>
   </template>
   <template v-else>
-   <div v-if="library.entries.length" class="choose-config"><el-select popper-class="team-dps-popper" :model-value="library.selectedId" placeholder="选择计算配置" :disabled="saving" @update:model-value="choose($event)"><el-option v-for="entry in library.entries" :key="entry.key" :value="entry.key" :label="entry.axis.title"/></el-select><el-button :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
-   <team-dps-page v-if="selected" :key="selected.key+'-'+generation" :configuration="selected.axis" :task-key="selected.key" :tasks="tasks[selected.key]||{}" :axis-file-name="selected.sourceFileName||selected.axis.id+'.mona-axis.json'" :history-detail="historyDetail||undefined" @save-task="saveTask"/>
-   <div v-else class="empty"><el-button type="primary" size="large" :disabled="saving" @click="createDraft">新建动作轴</el-button><el-button size="large" :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
+   <div v-if="library.entries.length" class="choose-config" data-tour="team.config-select"><el-select popper-class="team-dps-popper" :model-value="library.selectedId" placeholder="选择计算配置" :disabled="saving" @update:model-value="choose($event)"><el-option v-for="entry in library.entries" :key="entry.key" :value="entry.key" :label="entry.axis.title"/></el-select><el-button :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
+   <team-dps-page v-if="selected" data-tour="team.workspace" :key="selected.key+'-'+generation" :configuration="selected.axis" :task-key="selected.key" :tasks="tasks[selected.key]||{}" :axis-file-name="selected.sourceFileName||selected.axis.id+'.mona-axis.json'" :history-detail="historyDetail||undefined" @save-task="saveTask"/>
+   <div v-else class="empty" data-tour="team.workspace"><el-button type="primary" size="large" :disabled="saving" @click="createDraft">新建动作轴</el-button><el-button size="large" :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
   </template>
   <team-multiplier-preview v-if="multiplierPreview" :axis="multiplierPreview.axis" :characters="multiplierPreview.characters" @close="multiplierPreview=null"/>
   <el-dialog v-model="jsonDialog" title="动作时间轴 JSON" width="min(850px,94vw)" custom-class="team-dps-dialog cx-scope">
@@ -62,6 +62,7 @@
  </div>
 </template>
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import './team-dps-theme.css'
 import './team-dps-night.css'
 import {ref,shallowRef,computed,watch,onBeforeUnmount,onActivated} from 'vue'
