@@ -5,6 +5,11 @@ const fieldSelf=name=>or(eq(recipient,name),onField);
 const stellarBase=min(mul(P('atk',2000),.000035),.07);
 const durinElements=['','Dendro','Electro','Anemo','Geo','Hydro','Cryo'];
 const durinAssert={when:op('gte',P('reaction_element',0),1),message:'杜林BUFF须明确本次反应的另一元素'};
+// The manual C2 ring only adds coverage that Mavuika's native character settings did not already apply.
+const mavuikaSelfRingCoverage=choose(and(eq(recipient,'Mavuika'),not(I('panel'))),add(
+ choose(op('gte',I('character.constellation'),2),op('coalesce',I('character.params.Mavuika.c2_def_minus_rate'),0),0),
+ choose(op('gte',I('character.constellation'),6),op('coalesce',I('character.params.Mavuika.c6_def_minus_rate'),0),0),
+),0);
 export const CHARACTER_RULE_BOOK={
  CynoC2StellarConduct:R([E('EnhanceStellarSuperconduct',mul(.1,P('stack',5)))],{when:P('effect_active',true)}),
  KleeC1:R([E('ATKPercentage',.6)],{when:and(eq(recipient,'Klee'),P('hexerei_secret_rite',true),P('effect_active',true))}),
@@ -44,7 +49,10 @@ export const CHARACTER_RULE_BOOK={
  MonaC2:R([E('ElementalMastery',80)]),MonaMagusGlow:R([E('EnhanceVaporize',mul(.05,P('stack',3)))],{when:not(eq(recipient,'Mona'))}),
  SucroseTalentMagusE:R([E('BonusBase',.0571428)]),SucroseTalentMagusQ:R([E('BonusBase',.0714285)],{when:magus}),
  VentiSongOfTime:R([E('BonusBase',mul(.5,rate))],{when:onField}),VentiTalentFreedom:R([E('BonusAnemo',.25)],{when:fieldSelf('Venti')}),
- MavuikaTalent2:R([E('BonusBase',add(min(mul(P('fighting_spirit',200),.002),.4),choose(P('c4_enabled',false),.1,0)))],{when:onField}),MavuikaC6:R([E('DefMinus',.2)]),
+ MavuikaTalent2:R([E('BonusBase',add(min(mul(P('fighting_spirit',200),.002),.4),choose(P('c4_enabled',false),.1,0)))],{when:onField}),
+ MavuikaC2:R([E('DefMinus',mul(.2,max(0,sub(1,mavuikaSelfRingCoverage))))]),
+ // Old presets can still carry this retired entry. C6 is applied by Mavuika's character settings.
+ MavuikaC6:R([]),
  AlbedoWitchEve:R(skills('Bonus',add(mul(min(mul(P('def',3000),.00004),.12),P('isotoma_team_rate',0)),choose(magus,mul(min(mul(P('def',3000),.0001),.3),P('fumo_team_rate',0)),0))),{assertions:[{when:or(not(eq(P('def',3000),0)),and(eq(P('isotoma_team_rate',0),0),eq(P('fumo_team_rate',0),0))),message:'阿贝多动态防御转换未接入；请填写来源防御'}]}),
  FischlWitchEve:R([E('ATKPercentage',mul(.225,P('overload_rate',0),add(1,P('coordinated_attack_rate',0)))),E('ElementalMastery',mul(90,P('electro_charged_rate',0),add(1,P('coordinated_attack_rate',0))))],{when:and(P('is_magical_secret_rite_active',true),fieldSelf('Fischl'))}),
  YumemizukiMizukiEnhancedEM:R([E('ElementalMasteryExtra',mul(P('em',1000),.1))]),

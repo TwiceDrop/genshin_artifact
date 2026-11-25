@@ -114,16 +114,30 @@ export function mergeEquipped(entries, existing, addArtifact, previous = {}) {
     const pool = new Map(), used = new Set(), equipment = {}
     let added = 0, reused = 0
     for (const a of existing) { const fp = artifactFingerprint(a); if (!pool.has(fp)) pool.set(fp, []); pool.get(fp).push(a.id) }
+    // Reserve unchanged pieces first so an earlier character cannot claim an identical copy.
+    const changes = []
+    const previouslyWorn = new Set(Object.values(previous).flatMap(ids => ids || []))
     for (const entry of entries) {
-        const ids = [-1, -1, -1, -1, -1]
-        for (const a of entry.gear) {
-            const index = POSITIONS.indexOf(a.position), candidates = pool.get(artifactFingerprint(a)) || []
-            const preferred = previous[entry.key]?.[index]
-            let id = candidates.includes(preferred) && !used.has(preferred) ? preferred : candidates.find(id => !used.has(id))
-            if (id === undefined) { id = addArtifact(a); added++ } else reused++
-            used.add(id); ids[index] = id
+        const ids = equipment[entry.key] = [-1, -1, -1, -1, -1]
+        for (const piece of entry.gear) {
+            const slot = POSITIONS.indexOf(piece.position)
+            const candidates = pool.get(artifactFingerprint(piece)) || []
+            const preferred = previous[entry.key]?.[slot]
+            if (candidates.includes(preferred) && !used.has(preferred)) {
+                ids[slot] = preferred
+                used.add(preferred)
+                reused++
+            } else {
+                changes.push({ ids, slot, candidates, piece })
+            }
         }
-        equipment[entry.key] = ids
+    }
+    for (const { ids, slot, candidates, piece } of changes) {
+        let id = candidates.find(id => !used.has(id) && !previouslyWorn.has(id))
+            ?? candidates.find(id => !used.has(id))
+        if (id === undefined) { id = addArtifact(piece); added++ } else reused++
+        ids[slot] = id
+        used.add(id)
     }
     return { equipment, added, reused }
 }

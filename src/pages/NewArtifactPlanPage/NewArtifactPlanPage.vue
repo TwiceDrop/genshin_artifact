@@ -411,21 +411,21 @@
 
             </el-dialog>
             <el-dialog v-model="characterDrawerOpen" title="角色" width="min(640px, 94vw)"
-                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body>
+                custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body destroy-on-close>
                 <div class="condition-settings-content" data-theme="mist">
                         <section class="config-character setup-section">
-                            <div class="character-fields">
-                                <div class="calc-field"><span>角色等级</span><select-character-level v-model="characterLevel" aria-label="角色等级" /></div>
-                            </div>
-                            <fieldset class="talent-fields">
-                                <legend>天赋等级</legend>
-                                <div class="talent-row"><span>{{ t('skillType.a') }}</span><el-input-number v-model="characterSkill1" :label="t('skillType.a')" :min="1" :max="15" /></div>
-                                <div class="talent-row"><span>{{ t('skillType.e') }}</span><el-input-number v-model="characterSkill2" :label="t('skillType.e')" :min="1" :max="15" /></div>
-                                <div class="talent-row"><span>{{ t('skillType.q') }}</span><el-input-number v-model="characterSkill3" :label="t('skillType.q')" :min="1" :max="15" /></div>
-                            </fieldset>
-                            <div class="constellation-line" role="group" :aria-label="t('misc.conste')">
-                                <span>{{ t('misc.conste') }}</span>
-                                <button v-for="n in 7" :key="n" type="button" :aria-pressed="characterConstellation === n-1" @click="characterConstellation = n-1">C{{ n-1 }}</button>
+                            <div class="calc-field"><span>角色等级</span><select-character-level v-model="characterLevel" aria-label="角色等级" /></div>
+                            <div class="character-progress">
+                                <CharacterTalentCards :entry="characterCardEntry">
+                                    <template #editor>
+                                        <div class="talent-editor">
+                                            <div class="calc-field"><span>{{ t('skillType.a') }}</span><el-input-number v-model="characterSkill1" :label="t('skillType.a')" :min="1" :max="15" /></div>
+                                            <div class="calc-field"><span>{{ t('skillType.e') }}</span><el-input-number v-model="characterSkill2" :label="t('skillType.e')" :min="1" :max="15" /></div>
+                                            <div class="calc-field"><span>{{ t('skillType.q') }}</span><el-input-number v-model="characterSkill3" :label="t('skillType.q')" :min="1" :max="15" /></div>
+                                        </div>
+                                    </template>
+                                </CharacterTalentCards>
+                                <CharacterConstellation :entry="characterCardEntry" direct-selection @change-rank="characterConstellation = $event" />
                             </div>
                             <div class="character-extra-config" v-if="characterNeedConfig">
                                 <item-config
@@ -803,6 +803,8 @@ import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.m
 import DslGenerator from './DslGenerator.vue'
 import CalcTopBar from './CalcTopBar.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
+import CharacterTalentCards from '@/components/import/CharacterTalentCards.vue'
+import CharacterConstellation from '@/components/import/CharacterConstellation.vue'
 import DamageResultCard from './DamageResultCard.vue'
 import CalcConditionsCard from './CalcConditionsCard.vue'
 import {buffColumnKey, BUFF_COLUMNS} from '@/algorithms/buff-groups/index.mjs'
@@ -959,6 +961,12 @@ const {
     characterInterface,
     characterLocale,
 } = useCharacter()
+const characterCardEntry = computed(() => ({
+    characterName: characterName.value,
+    element: characterData[characterName.value].element,
+    constellation: characterConstellation.value,
+    talentLevels: [characterSkill1.value, characterSkill2.value, characterSkill3.value],
+}))
 
 function finishCharacterSwitch(keepConditions: boolean) {
     const selection = pendingCharacterSwitch.value
@@ -2466,23 +2474,19 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
 .config-weapon :deep(.detail .image) { flex-shrink: 0; }
 .config-weapon :deep(.detail .name) { font-size: 15px; margin: 0 0 4px; }
 .config-weapon :deep(.detail .description) { font-size: 15px; line-height: 1.65; word-break: normal; overflow-wrap: anywhere; }
-.config-character .constellation-line { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); column-gap: 4px; }
-.config-character .constellation-line > span { grid-column: 1/-1; }
-.config-character .constellation-line button { min-width: 0; min-height: 40px; padding-inline: 0; }
 .artifacts-card { container: single-gear / inline-size; }
 .calc-field { display: flex; flex-direction: column; min-width: 0; gap: 6px; }
-.calc-field > span, .constellation-line > span { font-size: 15px; font-weight: 600; color: var(--cx-dim); }
-.character-fields, .weapon-fields { display: grid; gap: 12px; align-items: start; }
-.character-fields { grid-template-columns: minmax(0, 1fr); }
-.talent-fields, .traveler-resonance { min-width: 0; margin: 16px 0 10px; padding: 0; border: 0; }
-.talent-fields legend, .traveler-resonance legend { padding: 0; margin-bottom: 4px; font-size: 15px; font-weight: 600; color: var(--cx-dim); }
-.talent-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 5px 0; }
-.talent-row + .talent-row { border-top: 1px solid var(--cx-step-2); }
-.talent-row > span { font-size: 15px; color: var(--cx-letter); }
-.talent-row .el-input-number { width: 120px; max-width: 55%; }
-.talent-row :deep(.el-input__wrapper) { padding-inline: 34px; }
-.talent-row :deep(.el-input-number__decrease), .talent-row :deep(.el-input-number__increase) { width: 32px; border: 0; background: var(--cx-step); color: var(--cx-dim); }
-.talent-row :deep(input) { font-weight: 600; font-variant-numeric: tabular-nums; }
+.calc-field > span { font-size: 15px; font-weight: 600; color: var(--cx-dim); }
+.config-character { display: grid; gap: 12px; }
+.character-progress { display: grid; gap: 8px; min-width: 0; padding: 8px; border-radius: 16px; background: var(--cx-ground); }
+.talent-editor { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.talent-editor .calc-field > span { font-size: 12px; }
+.talent-editor :deep(.el-input-number__decrease), .talent-editor :deep(.el-input-number__increase) { width: 24px; }
+.talent-editor :deep(.el-input__wrapper) { padding-inline: 25px; }
+@container buff-board (max-width: 360px) { .talent-editor { grid-template-columns: minmax(0, 1fr); } }
+.traveler-resonance { min-width: 0; margin: 4px 0 10px; padding: 0; border: 0; }
+.traveler-resonance legend { padding: 0; margin-bottom: 4px; font-size: 15px; font-weight: 600; color: var(--cx-dim); }
+.weapon-fields { display: grid; gap: 12px; align-items: start; }
 .weapon-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 14px; }
 .weapon-picker-trigger { flex: none; width: 64px; height: 64px; padding: 2px; border: 1px dashed var(--cx-dim); border-radius: 10px; background: transparent; cursor: pointer; }
 .weapon-picker-trigger img { width: 100%; height: 100%; object-fit: contain; }
@@ -2495,12 +2499,7 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
 }
 .enemy-infusion .common-title2 { margin-top: 0; }
 .calc-field > :last-child { width: 100%; min-width: 0; }
-.constellation-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.constellation-line { border-top: 1px solid var(--cx-step-2); padding-top: 12px; }
-.constellation-line > span { margin-right: 5px; }
-.constellation-line button { font: inherit; font-size: 15px; font-weight: 600; background: var(--cx-card); border: 1px solid var(--cx-step-2); color: var(--cx-dim); border-radius: 8px; min-width: 38px; min-height: 36px; cursor: pointer; }
-.constellation-line button[aria-pressed=true] { color: var(--cx-gold); background: var(--cx-step); border-color: var(--cx-gold); }
-.character-extra-config, .weapon-extra-config { margin-top: 14px; }
+.weapon-extra-config { margin-top: 14px; }
 .calc-content .el-button + .el-button { margin-left: 0; }
 .card-actions :deep(.el-button-group), .artifact-tool :deep(.el-button-group) { display: flex; flex-wrap: wrap; gap: 6px; }
 .artifacts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit,minmax(min(100%,200px),1fr)); grid-auto-rows: minmax(64px,auto); }
@@ -2530,9 +2529,6 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
 }
 @container single-calculator (max-width: 520px) {
     .card-heading h3 { font-size: 18px; }
-    .constellation-line > span { width: 100%; }
-    .constellation-line button { flex: 1; min-width: 30px; min-height: 40px; padding: 0 3px; }
-
     .attributes-body :deep(.attribute-item .value > span) { white-space: normal; }
 }
 

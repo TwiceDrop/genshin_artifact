@@ -2,13 +2,17 @@
     <section class="constellation-card" :data-element="entry.element"
         @pointerdown="press" @pointermove="move" @pointercancel="endPress" @pointerup="endPress"
         @touchend="held && $event.preventDefault()" @contextmenu="suppressTouchMenu" @click.capture="activate">
-        <header><h4>命之座</h4><span class="rank-count">{{ entry.constellation }} / 6</span></header>
+        <header>
+            <h4>命之座</h4>
+            <span class="rank-count">{{ entry.constellation }} / 6</span>
+        </header>
         <ol class="rank-list" :style="stripStyle">
             <li v-for="(stage, i) in stages" :key="i">
-                <UiHoverDetails enabled :tap-label="stage.name" :side="i % 2 === 0 ? 'left' : 'right'">
+                <UiHoverDetails enabled :tap-label="directSelection ? undefined : stage.name" :side="i % 2 === 0 ? 'left' : 'right'">
                     <template #trigger>
                         <button type="button" class="rank" :data-rank="i + 1" :class="{ lit: i < count }"
-                            :aria-label="[layerLabels[i], stage.name, status(i)].join('，')">
+                            :aria-label="[layerLabels[i], stage.name, status(i)].join('，')"
+                            :aria-pressed="editable ? count === i + 1 : undefined">
                             <span class="rank-icon" aria-hidden="true">
                                 <i v-if="record" class="rank-symbol" :style="{ maskPosition: (i * 20) + '% center' }"></i>
                                 <img v-else-if="stage.icon" :src="stage.icon" alt="" />
@@ -31,12 +35,11 @@ import UiHoverDetails from '@/components/ui/UiHoverDetails.vue'
 import GameEffectText from '@/components/display/GameEffectText.vue'
 import catalog from '@/assets/character-constellations.json'
 
-const props = defineProps({ entry: { type: Object, required: true } })
+const props = defineProps({ entry: { type: Object, required: true }, directSelection: Boolean })
 const emit = defineEmits(['change-rank'])
-const editable = computed(() => !!props.entry.preset && props.entry.characterName !== 'Aloy')
+const editable = computed(() => props.directSelection || (!!props.entry.preset && props.entry.characterName !== 'Aloy'))
 function requestRank(rank) {
-    const next = rank === 1 && count.value === 1 ? 0 : rank
-    if (editable.value && next !== count.value) emit('change-rank', next)
+    if (editable.value) emit('change-rank', rank === count.value ? 0 : rank)
 }
 let timer, touchStart, touchPress = false, held = false
 function endPress() {
@@ -50,7 +53,7 @@ function press(event) {
     touchPress = event.pointerType === 'touch'
     held = false
     const button = event.target.closest('[data-rank]')
-    if (!touchPress || !button || !editable.value || !event.isPrimary) return
+    if (props.directSelection || !touchPress || !button || !editable.value || !event.isPrimary) return
     touchStart = { x: event.clientX, y: event.clientY }
     timer = setTimeout(() => {
         held = true
@@ -66,6 +69,10 @@ function suppressTouchMenu(event) {
 function activate(event) {
     const button = event.target.closest('[data-rank]')
     if (!button) return
+    if (props.directSelection) {
+        requestRank(Number(button.dataset.rank))
+        return
+    }
     if (event.detail && (event.pointerType === 'touch' || touchPress)) {
         if (!held) return
     } else {
@@ -108,7 +115,7 @@ header h4 { margin: 0; font-size: 15px; }
 .rank-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; list-style: none; padding: 0; margin: 8px 0 0; }
 .rank-list li { display: flex; min-width: 0; }
 .rank { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left; font: inherit; line-height: 1.35; color: var(--cx-dim); padding: 9px 7px; border: 1px solid transparent; border-radius: 9px; background: var(--cx-step); cursor: pointer; }
-.rank:hover, .rank[aria-expanded="true"] { border-color: var(--cx-gold); color: var(--cx-letter); }
+.rank:hover, .rank[aria-expanded="true"], .rank[aria-pressed="true"] { border-color: var(--cx-gold); color: var(--cx-letter); }
 .rank:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 1px; }
 .rank-icon { flex: none; position: relative; display: grid; place-items: center; box-sizing: border-box; width: 35px; height: 35px; border: 1px solid var(--cx-step-2); border-radius: 50%; background: var(--cx-card); }
 .rank-icon img, .rank-symbol { width: 26px; height: 26px; }

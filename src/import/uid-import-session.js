@@ -6,7 +6,7 @@ import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { createArtifactStore, useArtifactStore, watchContent as artifactContent } from '@/store/pinia/artifact'
 import { createPresetStore, usePresetStore } from '@/store/pinia/preset'
 import { captureImportState, appendImportRecord } from './import-history.mjs'
-import { accountGameUid, importDifferences, keepRoleVersions } from './uid-import-review.mjs'
+import { accountGameUid, importDifferences, applyRoleReview, slotLabels } from './uid-import-review.mjs'
 import weapons from '@/assets/_gen_weapon'
 import sets from '@/assets/_gen_artifact'
 import locale from '@/i18n/generated/zh-cn.json'
@@ -53,24 +53,34 @@ async function importDestination(accounts, uid, currentUid, origin) {
     return { id: origin, name: await newAccountName(uid) }
 }
 
-async function review(changes) {
-    if (!changes.length) return []
-    const selected = new Set(changes.map(change => change.key))
-    const message = h('div', { style: { maxHeight: '50vh', overflowY: 'auto' } }, changes.map(change =>
-        h('label', { style: { display: 'block', marginBottom: '10px' } }, [
-            h('input', { type: 'checkbox', checked: true, onChange: e => {
-                if (e.target.checked) selected.add(change.key)
-                else selected.delete(change.key)
-            } }), ' ' + change.label, ...change.details.map(line => h('div', { style: { marginLeft: '22px' } }, line))
-        ])))
+async function review(groups) {
+    const kept = new Set()
+    if (!groups.length) return kept
+    const message = h('div', { style: { maxHeight: '50vh', overflowY: 'auto' } }, groups.map(group => {
+        const labels = new Map(group.roles.map(role => [role.key, role.label]))
+        const names = group.roles.map(role => role.label).join('、')
+        const details = group.roles.flatMap(role => role.details.length && group.transfers.length
+            ? [h('strong', role.label), ...role.details.map(line => h('div', line))]
+            : role.details.map(line => h('div', line)))
+        return h('div', { style: { marginBottom: '10px' } }, [
+            h('label', [h('input', { type: 'checkbox', checked: true, onChange: e => {
+                if (e.target.checked) kept.delete(group)
+                else kept.add(group)
+            } }), ' ' + names]),
+            h('div', { style: { marginLeft: '22px' } }, [
+                ...group.transfers.map(({ from, to, slot }) => h('div', slotLabels[slot] + '：' + labels.get(from) + ' → ' + labels.get(to))),
+                ...details,
+            ]),
+        ])
+    }))
     try {
         await ElMessageBox.confirm(message, '选择要用最新数据替换的角色', { confirmButtonText: '替换勾选角色',
             cancelButtonText: '全部保留', distinguishCancelAndClose: true, closeOnClickModal: false })
     } catch (e) {
-        if (e === 'cancel') return changes
+        if (e === 'cancel') return new Set(groups)
         throw e
     }
-    return changes.filter(change => !selected.has(change.key))
+    return kept
 }
 
 export async function bindCookieRole(roles, accountId, checkActive, beforeBinding) {
@@ -145,13 +155,13 @@ export function uidImportSession(accountId, checkActive = () => {}) {
         checkVersion()
         const next = { data: roster.data.value, presets: presets.presets.value, inventory: inventory.artifacts.value }
         if (uid) {
-            const changes = importDifferences(uid, old, next, { weapon: key => locale[weapons[key]?.nameLocale] || key,
+            const groups = importDifferences(uid, old, next, { weapon: key => locale[weapons[key]?.nameLocale] || key,
                 set: key => locale[sets[key]?.nameLocale] || key })
-            const skipped = await review(changes)
-            if (skipped.length) keepRoleVersions(uid, skipped, old, next)
+            const kept = await review(groups)
+            const skipped = applyRoleReview(uid, groups, kept, old, next)
             next.data.boundUid = uid
             next.data.selectedUid = uid
-            if (result.imported != null) result.imported -= skipped.length
+            if (result.imported != null) result.imported -= skipped
             if (record) next.data = appendImportRecord(next.data, before, next.presets, next.inventory, { source, uids: [uid] })
         }
         checkVersion()

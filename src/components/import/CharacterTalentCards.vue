@@ -17,7 +17,7 @@
                     </template>
                     <GameEffectText :title="talent.name" :effect="talent.effect" />
                 </UiHoverDetails>
-                <div v-else class="talent-copy"><strong>{{ kinds[index] }}</strong><span>Lv. {{ entry.talentLevels[index] }}</span></div>
+                <div v-else class="talent-card"><span class="talent-copy"><strong>{{ kinds[index] }}</strong><span>Lv. {{ entry.talentLevels[index] }}</span></span></div>
             </li>
         </ul>
         <div class="talent-footer">
@@ -33,9 +33,12 @@
                     </UiHoverDetails>
                 </li>
             </ul>
-            <UiButton class="edit-talents" size="small" aria-haspopup="dialog" :disabled="!entry.preset" @click="openEditor">修改天赋等级</UiButton>
+            <UiButton v-if="$slots.editor" class="edit-talents" size="small" :aria-expanded="editing"
+                @click="editing = !editing">修改天赋等级</UiButton>
+            <UiButton v-else class="edit-talents" size="small" aria-haspopup="dialog" :disabled="!entry.preset" @click="openEditor">修改天赋等级</UiButton>
         </div>
-        <UiDialog v-model="editing" title="修改天赋等级" width="370px">
+        <slot v-if="$slots.editor && editing" name="editor" />
+        <UiDialog v-if="!$slots.editor" v-model="editing" title="修改天赋等级" width="370px">
             <div v-for="(kind, i) in kinds" :key="kind" class="level-row">
                 <div><strong>{{ talents?.[i]?.name || kind }}</strong><small v-if="talents?.[i]?.name">{{ kind }}</small></div>
                 <UiSelect v-model="draft[i]" :label="kind" :options="options[i]" />
@@ -99,7 +102,8 @@ ul { padding: 0; margin: 0; list-style: none; }
 .level-row small { margin-top: 2px; color: var(--cx-dim); }
 .ui-dialog footer button + button { margin-inline-start: 8px; }
 .talent-card { width: 100%; height: 100%; display: grid; justify-items: center; align-content: start; gap: 6px; padding: 8px 3px; border: 1px solid transparent; border-radius: 8px; background: var(--cx-step); color: var(--cx-letter); text-align: center; font: inherit; cursor: pointer; }
-.talent-card:hover, .talent-card[data-state$="open"], .passive-icon:hover, .passive-icon[data-state$="open"] { border-color: var(--cx-gold); }
+.talent-card:not(button) { cursor: default; }
+button.talent-card:hover, .talent-card[data-state$="open"], .passive-icon:hover, .passive-icon[data-state$="open"] { border-color: var(--cx-gold); }
 .talent-card:focus-visible, .passive-icon:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 1px; }
 .talent-symbol { --disc: #242a41; flex: none; width: 38px; height: 38px; display: grid; place-items: center; background: var(--disc); border-radius: 9px; }
 .talent-symbol img { width: 32px; height: 32px; object-fit: contain; }

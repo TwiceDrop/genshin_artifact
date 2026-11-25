@@ -1926,8 +1926,8 @@ export const BUFF_RULE_SCHEMA={
       }
     ]
   },
-  "MavuikaC6": {
-    "label": "玛薇卡-「焚曜之环·灼象」",
+  "MavuikaC2": {
+    "label": "玛薇卡-C2「灰烬的代价」·焚曜之环",
     "fields": []
   },
   "OroronC6": {

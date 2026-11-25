@@ -2819,8 +2819,8 @@ export default {
       }
     ]
   },
-  "MavuikaC6": {
-    "name": "MavuikaC6",
+  "MavuikaC2": {
+    "name": "MavuikaC2",
     "nameLocale": 2350,
     "description": 2352,
     "badge": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/67c7f6c8/c54cf9fe971d6226b78ad795ced9bee8.png",

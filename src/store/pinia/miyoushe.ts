@@ -76,14 +76,14 @@ function importSnapshot(snapshot: any, converter: any, source = '米游社同步
         }
     }
     const before = !draft && captureImportState(data.value, presets.presets.value, store.artifacts.value)
-    const previous = Object.fromEntries(data.value.entries.map((e: any) => [e.key, e.artifactIds]))
+    const previous = Object.fromEntries(data.value.entries.map((e: any) => [e.key, presets.presets.value[e.presetName]?.item.artifactIds ?? e.artifactIds]))
     let inventory = selectUidInventory(uid, data.value, presets.presets.value, store.artifacts.value, true)
     const updatesGear = converted.filter(e => !(preserveEquipped && previous[e.key]))
-    if (partial) {
-        // An identical piece can still be equipped on a character outside the public showcase.
+    {
+        // Missing or unreadable roles retain their equipment even on a full refresh.
         const refreshed = new Set(updatesGear.map(row => row.key))
         const reserved = new Set(data.value.entries.filter((row: any) => row.uid === uid && !refreshed.has(row.key))
-            .flatMap((row: any) => row.artifactIds || []))
+            .flatMap((row: any) => previous[row.key] || []))
         inventory = inventory.filter((piece: any) => !reserved.has(piece.id))
     }
     const result: any = mergeEquipped(updatesGear, inventory, (a: any) => store.addArtifact(a), previous)

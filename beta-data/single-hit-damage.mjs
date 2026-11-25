@@ -9,8 +9,8 @@ import {calculateBloomFamilyDamage} from './bloom-damage.mjs';
 const num=(v,k,min=0)=>{if(typeof v!=='number'||!Number.isFinite(v)||v<min)throw Error('单次面板参数无效：'+k);return v;};
 const native=new Set(NATIVE_EFFECT_ATTRIBUTES),repeatable=new Set([...CUSTOM_REACTION_BASE_BUFFS,'CustomElementalBonus','EnhanceMoonReaction','EnhanceStellarGlimmerReaction','ElevateStellarGlimmerReaction']);
 // No character talent or weapon effects are injected automatically into this explicit panel.
-export function singleHitBuffs(buffs,character,recipientOnField){
- const context={character,team_effects:{recipient_on_field:recipientOnField}};
+export function singleHitBuffs(buffs,character,recipientOnField,panel){
+ const context={character,panel,team_effects:{recipient_on_field:recipientOnField}};
  const compiled=[],seen=new Set();
  for(const b of prepareLunarEquipmentBuffs(buffs||[],context)){
   const name=b.source_buff||b.name;if(b.lock||b.config?.[b.name]?.active===false)continue;
@@ -34,7 +34,7 @@ export function calculateSingleHit(input){
  if(!['Pyro','Hydro','Electro','Cryo','Anemo','Geo','Dendro','Physical'].includes(element)||!['NormalAttack','ChargedAttack','PlungingAttack','ElementalSkill','ElementalBurst'].includes(skillType))throw Error('伤害元素或技能类别无效');
  if(!['ATK','HP','DEF','ElementalMastery'].includes(scaling))throw Error('缩放属性无效');
  if(input.recipientOnField!==undefined&&typeof input.recipientOnField!=='boolean')throw Error('主C前后台状态无效');
- const {compiled,values:v}=singleHitBuffs(buffs,character,input.recipientOnField),before=panelMode==='before-buffs';
+ const {compiled,values:v}=singleHitBuffs(buffs,character,input.recipientOnField,panel),before=panelMode==='before-buffs';
  const read=k=>v[k]||0;
  const stat=()=>{let total=num(panel[scaling],scaling);if(!before)return total;if(scaling==='ElementalMastery')return total+read('ElementalMastery')+read('ElementalMasteryExtra');const db=read(scaling+'Base'),dp=read(scaling+'Percentage');if(db||dp){const base=num(panel[scaling+'Base'],scaling+'Base'),percent=num(panel[scaling+'Percentage'],scaling+'Percentage',-1);total+=db*(1+percent)+(base+db)*dp;}return total+read(scaling+'Fixed')+(scaling==='ATK'?read('ATKFromSecondaryConversion'):0);};
  const em=num(panel.em??0,'EM')+(before?read('ElementalMastery')+read('ElementalMasteryExtra'):0);

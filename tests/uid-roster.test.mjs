@@ -6,7 +6,7 @@ import ts from 'typescript'
 import * as vue from 'vue'
 import * as importHistory from '../src/import/import-history.mjs'
 import * as uidInventory from '../src/import/uid-inventory.mjs'
-import { accountGameUid } from '../src/import/uid-import-review.mjs'
+import { accountGameUid, importDifferences, applyRoleReview } from '../src/import/uid-import-review.mjs'
 import { canonicalGameElement } from '../src/import/character-summary.mjs'
 import { mergeEquipped } from '../src/import/miyoushe.mjs'
 import { characterSummary } from '../src/import/character-summary.mjs'
@@ -94,4 +94,68 @@ test('older missing-character errors become non-blocking warnings when a valid p
     })
     assert.equal(summary.error, '')
     assert.ok(summary.warning)
+})
+
+test('refreshing swapped flowers cannot restore only one of their owners', () => {
+    const { store, inventory, presets } = harness()
+    const uid = '111111111'
+    const roles = { 89: '芙宁娜', 87: '那维莱特', 31: '菲谢尔' }
+    const convert = { character(raw, uid) {
+        const item = converter.character(raw, uid)
+        const label = roles[raw.base.id]
+        return { ...item, label, preset: { ...item.preset, name: label } }
+    } }
+    function refresh(values) {
+        const characters = [89, 87, 31].map((id, i) => ({ base: { id, element: 'Pyro' }, critical: values[i] }))
+        store.importSnapshot({ ...snapshot(uid), characters }, convert)
+        return JSON.parse(JSON.stringify({ data: store.data.value, presets: presets.presets.value }))
+    }
+    const old = refresh([.07, .14, .21]), next = refresh([.14, .07, .28])
+    old.inventory = next.inventory = inventory.artifacts.value
+    const changes = importDifferences(uid, old, next, { set: s => s })
+    const group = changes.find(g => g.roles.some(role => role.label === '芙宁娜'))
+    assert.deepEqual(group.roles.map(role => role.label).sort(), ['芙宁娜', '那维莱特'].sort())
+    assert.equal(group.transfers.length, 2)
+    assert.equal(changes.length, 2)
+    const useLatest = { ...structuredClone({ data: next.data, presets: next.presets }), inventory: next.inventory }
+    const latestGroups = importDifferences(uid, old, useLatest, { set: s => s })
+    applyRoleReview(uid, latestGroups, new Set(), old, useLatest)
+    assert.equal(useLatest.presets['那维莱特'].item.artifactIds[0], old.presets['芙宁娜'].item.artifactIds[0])
+    assert.equal(useLatest.presets['芙宁娜'].item.artifactIds[0], old.presets['那维莱特'].item.artifactIds[0])
+    assert.equal(applyRoleReview(uid, changes, new Set([group]), old, next), 2)
+    const id = (state, label) => state.presets[label].item.artifactIds[0]
+    assert.notEqual(id(next, '芙宁娜'), id(next, '那维莱特'), '同一朵花出现在两人的游戏内预设')
+    for (const label of ['芙宁娜', '那维莱特']) assert.equal(id(next, label), id(old, label))
+    assert.notEqual(id(next, '菲谢尔'), id(old, '菲谢尔'))
+})
+
+test('a transfer chain is one decision, and keeping it still adds a new wearer and their unrelated equipment', () => {
+    const uid = '111111111'
+    function state(equipment) {
+        const rows = equipment.map((artifactIds, i) => ({ uid, key: uid + ':' + i + ':Pyro', label: '角色' + i,
+            presetName: '主预设' + i, artifactIds, equippedArtifacts: [] }))
+        const characters = rows.map((row, i) => ({ base: { id: i, element: 'Pyro' },
+            relics: row.artifactIds.flatMap((id, slot) => id < 0 ? [] : [{ pos: slot + 1 }]) }))
+        const presets = Object.fromEntries(rows.map(row => [row.presetName, { item: { artifactIds: [...row.artifactIds] } }]))
+        presets.custom = { item: { artifactIds: [0, 1] } }
+        return { data: { entries: rows, snapshots: { [uid]: { characters } } }, presets, inventory: new Map() }
+    }
+    const old = state([[0], [1]]), next = state([[-1], [0], [1, 2]])
+    const groups = importDifferences(uid, old, next, { set: s => s })
+    assert.equal(groups.length, 1)
+    assert.equal(groups[0].roles.length, 3)
+    applyRoleReview(uid, groups, new Set(groups), old, next)
+    assert.deepEqual(next.data.entries.map(row => row.artifactIds), [[0], [1], [-1, 2]])
+    assert.deepEqual(next.presets['主预设2'].item.artifactIds, [-1, 2])
+    assert.deepEqual(next.presets.custom.item.artifactIds, [0, 1])
+    assert.deepEqual(next.data.snapshots[uid].characters.find(raw => raw.base.id === 2).relics, [{ pos: 2 }])
+})
+
+test('identical inventory copies stay with unchanged wearers regardless of import order', () => {
+    const row = converter.character({ base: { id: 21 } }, '111111111')
+    const pieces = [0, 1].map(id => ({ ...row.gear[0], id }))
+    const newcomers = { ...row, key: 'new' }, unchanged = { ...row, key: 'untouched' }
+    const result = mergeEquipped([newcomers, unchanged], pieces, () => assert.fail('两件都已在仓库中'), { untouched: [0] })
+    assert.equal(result.equipment.untouched[0], 0)
+    assert.equal(result.equipment.new[0], 1)
 })
