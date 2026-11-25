@@ -602,7 +602,7 @@
                 :account-id="accountStore.currentAccountId.value" :character-label="characterLocale" :weapon-label="artifactScoreContext.options.weaponName" :skill-label="reviewSkill" :selected-slot="scoreArtifactIndex"
                 @state="dynamicScoreState=$event" @result="dynamicScore=$event" @close="dynamicScoreEnabled=false;dynamicScore=null" @inspect="i=>{scoreArtifactIndex=i;showArtifactScore=true}" />
             <div class="calc-workspace">
-                <character-hero-card class="hero-row" :character-name="characterName" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
+                <character-hero-card class="hero-row" data-tour="calc.character-gear" :character-name="characterName" :name="characterLocale" :element-icon="elementIcons[scoreCharacters[characterName].element]"
                     :element-label="t('ele', scoreCharacters[characterName].element)" :avatar="scoreCharacters[characterName].avatar"
                     :splash="scoreCharacters[characterName].splash" :level="characterLevel" :constellation="characterConstellation"
                     :talents="[characterSkill1, characterSkill2, characterSkill3]" :weapon="heroWeapon"
@@ -718,7 +718,7 @@
                                 ></transformative-damage>
                             </details>
                         </damage-result-card>
-                        <calc-conditions-card class="conditions-card" :rows="conditionRows" @open="openCondition" />
+                        <calc-conditions-card class="conditions-card" data-tour="calc.conditions" :rows="conditionRows" @open="openCondition" />
                 </div>
             </div>
         </div>

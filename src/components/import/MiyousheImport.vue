@@ -7,7 +7,7 @@
                     <PageGuideButton guide-id="detail-import" />
                     <UiDropdownMenu content-class="character-add-menu">
                         <template #trigger>
-                            <UiButton ref="addTrigger" class="mys-add" aria-label="添加角色">
+                            <UiButton ref="addTrigger" data-tour="uid.import-entry" class="mys-add" aria-label="添加角色">
                                 <i-ep-plus /><span>添加角色</span><i-ep-arrow-down />
                             </UiButton>
                         </template>

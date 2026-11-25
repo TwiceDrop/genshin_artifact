@@ -1,19 +1,21 @@
 <template>
-    <header class="calc-top-bar">
+    <header class="calc-top-bar" data-tour="calc.top-actions">
         <h2 class="calc-top-title">单次计算</h2>
-        <div class="calc-top-preset">
+        <div class="calc-top-preset" data-tour="calc.preset">
             <slot name="preset" />
             <PageGuideButton guide-id="detail-calculate" />
         </div>
-        <button type="button" class="calc-top-chip calc-top-target" aria-haspopup="dialog" @click="emit('target')">
+        <button type="button" class="calc-top-chip calc-top-target" data-tour="calc.target" aria-haspopup="dialog" @click="emit('target')">
             <small>配装目标</small>
             <b>{{ targetLabel }}</b>
             <icon-ep-arrow-down aria-hidden="true" />
         </button>
         <span class="calc-top-spacer"></span>
-        <button type="button" class="calc-top-chip" @click="emit('calculation-settings')">计算设置</button>
-        <button type="button" class="calc-top-chip" @click="emit('artifact-settings')">圣遗物设置</button>
-        <button type="button" class="calc-top-run" :disabled="running" @click="emit('run')">
+        <div class="calc-top-settings" data-tour="calc.settings">
+            <button type="button" class="calc-top-chip" @click="emit('calculation-settings')">计算设置</button>
+            <button type="button" class="calc-top-chip" @click="emit('artifact-settings')">圣遗物设置</button>
+        </div>
+        <button type="button" class="calc-top-run" data-tour="calc.run" :disabled="running" @click="emit('run')">
             <icon-ep-loading v-if="running" class="calc-top-spin" aria-hidden="true" />
             <span v-else aria-hidden="true">✦</span>
             {{ running ? '计算中' : '自动配装' }}
@@ -100,6 +102,8 @@ const emit = defineEmits<{
         outline-offset: 2px;
     }
 }
+
+.calc-top-settings {display: flex; flex-wrap: wrap; gap: 10px 12px;}
 
 .calc-top-spacer {
     flex: 1;

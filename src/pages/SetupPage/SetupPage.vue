@@ -68,12 +68,12 @@
             </div>
         </section>
 
-        <section class="setup-card migration-actions" aria-label="数据迁移">
+        <section class="setup-card migration-actions" data-tour="setup.migration" aria-label="数据迁移">
             <button id="export-data" type="button" class="setup-plain" :disabled="transferring" @click="exportAccounts">导出数据</button>
             <button type="button" class="setup-plain" :disabled="transferring" @click="backupFile?.click()">导入数据</button>
             <input ref="backupFile" type="file" accept=".json,application/json" hidden @change="previewFile">
         </section>
-        <section class="setup-card" aria-labelledby="phone-transfer-title">
+        <section class="setup-card" data-tour="setup.phone-transfer" aria-labelledby="phone-transfer-title">
             <h3 id="phone-transfer-title">手机互传</h3>
             <phone-transfer />
         </section>

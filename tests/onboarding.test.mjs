@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {readFileSync} from 'node:fs'
+import {readdirSync, readFileSync} from 'node:fs'
+import {join} from 'node:path'
+import {fileURLToPath} from 'node:url'
 import {
     ONBOARDING_STORAGE_KEY, loadOnboardingState, saveOnboardingState, markWelcomeDismissed,
     markGuideCompleted, resetOnboardingState, readFirstUseDone, shouldShowWelcome,
@@ -100,4 +102,20 @@ test('存储被禁用时记录错误，引导仍可在本次会话完成', t => 
     assert.equal(markWelcomeDismissed(storage).welcomeDismissed, true)
     assert.deepEqual(markGuideCompleted('quick-start', storage), {version: 1, welcomeDismissed: true, completedIds: ['quick-start']})
     assert.ok(log.mock.callCount() > 0)
+})
+
+test('每个桌面与手机锚点都在 Vue 模板中有对应元素', () => {
+    const root = fileURLToPath(new URL('../src/', import.meta.url))
+    const anchors = new Set()
+    for (const name of readdirSync(root, {recursive: true})) {
+        if (!name.endsWith('.vue')) continue
+        const source = readFileSync(join(root, name), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+        for (const match of source.matchAll(/\sdata-tour="([^"]+)"/g)) anchors.add(match[1])
+    }
+    for (const guide of ONBOARDING_GUIDES) {
+        for (const step of guide.steps) {
+            assert.ok(anchors.has(step.anchor), `${guide.id} / ${step.anchor}`)
+            if (step.mobileAnchor) assert.ok(anchors.has(step.mobileAnchor), `${guide.id} / ${step.mobileAnchor}`)
+        }
+    }
 })

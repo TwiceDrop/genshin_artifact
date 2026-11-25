@@ -1,9 +1,9 @@
 <template>
   <main class="calculation-history cx-scope">
     <div class="history-frame" :class="{ 'show-detail': mobileDetail }">
-      <header class="page-head">
+      <header class="page-head" data-tour="history.header">
         <h2><i-ep-clock aria-hidden="true" />历史记录 <PageGuideButton guide-id="detail-history" /></h2>
-        <el-radio-group v-model="kind" aria-label="计算类型">
+        <el-radio-group data-tour="history.filters" v-model="kind" aria-label="计算类型">
           <el-radio-button label="single">单次计算</el-radio-button>
           <el-radio-button label="team">多人配装计算</el-radio-button>
         </el-radio-group>
@@ -12,7 +12,7 @@
       <el-alert v-if="error" :title="error" type="error" :closable="false" />
       <p v-else-if="loading" class="empty-state" role="status">正在读取历史记录…</p>
       <div v-else class="history-layout">
-        <aside class="record-list card" aria-label="记录列表">
+        <aside data-tour="history.list" class="record-list card" aria-label="记录列表">
           <div class="list-head">
             <h3>记录列表 <span class="count">{{ filtered.length }}</span></h3>
             <el-input v-model="query" clearable :prefix-icon="IconSearch" :placeholder="searchLabel" :aria-label="searchLabel" />

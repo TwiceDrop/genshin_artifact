@@ -27,7 +27,7 @@
             </aside>
 
             <section class="kumi-main">
-                <header class="kumi-bar">
+                <header class="kumi-bar" data-tour="kumi.header">
                     <h2>{{ currentDirTitle }} <PageGuideButton guide-id="detail-artifacts" /></h2>
                     <span class="kumi-count">{{ currentKumiList.length }} 组</span>
                     <span class="kumi-spacer"></span>

@@ -69,8 +69,8 @@
                 <span class="art-count">共 {{ artifactStore.artifactsCount }} 件</span>
                 <PageGuideButton guide-id="detail-artifacts" />
                 <span class="art-spacer"></span>
-                <button type="button" class="art-btn art-wide" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
-                <button type="button" class="art-btn art-wide" @click="screenshotOpen = true">截图导入</button>
+                <button type="button" class="art-btn art-wide" data-tour="artifacts.import" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
+                <button type="button" class="art-btn art-wide" data-tour="artifacts.screenshot" @click="screenshotOpen = true">截图导入</button>
                 <el-dropdown class="art-wide" trigger="click" @command="handleOutputCommand">
                     <button type="button" class="art-btn">{{ t("misc.export") }} <icon-ep-arrow-down aria-hidden="true" /></button>
                     <template #dropdown><el-dropdown-menu>
@@ -79,7 +79,7 @@
                     </el-dropdown-menu></template>
                 </el-dropdown>
                 <el-dropdown trigger="click" @command="handleDropdownCommand">
-                    <button type="button" class="art-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
+                    <button type="button" class="art-btn" data-tour="artifacts.more">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
                     <template #dropdown><el-dropdown-menu>
                         <template v-if="narrowArt">
                             <el-dropdown-item command="screenshot">截图导入</el-dropdown-item>
@@ -92,10 +92,10 @@
                         <el-dropdown-item command="deleteAll" divided class="art-danger">{{ t("misc.clear") }}</el-dropdown-item>
                     </el-dropdown-menu></template>
                 </el-dropdown>
-                <button type="button" class="art-add" @click="handleClickAddArtifact">＋ 新增圣遗物</button>
+                <button type="button" class="art-add" data-tour="artifacts.add" @click="handleClickAddArtifact">＋ 新增圣遗物</button>
             </div>
 
-            <nav class="art-slots" aria-label="部位">
+            <nav data-tour="artifacts.slots" class="art-slots" aria-label="部位">
                 <button v-for="tab in slotTabs" :key="tab.name" type="button" :aria-pressed="activeName === tab.name" @click="activeName = tab.name">
                     <img v-if="tab.icon" :src="tab.icon" alt="" />
                     <b>{{ tab.label }}</b>
@@ -127,12 +127,12 @@
             </div>
         </header>
 
-        <div v-if="pagedArtifacts.length" class="art-grid">
+        <div v-if="pagedArtifacts.length" class="art-grid" data-tour="artifacts.grid">
             <artifact-card v-for="{ item, score } in pagedArtifacts" :key="item.id" :item="item" :score="score" :highlight-tags="highlightTags"
                 :score-label="scoreCharacter" :grade="score === null ? undefined : getMarkClass(score)"
                 :selected="item.id === openedArtifactId" @open="openArtifact(item.id)" />
         </div>
-        <el-empty v-else class="art-empty"></el-empty>
+        <el-empty v-else class="art-empty" data-tour="artifacts.grid"></el-empty>
 
         <div v-if="artifactToBeDisplayed.length > pageSize" class="art-pager">
             <el-pagination v-model:current-page="page" :page-size="pageSize" :total="artifactToBeDisplayed.length"
