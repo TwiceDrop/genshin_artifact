@@ -20,6 +20,8 @@
     --wl-card-ring: rgba(106, 95, 135, .23);
     --wl-card-ring-hover: var(--wl-gold);
     --wl-card-glow: rgba(156, 116, 40, .12);
+    --wl-badge: rgba(156, 116, 40, .08);
+    --wl-badge-hover: rgba(156, 116, 40, .17);
 }
 
 html[data-color-mode="dark"] .wl-palette {
@@ -42,4 +44,6 @@ html[data-color-mode="dark"] .wl-palette {
     --wl-card-ring: rgba(226, 192, 120, .24);
     --wl-card-ring-hover: var(--wl-gold);
     --wl-card-glow: rgba(226, 192, 120, .09);
+    --wl-badge: rgba(226, 192, 120, .09);
+    --wl-badge-hover: rgba(226, 192, 120, .20);
 }

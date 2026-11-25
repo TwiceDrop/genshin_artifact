@@ -104,12 +104,13 @@ function changeAutomaticUpdates(enabled: boolean) {
     --wl-gap: clamp(20px, 3vw, 40px);
     --wl-dial: clamp(560px, min(78cqi, 104vh), 1000px);
     --wl-splash-center: 41vh;
-    --wl-dock-top: clamp(20px, 7vh, 84px);
+    --wl-dock-top: clamp(20px, calc(32vh - 145px), 280px);
     --wl-name-size: clamp(52px, 15cqi, 220px);
     --wl-portrait-size: calc(var(--wl-dial) * .2);
     --wl-brand-gap: calc(var(--wl-dial) * .05);
-    --wl-hero-scale: .46;
-    --wl-hero-dock-height: calc(var(--wl-dock-top) + (var(--wl-portrait-size) + var(--wl-brand-gap) + var(--wl-name-size)) * var(--wl-hero-scale) + 28px);
+    --wl-hero-scale: .56;
+    --wl-launch-gap: clamp(24px, 4vh, 52px);
+    --wl-hero-dock-height: calc(var(--wl-dock-top) + (var(--wl-portrait-size) + var(--wl-brand-gap) + var(--wl-name-size)) * var(--wl-hero-scale) + var(--wl-launch-gap));
     --wl-ease: cubic-bezier(.22, 1, .36, 1);
 
     container-type: inline-size;
@@ -317,12 +318,16 @@ function changeAutomaticUpdates(enabled: boolean) {
     }
 }
 
+@media (min-width: 1280px) {
+    .welcome { --wl-hero-scale: .62; }
+}
+
 // 窄屏：.main 有顶栏和底部导航，内边距也更小
 @media (max-width: 767px) {
     .welcome {
         --wl-gap: 16px;
         --wl-dial: clamp(560px, 68vh, 720px);
-        --wl-hero-scale: .56;
+        --wl-launch-gap: 24px;
         --wl-splash-center: 32vh;
         --wl-dock-top: clamp(16px, 5vh, 44px);
         margin: -14px -12px calc(-80px - env(safe-area-inset-bottom));
