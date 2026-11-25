@@ -1,6 +1,6 @@
 <template>
     <div class="oa-page cx-scope">
-        <h2>账户管理与同步</h2>
+        <h2>账户管理与同步 <PageGuideButton guide-id="detail-account-sync" /></h2>
         <el-alert v-if="loadError" :title="loadError" type="error" :closable="false" show-icon />
 
         <template v-if="user">
@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import {computed, onActivated, onMounted, ref} from "vue"
 import {useRouter} from "vue-router"
 import {cloudApi} from "@/platform/cloud.mjs"

@@ -2,7 +2,7 @@
   <main class="calculation-history cx-scope">
     <div class="history-frame" :class="{ 'show-detail': mobileDetail }">
       <header class="page-head">
-        <h2><i-ep-clock aria-hidden="true" />历史记录</h2>
+        <h2><i-ep-clock aria-hidden="true" />历史记录 <PageGuideButton guide-id="detail-history" /></h2>
         <el-radio-group v-model="kind" aria-label="计算类型">
           <el-radio-button label="single">单次计算</el-radio-button>
           <el-radio-button label="team">多人配装计算</el-radio-button>
@@ -94,6 +94,7 @@
 </template>
 
 <script setup>
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import IconSearch from '~icons/ep/search'

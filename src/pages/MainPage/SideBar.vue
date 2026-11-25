@@ -1,5 +1,5 @@
 <template>
-    <Sidebar :collapsible="collapsible" :aria-label="t('nav.nav')">
+    <Sidebar data-tour="nav.sidebar" :collapsible="collapsible" :aria-label="t('nav.nav')">
         <SidebarHeader>
             <button type="button" class="sb-brand" :aria-label="webTitle" @click="go('/intro')">
                 <mona-portrait class="sb-portrait" />
@@ -18,6 +18,12 @@
                         <SidebarMenuButton :is-active="isActive(item.path)" :aria-label="item.label" @click="go(item.path)">
                             <component :is="item.icon" class="sb-icon" aria-hidden="true" />
                             <span class="sb-label">{{ item.label }}</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem v-if="group.key === 'other'">
+                        <SidebarMenuButton data-tour="nav.guide" aria-label="使用引导" @click="showGuideHub">
+                            <IconEpQuestionFilled class="sb-icon" aria-hidden="true" />
+                            <span class="sb-label">使用引导</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
@@ -47,6 +53,8 @@ import SidebarGroup from "@/components/ui/sidebar/SidebarGroup.vue"
 import SidebarMenu from "@/components/ui/sidebar/SidebarMenu.vue"
 import SidebarMenuItem from "@/components/ui/sidebar/SidebarMenuItem.vue"
 import SidebarMenuButton from "@/components/ui/sidebar/SidebarMenuButton.vue"
+import {openHub} from "@/onboarding/controller.mjs"
+import IconEpQuestionFilled from "~icons/ep/question-filled"
 import IconEpHouse from "~icons/ep/house"
 import {useFeatureLinks} from "./useFeatureLinks"
 import IconEpDownload from "~icons/ep/download"
@@ -62,7 +70,7 @@ import {useAccountStore} from "@/store/pinia/account"
 import MonaPortrait from "@/components/misc/MonaPortrait.vue"
 
 const props = withDefaults(defineProps<{ doRoute?: boolean, collapsible?: boolean }>(), { doRoute: true })
-const emit = defineEmits<{ (e: "select", path: string): void }>()
+const emit = defineEmits<{ (e: "select", path: string): void, (e: "close"): void }>()
 
 const version = process.env.MONA_VERSION
 const webTitle = process.env.MONA_TITLE
@@ -101,6 +109,11 @@ const accountItems = computed(() => [
 function isActive(path: string) {
     // 首页另有别名 "/"
     return path === "/intro" ? route.name === "home" : route.path === path
+}
+
+function showGuideHub() {
+    emit("close")
+    openHub()
 }
 
 function go(path: string) {

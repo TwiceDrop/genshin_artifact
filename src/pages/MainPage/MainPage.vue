@@ -4,12 +4,12 @@
         <side-bar collapsible />
     </aside>
     <SidebarSheet v-if="!geSmall && !bare" v-model:open="drawerVisible" :label="t('nav.nav')">
-        <side-bar :do-route="false" @select="handleSelect" />
+        <side-bar :do-route="false" @select="handleSelect" @close="drawerVisible = false" />
     </SidebarSheet>
 
     <div class="header" v-if="!geSmall && !bare">
         <div class="flex-row" style="height: 100%">
-            <button type="button" class="header-menu" aria-label="打开全部功能" aria-haspopup="dialog"
+            <button type="button" class="header-menu" data-tour="nav.mobile-menu" aria-label="打开全部功能" aria-haspopup="dialog"
                     :aria-expanded="drawerVisible" @click="drawerVisible = true">
                 <IconEpMenu aria-hidden="true" />
             </button>
@@ -54,7 +54,7 @@
         <!-- 欢迎页自己显示版本号，且要铺满一屏；页脚放在它下面只会多出一截滚动和底色条 -->
         <mona-footer v-if="$route.name !== 'home' && !bare" style="margin-top: 24px"></mona-footer>
     </div>
-    <nav v-if="!geSmall && !bare" class="mobile-bottom-nav" aria-label="手机主导航">
+    <nav v-if="!geSmall && !bare" class="mobile-bottom-nav" data-tour="nav.mobile-bottom" aria-label="手机主导航">
         <button :class="{ active: $route.path === '/calculate' }" @click="router.push('/calculate')"><i-ep-cpu /><span>计算</span></button>
         <button :class="{ active: $route.path === '/artifacts' }" @click="router.push('/artifacts')"><i-ep-help-filled /><span>圣遗物</span></button>
         <button :class="{ active: $route.path === '/uid-data' }" @click="router.push('/uid-data')"><i-ep-user /><span>{{ t("misc.character") }}</span></button>

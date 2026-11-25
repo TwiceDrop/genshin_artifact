@@ -1,6 +1,6 @@
 <template>
     <div class="setup-page cx-scope">
-        <h2>{{ t("nav.setup") }}</h2>
+        <h2>{{ t("nav.setup") }} <PageGuideButton guide-id="detail-account-sync" /></h2>
 
         <section class="setup-card">
             <h3 id="setup-appearance">{{ t('setupPage.appearance') }}</h3>
@@ -17,6 +17,13 @@
         </section>
 
         <section class="setup-card setup-rows">
+            <div class="setup-row">
+                <span class="setup-row-label">使用引导</span>
+                <div class="guide-actions">
+                    <button type="button" class="setup-plain" @click="openHub">打开引导中心</button>
+                    <button type="button" class="setup-plain" :disabled="!controller.completedIds.length" @click="resetProgress">重置引导进度</button>
+                </div>
+            </div>
             <!-- 在线账号的资料、同步和云端内容都在账户管理与同步页 -->
             <div class="setup-row">
                 <span class="setup-row-label">在线账号</span>
@@ -88,6 +95,8 @@
 </template>
 
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
+import {controller, openHub, resetProgress} from "@/onboarding/controller.mjs"
 import PhoneTransfer from './PhoneTransfer.vue'
 import localforage from "localforage"
 import { computed, nextTick, ref, shallowRef } from 'vue'
@@ -383,6 +392,8 @@ async function handleSetLocale(lang: string) {
         outline-offset: 2px;
     }
 }
+
+.guide-actions {display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;}
 
 .setup-rows {
     padding: 4px 18px;

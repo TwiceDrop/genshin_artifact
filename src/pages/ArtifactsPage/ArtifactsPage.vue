@@ -67,6 +67,7 @@
             <div class="art-row">
                 <h2 class="art-title">{{ t("misc.artifact") }}</h2>
                 <span class="art-count">共 {{ artifactStore.artifactsCount }} 件</span>
+                <PageGuideButton guide-id="detail-artifacts" />
                 <span class="art-spacer"></span>
                 <button type="button" class="art-btn art-wide" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
                 <button type="button" class="art-btn art-wide" @click="screenshotOpen = true">截图导入</button>
@@ -142,6 +143,7 @@
 </template>
 
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
 import { scoreCharacterNames, rankingContext, scoreBuild, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
 import { scoreContextHighlights } from '@/utils/character-artifact-highlights'

@@ -1,6 +1,6 @@
 <template>
     <div class="export-tools cx-scope">
-        <h2>导出工具汇总</h2>
+        <h2>导出工具汇总 <PageGuideButton guide-id="detail-import" /></h2>
         <div class="tool-grid">
             <export-tool-item
                 v-for="(item, index) in items"
@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import ExportToolItem from "./ExportToolItem.vue"
 import IconEpArrowRight from "~icons/ep/arrow-right"
 import IconEpWarningFilled from "~icons/ep/warning-filled"

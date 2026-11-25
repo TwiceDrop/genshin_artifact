@@ -1,7 +1,7 @@
 <template>
  <div class="team-configurations cx-scope">
   <header class="toolbar">
-   <div class="toolbar-title"><h2><i-ep-data-analysis/>{{ managing?'管理计算配置':'多人优化' }}</h2><span v-if="!managing" class="technical-credit">技术支持：<a href="https://www.gensri.wiki/" target="_blank" rel="noopener noreferrer">强度研究院</a></span></div>
+   <div class="toolbar-title"><h2><i-ep-data-analysis/>{{ managing?'管理计算配置':'多人优化' }}<PageGuideButton guide-id="detail-team-dps" /></h2><span v-if="!managing" class="technical-credit">技术支持：<a href="https://www.gensri.wiki/" target="_blank" rel="noopener noreferrer">强度研究院</a></span></div>
    <div v-if="managing"><el-button @click="managing=false">返回计算</el-button><el-button :disabled="loading||saving" @click="createDraft">新建动作轴</el-button><el-button type="primary" :disabled="loading||saving" @click="fileInput?.click()">导入</el-button></div>
    <el-button v-else :disabled="loading||saving" @click="openManager">管理计算配置</el-button>
   </header>
@@ -62,6 +62,7 @@
  </div>
 </template>
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import './team-dps-theme.css'
 import './team-dps-night.css'
 import {ref,shallowRef,computed,watch,onBeforeUnmount,onActivated} from 'vue'

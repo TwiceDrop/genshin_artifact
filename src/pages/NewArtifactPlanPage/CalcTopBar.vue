@@ -3,6 +3,7 @@
         <h2 class="calc-top-title">单次计算</h2>
         <div class="calc-top-preset">
             <slot name="preset" />
+            <PageGuideButton guide-id="detail-calculate" />
         </div>
         <button type="button" class="calc-top-chip calc-top-target" aria-haspopup="dialog" @click="emit('target')">
             <small>配装目标</small>
@@ -21,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import IconEpArrowDown from "~icons/ep/arrow-down"
 import IconEpLoading from "~icons/ep/loading"
 

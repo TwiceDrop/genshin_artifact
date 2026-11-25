@@ -28,7 +28,7 @@
 
             <section class="kumi-main">
                 <header class="kumi-bar">
-                    <h2>{{ currentDirTitle }}</h2>
+                    <h2>{{ currentDirTitle }} <PageGuideButton guide-id="detail-artifacts" /></h2>
                     <span class="kumi-count">{{ currentKumiList.length }} 组</span>
                     <span class="kumi-spacer"></span>
                     <el-input v-model="searchString" class="kumi-search" :placeholder="t('misc.search')" clearable>
@@ -65,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import Fuse from "fuse.js"
 import IconEpFolder from "~icons/ep/folder"
 import IconEpSearch from "~icons/ep/search"

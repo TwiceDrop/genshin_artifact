@@ -4,6 +4,7 @@
         <section class="mys-card mys-characters" aria-label="已保存的角色">
             <miyoushe-character-picker roster :disabled="busy">
                 <template #actions="{ openManual }">
+                    <PageGuideButton guide-id="detail-import" />
                     <UiDropdownMenu content-class="character-add-menu">
                         <template #trigger>
                             <UiButton ref="addTrigger" class="mys-add" aria-label="添加角色">
@@ -116,6 +117,7 @@
     </section>
 </template>
 <script setup>
+import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiDialog from '@/components/ui/UiDialog.vue'
