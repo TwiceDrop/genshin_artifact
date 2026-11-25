@@ -1,5 +1,7 @@
 # 构建与测试
 
+构建命令、工具依赖或测试分组变化时更新。
+
 ## 首次准备
 
 ```powershell
@@ -20,7 +22,7 @@ npm ci --legacy-peer-deps
 | 目的 | 命令 |
 | --- | --- |
 | 本机服务（米游社导入、更新） | `npm run build:local` 后 `npm start`，打开 `http://127.0.0.1:4183/#/calculate` |
-| 前端开发服务（不含本机服务功能） | `npm run serve` |
+| 前端热更新与同源本机 API 联调，见[服务与多端打包](services-and-platforms.md) | `npm run serve` |
 | 桌面网页 | `npm run build:local` |
 | Android | `script/build-android.ps1`，显式传 `-SigningDirectory <原签名目录>` |
 | Rust 扩展内核 | `npm run build:beta-kernel`，需要先把 `compiler-source.json` 里的 MinGW 解到 `beta-tools/mingw64/`；它只编译和生成绑定，构建后的检查见下文「测试」 |

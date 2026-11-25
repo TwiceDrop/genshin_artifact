@@ -1,5 +1,7 @@
 # 公式与属性作用域
 
+确认或调整公式、乘区、BUFF 作用域或反应范围时更新。
+
 改公式、乘区、BUFF 作用域或反应系数前先读本文件。内容整理自 `docs/history/handoff-7.1.10-20261014.md` 第 4、5 节，以及 `docs/history/` 下的 `direct-reactions-only-7108.md`、`shared-buff-rules.md`、`reaction-parameters-implementation.md`、`recovered-character-rules.md`、`recovered-additional-characters.md`、`independent-damage-scope.md`、`lunar-character-adapters.md`、`lunar-equipment-adapters.md`、`unified-buff-coverage.md`，以开发者最新确认的语义为准。各条的公式推导、等级表和查证来源见这些原文件。
 
 ## 当前计算范围
