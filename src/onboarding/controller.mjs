@@ -56,6 +56,7 @@ function visibleTarget(step) {
 }
 
 function refreshRect() {
+    if (!activeStep.value) return
     const element = visibleTarget(activeStep.value)
     if (element !== target && element) {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches

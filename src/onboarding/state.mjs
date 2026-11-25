@@ -52,7 +52,13 @@ export function saveOnboardingState(state, storage) {
 
 export function markWelcomeDismissed(storage) {
     const state = loadOnboardingState(storage)
-    return saveOnboardingState({...state, welcomeDismissed: true}, storage)
+    const dismissed = saveOnboardingState({...state, welcomeDismissed: true}, storage)
+    try {
+        (storage ?? globalThis.localStorage).setItem(FIRST_USE_KEY, 'true')
+    } catch (error) {
+        console.error('保存首次引导标记失败', error)
+    }
+    return dismissed
 }
 
 export function markGuideCompleted(guideId, storage) {
