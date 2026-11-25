@@ -3,7 +3,7 @@
     <el-config-provider :locale="elementLocale">
     <main-page></main-page>
     <usage-stats-notice></usage-stats-notice>
-    <first-use-dialog></first-use-dialog>
+    <OnboardingHubDialog />
     <OnboardingOverlay />
     <web-version-notice></web-version-notice>
     <el-dialog v-model="updateVisible" title="发现新版本" width="600px" custom-class="release-update-dialog"
@@ -64,7 +64,7 @@ import {ElMessage} from 'element-plus'
 import {elementLocale} from '@/i18n/element-locale'
 import MainPage from "@page/MainPage"
 import UsageStatsNotice from "@/components/UsageStatsNotice.vue"
-import FirstUseDialog from "@/components/FirstUseDialog.vue"
+import OnboardingHubDialog from "@/onboarding/OnboardingHubDialog.vue"
 import OnboardingOverlay from "@/onboarding/OnboardingOverlay.vue"
 import WebVersionNotice from "@/components/WebVersionNotice.vue"
 import {recordUsage} from "@/usage-stats/index.mjs"
