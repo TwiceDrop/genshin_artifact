@@ -4,9 +4,9 @@
                :show-close="!welcomeVisible" :close-on-click-modal="!welcomeVisible" :close-on-press-escape="!welcomeVisible"
                @update:model-value="closeHub">
         <template v-if="welcomeVisible">
-            <p class="welcome-lead">还没有圣遗物和预设。可以花 1 分钟快速了解核心功能，或先导入已有数据。</p>
+            <p class="welcome-lead">还没有圣遗物和预设。可以先 3 步快速了解核心用法，或直接导入已有数据。</p>
             <div class="welcome-actions">
-                <el-button type="primary" @click="beginQuickGuide">开始快速上手（约 1 分钟）</el-button>
+                <el-button type="primary" @click="beginQuickGuide">快速了解（3 步）</el-button>
                 <el-button :aria-expanded="importsOpen" @click="importsOpen = !importsOpen">先导入我的数据</el-button>
                 <div v-if="importsOpen" class="import-options">
                     <el-button v-if="loggedIn" @click="chooseImport('/online-account')">从云端账号导入</el-button>

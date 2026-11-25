@@ -11,13 +11,19 @@ import {ONBOARDING_GUIDES, getDetailGuides, getGuideById, getGuideForRoute, getQ
 
 test('一套快速引导和六套详细引导均可查询，页面入口匹配当前模块', () => {
     assert.equal(getQuickGuide().id, 'quick-start')
-    assert.deepEqual(ONBOARDING_GUIDES.map(guide => guide.steps.length), [5, 4, 6, 4, 4, 3, 3])
-    assert.equal(getDetailGuides().length, 6)
+    assert.deepEqual(getDetailGuides().map(guide => guide.steps.length), [4, 6, 4, 4, 3, 3])
     assert.equal(new Set(ONBOARDING_GUIDES.map(guide => guide.id)).size, 7)
     for (const guide of ONBOARDING_GUIDES) assert.equal(getGuideById(guide.id), guide)
     assert.equal(getGuideForRoute('/artifacts').id, 'detail-artifacts')
     assert.equal(getGuideForRoute('/uid-data').id, 'detail-import')
     assert.equal(getGuideForRoute('/intro'), undefined)
+})
+
+test('快速引导共三步，留在当前页，第二步没有锚点', () => {
+    const {steps} = getQuickGuide()
+    assert.deepEqual(steps.map(step => step.route), [null, null, null])
+    assert.equal(steps[1].anchor, null)
+    assert.equal(steps[1].mobileAnchor ?? null, null)
 })
 
 test('每一步都有独立标识及文案，步骤与页面入口的路由均已注册', () => {
@@ -29,7 +35,7 @@ test('每一步都有独立标识及文案，步骤与页面入口的路由均�
         assert.equal(new Set(guide.steps.map(step => step.id)).size, guide.steps.length)
         for (const step of guide.steps) {
             assert.ok(step.id.trim() && step.title.trim() && step.body.trim())
-            assert.ok(routes.has(step.route), step.route)
+            if (step.route) assert.ok(routes.has(step.route), step.route)
         }
     }
 })
@@ -134,7 +140,7 @@ test('每个桌面与手机锚点都在 Vue 模板中有对应元素', () => {
     }
     for (const guide of ONBOARDING_GUIDES) {
         for (const step of guide.steps) {
-            assert.ok(anchors.has(step.anchor), `${guide.id} / ${step.anchor}`)
+            if (step.anchor) assert.ok(anchors.has(step.anchor), `${guide.id} / ${step.anchor}`)
             if (step.mobileAnchor) assert.ok(anchors.has(step.mobileAnchor), `${guide.id} / ${step.mobileAnchor}`)
         }
     }

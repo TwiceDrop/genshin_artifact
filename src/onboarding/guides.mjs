@@ -2,47 +2,32 @@ export const ONBOARDING_GUIDES = [
     {
         id: 'quick-start',
         kind: 'quick',
-        title: '1 分钟快速上手',
-        summary: '串讲导航、导入数据、单人配装与进阶功能，快速跑通完整流程。',
+        title: '快速了解',
+        summary: '3 步认识导航与使用流程，各模块可按需单独查看详细引导。',
         pageRoutes: [],
         steps: [
             {
                 id: 'nav.sidebar',
-                route: '/intro',
+                route: null,
                 anchor: 'nav.sidebar',
                 mobileAnchor: 'nav.mobile-bottom',
                 title: '认识主要功能区',
-                body: '这里可以快速切换角色（UID）、单次计算、多人优化和圣遗物仓库，所有常用功能都在这里直达。'
+                body: '左侧栏（手机端为底部导航）汇总了角色（UID）、单次计算、多人优化和圣遗物仓库，常用功能都能在这里直达。'
             },
             {
-                id: 'artifacts.import',
-                route: '/artifacts',
-                anchor: 'artifacts.import',
-                mobileAnchor: 'artifacts.more',
-                title: '先准备圣遗物与角色',
-                body: '推荐在「圣遗物」页导入扫描器导出的 JSON（支持莫娜 / GOOD v3）或截图录入，也可以去「角色」页用 UID 导入角色面板。'
-            },
-            {
-                id: 'calc.top-actions',
-                route: '/calculate',
-                anchor: 'calc.top-actions',
-                title: '单人自动配装',
-                body: '在「单次计算」选好角色或预设、设定配装目标，再点击「自动配装」，即可从仓库中算出最优搭配。'
-            },
-            {
-                id: 'team.toolbar',
-                route: '/team-optimization',
-                anchor: 'team.toolbar',
-                title: '整队优化与更多工具',
-                body: '需要四人互不抢圣遗物或算完整循环 DPS 时来「多人优化」；常用 5 件可存成「圣遗物套装」，每次结果也会留在「历史记录」里方便对比。'
+                id: 'workflow',
+                route: null,
+                anchor: null,
+                title: '常见使用流程',
+                body: '一般先在「圣遗物」或「角色」页导入已有数据，再去「单次计算」自动配装；需要四人互不抢装备或算循环总伤时，再进「多人优化」。'
             },
             {
                 id: 'nav.guide',
-                route: '/intro',
+                route: null,
                 anchor: 'nav.guide',
                 mobileAnchor: 'nav.mobile-menu',
-                title: '随时查看详细引导',
-                body: '需要深入了解某个模块时，点侧栏里的「使用引导」，或各页面顶部的「？」按钮，即可查看对应模块的详细步骤。'
+                title: '按模块查看详细引导',
+                body: '每个核心页面顶栏都有「？」按钮，侧栏里也可以随时打开「使用引导」，需要哪一块再单独看哪一块的详细步骤。'
             }
         ]
     },
