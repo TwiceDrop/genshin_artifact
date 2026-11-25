@@ -15,6 +15,11 @@
     --wl-chip: rgba(17, 22, 51, .06);
     --wl-chip-hover: #111633;
     --wl-chip-hover-on: #f4efe4;
+    --wl-card: rgba(255, 255, 255, .72);
+    --wl-card-hover: rgba(255, 253, 248, .94);
+    --wl-card-ring: rgba(106, 95, 135, .23);
+    --wl-card-ring-hover: var(--wl-gold);
+    --wl-card-glow: rgba(156, 116, 40, .12);
 }
 
 html[data-color-mode="dark"] .wl-palette {
@@ -32,4 +37,9 @@ html[data-color-mode="dark"] .wl-palette {
     --wl-chip: rgba(244, 239, 228, .07);
     --wl-chip-hover: #e2c078;
     --wl-chip-hover-on: #151005;
+    --wl-card: rgba(27, 34, 63, .82);
+    --wl-card-hover: rgba(44, 48, 76, .94);
+    --wl-card-ring: rgba(226, 192, 120, .24);
+    --wl-card-ring-hover: var(--wl-gold);
+    --wl-card-glow: rgba(226, 192, 120, .09);
 }
