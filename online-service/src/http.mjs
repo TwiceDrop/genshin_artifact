@@ -1,3 +1,5 @@
+import { createShares } from './axis-shares.mjs'
+import { renderShare, renderShareError, shareAsset, shareHeaders } from './share-page.mjs'
 import { createServer } from 'node:http'
 import { ApiError, invalid } from './errors.mjs'
 import { createAuth } from './auth.mjs'
@@ -33,6 +35,7 @@ async function bodyOf(request, maximumBytes = 32768) {
 export function createApi(options) {
     const { pool, config, onError = logError } = options
     const auth = createAuth({ ...options, onError }), cookieVaults = createCookieVaults(options), profiles = createProfiles(options)
+    const shares = createShares(options)
     const usageStats = createUsageStats(options)
     return createServer(async (request, response) => {
         const send = (status, value) => {
@@ -41,8 +44,12 @@ export function createApi(options) {
             response.end(JSON.stringify(value))
         }
         try {
+            const url = new URL(request.url, 'http://service.local')
+            const path = url.pathname
+            const method = request.method
+            const publicRead = method === 'GET' && (path.startsWith('/s/') || path.startsWith('/share-assets/'))
             const origin = request.headers.origin
-            if (origin) {
+            if (origin && !publicRead) {
                 if (!config.allowedOrigins.includes(origin)) throw new ApiError(403, 'ORIGIN_NOT_ALLOWED', '此来源不能访问在线服务')
                 response.setHeader('Access-Control-Allow-Origin', origin)
                 response.setHeader('Vary', 'Origin')
@@ -51,9 +58,6 @@ export function createApi(options) {
                 response.writeHead(204, { 'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS', 'Access-Control-Allow-Headers': 'Authorization,Content-Type', 'Access-Control-Max-Age': '600' })
                 response.end(); return
             }
-            const url = new URL(request.url, 'http://service.local')
-            const path = url.pathname
-            const method = request.method
             if (method === 'GET' && path === '/healthz') {
                 await pool.query('SELECT 1')
                 return send(200, { ok: true })
@@ -73,8 +77,41 @@ export function createApi(options) {
                     'Content-Security-Policy': USAGE_STATS_PAGE_POLICY, 'Referrer-Policy': 'no-referrer' })
                 return response.end(pageFile.body)
             }
+            const asset = /^\/share-assets\/([a-zA-Z0-9.-]+)$/.exec(path)
+            if (method === 'GET' && asset) {
+                const file = await shareAsset(asset[1])
+                if (!file) return send(404, { error: { code: 'NOT_FOUND' } })
+                response.writeHead(200, { ...shareHeaders, 'Content-Type': file.type })
+                return response.end(file.body)
+            }
+            const publicLink = /^\/s\/([^/]+)(\/download)?$/.exec(path)
+            if (method === 'GET' && publicLink) {
+                let published
+                try { published = await shares.read(publicLink[1]) }
+                catch (error) {
+                    if (publicLink[2]) throw error
+                    if (!(error instanceof ApiError)) onError(error)
+                    response.writeHead(error.status || 500, { ...shareHeaders, 'Content-Type':'text/html; charset=utf-8' })
+                    return response.end(renderShareError(error.code))
+                }
+                if (publicLink[2]) {
+                    const filename = encodeURIComponent(published.axis.id.replace(/[^\p{L}\p{N}._-]/gu, '_').slice(0,80)) + '.mona-axis.json'
+                    response.setHeader('Content-Disposition', "attachment; filename=axis.mona-axis.json; filename*=UTF-8''" + filename)
+                    return send(200, published.axis)
+                }
+                response.writeHead(200, { ...shareHeaders, 'Content-Type':'text/html; charset=utf-8' })
+                return response.end(renderShare(published, publicLink[1]))
+            }
             const identity = await auth.authenticate(request.headers.authorization)
             const userId = identity.user.id
+            if (path === '/v1/shares' && method === 'POST') return send(200, await shares.create(userId, await bodyOf(request, 524288)))
+            if (path === '/v1/shares' && method === 'GET') return send(200, await shares.list(userId))
+            const sharePath = /^\/v1\/shares\/([^/]+)$/.exec(path)
+            if (sharePath) {
+                if (method === 'GET') return send(200, await shares.info(userId, sharePath[1]))
+                if (method === 'PUT') return send(200, await shares.update(userId, sharePath[1], await bodyOf(request, 524288)))
+                if (method === 'DELETE') return send(200, await shares.revoke(userId, sharePath[1]))
+            }
             if (method === 'GET' && path === '/v1/me') return send(200, { user: identity.user })
             if (method === 'PATCH' && path === '/v1/me') return send(200, await auth.updateMe(identity, await bodyOf(request)))
             if (method === 'POST' && path === '/v1/me/password') return send(200, await auth.changePassword(identity, await bodyOf(request)))

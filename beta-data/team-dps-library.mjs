@@ -18,6 +18,7 @@ export async function loadTeamDpsLibrary(backend,accountId){
 export const emptyTeamDpsLibrary=()=>({entries:[],nextId:1,selectedId:null});
 export function importTeamDpsConfiguration(library,text){
  const axis=parseTeamDpsConfiguration(text),entry={key:library.nextId++,axis};
+ if(globalThis.crypto?.randomUUID)entry.shareSourceId=crypto.randomUUID();
  library.entries.push(entry);library.selectedId=entry.key;return entry;
 }
 export function updateTeamDpsConfiguration(library,key,axis){

@@ -88,7 +88,7 @@ export function createLocalRequestHandler(server, { clientFactory = communityCli
                     const expectedContext = req.headers['x-mona-cloud-url'] || req.headers['x-mona-cloud-user']
                         ? { url: decodeURIComponent(req.headers['x-mona-cloud-url'] || ''), userId: req.headers['x-mona-cloud-user'] } : undefined
                     const result = await cloud.handle(url.pathname.slice('/api/cloud'.length) + url.search, req.method,
-                        ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : url.pathname === '/api/cloud/v1/cookie-vaults' ? 524288 : 20000), expectedContext)
+                        ['GET', 'HEAD'].includes(req.method) ? {} : await input(url.pathname.startsWith('/api/cloud/v1/profiles') ? 17 * 1024 * 1024 : (url.pathname === '/api/cloud/v1/cookie-vaults' || url.pathname.startsWith('/api/cloud/v1/shares')) ? 524288 : 20000), expectedContext)
                     return json(result.data, result.status)
                 }
                 // 内容补丁：本机服务启动后第一次被问到时把待生效的补丁换成当前补丁，之后这次运行里不再变化

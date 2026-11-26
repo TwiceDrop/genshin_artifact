@@ -10,7 +10,7 @@
   <simple-loading v-if="loading"/>
   <template v-else-if="managing">
    <div class="manager">
-    <aside><el-button v-for="entry in library.entries" :key="entry.key" :type="editingKey===entry.key?'primary':''" :disabled="saving" @click="edit(entry)">{{ entry.axis.title }}</el-button></aside>
+    <aside><el-button v-for="entry in library.entries" :key="entry.key" :type="editingKey===entry.key?'primary':''" :disabled="saving" @click="edit(entry)"><span>{{ entry.axis.title }}<small v-if="share.entryStatus(entry)" class="share-list-status">● {{ share.entryStatus(entry) }}</small></span></el-button></aside>
     <section v-if="draft" class="editor">
      <el-form label-position="top" :disabled="saving">
       <div class="config-fields">
@@ -38,7 +38,7 @@
        <el-tab-pane v-if="!actionDraft" label="动作支持" name="actions"><el-table :data="actionSupport"><el-table-column prop="role" label="角色" width="110"/><el-table-column prop="supported" label="当前动作模板"/><el-table-column prop="pending" label="后续动作"/></el-table></el-tab-pane>
       </el-tabs>
      </el-form>
-     <div class="editor-actions"><el-button type="primary" :disabled="saving" @click="saveDraft(false)">保存</el-button><el-button :disabled="saving||actionDraft&&draftDurationMs===0" @click="saveDraft(true)">用于计算</el-button><el-button :disabled="saving" @click="exportDraft">导出</el-button><el-button type="danger" :disabled="saving" @click="removeDraft">删除</el-button></div>
+     <div class="editor-actions"><el-button type="primary" :disabled="saving" @click="saveDraft(false)">保存</el-button><el-button :disabled="saving||actionDraft&&draftDurationMs===0" @click="saveDraft(true)">用于计算</el-button><el-button :disabled="saving" @click="exportDraft">导出</el-button><el-button :disabled="saving" :class="{'share-pending':share.entryStatus(currentEntry || {})==='待更新'}" @click="share.show()">{{ share.entryStatus(currentEntry || {}) || '分享' }}</el-button><el-button type="danger" class="delete-axis" :disabled="saving" @click="confirmRemoveDraft">删除</el-button></div>
     </section>
     <div v-else class="empty"><el-button type="primary" @click="createDraft">新建动作轴</el-button><el-button @click="fileInput?.click()">导入计算配置</el-button></div>
    </div>
@@ -48,6 +48,7 @@
    <team-dps-page v-if="selected" data-tour="team.workspace" :key="selected.key+'-'+generation" :configuration="selected.axis" :task-key="selected.key" :tasks="tasks[selected.key]||{}" :axis-file-name="selected.sourceFileName||selected.axis.id+'.mona-axis.json'" :history-detail="historyDetail||undefined" @save-task="saveTask"/>
    <div v-else class="empty" data-tour="team.workspace"><el-button type="primary" size="large" :disabled="saving" @click="createDraft">新建动作轴</el-button><el-button size="large" :disabled="saving" @click="fileInput?.click()">导入计算配置</el-button></div>
   </template>
+  <share-axis-dialog v-if="draft && share.open.value" :share="share" :axis="sharePreviewDraft" />
   <team-multiplier-preview v-if="multiplierPreview" :axis="multiplierPreview.axis" :characters="multiplierPreview.characters" @close="multiplierPreview=null"/>
   <el-dialog v-model="jsonDialog" title="动作时间轴 JSON" width="min(850px,94vw)" custom-class="team-dps-dialog cx-scope">
    <el-alert v-if="error" :title="error" type="error" :closable="false"/>
@@ -66,10 +67,12 @@ import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import './team-dps-theme.css'
 import './team-dps-night.css'
 import {ref,shallowRef,computed,watch,onBeforeUnmount,onActivated} from 'vue'
-import {useRoute} from 'vue-router'
+import {useRoute,useRouter} from 'vue-router'
 import {calculationHistory} from '@/store/calculation-history'
-import {ElMessage} from 'element-plus'
+import {ElMessage,ElMessageBox} from 'element-plus'
 import 'element-plus/es/components/message/style/css'
+import ShareAxisDialog from './ShareAxisDialog.vue'
+import {useAxisSharing,shareLoginReturn} from './axis-sharing.mjs'
 import TeamDpsPage from './TeamDpsPage.vue'
 import TeamMultiplierPreview from './TeamMultiplierPreview.vue'
 import TeamActionTimeline from './TeamActionTimeline.vue'
@@ -89,12 +92,38 @@ import {legacyActionAxis} from '../../../beta-data/team-engine/legacy-conversion
 const account=useAccountStore(),mys=useMiyousheStore(),library=ref<any>(emptyTeamDpsLibrary()),managing=ref(false),loading=ref(true),saving=ref(false),error=ref(''),generation=ref(0)
 const fileInput=ref<HTMLInputElement|null>(null),editingKey=ref<number|null>(null),draft=ref<any>(null),timelineText=ref(''),coverageText=ref(''),editorTab=ref('timeline')
 const tasks=shallowRef<Record<string,any>>({})
-const route=useRoute(),historyDetail=shallowRef<any>(null),historyId=ref(0)
+const router=useRouter(),route=useRoute(),historyDetail=shallowRef<any>(null),historyId=ref(0)
 const jsonDialog=ref(false),actionDraft=computed(()=>draft.value?.format==='mona-action-axis')
 const multiplierPreview=ref<any>(null)
 const windowsTimeline=/Windows NT/.test(navigator.userAgent)
 const draftCharacters=computed(()=>editingKey.value===null?undefined:tasks.value[editingKey.value]?.[mys.selectedUid.value||'']?.fields.members.map((m:any)=>m.character))
 const draftProfiles=computed(()=>draft.value?.members.map((m:any,r:number)=>({character:draftCharacters.value?.[r]??defaultTeamCharacter(m.character)})))
+const currentEntry=computed(()=>library.value.entries.find((item:any)=>item.key===editingKey.value))
+const sharePreviewDraft=computed(()=>{
+ try{const axis=currentDraft();return Array.isArray(axis.timeline)?axis:draft.value}catch{return draft.value}
+})
+const share=useAxisSharing({entry:currentEntry,currentDraft,persist,localAccount:()=>account.currentAccountId.value,
+ save:()=>saveDraft(false,true,true),login:async()=>{
+    shareLoginReturn.draft={accountId:account.currentAccountId.value,key:editingKey.value,axis:JSON.parse(JSON.stringify(draft.value)),
+        timeline:timelineText.value,coverage:coverageText.value,savedDraft}
+    await router.push({name:'login',query:{redirect:router.resolve({path:route.path,query:{share:'resume'}}).fullPath}})
+ }})
+async function resumeShare(){
+ if(loading.value||route.path!=='/team-optimization'||route.query.share!=='resume')return
+ const pending=shareLoginReturn.draft
+ if(!pending||pending.accountId!==account.currentAccountId.value)return
+ shareLoginReturn.draft=null
+ const same=library.value.entries.find((e:any)=>e.key===pending.key&&e.axis.id===pending.axis.id)
+ editingKey.value=same?.key??null
+ draft.value=pending.axis
+ timelineText.value=pending.timeline
+ coverageText.value=pending.coverage
+ savedDraft=pending.savedDraft
+ managing.value=true
+ await router.replace({path:route.path,query:Object.fromEntries(Object.entries(route.query).filter(([k])=>k!=='share'))})
+ await share.show({returning:true})
+}
+watch(()=>[loading.value,route.fullPath],resumeShare)
 const primaryTime=(row:any)=>usesPrimaryTime(draft.value,row,draftProfiles.value)
 const rowTime=(row:any)=>primaryTime(row)?row.timeMs:row.when.otherwiseTimeMs
 const tableRows=computed(()=>draft.value?.timeline.filter((row:any)=>rowTime(row)!==undefined)??[])
@@ -147,13 +176,46 @@ async function importFile(event:Event){
  catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}
 }
 async function choose(key:number){historyDetail.value=null;library.value.selectedId=key;generation.value++;saving.value=true;const task=sequence;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
-async function saveDraft(use:boolean,automatic=false){const task=sequence;saving.value=true;error.value='';try{const axis=JSON.parse(JSON.stringify(currentDraft()));if(editingKey.value===null){const selectedId=library.value.selectedId;editingKey.value=importTeamDpsConfiguration(library.value,exportTeamDpsConfiguration(axis)).key;if(!use)library.value.selectedId=selectedId}else updateTeamDpsConfiguration(library.value,editingKey.value,axis);if(use)library.value.selectedId=editingKey.value;generation.value++;await persist();if(task===sequence){edit(library.value.entries.find((e:any)=>e.key===editingKey.value));if(use)managing.value=false;if(!automatic)ElMessage({message:'保存成功',type:'success',customClass:'team-dps-save-success'})}}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
-async function autoSaveDraft(){if(account.applyingCloud.value||!managing.value||!draft.value||loading.value||saving.value||jsonDialog.value||selectingMembers.value)return;try{if(JSON.stringify(currentDraft())!==savedDraft)await saveDraft(false,true)}catch(e){fail(e)}}
+async function saveDraft(use:boolean,automatic=false,forShare=false){
+ const task=sequence
+ saving.value=true
+ error.value=''
+ try {
+    const axis=JSON.parse(JSON.stringify(currentDraft()))
+    if(editingKey.value===null){
+        const selectedId=library.value.selectedId
+        editingKey.value=importTeamDpsConfiguration(library.value,exportTeamDpsConfiguration(axis)).key
+        if(!use)library.value.selectedId=selectedId
+    }else updateTeamDpsConfiguration(library.value,editingKey.value,axis)
+    if(use)library.value.selectedId=editingKey.value
+    generation.value++
+    await persist()
+    if(task===sequence){
+        edit(currentEntry.value)
+        if(use)managing.value=false
+        if(!automatic)ElMessage({message:share.entryStatus(currentEntry.value)==='待更新'?'已保存到本地，点「分享」可发布更新。':'保存成功',type:'success',customClass:'team-dps-save-success'})
+    }
+ }catch(e){
+    if(task===sequence)fail(e);else console.error(e)
+    if(forShare)throw e
+ }finally{if(task===sequence)saving.value=false}
+}
+async function autoSaveDraft(){if(share.open.value||account.applyingCloud.value||!managing.value||!draft.value||loading.value||saving.value||jsonDialog.value||selectingMembers.value)return;try{if(JSON.stringify(currentDraft())!==savedDraft)await saveDraft(false,true)}catch(e){fail(e)}}
 const autosaveTimer=setInterval(autoSaveDraft,15000)
 async function exportDraft(){try{const axis=currentDraft();await downloadString(exportTeamDpsConfiguration(axis),'application/json',axis.id+'.mona-axis.json')}catch(e){fail(e)}}
+async function confirmRemoveDraft(){
+ const item=currentEntry.value
+ if(Object.values(item?.shares||{}).some((link:any)=>link.record?.status==='active')){
+    try {
+        await ElMessageBox.confirm('删除本地轴后，原链接继续有效。你可以在「我的分享」中取消分享。','删除本地四人轴',{type:'warning',confirmButtonText:'删除',cancelButtonText:'返回'})
+    }catch(reason){if(reason==='cancel'||reason==='close')return;throw reason}
+    if(item!==currentEntry.value)return
+ }
+ await removeDraft()
+}
 async function removeDraft(){if(editingKey.value===null){draft.value=null;return}const task=sequence;saving.value=true;const snapshot={...tasks.value};delete snapshot[editingKey.value];tasks.value=snapshot;const storageKey=tasksKey(account.currentAccountId.value);taskWrites=saveTeamDpsTasks(backend,account.currentAccountId.value,snapshot).catch(fail);deleteTeamDpsConfiguration(library.value,editingKey.value);draft.value=null;editingKey.value=null;generation.value++;try{await persist()}catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)saving.value=false}}
 watch(()=>[account.currentAccountId.value,account.reloadGeneration.value],async ([id])=>{
- const task=++sequence;loading.value=true;saving.value=false;library.value=emptyTeamDpsLibrary();tasks.value={};draft.value=null;editingKey.value=null;selectingMembers.value=false;multiplierPreview.value=null;savedDraft='';error.value='';generation.value++;
+ share.close();const task=++sequence;loading.value=true;saving.value=false;library.value=emptyTeamDpsLibrary();tasks.value={};draft.value=null;editingKey.value=null;selectingMembers.value=false;multiplierPreview.value=null;savedDraft='';error.value='';generation.value++;
  try{await taskWrites;const [saved,personal]=await Promise.all([loadTeamDpsLibrary(backend,id),backend.getItem(tasksKey(id))]);if(task===sequence){library.value=saved??emptyTeamDpsLibrary();tasks.value=personal??{}}}
  catch(e){if(task===sequence)fail(e);else console.error(e)}finally{if(task===sequence)loading.value=false}
 },{immediate:true})
@@ -169,6 +231,8 @@ watch(()=>account.currentAccountId.value,()=>{historyDetail.value=null;openHisto
 onActivated(openHistory)
 </script>
 <style scoped>
+.share-list-status{display:block;color:var(--cx-gold);font-size:12px}.share-pending{color:var(--cx-gold);border-color:var(--cx-gold-edge)}.editor-actions .delete-axis{margin-left:auto}@media(max-width:800px){.editor-actions .delete-axis{margin-left:0}}
+
 .toolbar-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px}.technical-credit{font-size:14px;color:var(--cx-dim);white-space:nowrap}.technical-credit a{color:var(--cx-gold);text-decoration:none}.technical-credit a:hover{text-decoration:underline}
 .action-effect{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-top:8px;color:var(--cx-dim);font-size:13px}.action-effect :deep(.el-input-number){width:88px;flex:0 0 88px}.action-effect small{flex-basis:100%;line-height:1.5;font-size:12px}.action-effect>span{white-space:nowrap}.action-timeline :deep(.el-table__body td.el-table__cell){vertical-align:top}
 .duration-value{display:flex;align-items:center;min-height:40px;padding:0 14px;border:1px solid var(--cx-step-2);border-radius:8px;background:var(--cx-step);color:var(--cx-gold);font-size:18px;font-weight:600;min-width:100px}.member-picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}.member-picker button{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border:1px solid var(--cx-step-2);border-radius:12px;background:var(--cx-card);color:var(--cx-dim);cursor:pointer;font:inherit}.member-picker button img{width:64px;height:64px;object-fit:cover;border-radius:50%}.member-picker button.selected{background:var(--cx-step);border-color:var(--cx-gold);color:var(--cx-gold)}.member-picker button span{position:absolute;top:5px;right:8px;color:var(--cx-gold-on);background:var(--cx-gold);border-radius:50%;width:24px;line-height:24px}.member-picker button:disabled{opacity:.45;cursor:default}.member-count{margin-right:20px;color:var(--cx-dim)}@media(max-width:550px){.member-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}
