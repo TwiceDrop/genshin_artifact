@@ -122,8 +122,6 @@ impl<'i> MonaCompilerASTToCode<'i> {
         let numbers = collector.get_numbers();
 
         let mut compile_context = CompileContext::new();
-        println!("{:?}", names);
-        println!("{:?}", numbers);
 
         for name in names.iter() {
             compile_context.add_name_const(name);
@@ -152,8 +150,8 @@ impl<'i> Compiler<'i> for MonaCompilerASTToCode<'i> {
     fn compile_field_expression(&self, node: Rc<RefCell<ASTFieldExpression<'i>>>, ctx: &mut CompileContext) -> Result<(), CompileError> {
         let node_borrow = node.borrow();
 
-        self.compile_expression(node_borrow.key.clone(), ctx);
-        self.compile_expression(node_borrow.expression.clone(), ctx);
+        self.compile_expression(node_borrow.key.clone(), ctx)?;
+        self.compile_expression(node_borrow.expression.clone(), ctx)?;
 
         ctx.add_code(Box::new(ByteCodeAccess));
 
@@ -217,7 +215,10 @@ impl<'i> Compiler<'i> for MonaCompilerASTToCode<'i> {
             "<=" => ctx.add_code(Box::new(ByteCodeLe)),
             ">" => ctx.add_code(Box::new(ByteCodeGt)),
             ">=" => ctx.add_code(Box::new(ByteCodeGe)),
-            _ => todo!()
+            _ => {
+                let (line, column) = node.borrow().common.span.start_pos().line_col();
+                return Err(CompileError::new_line_col(line, column, &format!("unsupported operator {}", op), CompileErrorType::TypeError));
+            }
         }
 
         Ok(())

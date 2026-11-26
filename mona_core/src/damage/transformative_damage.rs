@@ -6,6 +6,7 @@ use crate::enemies::Enemy;
 use crate::damage::level_coefficient::{LEVEL_MULTIPLIER, CRYSTALLIZE_BASE};
 
 #[wasm_bindgen]
+#[derive(serde::Deserialize)]
 pub struct TransformativeDamage {
     pub swirl_cryo: f64,
     pub swirl_hydro: f64,

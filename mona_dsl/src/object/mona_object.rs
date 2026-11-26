@@ -46,7 +46,7 @@ impl MonaObject {
             MonaObjectEnum::Damage(x) => x.access(&*key.borrow()),
             MonaObjectEnum::DamageNumber(x) => x.access(&*key.borrow()),
             MonaObjectEnum::TransformativeDamage(x) => x.access(&*key.borrow()),
-            _ => todo!()
+            _ => Err(RuntimeError::new(RuntimeErrorEnum::NotSupported, &format!("cannot access member in `{}`", self.get_type())))
         }
     }
 

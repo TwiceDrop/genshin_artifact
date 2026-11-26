@@ -137,7 +137,10 @@ pub trait Compiler<'i> {
             ExpressionEnum::Bool(x) => self.compile_bool(x.clone(), ctx)?,
             ExpressionEnum::FieldExpression(x) => self.compile_field_expression(x.clone(), ctx)?,
             ExpressionEnum::String(x) => self.compile_string(x.clone(), ctx)?,
-            _ => todo!()
+            _ => {
+                let (line, column) = node.borrow().common.span.start_pos().line_col();
+                return Err(CompileError::new_line_col(line, column, "expression is not supported", crate::error::CompileErrorType::TypeError));
+            }
         }
 
         Ok(())

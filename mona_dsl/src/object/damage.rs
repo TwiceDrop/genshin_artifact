@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use mona::common::DamageResult;
 use mona::damage::transformative_damage::TransformativeDamage;
@@ -6,15 +7,7 @@ use crate::error::runtime_error::{RuntimeError, RuntimeErrorEnum};
 use crate::object::mona_object::{MonaObject, MonaObjectEnum, MonaObjectTrait};
 
 pub struct MonaObjectDamage {
-    pub normal: DamageResult,
-    pub direct_stellarconduct: Option<DamageResult>,
-    pub direct_stellarswirl: Option<DamageResult>,
-    pub melt: Option<DamageResult>,
-    pub vaporize: Option<DamageResult>,
-    pub spread: Option<DamageResult>,
-    pub aggravate: Option<DamageResult>,
-    pub is_heal: bool,
-    pub is_shield: bool,
+    pub results: HashMap<String, MonaObjectDamageNumber>,
 }
 
 impl MonaObjectTrait for MonaObjectDamage {
@@ -26,57 +19,27 @@ impl MonaObjectTrait for MonaObjectDamage {
             }
         };
 
-        let result = match k.as_str() {
-            "normal" | "n" => MonaObjectDamageNumber::from_damage_result(&self.normal),
-            "direct_stellarconduct" => {if let Some(ref x)=self.direct_stellarconduct{MonaObjectDamageNumber::from_damage_result(x)}else{return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound,"damage direct_stellarconduct not exist"));}},
-            "direct_stellarswirl" => {
-                if let Some(ref x) = self.direct_stellarswirl {
-                    MonaObjectDamageNumber::from_damage_result(x)
-                } else {
-                    return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound, "damage `direct_stellarswirl` not exist"));
-                }
-            },
-            "melt" | "m" => {
-                if let Some(ref x) = self.melt {
-                    MonaObjectDamageNumber::from_damage_result(x)
-                } else {
-                    return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound, "damage `melt` not exist"));
-                }
-            },
-            "vaporize" | "v" => {
-                if let Some(ref x) = self.vaporize {
-                    MonaObjectDamageNumber::from_damage_result(x)
-                } else {
-                    return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound, "damage `vaporize` not exist"));
-                }
-            },
-            "spread" => {
-                if let Some(ref x) = self.spread {
-                    MonaObjectDamageNumber::from_damage_result(x)
-                } else {
-                    return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound, "damage `spread` not exist"));
-                }
-            },
-            "aggravate" => {
-                if let Some(ref x) = self.aggravate {
-                    MonaObjectDamageNumber::from_damage_result(x)
-                } else {
-                    return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound, "damage `aggravate` not exist"));
-                }
-            }
-            x => return Err(RuntimeError::new(RuntimeErrorEnum::DamageNotFound, &format!("damage `{}` not exist", x)))
+        let name = match k.as_str() {
+            "n" => "normal",
+            "m" => "melt",
+            "v" => "vaporize",
+            name => name,
         };
+        let result = self.results.get(name).ok_or_else(|| {
+            RuntimeError::new(RuntimeErrorEnum::DamageNotFound, &format!("damage {} not exist", name))
+        })?;
 
         let obj = MonaObject {
-            data: MonaObjectEnum::DamageNumber(result)
+            data: MonaObjectEnum::DamageNumber(*result)
         };
 
         Ok(Rc::new(RefCell::new(obj)))
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
 pub struct MonaObjectDamageNumber {
+    #[serde(alias = "expectation")]
     pub expect: f64,
     pub critical: f64,
     pub non_critical: f64

@@ -119,8 +119,8 @@ impl<'i> ToAST<'i> {
             MonaRule::bool_false | MonaRule::bool_true => Ok(self.convert_bool(pair)),
             MonaRule::string_literal => Ok(self.convert_string_literal(pair)),
             _ => {
-                println!("todo rule: {:?}", rule);
-                todo!()
+                let (line, column) = pair.as_span().start_pos().line_col();
+                Err(CompileError::new_line_col(line, column, "expression is not supported", CompileErrorType::TypeError))
             }
         }
     }
@@ -585,11 +585,9 @@ impl<'i> ToAST<'i> {
         let span = pair.as_span();
         let mut result = Vec::new();
         for statement_pair in pair.into_inner() {
-            // println!("{:?}", statement_pair.as_rule());
-            // let rule = statement_pair.as_rule();
-            // if rule == MonaRule::EOI {
-            //     continue;
-            // }
+            if statement_pair.as_rule() == MonaRule::EOI {
+                continue;
+            }
             result.push(self.convert_statement(statement_pair)?);
         }
 

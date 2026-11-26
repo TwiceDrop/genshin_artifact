@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';import test from 'node:test';import fs from 'node:fs';
 import {api} from '../beta-tools/runtime.mjs';import {chars,fixture} from '../beta-tools/interface-audit-7108.mjs';
 import {generateDsl,skillRows,availableDamageTypes} from '../src/algorithms/dsl-generator.mjs';
+import {readPresetConfiguration,snapshotPreset} from '../src/utils/preset-workflow.mjs';
 const names=JSON.parse(fs.readFileSync('beta-data/dsl-skill-names.json','utf8'));
 const near=(a,b)=>assert.ok(Number.isFinite(a)&&Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 test('生成器名称覆盖与代码实际执行：普通/附魔/参数/星伤/荧',()=>{
@@ -14,4 +15,37 @@ test('生成器名称覆盖与代码实际执行：普通/附魔/参数/星伤/�
   assert.equal(generateDsl(JSON.parse(JSON.stringify(state))),source);
  }
  assert.equal(generateDsl({character:'Amber',entries:[]}),'result = 0');
+});
+
+test('生成器把 BUFF 来源面板与各段覆盖写入同一份可还原的源码', () => {
+ const bennett = {name:'BennettQ',config:{BennettQ:{base_atk:700,skill3:6,c1:false}}};
+ const xilonen = {name:'XilonenE',config:{XilonenE:{elements:['Pyro'],skill_level:8}}};
+ const secondBennett = {name:'BennettQ',config:{BennettQ:{base_atk:900,skill3:6,c1:true}}};
+ const hit = {params:{},infusion:'None',reaction:'normal',value:'e',count:1,weight:1};
+ const state = {character:'Mavuika',states:[
+  {name:'opening',buffs:[bennett,xilonen]},
+  {name:'ride',buffs:[xilonen,secondBennett],character:{fighting_spirit:0},weapon:{rate1:0}},
+  {name:'tail',buffs:[]},
+ ],entries:[{...hit,token:'Q1',state:'opening'}, {...hit,token:'ECharged1',state:'ride',params:{after_q:false},count:2},
+  {...hit,token:'ECharged1',state:'tail'}, {...hit,token:'ECharged1'}]};
+ const source = generateDsl(state);
+ assert.equal(source, [
+  'buff buff1 = BennettQ({ base_atk: 700, skill3: 6, c1: false })',
+  'buff buff2 = XilonenE({ elements: ["Pyro"], skill_level: 8 })',
+  'buff buff3 = BennettQ({ base_atk: 900, skill3: 6, c1: true })',
+  'state opening = { buffs: [buff1, buff2] }',
+  'state ride = { buffs: [buff2, buff3], character: { fighting_spirit: 0 }, weapon: { rate1: 0 } }',
+  'state tail = { buffs: [] }',
+  'dmg hit1 = Mavuika.Q1 @opening',
+  'dmg hit2 = Mavuika.ECharged1({ after_q: false }) @ride',
+  'dmg hit3 = Mavuika.ECharged1 @tail',
+  'dmg hit4 = Mavuika.ECharged1',
+  'result = hit1.normal.e * 1 * 1 + hit2.normal.e * 2 * 1 + hit3.normal.e * 1 * 1 + hit4.normal.e * 1 * 1',
+ ].join('\n'));
+
+ const defaults = {enemy:null,infusion:'None',skill:{index:0,config:'NoConfig'},singleConfig:{}};
+ const imported = JSON.parse(JSON.stringify(snapshotPreset({targetMode:'generator',dslSource:source,dslGenerator:state})));
+ const restored = readPresetConfiguration(imported, defaults);
+ assert.equal(restored.dslSource, source);
+ assert.equal(generateDsl(restored.dslGenerator), source);
 });

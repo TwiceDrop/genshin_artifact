@@ -27,6 +27,7 @@ npm ci --legacy-peer-deps
 | Android | `script/build-android.ps1`，显式传 `-SigningDirectory <原签名目录>` |
 | Rust 扩展内核 | `npm run build:beta-kernel`，需要先把 `compiler-source.json` 里的 MinGW 解到 `beta-tools/mingw64/`；它只编译和生成绑定，构建后的检查见下文「测试」 |
 | 效果桥接内核 | `npm run build:effect-bridge`（Python） |
+| 逐段 DSL 表达式内核 | `npm run build:dsl-expression`，使用与 Rust 扩展内核相同的工具链 |
 
 签名、密码不进入源码。`npm start` 默认端口是 4183，Windows 托盘启动器（`installer/TrayLauncher.cs`，由 `script/build-tray-launcher.ps1` 编译）固定用 `MONA_PORT=4184`。改端口或在 localhost 与 127.0.0.1 之间切换，会进入另一份浏览器存储。
 

@@ -10,7 +10,7 @@ use crate::builtin::global_function::setup_global_namespace;
 use crate::common::UnsafeDamageContext;
 use crate::compiler::compiler::CodeObject;
 use crate::error::runtime_error::{RuntimeError, RuntimeErrorEnum};
-use crate::object::damage::{MonaObjectDamage, MonaObjectTransformativeDamage};
+use crate::object::damage::{MonaObjectDamage, MonaObjectDamageNumber, MonaObjectTransformativeDamage};
 use crate::object::mona_object::{MonaObject, MonaObjectEnum};
 use crate::object::MonaObjectBool;
 use crate::object::prop::get_prop_value;
@@ -110,17 +110,20 @@ impl MonaEnv {
                     None
                 };
                 // let damage: SimpleDamageResult = name.damage(context, damage_config.skill_index, &damage_config.skill_config);
-                let obj = MonaObjectDamage {
-                    normal: damage.normal.clone(),
-                    direct_stellarswirl,
-                    direct_stellarconduct:if name==CharacterName::Mitya&&matches!(damage_config.skill_index,8|12|13|15){Some(damage.normal)}else{None},
-                    melt: damage.melt.clone(),
-                    vaporize: damage.vaporize.clone(),
-                    spread: damage.spread.clone(),
-                    aggravate: damage.aggravate.clone(),
-                    is_heal: damage.is_heal,
-                    is_shield: damage.is_shield
-                };
+                let direct_stellarconduct = (name == CharacterName::Mitya
+                    && matches!(damage_config.skill_index, 8 | 12 | 13 | 15)).then_some(damage.normal);
+                let results = [
+                    ("normal", Some(damage.normal)),
+                    ("direct_stellarswirl", direct_stellarswirl),
+                    ("direct_stellarconduct", direct_stellarconduct),
+                    ("melt", damage.melt),
+                    ("vaporize", damage.vaporize),
+                    ("spread", damage.spread),
+                    ("aggravate", damage.aggravate),
+                ].into_iter().filter_map(|(name, value)| {
+                    value.map(|result| (name.to_owned(), MonaObjectDamageNumber::from_damage_result(&result)))
+                }).collect();
+                let obj = MonaObjectDamage { results };
                 let obj = MonaObject {
                     data: MonaObjectEnum::Damage(obj)
                 };

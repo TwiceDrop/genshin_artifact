@@ -16,6 +16,8 @@ import {withLunarDamageContexts} from './lunar-context-facade.mjs';
 import {withDirectReactionScope} from './direct-reaction-scope.mjs';
 import {withInterfaceContracts} from './interface-contracts.mjs';
 import {applyDataOverlay} from './data-overlay.mjs';
+import {withDslSegmentTargets} from './dsl-segment-facade.mjs';
+import weapons from '../src/assets/_gen_weapon.js';
 
 export function originalApiFromBindings(bindings) {
     return {BonusPerStat:bindings.bd,CalcArtifactBestSet:bindings.uC,CalculatorInterface:bindings.K2,
@@ -26,7 +28,7 @@ export function originalApiFromBindings(bindings) {
 // core: exports of the effect-bridge kernel instance; extension: the initialised extension kernel module.
 // overlay: optional content-patch data that replaces entries of `data` (see data-overlay.mjs); every entry
 // reaches the data through this function, so the overlay is applied here and nowhere else.
-export function composeKernelApi({rawOriginal, core, extension, data: packaged, overlay}) {
+export function composeKernelApi({rawOriginal, core, extension, SegmentExpression, data: packaged, overlay}) {
     const data = applyDataOverlay(packaged, overlay);
     const original = withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginal, core), core);
     const base = createFacade(original, extension, data.vodyanitsa, data.support, data.characters);
@@ -34,5 +36,7 @@ export function composeKernelApi({rawOriginal, core, extension, data: packaged, 
     const strengthened = createStrengthenedFacade(stellar.facade, stellar.transformStellarTarget);
     const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withLumineTraveler(withHybridTeamOptimization(
         createExpandedWeaponsFacade(createPreview7201Facade(strengthened, extension), original, extension))))));
-    return {api, original};
+    return {api: SegmentExpression ? withDslSegmentTargets(api, SegmentExpression, {
+        characters: data.characters, weapons, skillNames: data.skillNames,
+    }) : api, original};
 }

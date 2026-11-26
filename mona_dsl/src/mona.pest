@@ -65,7 +65,7 @@ multiplicative_expression = { power_expression ~ ((divide | multiply) ~ power_ex
 
 additive_expression = { multiplicative_expression ~ ((subtract | add) ~ multiplicative_expression)* }
 
-relational_expression = { additive_expression ~ ((lt | le | gt | ge) ~ additive_expression)* }
+relational_expression = { additive_expression ~ ((le | lt | ge | gt) ~ additive_expression)* }
 
 equality_expression = { relational_expression ~ ((equal | unequal) ~ relational_expression)* }
 
@@ -90,3 +90,4 @@ expression_statement = { expression }
 statement = { assignment_statement | damage_declaration | prop_declaration | expression_statement }
 
 program = { SOI ~ statement* }
+complete_program = { SOI ~ statement* ~ EOI }

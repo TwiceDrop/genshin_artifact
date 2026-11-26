@@ -832,7 +832,7 @@ import {useBuff} from "@/composables/buff"
 import {type PresetEntry, usePresetStore} from "@/store/pinia/preset"
 import {useCharacterPresetLabel} from '@/composables/character-preset-label'
 import {useArtifactStore} from "@/store/pinia/artifact"
-import type {IPreset, ITeamContextSource} from "@/types/preset"
+import type {IDslGeneratorState, IPreset, ITeamContextSource} from "@/types/preset"
 import {RandomIDProvider} from "@/utils/idProvider"
 import {use5Artifacts} from "@/composables/artifact"
 import {positions} from "@/constants/artifact"
@@ -1052,7 +1052,7 @@ const optimizationMode = ref<'damage'|'panel'>('damage')
 const panelSearchOptions = ref(newPanelSearchOptions())
 
 
-const dslGeneratorState = ref({character: characterName.value, entries: [] as any[]})
+const dslGeneratorState = ref<IDslGeneratorState>({character: characterName.value, entries: []})
 const generatedDsl = computed(() => generateDsl(dslGeneratorState.value))
 watch(characterName, name => { dslGeneratorState.value = {character:name,entries:[]} }, {flush:'sync'})
 watch([miscTargetFunctionTab, generatedDsl], ([mode, source]) => {
@@ -1316,11 +1316,12 @@ function usePreset(name: string, historyItem?: IPreset, conditions: 'preset' | '
     }
 
     // is DSL?
-    const use_dsl = !!item.useDSL
+    const use_dsl = item.useDSL ?? tf?.use_dsl
     if (use_dsl) {
-        targetFunctionDSLSource.value = item.dslSource ?? ""
-        if (item.dslGenerator) dslGeneratorState.value = deepCopy(item.dslGenerator)
-        miscTargetFunctionTab.value = item.targetMode === 'generator' ? 'generator' : 'dsl'
+        const source = item.dslSource ?? tf?.dsl_source ?? ''
+        dslGeneratorState.value = deepCopy(item.dslGenerator ?? {character: item.character.name, entries: []})
+        miscTargetFunctionTab.value = item.targetMode === 'generator' && generatedDsl.value === source ? 'generator' : 'dsl'
+        targetFunctionDSLSource.value = source
     } else {
         miscTargetFunctionTab.value = "normal"
     }

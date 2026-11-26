@@ -16,6 +16,7 @@
     "android:sync": "cap sync android",
     "android:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File script/build-android.ps1",
     "build:beta-kernel": "powershell -NoProfile -ExecutionPolicy Bypass -File beta-tools/build-extension.ps1",
+    "build:dsl-expression": "powershell -NoProfile -ExecutionPolicy Bypass -File beta-tools/build-extension.ps1 -DslExpression",
     "build:effect-bridge": "python script/build-effect-bridge.py"
   },
   "dependencies": {

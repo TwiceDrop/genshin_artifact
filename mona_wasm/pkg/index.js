@@ -3,11 +3,13 @@ import {composeKernelApi, originalApiFromBindings} from '../../beta-data/compose
 import * as bridge from './mona_wasm_bg.js';
 import { bindings } from './bindings.js';
 import initExtension, * as extension from '../extension/mona_extension.js';
+import initDslExpression, {SegmentExpression} from '../dsl-expression/dsl-expression.js';
 import weaponData from '../../beta-data/weapons-release-71.json';
 import signatureData from '../../beta-data/weapons-signature-release-71.json';
 import data from '../../beta-data/vodyanitsa.json';
 import support from '../../beta-data/extension-support.json';
 import characters from '../../src/assets/_gen_character.js';
+import skillNames from '../../beta-data/dsl-skill-names.json';
 import {loadPatchOverlay} from '../../src/platform/patch-overlay.mjs';
 const response = await fetch(new URL('./mona_effect_bridge_progress.wasm?raw-wasm', import.meta.url));
 if (!response.ok) throw new Error('Mona calculation core could not be loaded');
@@ -16,7 +18,10 @@ bindings.lI(instance.exports);
 const extensionResponse = await fetch(new URL('../extension/mona_extension_bg_progress.wasm?raw-wasm', import.meta.url));
 if (!extensionResponse.ok) throw new Error('扩展内核加载失败');
 await initExtension(await extensionResponse.arrayBuffer());
+const dslResponse = await fetch(new URL('../dsl-expression/dsl-expression_bg.wasm?raw-wasm', import.meta.url));
+if (!dslResponse.ok) throw new Error('逐段 DSL 表达式内核加载失败');
+await initDslExpression(await dslResponse.arrayBuffer());
 const {overlay} = await loadPatchOverlay();
-const {api} = composeKernelApi({rawOriginal:originalApiFromBindings(bindings), core:instance.exports, extension, overlay,
-    data:{vodyanitsa:data, support, characters, weapons:weaponData, signatureWeapons:signatureData}});
+const {api} = composeKernelApi({rawOriginal:originalApiFromBindings(bindings), core:instance.exports, extension, SegmentExpression, overlay,
+    data:{vodyanitsa:data, support, characters, weapons:weaponData, signatureWeapons:signatureData, skillNames}});
 export const {BonusPerStat,CalcArtifactBestSet,CalculatorInterface,CommonInterface,DSLInterface,OptimizeSingleWasm,PotentialInterface,TeamOptimizationWasm,TransformativeDamage}=api;

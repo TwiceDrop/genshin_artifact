@@ -9,7 +9,7 @@ const entries = {browser: 'mona_wasm/pkg/index.js', node: 'beta-tools/runtime.mj
 const wrappers = ['createFacade', 'createBeta2', 'createLimitedWeaponFacade', 'createStellarSupportFacade',
     'createStrengthenedFacade', 'createPreview7201Facade', 'createExpandedWeaponsFacade', 'withHybridTeamOptimization',
     'withLumineTraveler', 'withLunarDamageContexts', 'withDirectReactionScope', 'withInterfaceContracts',
-    'withLegacyEnemyBridge', 'withLegacyEffectBridge']
+    'withLegacyEnemyBridge', 'withLegacyEffectBridge', 'withDslSegmentTargets']
 
 for (const [name, file] of Object.entries(entries)) {
     test(`${name} entry builds its API through composeKernelApi only`, () => {

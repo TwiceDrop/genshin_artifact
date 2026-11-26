@@ -18,7 +18,9 @@ use crate::compiler::compiler::CodeObject;
 use crate::compiler::simple_compiler::MonaCompilerASTToCode;
 use crate::error::CompileError;
 use crate::parser::pest::parse_to_cst;
+use crate::parser::pest::{MonaParser, MonaRule};
 use crate::parser::to_ast::ToAST;
+use pest::Parser;
 
 pub mod ast;
 pub mod compiler;
@@ -41,4 +43,13 @@ pub fn compile_source_to_code_object(source: &str) -> Result<CodeObject, Compile
 
     let compiler = MonaCompilerASTToCode::new(ast);
     compiler.compile()
+}
+
+pub fn compile_complete_source(source: &str) -> Result<CodeObject, String> {
+    let program = MonaParser::parse(MonaRule::complete_program, source)
+        .map_err(|error| error.to_string())?
+        .next().unwrap();
+    let ast = ToAST { input: source }.convert_program(program)
+        .map_err(|error| error.to_string())?;
+    MonaCompilerASTToCode::new(ast).compile().map_err(|error| error.to_string())
 }

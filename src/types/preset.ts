@@ -16,6 +16,17 @@ export type IBuffWithID = IBuff & { id: number }
 
 export type IBuffWasm = Omit<IBuff, "lock">
 
+export interface IDslGeneratorState {
+    character: string,
+    entries: any[],
+    states?: {
+        name: string,
+        buffs: Pick<IBuffWasm, 'name' | 'config'>[],
+        character?: Record<string, unknown>,
+        weapon?: Record<string, unknown>,
+    }[],
+}
+
 export interface ITeamContextSource {
     presetName: string,
     sourceId: string,
@@ -56,7 +67,7 @@ export interface IPreset {
     targetMode?: 'normal' | 'dsl' | 'generator',
     optimizationMode?: 'damage' | 'panel',
     panelSearch?: {metric:string, direction:'asc'|'desc', resultLimit:number, minArtifactLevel:number, bounds:Record<string,{min?:number,max?:number}>},
-    dslGenerator?: {character: string, entries: any[]},
+    dslGenerator?: IDslGeneratorState,
     filter?: IPresetArtifactFilter,
     character: ICharacter,
     weapon: IWeapon,
