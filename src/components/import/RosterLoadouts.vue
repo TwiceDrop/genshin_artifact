@@ -14,6 +14,7 @@
                     <IconEpEdit aria-hidden="true" />改名
                 </UiButton>
             </template>
+            <UiButton v-if="entry.preset" size="small" @click="share">分享角色预设</UiButton>
             <div v-if="savedOptions.length" class="delete-action">
                 <UiButton size="small" variant="danger" @click="startDelete">
                     <IconEpDelete aria-hidden="true" />{{ selectedSaved ? '删除这套预设' : '删除预设' }}
@@ -54,7 +55,7 @@ import { useRosterLoadout } from '@/composables/roster-loadout'
 import { updatePresetExclusion } from '@/algorithms/artifact-ownership.mjs'
 
 const props = defineProps(['entry', 'baseEntry', 'characterPresets'])
-const emit = defineEmits(['select-preset', 'create-preset'])
+const emit = defineEmits(['select-preset', 'create-preset', 'share'])
 const { data } = useMiyousheStore(), presets = usePresetStore(), inventory = useArtifactStore()
 const { row, state, configs, worn, hasDraft, selectedConfig } = useRosterLoadout(() => props.baseEntry)
 const roleGroup = computed(() => data.value.rosterCharacterPresets?.[props.baseEntry.key])
@@ -81,6 +82,13 @@ const selectedSaved = computed(() => savedOptions.value.find(o => o.value === se
 const triggerLabel = computed(() => '预设-' + options.value.find(o => o.value === selection.value).label)
 const canSaveName = computed(() => !!name.value && !presets.getPreset(name.value) && !configs.value.some(c => c.name === name.value))
 watch([open, selection], () => { naming.value = '' })
+function share() {
+    open.value = false
+    // The built-in game preset label contains the account UID.
+    const localName = selection.value === 'current' && row.value?.manual && props.baseEntry.preset && presetSource(props.baseEntry.preset) !== 'game'
+        ? props.baseEntry.presetName : ''
+    emit('share', selectedSaved.value?.label || localName || props.entry.label+'预设')
+}
 function currentIds() {
     return retainRosterGear(data.value, presets.presets.value, inventory, row.value, props.baseEntry.equipped)
 }

@@ -25,3 +25,43 @@ for (const image of document.querySelectorAll('.portrait img')) {
     if (image.complete && !image.naturalWidth) hide()
 }
 document.getElementById('retry')?.addEventListener('click', () => location.reload())
+
+const copyCode = document.getElementById('copy-code')
+if (copyCode) {
+    const code = document.getElementById('dsl-source'), wrap = document.getElementById('wrap-code')
+    const status = document.getElementById('copy-status')
+    let timer
+    function setWrap(enabled) {
+        code.classList.toggle('wrapped', enabled)
+        wrap.setAttribute('aria-pressed', String(enabled))
+        wrap.textContent = '自动换行：' + (enabled ? '开' : '关')
+    }
+    setWrap(matchMedia('(max-width:959px)').matches)
+    wrap.addEventListener('click', () => setWrap(!code.classList.contains('wrapped')))
+    copyCode.addEventListener('click', async () => {
+        const source = JSON.parse(copyCode.dataset.source)
+        try { await navigator.clipboard.writeText(source) }
+        catch {
+            const field = document.createElement('textarea')
+            field.value = source
+            field.className = 'copy-field'
+            document.body.append(field)
+            field.select()
+            let copied
+            try { copied = document.execCommand('copy') } catch { copied = false }
+            finally { field.remove() }
+            if (!copied) {
+                const range = document.createRange()
+                range.selectNodeContents(code.querySelector('code'))
+                const selection = window.getSelection()
+                selection.removeAllRanges()
+                selection.addRange(range)
+                status.textContent = '请长按或选中源码复制。'
+                return
+            }
+        }
+        status.textContent = copyCode.textContent = '✓ 已复制 DSL 源码'
+        clearTimeout(timer)
+        timer = setTimeout(() => { copyCode.textContent = '一键复制 DSL 源码'; status.textContent = '' }, 1800)
+    })
+}
