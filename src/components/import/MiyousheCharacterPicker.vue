@@ -2,7 +2,10 @@
     <section class="mys-character-picker">
         <div v-if="roster" class="roster-bar">
             <div class="roster-toolbar">
-                <h2 class="roster-heading">{{ t("misc.character") }}</h2>
+                <div class="roster-heading-row">
+                    <h2 class="roster-heading">{{ t("misc.character") }}</h2>
+                    <slot name="heading-actions" />
+                </div>
                 <div class="roster-actions">
                     <UiButton ref="browseTrigger" class="roster-browse" aria-haspopup="dialog" @click="allOpen = true">全部角色 · {{ rosterEntries.length }}</UiButton>
                     <div class="roster-file-actions"><slot name="actions" :open-manual="() => manualOpen = true" /></div>
@@ -49,12 +52,7 @@
                         <UiButton size="small" variant="danger" :disabled="!checked.length" @click="requestRemoval(checked)">删除 {{ checked.length }}</UiButton>
                     </template>
                 </div>
-                <div class="character-element-tabs" role="group" aria-label="按元素筛选">
-                    <button type="button" :aria-pressed="element === 'all'" @click="element = 'all'">全部</button>
-                    <button v-for="(name, key) in ELEMENT_NAMES" :key="key" type="button" :aria-pressed="element === key" @click="element = key">
-                        <img :src="elementIcons[key]" alt="" />{{ name }}
-                    </button>
-                </div>
+                <CharacterElementFilter v-model="element" />
                 <div class="character-picker-list">
                     <button v-for="entry in visibleEntries" :key="entry.key" type="button" class="character-picker-row"
                         :disabled="disabled || (!roster && !!entry.error)" :aria-label="`选择${entry.label}，${entry.uid}`"
@@ -94,6 +92,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, onDeactivated } from 'vue'
 import CharacterRosterDetail from './CharacterRosterDetail.vue'
+import CharacterElementFilter from '@/components/select/CharacterElementFilter.vue'
 import DefaultCharacterPicker from '@/components/select/DefaultCharacterPicker.vue'
 import CharacterPresetOptions from './CharacterPresetOptions.vue'
 import { characterPresetChoices } from '@/import/role-presets'
@@ -110,7 +109,7 @@ import characters from '@/assets/_gen_character'
 import weapons from '@/assets/_gen_weapon'
 import artifacts from '@/assets/_gen_artifact'
 import locale from '@/i18n/generated/zh-cn.json'
-import { characterSummary, ELEMENT_NAMES, isPickerCharacter } from '@/import/character-summary.mjs'
+import { characterSummary, isPickerCharacter } from '@/import/character-summary.mjs'
 import elementIcons from "@/assets/element-icons"
 import CharacterPortrait from '@/components/display/CharacterPortrait.vue'
 const props = defineProps({ disabled: Boolean, roster: Boolean })
@@ -387,7 +386,8 @@ watch(selectedKey, () => {
 .mys-character-picker:has(.roster-bar) { container: roster / inline-size; }
 .roster-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title title" "avatars actions"; align-items: center; row-gap: 14px; column-gap: 12px; isolation: isolate; }
 .roster-toolbar { display: contents; }
-.roster-heading { grid-area: title; margin: 0; font-size: 20px; font-weight: 700; }
+.roster-heading-row { grid-area: title; display: flex; align-items: center; gap: 8px; flex: none; }
+.roster-heading { margin: 0; font-size: 20px; font-weight: 700; }
 .roster-bar::before { content: ''; grid-row: 2; grid-column: 1 / -1; align-self: stretch; background: var(--cx-card); border-radius: 16px; z-index: -1; }
 .roster-avatars { grid-area: avatars; min-width: 0; display: flex; margin: 16px 0 16px 18px; padding-inline: 6px; overflow-x: auto; scrollbar-width: none; user-select: none; }
 .roster-avatars::-webkit-scrollbar { display: none; }

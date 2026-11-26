@@ -10,6 +10,7 @@ export const teamEditorEnvironment = {
     useRouter: () => ({}),
     useRoute: () => ({ path:'/team-optimization', query:{} }),
     useAxisSharing: () => ({ open:ref(false), close() {}, entryStatus: () => '' }),
+    shareLoginReturn: { draft: null },
     useMiyousheStore: () => ({ selectedUid:ref('') }),
     onActivated() {}, setInterval: () => 1, clearInterval() {},
 }

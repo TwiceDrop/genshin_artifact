@@ -4,7 +4,7 @@
 
 ## 本机服务与联调
 
-在仓库根目录执行 `npm run build:local` 后运行 `npm start`，可用浏览器打开 `http://127.0.0.1:4183/#/calculate`。Node 提供 dist 静态页面和同源 API。开发界面时用 `npm run serve`，从终端显示的本机地址进入；开发中间件将下表接口交给同一请求处理器，并检查客户端是回环地址。[本机入口](../../server/local.mjs) · [开发服务配置](../../vue.config.js) · [首次准备](build-and-test.md)
+在仓库根目录执行 `npm run build:local` 后运行 `npm start`，可用浏览器打开首页 `http://127.0.0.1:4183/#/`。Node 提供 dist 静态页面和同源 API。开发界面时用 `npm run serve`，从终端显示的本机地址进入；开发中间件将下表接口交给同一请求处理器，并检查客户端是回环地址。[本机入口](../../server/local.mjs) · [开发服务配置](../../vue.config.js) · [首次准备](build-and-test.md)
 
 独立服务监听 127.0.0.1，按实际端口校验 Host，只接受 127.0.0.1 或 localhost。API 要求 `X-Mona-Local: 1`；请求带 Origin 时必须与当前 HTTP 来源一致。Windows 用当前用户的 DPAPI 保护游戏凭据，云会话另存。数据目录可由 `MONA_DATA_DIR` 指定；迁移浏览器库存用设置页的备份，复制凭据文件到另一 Windows 用户无法代替迁移。[凭据存储](../../server/credentials.mjs) · [云代理](../../server/cloud.mjs)
 

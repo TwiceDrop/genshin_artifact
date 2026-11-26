@@ -384,9 +384,9 @@ const rows = computed(() => [
 }
 @media (max-width: 600px) {
     .character-sheet { grid-template-columns: minmax(0,1fr); gap: 9px; }
-    .portrait { min-height: 200px; }
+    .portrait { display: grid; align-items: end; min-height: 200px; }
     .portrait > img { top: 0; right: 0; width: 70%; object-position: var(--portrait-focus-x, 50%) 22%; }
-    .identity { padding: 35px 15px 12px; }
+    .identity { position: relative; inset: auto; min-width: 0; padding: 35px 15px 12px; }
     .gear-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .gear-slot :deep(.art-head) { padding-right: 0; flex-wrap: wrap; }
     .gear-slot :deep(.art-card) { padding: 9px; }

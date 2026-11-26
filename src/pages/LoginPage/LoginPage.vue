@@ -90,7 +90,7 @@
 // 验证码登录遇到未注册的邮箱时直接转到注册，沿用同一个验证码（服务端不会消耗它）。
 // 服务地址和设备名称不在这里填写；服务端的错误原样显示，只在本机核对两次密码是否一致。
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import IconEpRight from '~icons/ep/right'
 import StarField from '@/pages/about/IntroPage/StarField.vue'
 import AstrolabeDial from '@/pages/about/IntroPage/AstrolabeDial.vue'
@@ -103,7 +103,7 @@ const webTitle = process.env.MONA_TITLE
 const deviceName = isNative ? 'Android' : 'Windows'
 const legal = name => `${process.env.BASE_URL}legal/${name}.html`
 const tabs = [{ mode: 'password', label: '密码登录' }, { mode: 'code', label: '验证码登录' }]
-const route = useRoute(), router = useRouter()
+const router = useRouter()
 
 // mode：password 密码登录 / code 验证码登录 / register 注册 / reset 重设密码 / naming 登录后设置用户名
 const mode = ref('password')
@@ -129,8 +129,7 @@ function switchMode(next) {
     error.value = ''; notice.value = ''; password.value = ''; confirmPassword.value = ''
 }
 function leave() {
-    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') ? route.query.redirect : '/'
-    router.replace(redirect)
+    return router.replace({ name: 'home' })
 }
 async function run(action) {
     busy.value = true; error.value = ''; notice.value = ''

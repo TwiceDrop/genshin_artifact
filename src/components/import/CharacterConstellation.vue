@@ -8,7 +8,7 @@
         </header>
         <ol class="rank-list" :style="stripStyle">
             <li v-for="(stage, i) in stages" :key="i">
-                <UiHoverDetails enabled :tap-label="directSelection ? undefined : stage.name" :side="i % 2 === 0 ? 'left' : 'right'">
+                <UiHoverDetails ref="effectDetails" enabled :tap-label="directSelection ? undefined : stage.name" :side="i % 2 === 0 ? 'left' : 'right'">
                     <template #trigger>
                         <button type="button" class="rank" :data-rank="i + 1" :class="{ lit: i < count }"
                             :aria-label="[layerLabels[i], stage.name, status(i)].join('，')"
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onDeactivated } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onDeactivated, ref } from 'vue'
 import UiHoverDetails from '@/components/ui/UiHoverDetails.vue'
 import GameEffectText from '@/components/display/GameEffectText.vue'
 import catalog from '@/assets/character-constellations.json'
@@ -38,6 +38,7 @@ import catalog from '@/assets/character-constellations.json'
 const props = defineProps({ entry: { type: Object, required: true }, directSelection: Boolean })
 const emit = defineEmits(['change-rank'])
 const editable = computed(() => props.directSelection || (!!props.entry.preset && props.entry.characterName !== 'Aloy'))
+const effectDetails = ref([])
 function requestRank(rank) {
     if (editable.value) emit('change-rank', rank === count.value ? 0 : rank)
 }
@@ -55,8 +56,10 @@ function press(event) {
     const button = event.target.closest('[data-rank]')
     if (props.directSelection || !touchPress || !button || !editable.value || !event.isPrimary) return
     touchStart = { x: event.clientX, y: event.clientY }
-    timer = setTimeout(() => {
+    timer = setTimeout(async () => {
         held = true
+        for (const details of effectDetails.value) details.dismiss()
+        await nextTick()
         requestRank(Number(button.dataset.rank))
     }, 450)
 }

@@ -47,7 +47,7 @@
         <header class="account-bar" data-tour="account.header">
             <h2>{{ t('nav.account') }} <PageGuideButton guide-id="detail-account-sync" /></h2>
             <span class="account-actions">
-                <button v-if="onlineUser.ready && !onlineUser.user" type="button" class="account-login" @click="router.push({ name: 'login', query: { redirect: '/account' } })"><icon-ep-user aria-hidden="true" />登录在线账号</button>
+                <button v-if="onlineUser.ready && !onlineUser.user" type="button" class="account-login" @click="router.push({ name: 'login' })"><icon-ep-user aria-hidden="true" />登录在线账号</button>
                 <button type="button" class="account-add" @click="addAccount"><icon-ep-plus aria-hidden="true" />{{ t('accountPage.addAccount') }}</button>
             </span>
         </header>

@@ -1,191 +1,250 @@
 <template>
-    <section class="dsl-generator">
-        <div class="generator-heading">
+    <section class="dsl-generator" :class="{ 'dsl-workspace': wide }">
+        <header class="generator-heading">
             <div>
-                <strong>DSL 目标函数生成器</strong>
-                <div>当前角色：{{ ta(character.nameLocale) }}（{{ state.character }}）</div>
+                <h3>DSL 目标函数生成器</h3>
+                <p>当前角色：{{ ta(character.nameLocale) }}（{{ state.character }}）</p>
             </div>
-            <el-button type="primary" @click="showSkills = true">添加技能伤害</el-button>
-        </div>
+            <UiButton v-if="!wide" ref="pickerTrigger" variant="primary" @click="showSkills = true">
+                <IconEpPlus aria-hidden="true" />添加技能伤害
+            </UiButton>
+        </header>
 
-        <div class="generator-states">
-            <div class="states-header">
-                <strong>命名状态</strong>
-                <el-button size="small" @click="addState">添加状态</el-button>
-            </div>
-            <div v-for="(s, sIndex) in statesList" :key="sIndex" class="state-card">
-                <div class="state-card-header">
-                    <label class="state-name-field">
-                        <span>状态名</span>
-                        <el-input
-                            size="small"
-                            :class="{ 'is-invalid': isDraftInvalid(sIndex, s.name) }"
-                            :aria-invalid="isDraftInvalid(sIndex, s.name)"
-                            :model-value="renameDrafts[sIndex] ?? s.name"
-                            @update:modelValue="onRenameInput(sIndex, $event)"
-                            @change="commitRename(sIndex, s.name)"
-                            @blur="resetRenameDraft(sIndex)"
-                        />
-                    </label>
-                    <el-button size="small" @click="removeState(sIndex)" :aria-label="'删除' + s.name">删除</el-button>
-                </div>
-
-                <div class="state-section">
-                    <span class="state-section-title">BUFF</span>
-                    <div class="state-buff-columns">
-                        <div class="state-buff-list">
-                            <div v-for="(b, bIndex) in s.buffs" :key="bIndex" class="state-buff-item">
-                                <span class="buff-label">
-                                    {{ buffLabel(b) }}
-                                    <code v-if="buffConfigText(b)" class="buff-config">{{ buffConfigText(b) }}</code>
-                                </span>
-                                <div class="buff-actions">
-                                    <el-button size="small" :disabled="bIndex === 0" @click="moveBuff(sIndex, bIndex, -1)" aria-label="上移">↑</el-button>
-                                    <el-button size="small" :disabled="bIndex === s.buffs.length - 1" @click="moveBuff(sIndex, bIndex, 1)" aria-label="下移">↓</el-button>
-                                    <el-button size="small" @click="removeBuff(sIndex, bIndex)" aria-label="移除">移除</el-button>
+        <section class="generator-states">
+            <header class="section-heading">
+                <h4>命名状态</h4>
+                <UiButton size="small" @click="addState"><IconEpPlus aria-hidden="true" />添加状态</UiButton>
+            </header>
+            <AccordionRoot v-model="expandedStates" type="multiple" class="state-list">
+                <AccordionItem v-for="(stateItem, index) in statesList" :key="stateKey(stateItem.name)"
+                    :value="stateKey(stateItem.name)" class="state-card">
+                    <div class="state-card-header">
+                        <AccordionHeader as="h5" class="state-heading">
+                            <AccordionTrigger class="state-trigger">
+                                <span class="state-name">{{ stateItem.name }}</span>
+                                <span v-if="stateItem.buffs.length" class="buff-count">{{ stateItem.buffs.length }} BUFF</span>
+                                <IconEpArrowDown class="state-chevron" aria-hidden="true" />
+                            </AccordionTrigger>
+                        </AccordionHeader>
+                        <UiButton size="small" variant="danger" :aria-label="'删除' + stateItem.name" @click="removeState(index)">删除</UiButton>
+                    </div>
+                    <AccordionContent class="state-content">
+                        <div class="state-fields">
+                            <label class="generator-field state-name-field">
+                                <span>状态名</span>
+                                <input type="text" class="generator-input" :aria-invalid="isDraftInvalid(index, stateItem.name)"
+                                    :value="renameDrafts[index] ?? stateItem.name" @input="onRenameInput(index, $event.target.value)"
+                                    @change="commitRename(index, stateItem.name)" @blur="resetRenameDraft(index)"
+                                    @keydown.enter.prevent="$event.target.blur()">
+                            </label>
+                            <section v-if="stateItem.buffs.length || inputBuffs.length" class="state-section">
+                                <h5>BUFF</h5>
+                                <div class="buff-columns">
+                                    <ul v-if="stateItem.buffs.length" class="buff-list" aria-label="已选 BUFF">
+                                        <li v-for="(buff, buffIndex) in stateItem.buffs" :key="buffIndex" class="buff-row">
+                                            <span class="buff-description">
+                                                <span>{{ buffLabel(buff) }}</span>
+                                                <code v-if="buffConfigText(buff)">{{ buffConfigText(buff) }}</code>
+                                            </span>
+                                            <div class="buff-actions">
+                                                <UiButton size="small" :disabled="buffIndex === 0" aria-label="上移"
+                                                    @click="moveBuff(index, buffIndex, -1)"><IconEpArrowUp aria-hidden="true" /></UiButton>
+                                                <UiButton size="small" :disabled="buffIndex === stateItem.buffs.length - 1" aria-label="下移"
+                                                    @click="moveBuff(index, buffIndex, 1)"><IconEpArrowDown aria-hidden="true" /></UiButton>
+                                                <UiButton size="small" aria-label="移除" @click="removeBuff(index, buffIndex)">移除</UiButton>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <ul v-if="inputBuffs.length" class="buff-list" aria-label="可选 BUFF">
+                                        <li v-for="(buff, buffIndex) in inputBuffs" :key="buffIndex" class="buff-row">
+                                            <span class="buff-description">
+                                                <span>{{ buffLabel(buff) }}</span>
+                                                <code v-if="buffConfigText(buff)">{{ buffConfigText(buff) }}</code>
+                                            </span>
+                                            <UiButton size="small" :aria-label="'添加' + buffLabel(buff)" @click="addBuff(index, buff)">
+                                                <IconEpPlus aria-hidden="true" />
+                                            </UiButton>
+                                        </li>
+                                    </ul>
                                 </div>
-                            </div>
+                            </section>
+                            <section v-for="{ kind, label, configs } in effectGroups" :key="kind" class="state-section">
+                                <h5>{{ label }}</h5>
+                                <div class="override-fields">
+                                    <label v-for="cfg in configs" :key="cfg.name" class="check-field">
+                                        <CheckboxRoot class="generator-check" :checked="hasOverride(stateItem[kind], cfg.name)"
+                                            @update:checked="toggleOverride(index, kind, cfg, $event === true)">
+                                            <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
+                                        </CheckboxRoot>
+                                        <span>{{ configLabel(cfg) }}</span>
+                                    </label>
+                                </div>
+                                <DslParamFields v-if="overriddenConfigs(configs, stateItem[kind]).length"
+                                    :model-value="stateItem[kind]" :configs="overriddenConfigs(configs, stateItem[kind])"
+                                    @update:model-value="updateOverrideValues(index, kind, $event)" />
+                            </section>
                         </div>
-                        <div v-if="inputBuffs.length" class="state-buff-picker">
-                            <div v-for="(b, bIndex) in inputBuffs" :key="bIndex" class="state-buff-item">
-                                <span class="buff-label">
-                                    {{ buffLabel(b) }}
-                                    <code v-if="buffConfigText(b)" class="buff-config">{{ buffConfigText(b) }}</code>
-                                </span>
-                                <el-button size="small" @click="addBuff(sIndex, b)" :aria-label="'添加' + buffLabel(b)">+</el-button>
-                            </div>
-                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </AccordionRoot>
+        </section>
+
+        <component :is="wide ? 'section' : UiDialog" v-bind="pickerProps">
+            <div class="generator-picker-content">
+                <h4 v-if="wide">添加技能伤害</h4>
+                <div class="picker-controls">
+                    <div class="generator-field">
+                        <span>状态</span>
+                        <UiSelect v-model="dialogState" label="状态" :options="stateOptions" />
                     </div>
+                    <div class="generator-field">
+                        <span>取值</span>
+                        <RadioGroupRoot v-model="value" class="segmented-control" aria-label="取值">
+                            <RadioGroupItem v-for="item in DSL_VALUES" :key="item.key" :value="item.key" class="segment-option">
+                                {{ item.label }}
+                            </RadioGroupItem>
+                        </RadioGroupRoot>
+                    </div>
+                    <div class="generator-field infusion-field">
+                        <span>附魔</span>
+                        <RadioGroupRoot v-model="infusion" class="segmented-control" aria-label="附魔">
+                            <RadioGroupItem v-for="option in infusionOptions" :key="option.value" :value="option.value" class="segment-option">
+                                {{ option.label }}
+                            </RadioGroupItem>
+                        </RadioGroupRoot>
+                    </div>
+                    <label class="generator-field number-field">
+                        <span>次数</span>
+                        <input type="number" class="generator-input" min="0" step="1" :value="count"
+                            @change="changeNumber($event, count, next => count = next)">
+                    </label>
+                    <label class="generator-field number-field">
+                        <span>权重</span>
+                        <input type="number" class="generator-input" min="0" step="0.1" :value="weight"
+                            @change="changeNumber($event, weight, next => weight = next)">
+                    </label>
                 </div>
 
-                <div v-if="characterConfigs.length" class="state-section">
-                    <span class="state-section-title">角色参数</span>
-                    <div class="override-fields">
-                        <el-checkbox
-                            v-for="cfg in characterConfigs"
-                            :key="cfg.name"
-                            :model-value="hasOverride(s.character, cfg.name)"
-                            @update:modelValue="toggleOverride(sIndex, 'character', cfg, $event)"
-                        >
-                            {{ configLabel(cfg) }}
-                        </el-checkbox>
-                    </div>
-                    <item-config
-                        v-if="overriddenConfigs(characterConfigs, s.character).length"
-                        :model-value="s.character"
-                        :need-item-name="false"
-                        :configs="overriddenConfigs(characterConfigs, s.character)"
-                        @update:model-value="updateOverrideValues(sIndex, 'character', $event)"
-                    />
-                </div>
+                <section v-if="character.configSkill.length" class="state-section">
+                    <h5>技能参数</h5>
+                    <DslParamFields :model-value="skillConfig[state.character]" :configs="character.configSkill"
+                        @update:model-value="skillConfig = { [state.character]: $event }" />
+                </section>
 
-                <div v-if="weaponConfigs.length" class="state-section">
-                    <span class="state-section-title">武器参数</span>
-                    <div class="override-fields">
-                        <el-checkbox
-                            v-for="cfg in weaponConfigs"
-                            :key="cfg.name"
-                            :model-value="hasOverride(s.weapon, cfg.name)"
-                            @update:modelValue="toggleOverride(sIndex, 'weapon', cfg, $event)"
-                        >
-                            {{ configLabel(cfg) }}
-                        </el-checkbox>
-                    </div>
-                    <item-config
-                        v-if="overriddenConfigs(weaponConfigs, s.weapon).length"
-                        :model-value="s.weapon"
-                        :need-item-name="false"
-                        :configs="overriddenConfigs(weaponConfigs, s.weapon)"
-                        @update:model-value="updateOverrideValues(sIndex, 'weapon', $event)"
-                    />
-                </div>
-            </div>
-        </div>
-
-        <div v-for="(entry, index) in state.entries" :key="index" class="generator-entry">
-            <div>
-                <strong>{{ ta(entry.text) }}</strong>
-                <span>{{ reactionLabel(entry.reaction) }} · {{ valueLabel(entry.value) }} · {{ entry.infusion === 'None' ? '无附魔' : entry.infusion }}</span>
-            </div>
-            <label>
-                状态
-                <el-select :model-value="entry.state ?? BASE_STATE" @update:modelValue="changeEntryState(index, $event)">
-                    <el-option label="基础设置" :value="BASE_STATE" />
-                    <el-option v-for="s in statesList" :key="s.name" :label="s.name" :value="s.name" />
-                </el-select>
-            </label>
-            <label>次数<el-input-number :model-value="entry.count" :min="0" :step="1" @update:modelValue="changeEntry(index, 'count', $event)" /></label>
-            <label>权重<el-input-number :model-value="entry.weight" :min="0" :step="0.1" @update:modelValue="changeEntry(index, 'weight', $event)" /></label>
-            <el-button @click="removeEntry(index)" :aria-label="'移除' + ta(entry.text)">移除</el-button>
-        </div>
-
-        <div class="generated-code">
-            <strong>生成的 MONA-DSL</strong>
-            <el-input type="textarea" :rows="10" :model-value="source" readonly label="生成的 MONA-DSL" />
-            <el-button @click="reset">重置</el-button>
-        </div>
-
-        <el-dialog custom-class="cx-scope" v-model="showSkills" title="添加技能伤害" width="min(1100px, 96vw)" append-to-body class="dsl-skill-dialog">
-            <div class="generator-controls">
-                <label>
-                    状态
-                    <el-select v-model="dialogState">
-                        <el-option label="基础设置" :value="BASE_STATE" />
-                        <el-option v-for="s in statesList" :key="s.name" :label="s.name" :value="s.name" />
-                    </el-select>
+                <label class="check-field">
+                    <CheckboxRoot v-model:checked="showAll" class="generator-check">
+                        <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
+                    </CheckboxRoot>
+                    <span>显示全部伤害类型</span>
                 </label>
-                <label>取值<el-radio-group v-model="value"><el-radio-button v-for="item in DSL_VALUES" :key="item.key" :label="item.key">{{ item.label }}</el-radio-button></el-radio-group></label>
-                <label>附魔<select-element-type v-model="infusion" :elements="['None', 'Pyro', 'Hydro', 'Electro', 'Cryo', 'Anemo', 'Geo', 'Dendro']" /></label>
-                <label>次数<el-input-number v-model="count" :min="0" :step="1" /></label>
-                <label>权重<el-input-number v-model="weight" :min="0" :step="0.1" /></label>
+
+                <ul class="skill-list" aria-label="技能">
+                    <li v-for="row in rows" :key="row.index" class="skill-row">
+                        <div class="skill-name">
+                            <span>{{ ta(row.text) }}</span>
+                            <small>{{ ta(row.title) }} <code>{{ row.token }}</code></small>
+                        </div>
+                        <div class="skill-options">
+                            <RadioGroupRoot v-if="row.options.length" class="segmented-control" :aria-label="ta(row.text)"
+                                :model-value="selection[row.index] || row.options[0]?.key" @update:model-value="select(row.index, $event)">
+                                <RadioGroupItem v-for="option in row.options" :key="option.key" :value="option.key" class="segment-option">
+                                    {{ option.label }}
+                                </RadioGroupItem>
+                            </RadioGroupRoot>
+                            <p v-if="row.error" class="skill-error">{{ row.error }}</p>
+                        </div>
+                        <UiButton size="small" variant="primary" class="skill-add" :disabled="!row.options.length"
+                            :aria-label="'添加' + ta(row.text)" @click="add(row)"><IconEpPlus aria-hidden="true" /></UiButton>
+                    </li>
+                </ul>
             </div>
-            <div v-if="character.configSkill.length" class="generator-skill-config"><strong>技能参数</strong><item-config v-model="skillConfig" :item-name="state.character" :configs="character.configSkill" /></div>
-            <el-checkbox v-model="showAll">显示全部伤害类型</el-checkbox>
-            <div class="generator-skill-list">
-                <div class="skill-list-header"><span>类型</span><span>技能</span><span>参数</span><span>添加</span></div>
-                <div v-for="row in rows" :key="row.index" class="generator-skill-row">
-                    <span>{{ ta(row.title) }}</span>
-                    <span>{{ ta(row.text) }}<code>{{ row.token }}</code></span>
-                    <div>
-                        <el-radio-group :model-value="selection[row.index] || row.options[0]?.key" @update:modelValue="select(row.index, $event)">
-                            <el-radio-button v-for="option in row.options" :key="option.key" :label="option.key">{{ option.label }}</el-radio-button>
-                        </el-radio-group>
-                        <p v-if="row.error" class="skill-error">{{ row.error }}</p>
+        </component>
+
+        <section class="generator-preview generator-panel">
+            <ul v-if="state.entries.length" class="generator-entries">
+                <li v-for="(entry, index) in state.entries" :key="index" class="generator-entry">
+                    <div class="entry-heading">
+                        <strong>{{ ta(entry.text) }}</strong>
+                        <small>{{ reactionLabel(entry.reaction) }} · {{ valueLabel(entry.value) }} · {{ entry.infusion === 'None' ? '无附魔' : entry.infusion }}</small>
                     </div>
-                    <el-button circle type="primary" :disabled="!row.options.length" :aria-label="'添加' + ta(row.text)" @click="add(row)">+</el-button>
-                </div>
+                    <div class="generator-field entry-state-field">
+                        <span>状态</span>
+                        <UiSelect :model-value="entry.state ?? BASE_STATE" label="状态" :options="stateOptions"
+                            @update:model-value="changeEntryState(index, $event)" />
+                    </div>
+                    <label class="generator-field">
+                        <span>次数</span>
+                        <input type="number" class="generator-input" min="0" step="1" :value="entry.count"
+                            @change="changeNumber($event, entry.count, next => changeEntry(index, 'count', next))">
+                    </label>
+                    <label class="generator-field">
+                        <span>权重</span>
+                        <input type="number" class="generator-input" min="0" step="0.1" :value="entry.weight"
+                            @change="changeNumber($event, entry.weight, next => changeEntry(index, 'weight', next))">
+                    </label>
+                    <UiButton size="small" :aria-label="'移除' + ta(entry.text)" @click="removeEntry(index)">移除</UiButton>
+                </li>
+            </ul>
+            <div class="generated-code">
+                <header class="section-heading"><h4>生成的 MONA-DSL</h4><UiButton size="small" @click="reset">重置</UiButton></header>
+                <component :is="hideSourceByDefault ? 'details' : 'div'" class="generated-code-details">
+                    <summary v-if="hideSourceByDefault" class="generated-code-summary">查看生成源码</summary>
+                    <textarea class="generator-input code-output" readonly :value="source" aria-label="生成的 MONA-DSL" rows="10" spellcheck="false"></textarea>
+                </component>
             </div>
-        </el-dialog>
+        </section>
     </section>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { AccordionContent, AccordionHeader, AccordionItem, AccordionRoot, AccordionTrigger,
+    CheckboxIndicator, CheckboxRoot, RadioGroupItem, RadioGroupRoot } from 'radix-vue';
 import characters from '@/assets/_gen_character.js';
 import { weaponData } from '@weapon';
 import { buffData } from '@buff';
 import names from '../../../beta-data/dsl-skill-names.json';
 import { DSL_VALUES, DSL_DAMAGE_TYPES, skillRows, availableDamageTypes, generateDsl, dslGeneratorInput } from '@/algorithms/dsl-generator.mjs';
 import { useI18n } from '@/i18n/i18n';
-import ItemConfig from '@/components/config/ItemConfig.vue';
-import SelectElementType from '@/components/select/SelectElementType.vue';
+import DslParamFields from './DslParamFields.vue';
+import UiDialog from '@/components/ui/UiDialog.vue';
+import UiSelect from '@/components/ui/UiSelect.vue';
+import IconEpArrowDown from '~icons/ep/arrow-down';
+import IconEpArrowUp from '~icons/ep/arrow-up';
+import IconEpCheck from '~icons/ep/check';
+import UiButton from '@/components/ui/UiButton.vue';
+import IconEpPlus from '~icons/ep/plus';
 
 const STATE_NAME_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const BASE_STATE = '@base';
 
-const props = defineProps({ modelValue: Object, input: Object, mona: Object });
+const props = defineProps({ modelValue: Object, input: Object, availableBuffs: Array, mona: Object, wide: Boolean, active: Boolean, hideSourceByDefault: Boolean });
 const emit = defineEmits(['update:modelValue']);
-const { ta } = useI18n();
+const { t, ta } = useI18n();
 
 const state = computed(() => props.modelValue);
 const statesList = computed(() => state.value.states ?? []);
 const character = computed(() => characters[state.value.character]);
 const characterConfigs = computed(() => character.value.config);
 const weaponConfigs = computed(() => weaponData[props.input.weapon.name].configs ?? []);
-const inputBuffs = computed(() => props.input.buffs);
+const effectGroups = computed(() => [
+    { kind: 'character', label: '角色参数', configs: characterConfigs.value },
+    { kind: 'weapon', label: '武器参数', configs: weaponConfigs.value },
+].filter(group => group.configs.length));
+const inputBuffs = computed(() => props.availableBuffs ?? props.input.buffs);
+const stateOptions = computed(() => [
+    { label: '基础设置', value: BASE_STATE },
+    ...statesList.value.map(({ name }) => ({ label: name, value: name })),
+]);
+const infusionOptions = computed(() => ['None', 'Pyro', 'Electro', 'Hydro', 'Anemo', 'Geo', 'Cryo', 'Dendro']
+    .map(element => ({ value: element, label: t('ele.' + element) })));
 const source = computed(() => generateDsl(state.value));
 
 const showSkills = ref(false);
+const pickerTrigger = ref(null);
+const expandedStates = ref([]);
+const stateKeys = new Map();
+let nextStateKey = 0;
 const showAll = ref(false);
 const value = ref('e');
 const infusion = ref('None');
@@ -195,6 +254,15 @@ const selection = ref({});
 const skillConfig = ref('NoConfig');
 const dialogState = ref(BASE_STATE);
 const renameDrafts = ref({});
+
+const pickerProps = computed(() => props.wide ? { class: 'generator-picker generator-panel' } : {
+    modelValue: showSkills.value,
+    'onUpdate:modelValue': opened => { showSkills.value = opened; },
+    title: '添加技能伤害',
+    width: 'min(680px, 96vw)',
+    returnFocus: () => pickerTrigger.value?.$el.focus(),
+});
+watch([() => props.wide, () => props.active], () => { showSkills.value = false; });
 
 function clone(val) {
     return JSON.parse(JSON.stringify(val));
@@ -243,9 +311,15 @@ function nextStateName() {
     return `state_${i}`;
 }
 
+function stateKey(name) {
+    if (!stateKeys.has(name)) stateKeys.set(name, String(++nextStateKey));
+    return stateKeys.get(name);
+}
+
 function addState() {
-    const nextStates = [...statesList.value, { name: nextStateName(), buffs: [] }];
-    emitStates(nextStates);
+    const name = nextStateName();
+    emitStates([...statesList.value, { name, buffs: [] }]);
+    expandedStates.value = [...expandedStates.value, stateKey(name)];
 }
 
 function onRenameInput(index, val) {
@@ -280,6 +354,9 @@ function commitRename(index, oldName) {
     if (dialogState.value === oldName) {
         dialogState.value = nextName;
     }
+    const key = stateKey(oldName);
+    stateKeys.delete(oldName);
+    stateKeys.set(nextName, key);
     resetRenameDraft(index);
     emitStates(nextStates, nextEntries);
 }
@@ -295,6 +372,8 @@ function removeState(index) {
     if (dialogState.value === removedName) {
         dialogState.value = BASE_STATE;
     }
+    expandedStates.value = expandedStates.value.filter(key => key !== stateKeys.get(removedName));
+    stateKeys.delete(removedName);
     renameDrafts.value = {};
     emitStates(nextStates, nextEntries);
 }
@@ -361,6 +440,8 @@ watch(
         showSkills.value = false;
         dialogState.value = BASE_STATE;
         renameDrafts.value = {};
+        expandedStates.value = [];
+        stateKeys.clear();
     },
     { immediate: true, flush: 'sync' }
 );
@@ -372,7 +453,7 @@ const selectedDialogState = computed(() =>
 const previewInput = computed(() => dslGeneratorInput(props.input, selectedDialogState.value));
 
 const rows = computed(() =>
-    !showSkills.value
+    !props.active || !(props.wide || showSkills.value)
         ? []
         : skillRows(character.value, names[state.value.character]).map(row => {
               let options = [];
@@ -440,58 +521,94 @@ function removeEntry(index) {
     emit('update:modelValue', { ...state.value, entries: state.value.entries.filter((_, i) => i !== index) });
 }
 
+function changeNumber(event, current, update) {
+    const input = event.target;
+    if (Number.isFinite(input.valueAsNumber) && !input.validity.rangeUnderflow) {
+        update(input.valueAsNumber);
+    } else {
+        input.value = current;
+    }
+}
+
 function reset() {
     renameDrafts.value = {};
+    expandedStates.value = [];
+    stateKeys.clear();
     dialogState.value = BASE_STATE;
     emit('update:modelValue', { ...state.value, entries: [], states: [] });
 }
 </script>
 
 <style scoped>
-.dsl-generator { border: 1px solid var(--el-border-color); border-radius: 6px; padding: 14px; background: var(--el-fill-color-extra-light); }
-.generator-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.generator-heading div div { font-size: 13px; margin-top: 6px; color: var(--el-text-color-secondary); }
-.generator-states { display: grid; gap: 10px; margin-bottom: 14px; }
-.states-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-.state-card { border: 1px solid var(--el-border-color); border-radius: 6px; padding: 10px 12px; background: var(--el-bg-color); display: grid; gap: 10px; }
-.state-card-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-.state-name-field { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 180px; max-width: 320px; }
-.state-name-field span { white-space: nowrap; font-size: 13px; }
-.state-name-field :deep(.is-invalid .el-input__wrapper) { box-shadow: 0 0 0 1px var(--el-color-danger) inset; }
-.state-section { display: grid; gap: 6px; padding-top: 6px; border-top: 1px dashed var(--el-border-color); }
-.state-section-title { font-size: 13px; font-weight: 600; color: var(--el-text-color-regular); }
-.state-buff-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
-.state-buff-list, .state-buff-picker { display: grid; gap: 6px; align-content: start; }
-.state-buff-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid var(--el-border-color-lighter); border-radius: 4px; background: var(--el-fill-color-blank); }
-.buff-label { font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
-.buff-config { display: block; font-size: 11px; color: var(--el-text-color-secondary); }
-.buff-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.override-fields { display: flex; flex-wrap: wrap; gap: 6px 12px; }
-.generated-code { display: grid; gap: 10px; margin-top: 14px; }
-.generated-code .el-button { justify-self: start; }
-.generated-code :deep(textarea) { font-family: monospace; }
-.generator-entry { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--el-border-color); }
-.generator-entry > div:first-child { width: 100%; }
-.generator-entry span { display: block; font-size: 12px; color: var(--el-text-color-secondary); margin-top: 4px; }
-.generator-entry label { display: grid; gap: 4px; }
-.generator-entry :deep(.el-input-number) { width: 110px; }
-.generator-entry :deep(.el-select) { width: 150px; }
-.generator-controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
-.generator-controls > label { display: flex; flex-direction: column; gap: 8px; }
-.generator-controls :deep(.el-select) { width: 160px; }
-.generator-skill-config { margin-bottom: 12px; }
-.generator-skill-list { overflow-x: auto; margin-top: 12px; max-height: 55vh; }
-.skill-list-header, .generator-skill-row { display: grid; grid-template-columns: 180px 230px minmax(260px, 1fr) 52px; min-width: 780px; align-items: center; gap: 12px; padding: 10px 8px; border-bottom: 1px solid var(--el-border-color); }
-.skill-list-header { background: var(--el-fill-color-light); font-weight: bold; position: sticky; top: 0; z-index: 1; }
-.generator-skill-row code { display: block; color: var(--el-color-primary); margin-top: 4px; }
-.generator-skill-row :deep(.el-radio-group) { display: flex; flex-wrap: wrap; gap: 3px; }
-.skill-error { color: var(--el-color-danger); margin: 6px 0; white-space: pre-wrap; }
-@media (max-width: 768px) {
-    .dsl-generator { padding: 10px; }
-    .state-name-field { max-width: none; width: 100%; }
-    .state-buff-columns { grid-template-columns: 1fr; }
-    .generator-entry :deep(.el-select), .generator-entry :deep(.el-input-number) { width: 130px; }
-    .generator-controls > label { width: 100%; }
-    .generator-controls :deep(.el-select) { width: 100%; }
+.dsl-generator { display: grid; min-width: 0; gap: 16px; color: var(--cx-letter); }
+.dsl-workspace { grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr); align-items: start; }
+.dsl-workspace > :is(.generator-heading, .generator-states) { grid-column: 1 / -1; }
+.generator-heading, .section-heading { display: flex; min-width: 0; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dsl-generator :is(h3, h4, h5, p), .generator-picker-content :is(h4, h5, p) { margin: 0; }
+.generator-heading h3 { font-size: 18px; line-height: 1.3; letter-spacing: -0.02em; }
+.generator-heading p { margin-top: 4px; color: var(--cx-dim); font-size: 13px; }
+.section-heading h4, .generator-picker-content h4 { font-size: 15px; line-height: 1.4; }
+.generator-panel, .state-card { min-width: 0; border: 1px solid var(--cx-step-2); border-radius: 12px; background: var(--cx-card); }
+.generator-panel { padding: 16px; }
+.generator-states, .state-list, .state-fields, .generator-preview, .generated-code { display: grid; min-width: 0; gap: 10px; }
+.state-list:empty { display: none; }
+.state-card-header { display: flex; align-items: center; gap: 6px; padding: 5px 8px 5px 4px; }
+.state-heading { flex: 1; min-width: 0; }
+.state-trigger { display: flex; align-items: center; width: 100%; min-height: 36px; gap: 8px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--cx-letter); font: inherit; text-align: start; cursor: pointer; }
+.state-trigger:is(:hover, [data-state="open"]) { background: var(--cx-step); }
+.state-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 13px/1.45 ui-monospace, Consolas, monospace; }
+.state-chevron { width: 14px; flex: 0 0 14px; margin-inline-start: auto; color: var(--cx-dim); transition: transform 150ms ease; }
+.state-trigger[data-state="open"] .state-chevron { transform: rotate(180deg); }
+.buff-count { flex: 0 0 auto; padding: 1px 6px; border: 1px solid var(--cx-step-2); border-radius: 999px; color: var(--cx-dim); font-size: 11px; }
+.state-content { border-top: 1px solid var(--cx-step-2); }
+.state-fields { padding: 12px 14px; gap: 12px; }
+.state-name-field { max-width: 260px; }
+.state-section { display: grid; min-width: 0; gap: 8px; padding-top: 10px; border-top: 1px solid var(--cx-step-2); }
+.state-section h5 { font-size: 13px; font-weight: 650; }
+.buff-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 8px; }
+.buff-list, .skill-list, .generator-entries { display: grid; min-width: 0; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.buff-row { display: flex; justify-content: space-between; align-items: center; min-width: 0; gap: 8px; padding: 7px 8px; border: 1px solid var(--cx-step-2); border-radius: 8px; background: var(--cx-step); }
+.buff-description { display: grid; min-width: 0; gap: 2px; font-size: 13px; overflow-wrap: anywhere; }
+.buff-description code { color: var(--cx-dim); font-size: 11px; }
+.buff-actions, .override-fields { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.buff-actions { flex: 0 0 auto; }
+.override-fields { gap: 8px 14px; }
+.check-field { display: inline-flex; align-items: center; gap: 7px; min-width: 0; color: var(--cx-letter); font-size: 13px; cursor: pointer; }
+.check-field :deep(.generator-check) { display: grid; place-items: center; flex: 0 0 18px; width: 18px; height: 18px; padding: 0; border: 1px solid var(--cx-dim); border-radius: 4px; background: var(--cx-card); color: var(--cx-gold-on); cursor: pointer; }
+.check-field :deep(.generator-check[data-state="checked"]) { border-color: var(--cx-gold); background: var(--cx-gold); }
+.check-field :deep(.generator-check svg) { display: block; width: 12px; height: 12px; }
+.generator-picker { max-height: min(62vh, 600px); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.generator-picker-content { display: grid; min-width: 0; gap: 12px; }
+.picker-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 12px; }
+.generator-field { display: grid; gap: 5px; min-width: 0; color: var(--cx-dim); font-size: 12px; font-weight: 600; }
+.generator-field :deep(.select-trigger) { width: 100%; min-width: 0; }
+.number-field { width: 86px; }
+.generator-input { box-sizing: border-box; width: 100%; min-width: 0; height: 34px; padding: 5px 9px; border: 1px solid var(--cx-step-2); border-radius: 8px; background: var(--cx-card); color: var(--cx-letter); font: inherit; font-size: 13px; font-weight: 400; }
+.generator-input[aria-invalid="true"] { border-color: var(--cx-up); }
+.segmented-control { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; min-width: 0; padding: 3px; border-radius: 8px; background: var(--cx-step); }
+.segment-option { min-height: 27px; max-width: 100%; padding: 4px 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--cx-dim); font: inherit; font-size: 12px; cursor: pointer; }
+.segment-option:hover { color: var(--cx-letter); }
+.segment-option[data-state="checked"] { border-color: var(--cx-step-2); background: var(--cx-card); color: var(--cx-letter); font-weight: 650; }
+.skill-row { display: grid; grid-template-columns: minmax(100px, .9fr) minmax(0, 1.3fr) auto; align-items: center; gap: 9px; padding: 8px 0; border-top: 1px solid var(--cx-step-2); }
+.skill-name, .entry-heading { display: grid; min-width: 0; gap: 3px; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.skill-name small, .entry-heading small { color: var(--cx-dim); font-size: 11px; font-weight: 400; }
+.skill-name code { white-space: normal; }
+.skill-error { color: var(--cx-up); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.skill-add { align-self: start; }
+.generator-entries { max-height: min(34vh, 300px); overflow-y: auto; overscroll-behavior: contain; }
+.generator-entry { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 8px; padding: 0 0 10px; border-bottom: 1px solid var(--cx-step-2); }
+.entry-heading, .entry-state-field { grid-column: 1 / -1; }
+.generated-code-details { min-width: 0; }
+.generated-code-summary { cursor: pointer; font-size: 13px; color: var(--cx-dim); user-select: none; border-radius: 4px; }
+details.generated-code-details > .code-output { margin-top: 8px; }
+.code-output { width: 100%; box-sizing: border-box; min-height: 140px; max-height: 44vh; height: auto; padding: 10px; resize: vertical; background: var(--cx-step); font: 12px/1.5 ui-monospace, Consolas, monospace; white-space: pre; overflow-x: auto; }
+:is(.state-trigger, .generator-input, .segment-option, .generated-code-summary):focus-visible,
+.check-field :deep(.generator-check:focus-visible) { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+@media (max-width: 520px) {
+    .generator-panel { padding: 12px; }
+    .picker-controls > .infusion-field { flex: 1 0 100%; }
+    .skill-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .skill-options { grid-column: 1 / -1; grid-row: 2; }
 }
+@media (prefers-reduced-motion: reduce) { .state-chevron { transition: none; } }
 </style>

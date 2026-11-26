@@ -73,6 +73,38 @@ test('import and refresh two UIDs independently, retain presets, equipment, grou
     assert.ok(store.data.value.entries.every(e => presets.getPreset(e.presetName)))
 })
 
+test('artifact protection lists the current UID and local presets without borrowing roles from another UID', () => {
+    const source = fs.readFileSync(new URL('../src/import/role-presets.js', import.meta.url), 'utf8')
+    const modules = {
+        '@/assets/_gen_character': { default: { Amber: { nameLocale: 'amber' }, Wanderer: { nameLocale: 'wanderer' } } },
+        '@/i18n/generated/zh-cn.json': { default: { amber: '安柏', wanderer: '流浪者' } },
+        '@/utils/preset-workflow.mjs': presetWorkflow,
+        './character-summary.mjs': { isPickerCharacter: () => true },
+    }
+    const exports = {}
+    vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ESNext } }).outputText, { exports, require: key => modules[key] })
+    const first = '111111111', second = '222222222'
+    const entries = [
+        { uid: first, key: first + ':21:Pyro', presetName: 'first' },
+        { uid: second, key: second + ':75:Anemo', presetName: 'second' },
+        { uid: '', key: ':21:Pyro', presetName: 'local' },
+    ]
+    const preset = (name, character, artifactIds, miyousheKey) => ({ name, item: { character: { name: character }, artifactIds, miyousheKey } })
+    const presets = {
+        first: preset('first', 'Amber', [1], entries[0].key),
+        second: preset('second', 'Wanderer', [2], entries[1].key),
+        custom: preset('custom', 'Wanderer', [3]),
+        local: preset('local', 'Amber', [4]),
+    }
+    const data = { entries, rosterCharacterPresets: { [entries[1].key]: { names: ['custom'] } } }
+    const groups = uid => Array.from(exports.artifactExclusionGroups(data, presets, uid), group => ({
+        key: group.key, choices: Array.from(group.choices, choice => choice.key),
+    }))
+    assert.deepEqual(groups(first), [{ key: entries[0].key, choices: ['current'] }, { key: entries[2].key, choices: ['role:local'] }])
+    assert.deepEqual(groups(second), [{ key: entries[1].key, choices: ['current', 'role:custom'] }, { key: entries[2].key, choices: ['role:local'] }])
+    assert.deepEqual(groups(''), [{ key: entries[2].key, choices: ['role:local'] }])
+})
+
 test('partial or failed sync preserves the previously usable character and frozen game equipment', () => {
     const { store, inventory } = harness()
     store.importSnapshot(snapshot('111111111'), converter)

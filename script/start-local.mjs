@@ -5,7 +5,7 @@ import { createInterface } from 'node:readline'
 const trayMode = process.argv.includes('--tray')
 const port = Number(process.env.MONA_PORT || 4183)
 const base = `http://127.0.0.1:${port}`
-const url = `${base}/#/calculate`
+const url = `${base}/#/`
 
 function openPage() {
     if (process.argv.includes('--no-browser')) return

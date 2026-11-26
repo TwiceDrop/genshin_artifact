@@ -10,7 +10,7 @@ using System.Windows.Forms;
 internal static class TrayLauncher
 {
     internal const string ProductName = "莫娜占卜铺 " + LauncherBuild.DisplayVersion;
-    internal const string PageUrl = "http://127.0.0.1:4184/#/calculate";
+    internal const string PageUrl = "http://127.0.0.1:4184/#/";
     internal const string MutexName = "Local\\MonaArtifactLauncher4184";
     internal const string OpenEventName = "Local\\MonaArtifactLauncher4184.Open";
 

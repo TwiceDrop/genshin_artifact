@@ -4,6 +4,8 @@
 
 正式发布、推送标签、创建 GitHub Release 都要当前开发者在对话里明确授权，一次授权只覆盖这一次。未公开的游戏版本内容，要等官方授权创作体验服视频正式解禁并公开后才能发布，也不能夹带其他未解禁内容。
 
+从 7.2.06.04 之后的下一次发布起，公开附件使用 Windows 桌面版 EXE 和 Android APK。Windows 网页安装包和网页便携 ZIP 停止发布。
+
 ## 1. 同步版本号
 
 以 `package.json` 的 `version`（例如 `7.2.4`）和 `displayVersion`（例如 `7.2.04`）为准。下面这些位置需要手动改：
@@ -16,8 +18,7 @@
 
 这些会自动跟随 `package.json`，不用手改，但要核对产物：
 
-- Windows 安装器（`installer/mona.iss`，由 `script/build-windows.ps1` 传入版本）。
-- 托盘启动器（`script/build-tray-launcher.ps1`）：EXE 文件名、托盘名称、日志窗口标题、`AssemblyTitle`、`AssemblyInformationalVersion`、`AssemblyVersion`、`AssemblyFileVersion`。每次改版本都要重新生成启动器，启动器源码里不另外硬编码版本号。
+- Windows 桌面版发布文件名由 [stage-desktop-release.ps1](../../script/stage-desktop-release.ps1) 读取 `displayVersion` 生成。
 
 ## 2. 更新文档
 
@@ -33,7 +34,9 @@
 - Windows 桌面版的默认在线服务地址取自构建机的 `server/desktop-cloud-url.local.json`，文件内容为一个 JSON 字符串，仅填写服务根地址。Git 忽略该文件，Tauri 载荷和托盘安装包会随包携带它。已保存的服务地址优先，其次为运行环境的 `VUE_APP_MONA_CLOUD_URL`。
 
 - [ ] 新成品输出到新目录或带修订后缀，保留已验证的旧版成品，不覆盖。
-- [ ] Windows 安装器、便携包、APK 分别核对实际内容与版本。
+- [ ] 运行 `script/stage-desktop-release.ps1`，用 `-BuildDirectory` 指定含有 `mona-tauri.exe` 的构建目录，用 `-OutputDirectory` 指定发版目录。核对 `genshin_artifact_V<版本>_windows_desktop_tauri_x64.exe` 的实际内容、版本和升级识别。
+- [ ] Android APK 核对实际内容、版本和渠道。发布前检查附件清单，移除网页安装包和网页便携 ZIP。
+- [ ] 用当前网页入口检查更新，CNB 和 GitHub 的下载按钮都指向 Windows 桌面版 EXE。桌面客户端和 Android 分别确认能够下载本平台的包。
 - [ ] Android 用原签名目录构建，应用 ID、端口、主机名保持不变，保证能覆盖升级、保留用户存档。
 - [ ] 发布包里没有账号、UID、库存、预设、Debug 导出、浏览器存储、密钥或签名资料。
 - [ ] 使用统计：`.env.development.yaml` 的 `MONA_USAGE_STATS_URL` 为空时成品不上报。要启用时，按 `docs/dev/usage-stats-rollout.md` 的顺序：先部署并验证在线服务，再填上在线服务地址（只写 https 根地址）。

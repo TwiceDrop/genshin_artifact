@@ -1,9 +1,10 @@
 import {dslObjective} from '../single-result-comparison.mjs'
 import {clone} from './rules.mjs'
-
-export const PANEL_LIMITS={hp_min:'hp',atk_min:'atk',def_min:'def',recharge_min:'recharge',em_min:'elemental_mastery',crit_min:'critical',crit_dmg_min:'critical_damage'}
+import {PANEL_STATS} from '../../../beta-data/panel-search.mjs'
 export function createMonaEvaluator(mona,request) {
     const input=clone(request.input),objective=request.objective
+    const limits=PANEL_STATS.map(({key,minimum})=>({key,min:request.constraints?.[minimum],max:request.constraints?.panel_max?.[key]}))
+        .filter(({min,max})=>min>0||max!=null)
     if(['single_hit_context','ordinary_bloom_context','lunar_crystallize_context','direct_lunar_context','lunar_electro_context','direct_stellar_context','stellar_swirl_context'].some(key=>input[key]))throw Error('手填固定面板不会随候选装备变化，不能用于动态评分')
     const dslTarget=objective.kind==='dsl'
         ? mona.DSLInterface.prepareObjective?.(input.target_function.dsl_source,input) : null
@@ -27,11 +28,11 @@ export function createMonaEvaluator(mona,request) {
             return value
         },
         violation(artifacts) {
-            const limits=Object.entries(PANEL_LIMITS).filter(([key])=>request.constraints?.[key]>0)
             if(!limits.length)return 0
             const values=panel(artifacts)
-            return limits.reduce((sum,[key,stat])=>{
-                const gap=(request.constraints[key]-values[stat])/request.constraints[key]
+            return limits.reduce((sum,{key,min,max})=>{
+                const gap=min>0&&values[key]<min?(min-values[key])/min
+                    :max!=null&&values[key]>max?(values[key]-max)/(Math.abs(max)||1):0
                 return sum+(gap>32*Number.EPSILON?gap:0)
             },0)
         },

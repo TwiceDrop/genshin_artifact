@@ -1,11 +1,6 @@
 <template>
     <section class="default-character-picker">
-        <div class="character-element-tabs" role="group" aria-label="按元素筛选">
-            <button type="button" :aria-pressed="element === 'all'" @click="element = 'all'">全部</button>
-            <button v-for="(label, key) in ELEMENT_NAMES" :key="key" type="button" :aria-pressed="element === key" @click="element = key">
-                <img :src="elementIcons[key]" alt="" />{{ label }}
-            </button>
-        </div>
+        <CharacterElementFilter v-model="element" />
         <div class="character-picker-list">
             <button v-for="character in visibleCharacters" :key="character.name" type="button" class="character-picker-row"
                 :aria-label="`选择${ta(character.nameLocale)}${added?.has(character.name) ? '，已添加' : ''}`"
@@ -30,6 +25,7 @@ import { useI18n } from '@/i18n/i18n'
 import { ELEMENT_NAMES, isPickerCharacter } from '@/import/character-summary.mjs'
 import elementIcons from '@/assets/element-icons'
 import CharacterPortrait from '@/components/display/CharacterPortrait.vue'
+import CharacterElementFilter from './CharacterElementFilter.vue'
 
 const emit = defineEmits(['select'])
 defineProps({ added: Set })

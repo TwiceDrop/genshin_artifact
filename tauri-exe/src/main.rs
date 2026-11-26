@@ -161,7 +161,7 @@ fn main() {
             app.manage(backend);
             let error_log = data.join("window.log");
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(
-                format!("http://127.0.0.1:{PORT}/#/calculate").parse()?))
+                format!("http://127.0.0.1:{PORT}/#/").parse()?))
                 .initialization_script("window.__MONA_TAURI__ = true;")
                 .title(format!("莫娜占卜铺 {} · Tauri 2", env!("MONA_DISPLAY_VERSION")))
                 .inner_size(1440.0, 960.0)

@@ -1,4 +1,4 @@
-/* 目的：默认角色和我的角色共用元素筛选、角色卡片样式，避免两个入口外观不同步。 */
+/* 目的：默认角色和我的角色共用角色卡片样式，避免两个入口外观不同步。 */
 .mys-character-picker, .default-character-picker { display: grid; gap: 12px; color: var(--cx-letter); }
 .character-uid-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
 .character-uid { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; padding: 10px 16px; border: 0; border-radius: 14px; background: var(--cx-step); color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -7,16 +7,11 @@
 .character-uid span { font-size: 12px; color: var(--cx-dim); }
 .character-uid.active span { color: inherit; opacity: .8; }
 .character-uid-summary { margin: 0; font-size: 13px; color: var(--cx-dim); }
-.character-element-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-.character-element-tabs button { display: inline-flex; align-items: center; gap: 5px; flex: none; height: 34px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--cx-step); color: var(--cx-dim); font: inherit; font-size: 13px; cursor: pointer; }
-.character-element-tabs button:hover { background: var(--cx-step-2); color: var(--cx-letter); }
-.character-element-tabs button[aria-pressed=true] { background: var(--cx-gold); color: var(--cx-gold-on); font-weight: 600; }
-.character-element-tabs img { width: 18px; height: 18px; object-fit: contain; }
 .character-picker-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 10px; }
 .character-picker-row { display: flex; gap: 12px; min-width: 0; padding: 10px 14px 10px 10px; border: 0; border-radius: 16px; background: var(--cx-step); color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
 .character-picker-row:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--cx-step-2); }
 .character-picker-row:disabled { cursor: default; opacity: .7; }
-.character-uid:focus-visible, .character-element-tabs button:focus-visible, .character-picker-row:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+.character-uid:focus-visible, .character-picker-row:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
 .character-art-frame { flex: none; width: 84px; height: 104px; border-radius: 12px; overflow: hidden; background: var(--cx-step-2); }
 .character-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .character-identity-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

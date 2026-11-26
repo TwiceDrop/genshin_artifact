@@ -37,12 +37,13 @@ export function rosterPresetChoices(data, presets) {
     return [...new Map(choices.map(choice => [choice.key || choice.name, choice])).values()]
 }
 
-export function artifactExclusionGroups(data, presets) {
+export function artifactExclusionGroups(data, presets, uid) {
     return data.entries.flatMap(row => {
+        if (row.uid && row.uid !== uid) return []
         const choices = characterPresetChoices(row, data, presets)
         if (!choices.length) return []
         const role = characters[choices[0].item.character.name]
-        return [{ key: row.key, label: locale[role.nameLocale], avatar: role.avatar,
+        return [{ key: row.key, uid: row.uid, label: locale[role.nameLocale], avatar: role.avatar,
             choices: choices.map(choice => {
                 const game = !choice.loadout && !!choice.item.miyousheKey
                 const key = choice.loadout ? 'saved:' + choice.name : game ? 'current' : 'role:' + choice.name

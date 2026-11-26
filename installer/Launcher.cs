@@ -19,7 +19,7 @@ internal static class Launcher {
         }
     }
     internal static void Open() {
-        try { Process.Start(new ProcessStartInfo("http://127.0.0.1:4174/#/calculate") { UseShellExecute = true }); }
+        try { Process.Start(new ProcessStartInfo("http://127.0.0.1:4174/#/") { UseShellExecute = true }); }
         catch (Exception e) { MessageBox.Show(e.Message, "无法打开浏览器"); }
     }
 }

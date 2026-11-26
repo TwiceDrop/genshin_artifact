@@ -18,7 +18,7 @@
 
 - 路由的 `meta.title` 用于浏览器标题和手机顶栏。`/login` 设置 `meta.bare: true`，隐藏侧栏、顶栏、底栏和页脚，将主区内边距置零。`/intro`（别名 `/`）保留导航，自行显示页脚内容。[路由表与守卫](../../src/router/router.js)
 - 外框的 `<keep-alive>` 包裹整个路由组件，部分路由上的 `meta.keepAlive` 并不控制这个缓存。一次性初始化放在 `onMounted`；每次切回要刷新的信息放在 `onActivated`。例如欢迎页仅在初次挂载时启动开屏计时，离开时在 `onDeactivated` 收束动画，回来时刷新自动更新开关。[欢迎页](../../src/pages/about/IntroPage/IntroPage.vue)
-- 首次需要检查的导航会判断登录或离线选择；需要登录时进入登录页并尽可能保留原目标。`/login`、分享导入 `/import` 和备份入口 `/setup#export-data` 跳过本次检查。独立的导入守卫识别 `type=artifact` 和 `code`，已有库存时询问是否导入，处理后前往仓库，参数不匹配则回首页。[登录判断](../../src/platform/login-gate.mjs) · [路由守卫](../../src/router/router.js)
+- 首次需要检查的导航会判断登录或离线选择。需要登录时进入登录页，登录成功或选择离线模式后进入首页。`/login`、分享导入 `/import` 和备份入口 `/setup#export-data` 跳过本次检查。独立的导入守卫识别 `type=artifact` 和 `code`，已有库存时询问是否导入，处理后前往仓库，参数不匹配则回首页。[登录判断](../../src/platform/login-gate.mjs) · [路由守卫](../../src/router/router.js)
 
 ## 主题变量与构建时改色
 

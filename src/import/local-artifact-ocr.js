@@ -1,5 +1,4 @@
 import { readShareCards } from './miyoushe-artifact-share'
-import { screenshotDraft } from './artifact-screenshot.mjs'
 import { recognizeWithBackup } from './screenshot-ocr-retry.mjs'
 
 const base = new URL('artifact-ocr/', new URL(process.env.BASE_URL || './', document.baseURI)).href
@@ -33,7 +32,7 @@ async function withTesseract(signal, read) {
             .then(created => {
                 if (finished) return created.terminate()
                 worker = created
-                return read(worker, api)
+                return read(worker)
             })
         return await Promise.race([start, interrupted])
     } finally {
@@ -78,39 +77,17 @@ export async function readArtifactScreenshot(image, signal, sets, locale, tags, 
                 canvas.height = Math.round(canvas.width * source.naturalHeight / source.naturalWidth)
                 canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height)
                 const read = async reader => {
-                    const role = readRole && await readRole(canvas, reader, signal)
+                    const role = await readRole(canvas, reader, signal)
                     const drafts = await readShareCards(canvas, reader, signal, sets, locale, tags)
                     return {role, drafts: drafts || []}
                 }
                 const tesseract = () => withTesseractLines(signal, read)
-                const result = process.env.NODE_ENV === 'development'
+                return process.env.NODE_ENV === 'development'
                     ? await recognizeWithBackup(signal, () => withTiny(signal, read), tesseract, ['PP-OCRv6 tiny', 'Tesseract'], panelMatches)
                     : await tesseract()
-                if (readRole) return result
-                if (result.drafts.length) return result.drafts
             }
         } finally { URL.revokeObjectURL(url) }
     }
-    if (readRole) throw new Error('请选择米游社原神战绩的完整角色分享图')
-    // A manually cropped inventory screenshot has no battle-record row layout.
-    const parse = text => ({drafts: [screenshotDraft(text, sets, locale, tags)]})
-    const tesseract = () => withTesseract(signal, async (worker, api) => {
-        await worker.setParameters({ tessedit_pageseg_mode: api.PSM.SPARSE_TEXT })
-        const { data } = await worker.recognize(image)
-        return parse(data.text)
-    })
-    if (process.env.NODE_ENV !== 'development') return (await tesseract()).drafts
-    const paddle = () => withTiny(signal, async reader => {
-        let source = image
-        if (image instanceof Blob) source = await createImageBitmap(image)
-        try {
-            const canvas = document.createElement('canvas')
-            canvas.width = source.width
-            canvas.height = source.height
-            canvas.getContext('2d').drawImage(source, 0, 0)
-            return parse(await reader.readPage(canvas))
-        } finally { if (source !== image) source.close() }
-    })
-    return (await recognizeWithBackup(signal, tesseract, paddle, ['Tesseract', 'PP-OCRv6 tiny'])).drafts
+    throw new Error('请选择米游社原神战绩的完整角色分享图')
 }
 

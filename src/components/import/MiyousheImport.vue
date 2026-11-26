@@ -3,8 +3,10 @@
         <p v-if="error && !panelOpen" role="alert" class="mys-error">{{ error }}</p>
         <section class="mys-card mys-characters" aria-label="已保存的角色">
             <miyoushe-character-picker roster :disabled="busy">
-                <template #actions="{ openManual }">
+                <template #heading-actions>
                     <PageGuideButton guide-id="detail-import" />
+                </template>
+                <template #actions="{ openManual }">
                     <UiDropdownMenu content-class="character-add-menu">
                         <template #trigger>
                             <UiButton ref="addTrigger" data-tour="uid.import-entry" class="mys-add" aria-label="添加角色">

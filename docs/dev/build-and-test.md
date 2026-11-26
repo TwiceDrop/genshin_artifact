@@ -21,7 +21,7 @@ npm ci --legacy-peer-deps
 
 | 目的 | 命令 |
 | --- | --- |
-| 本机服务（米游社导入、更新） | `npm run build:local` 后 `npm start`，打开 `http://127.0.0.1:4183/#/calculate` |
+| 本机服务（米游社导入、更新） | `npm run build:local` 后 `npm start`，打开首页 `http://127.0.0.1:4183/#/` |
 | 前端热更新与同源本机 API 联调，见[服务与多端打包](services-and-platforms.md) | `npm run serve` |
 | 桌面网页 | `npm run build:local` |
 | Android | `script/build-android.ps1`，显式传 `-SigningDirectory <原签名目录>` |

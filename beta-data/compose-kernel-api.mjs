@@ -15,6 +15,7 @@ import {withLumineTraveler} from './lumine-traveler-facade.mjs';
 import {withLunarDamageContexts} from './lunar-context-facade.mjs';
 import {withDirectReactionScope} from './direct-reaction-scope.mjs';
 import {withInterfaceContracts} from './interface-contracts.mjs';
+import {withDamagePanelRangeOptimization} from './damage-panel-range-optimizer.mjs';
 import {applyDataOverlay} from './data-overlay.mjs';
 import {withDslSegmentTargets} from './dsl-segment-facade.mjs';
 import weapons from '../src/assets/_gen_weapon.js';
@@ -36,7 +37,8 @@ export function composeKernelApi({rawOriginal, core, extension, SegmentExpressio
     const strengthened = createStrengthenedFacade(stellar.facade, stellar.transformStellarTarget);
     const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withLumineTraveler(withHybridTeamOptimization(
         createExpandedWeaponsFacade(createPreview7201Facade(strengthened, extension), original, extension))))));
-    return {api: SegmentExpression ? withDslSegmentTargets(api, SegmentExpression, {
+    const panelApi = withDamagePanelRangeOptimization(api);
+    return {api: SegmentExpression ? withDslSegmentTargets(panelApi, SegmentExpression, {
         characters: data.characters, weapons, skillNames: data.skillNames,
-    }) : api, original};
+    }) : panelApi, original};
 }

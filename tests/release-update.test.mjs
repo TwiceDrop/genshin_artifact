@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {checkLatestRelease, compareVersions, createReleaseCheckCoordinator,
+import {checkLatestRelease, compareVersions, createReleaseCheckCoordinator, getUpdatePlatform,
     isAutomaticUpdateEnabled, setAutomaticUpdateEnabled,
     AUTOMATIC_UPDATE_CHANGED_EVENT, RELEASE_API} from '../src/platform/release-update.mjs'
 const githubOnly = fetcher => (url, options) => url.startsWith('https://cnb.cool/') ? Promise.reject(Error('CNB unavailable')) : fetcher(url, options)
@@ -67,18 +67,42 @@ test('new release returns notes and official release URL', async () => {
     assert.equal(release.downloadUrl,release.url)
 })
 
-test('Android chooses the official APK asset while web uses the release page', async () => {
+test('Android chooses the APK and the browser download points to the desktop EXE', async () => {
     const release = {tag_name:'v7.1.05',
         html_url:'https://github.com/TwiceDrop/genshin_artifact/releases/tag/v7.1.05',
         assets:[
             {name:'fake.apk',browser_download_url:'https://example.com/fake.apk'},
+            {name:'genshin_artifact_V7.1.05_windows_desktop_tauri_x64.exe',browser_download_url:'https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.05/genshin_artifact_V7.1.05_windows_desktop_tauri_x64.exe'},
             {name:'genshin_artifact_V7.1.05_android.apk',browser_download_url:'https://github.com/TwiceDrop/genshin_artifact/releases/download/v7.1.05/genshin_artifact_V7.1.05_android.apk'},
         ]}
     const fetchImpl = githubOnly(async () => ({ok:true,json:async()=>release}))
-    assert.equal((await checkLatestRelease('v7.1.04',fetchImpl,true)).downloadUrl,release.assets[1].browser_download_url)
-    assert.equal((await checkLatestRelease('v7.1.04',fetchImpl,false)).downloadUrl,release.html_url)
+    assert.equal((await checkLatestRelease('v7.1.04',fetchImpl,true)).downloadUrl,release.assets[2].browser_download_url)
+    assert.equal((await checkLatestRelease('v7.1.04',fetchImpl,false)).downloadUrl,release.assets[1].browser_download_url)
     release.assets.pop()
     assert.equal((await checkLatestRelease('v7.1.04',fetchImpl,true)).downloadUrl,release.html_url)
+});
+
+test('hosted browsers and both legacy web launchers download the desktop EXE without installing in place', async t => {
+    const saved = Object.getOwnPropertyDescriptor(globalThis, 'location')
+    t.after(() => {
+        if (saved) Object.defineProperty(globalThis, 'location', saved)
+        else delete globalThis.location
+    })
+    const location = {hostname: 'example.com'}
+    Object.defineProperty(globalThis, 'location', {value: location, configurable: true})
+    let kind = 'portable'
+    const fetch = t.mock.method(globalThis, 'fetch', async url => {
+        assert.equal(url, '/api/update/info')
+        return Response.json({kind, canInstall: true})
+    })
+    assert.deepEqual(await getUpdatePlatform(), {kind: 'tauri', canInstall: false})
+    assert.equal(fetch.mock.callCount(), 0)
+    location.hostname = '127.0.0.1'
+    for (kind of ['portable', 'installer']) {
+        assert.deepEqual(await getUpdatePlatform(), {kind: 'tauri', canInstall: false})
+    }
+    kind = 'tauri'
+    assert.deepEqual(await getUpdatePlatform(), {kind: 'tauri', canInstall: true})
 });
 
 test('manual check shares an automatic in-flight request and receives its result or error', async () => {

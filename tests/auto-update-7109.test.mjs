@@ -9,7 +9,7 @@ import {execFileSync} from 'node:child_process'
 import {createRequire} from 'node:module'
 import {LocalUpdater} from '../server/updates.mjs'
 import {createLocalServer} from '../server/local.mjs'
-import {releaseAsset, sourceUrl, fetchReleaseMetadata} from '../server/update-sources.mjs'
+import {findReleaseAsset, releaseAsset, sourceUrl, fetchReleaseMetadata} from '../server/update-sources.mjs'
 import {describeRelease} from '../src/platform/release-update.mjs'
 const require = createRequire(import.meta.url)
 const repository = 'https://github.com/TwiceDrop/genshin_artifact/releases/'
@@ -187,11 +187,11 @@ test('4. real update component compiles and runs source selection, download prog
         createReleaseCheckCoordinator: () => async () => ({...describeRelease(metadata(128), '7.1.09')}),
         isAutomaticUpdateEnabled: () => true, setAutomaticUpdateEnabled: () => true, MANUAL_UPDATE_EVENT: 'test',
         openReleaseDownload: () => calls.push('external'), UPDATE_SOURCES: [{id: 'cnb', name: 'CNB.cool'}, {id: 'github', name: 'GitHub'}, {id: 'mirror', name: 'Mirror'}],
-        sourceUrl, releaseAsset,
-        getUpdatePlatform: async () => ({kind: 'portable', canInstall: true}),
+        sourceUrl, findReleaseAsset, releaseAsset,
+        getUpdatePlatform: async () => ({kind: 'android', canInstall: true}),
         getResumableUpdateStatus: async (release, kind) => {
             assert.equal(release.version, 'v7.1.10')
-            assert.equal(kind, 'portable')
+            assert.equal(kind, 'android')
             return {phase: 'idle', downloaded: 0, total: 0}
         },
         probeUpdateSource: async (release, kind, source) => {calls.push('probe:'+source);return {speed: source === 'mirror' ? 2000 : 1000, elapsed: 10}},
@@ -229,4 +229,42 @@ test('4. real update component compiles and runs source selection, download prog
     await pending
     assert.equal(cancelled.progress.value.phase, 'cancelled', 'late status must not replace cancellation')
     assert.deepEqual(calls, ['source:cnb','download'])
+
+    const desktopName = 'genshin_artifact_V7.2.07_windows_desktop_tauri_x64.exe'
+    const assets = [desktopName, 'genshin_artifact_V7.2.07_android.apk'].map(name => ({name,
+        browser_download_url: repository + 'download/v7.2.07/' + name}))
+    const manifest = {tag_name: 'v7.2.07', html_url: repository + 'tag/v7.2.07', assets}
+    const nextRelease = describeRelease(manifest, '7.2.06.04')
+    for (const [kind, canInstall, release, shouldPrompt] of [
+        ['tauri', false, nextRelease, true],
+        ['tauri', true, nextRelease, true],
+        ['android', true, nextRelease, true],
+        ['tauri', false, describeRelease({...manifest, assets: assets.slice(1)}, '7.2.06.04'), false],
+    ]) {
+        bindings.createReleaseCheckCoordinator = () => async () => release
+        bindings.getUpdatePlatform = async () => ({kind, canInstall})
+        let resumed = false
+        bindings.getResumableUpdateStatus = async () => {
+            resumed = true
+            return {phase: 'idle'}
+        }
+        const downloads = []
+        bindings.openReleaseDownload = async url => downloads.push(url)
+        const check = new Function(...Object.keys(bindings), body + '\nreturn {checkForUpdates, acceptUpdate, updateVisible, availableRelease};')(...Object.values(bindings))
+        await check.checkForUpdates()
+        assert.equal(check.updateVisible.value, shouldPrompt, kind)
+        assert.equal(resumed, shouldPrompt && canInstall, kind)
+        assert.equal(check.availableRelease.value, shouldPrompt ? release : null, kind)
+        if (shouldPrompt && !canInstall) {
+            calls.length = 0
+            await check.acceptUpdate('cnb')
+            await check.checkForUpdates()
+            await check.acceptUpdate('github')
+            assert.deepEqual(downloads, [
+                'https://cnb.cool/twicedrop/genshin_artifact/-/releases/download/v7.2.07/' + desktopName,
+                repository + 'download/v7.2.07/' + desktopName,
+            ])
+            assert.deepEqual(calls, [], 'browser opens the desktop attachment without starting an in-place update')
+        }
+    }
 })

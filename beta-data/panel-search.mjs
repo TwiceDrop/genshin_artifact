@@ -1,9 +1,13 @@
 import {ARTIFACT_SLOTS, buildArtifactIds, compareArtifactBuildIds, createArtifactBuildTraversal, createTopResults} from './artifact-build-search.mjs';
 
 export const PANEL_STATS = [
-    {key:'hp', label:'生命值'}, {key:'atk', label:'攻击力'}, {key:'def', label:'防御力'},
-    {key:'elemental_mastery', label:'元素精通'}, {key:'recharge', label:'元素充能效率', percent:true},
-    {key:'critical', label:'暴击率', percent:true}, {key:'critical_damage', label:'暴击伤害', percent:true},
+    {key:'hp', label:'生命值', locale:'lifeStatic', minimum:'hp_min', presetMinimum:'minHp'},
+    {key:'atk', label:'攻击力', locale:'attackStatic', minimum:'atk_min', presetMinimum:'minAttack'},
+    {key:'def', label:'防御力', locale:'defendStatic', minimum:'def_min', presetMinimum:'minDefense'},
+    {key:'elemental_mastery', label:'元素精通', locale:'elementalMastery', minimum:'em_min', presetMinimum:'minElementalMastery'},
+    {key:'recharge', label:'元素充能效率', locale:'recharge', minimum:'recharge_min', presetMinimum:'minRecharge', percent:true},
+    {key:'critical', label:'暴击率', locale:'critical', minimum:'crit_min', presetMinimum:'minCritical', percent:true},
+    {key:'critical_damage', label:'暴击伤害', locale:'criticalDamage', minimum:'crit_dmg_min', presetMinimum:'minCriticalDamage', percent:true},
 ];
 export const PANEL_SLOTS = ARTIFACT_SLOTS;
 export const newPanelSearchOptions = () => ({metric:'critical_damage', direction:'desc', resultLimit:100, minArtifactLevel:16, bounds:{}});

@@ -142,7 +142,7 @@ router.beforeEach((to, from, next) => {
     next();
 })
 
-// 打开软件后的第一次跳转先过登录门：没登录、也没选过离线模式时先到登录页，之后回到原来要去的页面。
+// 第一次跳转先过登录门：没登录、也没选过离线模式时先到登录页，之后进入首页。
 // 分享链接导入（/import）不拦。
 let loginChecked = false
 // 云档案同步跟随登录状态（已登录时启动、退出后停止），打开软件后开始跟随，不阻塞跳转
@@ -155,7 +155,7 @@ router.beforeEach(async to => {
     if (loginChecked || to.name === "login" || to.path === "/import" || (to.name === 'setup' && to.hash === '#export-data')) return true
     loginChecked = true
     if (!(await needsLogin())) return true
-    return { name: "login", query: to.fullPath === "/" ? {} : { redirect: to.fullPath } }
+    return { name: "login" }
 })
 
 router.beforeEach(async (to, from, next) => {

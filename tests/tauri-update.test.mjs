@@ -19,7 +19,7 @@ async function workspace(t) {
     t.after(() => rm(root, {recursive: true, force: true, maxRetries: 10, retryDelay: 200}))
     return root
 }
-const tag = 'v7.2.07', exe = 'genshin_artifact_V7.2.07_tauri_x64.exe'
+const tag = 'v7.2.07', exe = 'genshin_artifact_V7.2.07_windows_desktop_tauri_x64.exe'
 const github = 'https://github.com/TwiceDrop/genshin_artifact/releases'
 const cnb = 'https://cnb.cool/twicedrop/genshin_artifact/-/releases'
 

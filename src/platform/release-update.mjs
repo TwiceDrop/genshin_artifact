@@ -2,7 +2,7 @@ import {CapacitorHttp} from '@capacitor/core'
 import {isNative, MonaLocal} from './native.mjs'
 import {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, sourceUrl, officialReleaseUrl,
     fetchReleaseMetadata, findReleaseAsset, releaseAsset, compareVersions} from '../../server/update-sources.mjs'
-export {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, releaseAsset, compareVersions, sourceUrl}
+export {RELEASE_REPOSITORY, RELEASE_API, UPDATE_SOURCES, findReleaseAsset, releaseAsset, compareVersions, sourceUrl}
 export const MANUAL_UPDATE_EVENT = 'mona:check-release-update'
 export const AUTOMATIC_UPDATE_CHANGED_EVENT = 'mona:automatic-release-update-changed'
 const AUTOMATIC_UPDATE_KEY = 'mona.automaticReleaseUpdates'
@@ -29,9 +29,9 @@ export function describeRelease(release, currentVersion, native = isNative, apkK
     const url = officialReleaseUrl(release.html_url)
     if (!url) throw new Error('发布版本地址无效')
     const assets = Array.isArray(release.assets) ? release.assets : []
-    const apk = native && findReleaseAsset({assets}, apkKind)
+    const asset = findReleaseAsset({assets}, native ? apkKind : 'tauri')
     return {currentVersion, version, newer: difference > 0, url, assets,
-        downloadUrl: apk ? officialReleaseUrl(apk.browser_download_url) : url,
+        downloadUrl: asset ? officialReleaseUrl(asset.browser_download_url) : url,
         notes: String(release.body || '').trim() || '此版本未附更新日志。'}
 }
 export async function checkLatestRelease(currentVersion, fetchImpl = globalThis.fetch, native = isNative) {
@@ -76,8 +76,11 @@ export async function getUpdatePlatform() {
         const {id} = await MonaLocal.getApplicationId()
         return {kind: id.endsWith('.mobiletest') ? 'android-test' : 'android', canInstall: true}
     }
-    if (local()) return updateApi('info')
-    return {kind: 'portable', canInstall: false}
+    if (local()) {
+        const platform = await updateApi('info')
+        if (platform.kind === 'tauri') return platform
+    }
+    return {kind: 'tauri', canInstall: false}
 }
 export async function probeUpdateSource(release, kind, source) {
     if (isNative) return MonaLocal.probeUpdate({url: sourceUrl(releaseAsset(release, kind).browser_download_url, source)})

@@ -9,7 +9,7 @@
                 <small>{{ slotLabel }}</small>
             </span>
         </span>
-        <span class="art-main" :class="mainStatClass">
+        <span v-if="!hideFixedMainStat || !fixedMainStat" class="art-main" :class="mainStatClass">
             <span>{{ main[0] }}</span>
             <b>{{ main[1] }}</b>
         </span>
@@ -59,7 +59,7 @@ import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
 import UiHoverDetails from "@/components/ui/UiHoverDetails.vue"
 
 const props = defineProps<{ item: IArtifact, iconSrc?: string, highlightTags?: string[], score?: number | null, scoreLabel?: string, grade?: string, showGrade?: boolean, selected?: boolean, readonly?: boolean,
-    scoreDetails?: () => { main: number, subs: { score: number }[] } | null, scoreSide?: string }>()
+    scoreDetails?: () => { main: number, subs: { score: number }[] } | null, scoreSide?: string, hideFixedMainStat?: boolean }>()
 const breakdown = computed(() => props.scoreDetails?.())
 const emit = defineEmits<{ (e: "open"): void }>()
 const { t, ta } = useI18n()
@@ -69,8 +69,9 @@ const setLabel = computed(() => ta(set.value.nameLocale))
 const slotLabel = computed(() => t("misc", props.item.position))
 
 const main = computed(() => displayedTagParts(props.item.mainTag.name, props.item.mainTag.value))
+const fixedMainStat = computed(() => props.item.position === "flower" || props.item.position === "feather")
 const mainStatClass = computed(() => {
-    if (props.item.position === "flower" || props.item.position === "feather") {
+    if (fixedMainStat.value) {
         return "fixed-main-stat"
     }
     return highlightedMainStat(props.item, props.highlightTags) ? "role-highlight" : undefined

@@ -14,7 +14,6 @@
   - `data-tour="export-tools.list"`（工具列表区域）
 - [x] 圣遗物仓库页（`src/pages/ArtifactsPage/ArtifactsPage.vue`）：
   - `data-tour="artifacts.import"`（导入按钮）
-  - `data-tour="artifacts.screenshot"`（截图导入按钮）
   - `data-tour="artifacts.more"`（更多下拉按钮）
   - `data-tour="artifacts.add"`（新增圣遗物按钮）
   - `data-tour="artifacts.slots"`（顶部部位栏）

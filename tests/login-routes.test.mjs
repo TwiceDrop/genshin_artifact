@@ -1,6 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
+import vm from 'node:vm'
+import { compileScript, parse } from '@vue/compiler-sfc'
+import { computed, ref, watch } from 'vue'
 import { CloudGateway } from '../server/cloud.mjs'
 import { publicAccount } from '../server/cookie.mjs'
 import { withDefaultCloudUrl } from '../server/cloud-config.mjs'
@@ -11,6 +14,49 @@ const token = '00000000-0000-4000-8000-000000000001.synthetic-session-secret'
 const user = { id: 'synthetic-user', email: 'synthetic@example.test', username: '合成用户' }
 const session = { sessionToken: token, user, expiresAt: '2099-01-01T00:00:00Z' }
 const sessionRoutes = ['v1/auth/register', 'v1/auth/password/login']
+
+test('the login page opens Home for online and offline entry even with an old redirect URL', async () => {
+    const source = fs.readFileSync(new URL('../src/pages/LoginPage/LoginPage.vue', import.meta.url), 'utf8')
+    const script = compileScript(parse(source).descriptor, { id: 'login-routes' }).content
+        .replace(/^import .*\r?\n/gm, '').replace('export default', 'module.exports =')
+    function openPage({ configUser = null, loginUser = user } = {}) {
+        const events = []
+        let mount
+        const module = {}
+        vm.runInNewContext(script, {
+            module, computed, ref, watch, process, isNative: false, setInterval: () => 0,
+            IconEpRight: null, StarField: null, AstrolabeDial: null, MonaPortrait: null,
+            onMounted: fn => { mount = fn }, onBeforeUnmount() {},
+            useRoute: () => ({ query: { redirect: '/team-optimization?share=resume' } }),
+            useRouter: () => ({ replace: destination => events.push(destination.name ?? destination) }),
+            cloudApi: async path => ({ user: path === 'config' ? configUser : loginUser }),
+            chooseOffline: () => events.push('offline'), clearOfflineChoice: () => events.push('online'),
+        })
+        const page = module.exports.setup({}, { expose() {} })
+        return { events, mount, page }
+    }
+    const offline = openPage()
+    offline.page.continueOffline()
+    assert.deepEqual(offline.events, ['offline', 'home'])
+
+    const online = openPage()
+    online.page.account.value = 'synthetic'
+    online.page.password.value = 'synthetic-password'
+    await online.page.submit()
+    assert.deepEqual(online.events, ['online', 'home'])
+
+    const legacy = openPage({ loginUser: { ...user, username: '' } })
+    legacy.page.account.value = 'synthetic'
+    legacy.page.password.value = 'synthetic-password'
+    await legacy.page.submit()
+    assert.equal(legacy.page.mode.value, 'naming')
+    legacy.page.leave()
+    assert.deepEqual(legacy.events, ['online', 'home'])
+
+    const activeSession = openPage({ configUser: user })
+    await activeSession.mount()
+    assert.deepEqual(activeSession.events, ['home'])
+})
 
 function memoryStore(initial) {
     let value = initial

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DialogRoot, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogClose } from 'radix-vue'
-defineProps<{ modelValue: boolean; title: string; width?: string; preventOutside?: boolean; returnFocus?: () => void }>()
+defineProps<{ modelValue: boolean; title: string; width?: string; animateWidth?: boolean; preventOutside?: boolean; returnFocus?: () => void }>()
 const emit = defineEmits<{
     (event: 'update:modelValue', value: boolean): void
     (event: 'escapeKeyDown', value: KeyboardEvent): void
@@ -10,7 +10,7 @@ const emit = defineEmits<{
     <DialogRoot :open="modelValue" @update:open="emit('update:modelValue', $event)">
         <DialogPortal>
             <DialogOverlay class="ui-dialog-overlay" />
-            <DialogContent class="ui-dialog" data-slot="dialog-content" :style="{ width }" :aria-describedby="undefined"
+            <DialogContent class="ui-dialog" :class="{ 'ui-dialog-animate-width': animateWidth }" data-slot="dialog-content" :style="{ width }" :aria-describedby="undefined"
                 @pointer-down-outside="preventOutside && $event.preventDefault()"
                 @escape-key-down="emit('escapeKeyDown', $event)"
                 @close-auto-focus="returnFocus && ($event.preventDefault(), returnFocus())">
@@ -39,6 +39,7 @@ const emit = defineEmits<{
     .ui-dialog-overlay[data-state="closed"] { animation: overlay-leave 130ms ease-in; }
     .ui-dialog[data-state="open"] { animation: dialog-enter 180ms ease-out; }
     .ui-dialog[data-state="closed"] { animation: dialog-leave 130ms ease-in; }
+    .ui-dialog.ui-dialog-animate-width { transition: width 200ms ease; }
 }
 @keyframes overlay-enter { from { opacity: 0; } to { opacity: 1; } }
 @keyframes overlay-leave { from { opacity: 1; } to { opacity: 0; } }

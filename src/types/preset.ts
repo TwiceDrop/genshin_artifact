@@ -66,7 +66,7 @@ export interface IPreset {
     useDSL?: boolean,
     targetMode?: 'normal' | 'dsl' | 'generator',
     optimizationMode?: 'damage' | 'panel',
-    panelSearch?: {metric:string, direction:'asc'|'desc', resultLimit:number, minArtifactLevel:number, bounds:Record<string,{min?:number,max?:number}>},
+    panelSearch?: {metric:string, direction:'asc'|'desc', resultLimit:number, minArtifactLevel:number, bounds:PanelBounds},
     dslGenerator?: IDslGeneratorState,
     filter?: IPresetArtifactFilter,
     character: ICharacter,
@@ -81,7 +81,13 @@ export type ArtifactEffectMode = "custom" | "auto"
 
 export type PresetAlgorithm = "AStar" | "Heuristic" | "Naive"
 
+export type PanelBounds = Record<string, {min?: number, max?: number}>
+
 export interface IConstraint {
+    minHp?: number,
+    minAttack?: number,
+    minDefense?: number,
+    panelMax?: Record<string, number>,
     minCritical: number,
     minCriticalDamage: number,
     minElementalMastery: number,

@@ -1,6 +1,5 @@
 <template>
     <div class="art-page cx-scope">
-        <ArtifactScreenshotDialog v-if="screenshotOpen" @close="screenshotOpen = false" @confirm="saveScreenshot" />
         <artifact-score-dialog v-if="showScore" v-model="showScore" :item="scoreItem" :initial-character="scoreCharacter" />
         <!-- new artifact dialog -->
         <add-artifact-dialog
@@ -47,22 +46,6 @@
             ></edit-artifact>
         </el-dialog>
 
-        <el-dialog :title="t('artPage.recommend')" v-model="showArtifactRecommendation"
-            width="min(760px, 94vw)" custom-class="cx-scope viewport-dialog condition-settings-dialog"
-            modal-class="condition-settings-overlay" append-to-body>
-            <el-empty v-if="recommendationList.length === 0"></el-empty>
-            <div v-else>
-                <artifact-display
-                    v-for="item in recommendationList"
-                    :key="item[0]"
-                    :item="artifactStore.artifacts.value.get(item[0])"
-                    style="width: 100%; margin-bottom: 16px"
-                    :show-back="true"
-                    :back-value="item[1]"
-                ></artifact-display>
-            </div>
-        </el-dialog>
-
         <header class="art-bar">
             <div class="art-row">
                 <h2 class="art-title">{{ t("misc.artifact") }}</h2>
@@ -70,7 +53,6 @@
                 <PageGuideButton guide-id="detail-artifacts" />
                 <span class="art-spacer"></span>
                 <button type="button" class="art-btn art-wide" data-tour="artifacts.import" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
-                <button type="button" class="art-btn art-wide" data-tour="artifacts.screenshot" @click="screenshotOpen = true">截图导入</button>
                 <el-dropdown class="art-wide" trigger="click" @command="handleOutputCommand">
                     <button type="button" class="art-btn">{{ t("misc.export") }} <icon-ep-arrow-down aria-hidden="true" /></button>
                     <template #dropdown><el-dropdown-menu>
@@ -82,13 +64,11 @@
                     <button type="button" class="art-btn" data-tour="artifacts.more">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
                     <template #dropdown><el-dropdown-menu>
                         <template v-if="narrowArt">
-                            <el-dropdown-item command="screenshot">截图导入</el-dropdown-item>
                             <el-dropdown-item command="importJson">{{ t("misc.import") }}</el-dropdown-item>
                             <el-dropdown-item command="exportJson">{{ t("artPage.exportMona") }}</el-dropdown-item>
                             <el-dropdown-item command="exportShare">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
                         </template>
                         <el-dropdown-item command="unlockAll" :divided="narrowArt">{{ t("artPage.unlockAll") }}</el-dropdown-item>
-                        <el-dropdown-item command="recommend">{{ t("misc.recommend") }}</el-dropdown-item>
                         <el-dropdown-item command="deleteAll" divided class="art-danger">{{ t("misc.clear") }}</el-dropdown-item>
                     </el-dropdown-menu></template>
                 </el-dropdown>
@@ -117,19 +97,35 @@
                         :placeholder="t('misc.mainStat')"
                     ></select-artifact-main-stat>
                 </div>
-                <div class="art-filter">
-                    <el-select v-model="scoreCharacter" filterable clearable
-                        placeholder="评分角色" aria-label="喵喵评分排序角色">
-                        <el-option v-for="name in scoreCharacterOptions" :key="name" :label="name" :value="name" />
-                    </el-select>
+                <div class="art-filter art-score-filter">
+                    <CharacterAvatarPicker v-model="scoreCharacter" :options="scoreCharacterOptions"
+                        title="评分角色" placeholder="评分角色" clearable />
                 </div>
+                <UiPopover v-model:open="displaySettingsOpen" label="显示设置">
+                    <template #trigger><UiButton class="art-display-trigger">显示设置</UiButton></template>
+                    <div class="art-display-settings">
+                        <label class="art-display-option">
+                            <CheckboxRoot v-model:checked="hideFixedMainStats" class="art-display-check">
+                                <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
+                            </CheckboxRoot>
+                            花和羽毛不显示主词条
+                        </label>
+                        <label class="art-display-option">
+                            <CheckboxRoot v-model:checked="hideMiaoScore" class="art-display-check">
+                                <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
+                            </CheckboxRoot>
+                            不显示喵喵评分
+                        </label>
+                    </div>
+                </UiPopover>
                 <el-checkbox v-model="filterGe16">{{ t("artPage.show16") }}</el-checkbox>
             </div>
         </header>
 
         <div v-if="pagedArtifacts.length" class="art-grid" data-tour="artifacts.grid">
-            <artifact-card v-for="{ item, score } in pagedArtifacts" :key="item.id" :item="item" :score="score" :highlight-tags="highlightTags"
-                :score-label="scoreCharacter" :grade="score === null ? undefined : getMarkClass(score)"
+            <artifact-card v-for="{ item, score } in pagedArtifacts" :key="item.id" :item="item" :highlight-tags="highlightTags"
+                :hide-fixed-main-stat="hideFixedMainStats" :score="hideMiaoScore ? null : score"
+                :score-label="scoreCharacter" :grade="hideMiaoScore || score === null ? undefined : getMarkClass(score)"
                 :selected="item.id === openedArtifactId" @open="openArtifact(item.id)" />
         </div>
         <el-empty v-else class="art-empty" data-tour="artifacts.grid"></el-empty>
@@ -145,7 +141,12 @@
 <script setup lang="ts">
 import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import ArtifactScoreDialog from '@/components/display/ArtifactScoreDialog.vue'
+import CharacterAvatarPicker from '@/components/select/CharacterAvatarPicker.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiPopover from '@/components/ui/UiPopover.vue'
 import { scoreCharacterNames, rankingContext, scoreBuild, getMarkClass } from '@/algorithms/artifact-score/score.mjs'
+import characters from '@/assets/_gen_character'
+import scoreLocale from '@/i18n/generated/zh-cn.json'
 import { scoreContextHighlights } from '@/utils/character-artifact-highlights'
 import {importWarehouseFile} from '@/import/warehouse-file'
 import {artifactImportContext} from '@/import/level-zero-match.cjs'
@@ -156,13 +157,14 @@ import {downloadString} from '@/utils/common'
 import {recordUsage, recordUsageUnlessCancelled} from '@/usage-stats/index.mjs'
 import {deviceIsPC} from "@/utils/device"
 import {createRepo} from "@/api/repo"
-import {type Ref, watch} from "vue"
+import {type Ref, onDeactivated, watch} from "vue"
+import { CheckboxIndicator, CheckboxRoot } from 'radix-vue'
 import {useRoute, useRouter} from "vue-router"
 import {useArtifactStore} from "@/store/pinia/artifact"
 import { isNative, saveText } from '@/platform/native.mjs'
 import {usePresetStore} from "@/store/pinia/preset"
-import {getArtifactsRecommendation} from "@/utils/artifactRecommendation"
 import IconEpArrowDown from "~icons/ep/arrow-down"
+import IconEpCheck from "~icons/ep/check"
 
 import flowerIcon from '@image/misc/flower.png';
 import featherIcon from '@image/misc/feather.png';
@@ -173,10 +175,8 @@ import headIcon from '@image/misc/head.png';
 import AddArtifactDialog from './AddArtifactDialog';
 import SelectArtifactSet from '@c/select/SelectArtifactSet';
 import SelectArtifactMainStat from '@c/select/SelectArtifactMainStat';
-import ArtifactDisplay from '@c/display/ArtifactDisplay';
 import ArtifactCard from '@/components/display/ArtifactCard.vue';
 import ArtifactDetail from './ArtifactDetail.vue';
-import ArtifactScreenshotDialog from './ArtifactScreenshotDialog.vue'
 import {useScreen} from '@/composables/screen';
 import EditArtifact from './EditArtifact';
 import ImportBlock from '@c/misc/ImportBlock';
@@ -241,8 +241,20 @@ const scoreItem = computed(() => artifactStore.artifacts.value.get(scoreArtifact
 const filterMainStat: Ref<ArtifactStatName[]> = ref([])
 const filterGe16 = ref(true)
 const scoreCharacter = ref('')
+const displaySettingsOpen = ref(false)
+const hideFixedMainStats = ref(false)
+const hideMiaoScore = ref(false)
+onDeactivated(() => { displaySettingsOpen.value = false })
 const highlightTags = computed(() => scoreCharacter.value ? scoreContextHighlights(rankingContext(scoreCharacter.value)) : undefined)
-const scoreCharacterOptions = [...scoreCharacterNames].sort((a, b) => a.localeCompare(b, 'zh-CN'))
+const scoreCharacters = Object.values(characters)
+const scoreCharactersByName = new Map(scoreCharacters.map(role => [scoreLocale[role.nameLocale], role]))
+const travelersByElement = new Map(scoreCharacters.filter(role => role.name.startsWith('Aether'))
+    .map(role => [role.element.toLowerCase(), role]))
+const scoreCharacterOptions = [...scoreCharacterNames].sort((a, b) => a.localeCompare(b, 'zh-CN')).map(value => {
+    const { name, options } = rankingContext(value)
+    const role = (name === '旅行者' ? travelersByElement.get(options.elem) : scoreCharactersByName.get(name))!
+    return { value, label: value, avatar: role.avatar, element: role.element, star: role.star }
+})
 
 const artifactsCurrentSlot = computed(() => {
     if (activeName.value === 'all') return positions.flatMap(p => artifactStore.artifactsByPosition.value[p])
@@ -326,13 +338,6 @@ watch(detailOpen, open => { if (!open) openedArtifactId.value = -1 })
 ///////////////////////////////////////////////////////////////////
 // new artifact
 const newDialogVisible = ref(false)
-const screenshotOpen = ref(false)
-function saveScreenshot(items: IArtifactContentOnly[]) {
-    if (!screenshotOpen.value) return
-    screenshotOpen.value = false
-    for (const item of items) artifactStore.addArtifact(item)
-    activeName.value = items.length === 1 ? items[0].position : 'all'
-}
 
 function handleClickAddArtifact() {
     newDialogVisible.value = true
@@ -491,44 +496,9 @@ function handleConfirmEdit(id: number) {
 }
 
 
-///////////////////////////////////////////////////////////////////
-// artifacts recommendation
-const showArtifactRecommendation = ref(false)
-const recommendationList: Ref<[number, number][]> = ref([])
-const recommendationInCalculation = ref(false)
-
-
-function handleClickRecommendation() {
-    if (presetStore.allFlat.value.length === 0) {
-        ElMessage.error({
-            message: t("artPage.msg1")
-        })
-        return
-    }
-
-    recommendationList.value = [];
-    showArtifactRecommendation.value = true;
-
-    getArtifactsRecommendation().then(({ scores, skipped }) => {
-        if (skipped.length) ElMessage.warning(`有 ${skipped.length} 个预设不支持静态推荐评分，已跳过；可在计算器使用实际配装。${skipped.join('；')}`)
-        let temp = scores.slice(0, 50);
-        const maxValue = temp.map((item) => item[1]).reduce((p, c) => Math.max(p, c), 0);
-
-        for (let i = 0; i < temp.length; i++) {
-            temp[i][1] = maxValue > 0 ? temp[i][1] / maxValue : 0;
-        }
-
-        recommendationList.value = temp as [number, number][];
-    }).catch((error: any) => ElMessage.error(error.message || String(error)));
-}
-
-
 // commands
 function handleDropdownCommand(command: string) {
     switch (command) {
-        case "screenshot":
-            screenshotOpen.value = true
-            break
         case "add":
             handleClickAddArtifact()
             break
@@ -547,9 +517,6 @@ function handleDropdownCommand(command: string) {
             break
         case "unlockAll":
             unlockAllArtifacts()
-            break
-        case "recommend":
-            handleClickRecommendation()
             break
         case "importJson":
             handleImportJsonClicked()
@@ -725,6 +692,59 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
 
 .art-filter :deep(.el-select) {
     width: 100%;
+}
+
+.art-score-filter :deep(.character-picker-controls) {
+    width: 100%;
+}
+
+.art-score-filter :deep(.character-picker-controls > .ui-button),
+.art-filters :deep(.art-display-trigger) {
+    min-height: 40px;
+}
+
+.art-display-settings {
+    display: grid;
+    gap: 10px;
+}
+
+.art-display-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.art-display-option :deep(.art-display-check) {
+    display: grid;
+    place-items: center;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+    padding: 0;
+    border: 1px solid var(--cx-dim);
+    border-radius: 4px;
+    background: var(--cx-card);
+    color: var(--cx-gold-on);
+    cursor: pointer;
+}
+
+.art-display-option :deep(.art-display-check[data-state="checked"]) {
+    background: var(--cx-gold);
+    border-color: var(--cx-gold);
+}
+
+.art-display-option :deep(.art-display-check svg) {
+    display: block;
+    width: 12px;
+    height: 12px;
+}
+
+.art-display-option :deep(.art-display-check:focus-visible) {
+    outline: 2px solid var(--cx-gold);
+    outline-offset: 2px;
 }
 
 .art-grid {

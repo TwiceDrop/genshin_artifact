@@ -61,11 +61,11 @@ Status: ready-for-agent
 
 #### 1. `detail-import`：导入圣遗物与角色（4 步）
 - 匹配页面：`/artifacts`、`/uid-data`、`/help/export-tools`
-- 简介：`理清 JSON 导入、截图录入、UID 展柜与导出工具该怎么选。`
+- 简介：`理清 JSON 导入、米游社识图、UID 展柜与导出工具该怎么选。`
 - 步骤：
   1. `/help/export-tools` · `export-tools.list` · `全仓库导入：先用导出工具` — 想一次性导入全部圣遗物，先在这里选一款常用扫描器导出 JSON（支持莫娜格式与 GOOD v3）。
   2. `/artifacts` · `artifacts.import`（手机 `artifacts.more`） · `导入圣遗物文件` — 点「导入」上传 JSON。导入弹窗里，「删除未出现的圣遗物」适合全量同步，「备份现有套装」可保留旧套装组合。
-  3. `/artifacts` · `artifacts.screenshot`（手机 `artifacts.add`） · `单件补充：截图或手动新增` — 只想临时补几件新圣遗物，可以直接用「截图导入」或点「＋ 新增圣遗物」手动录入。
+  3. `/artifacts` · `artifacts.add` · `单件补充：手动新增` — 只想临时补几件新圣遗物，可以点「＋ 新增圣遗物」手动录入。
   4. `/uid-data` · `uid.import-entry` · `通过 UID 导入角色与预设` — 在「角色」页输入 UID 或登录米游社，可导入角色等级、武器与当前穿戴圣遗物，并一键生成角色预设。
 
 #### 2. `detail-calculate`：单人配装与伤害计算（6 步）
@@ -85,7 +85,7 @@ Status: ready-for-agent
 - 步骤：
   1. `/artifacts` · `artifacts.slots` · `按部位与词条快速筛选` — 用顶部的部位栏和筛选条件，快速找出指定套装、主词条或双暴副词条的圣遗物。
   2. `/artifacts` · `artifacts.grid` · `查看详情、锁定与评分` — 点击任意圣遗物可查看角色适配评分、编辑词条或加锁；加锁后可在配装设置里按需排除或保留。
-  3. `/artifacts` · `artifacts.more` · `批量操作与推荐` — 在「更多」菜单里可以一键全部解锁、查看系统推荐的高潜力圣遗物，或清空当前仓库。
+  3. `/artifacts` · `artifacts.more` · `批量操作` — 在「更多」菜单里可以一键全部解锁或清空当前仓库。
   4. `/artifacts-kumi` · `kumi.header` · `用圣遗物套装组固定搭配` — 在「圣遗物套装」把常用的 5 件保存成组，既方便一键换装，也能在单人配装里勾选组过滤避免被其他角色抢走。
 
 #### 4. `detail-team-dps`：多人优化与四人轴 DPS（4 步）

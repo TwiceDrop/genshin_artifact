@@ -71,7 +71,7 @@ import OnboardingOverlay from "@/onboarding/OnboardingOverlay.vue"
 import WebVersionNotice from "@/components/WebVersionNotice.vue"
 import {recordUsage} from "@/usage-stats/index.mjs"
 import {createReleaseCheckCoordinator, isAutomaticUpdateEnabled, setAutomaticUpdateEnabled,
-    MANUAL_UPDATE_EVENT, openReleaseDownload, UPDATE_SOURCES, releaseAsset,
+    MANUAL_UPDATE_EVENT, openReleaseDownload, UPDATE_SOURCES, findReleaseAsset, releaseAsset,
     sourceUrl, getUpdatePlatform, probeUpdateSource,
     startUpdateDownload, getUpdateStatus, getResumableUpdateStatus, cancelUpdateDownload, installDownloadedUpdate} from '@/platform/release-update.mjs'
 
@@ -90,23 +90,26 @@ async function checkForUpdates(manual = false) {
     if (updateVisible.value) return
     try {
         const release = await runUpdateCheck()
-        if (release.newer) {
-            if (!manual && !isAutomaticUpdateEnabled()) return
-            availableRelease.value = release
-            suppressAutomaticUpdates.value = false
-            updateVisible.value = true
-            otherSourcesVisible.value = false
-            sources.value = []
-            otherSource.value = 'github'
-            updateError.value = ''
-            platform.value = null
-            progress.value = {phase: 'idle', downloaded: 0, total: 0}
-            const detectedPlatform = await getUpdatePlatform()
-            try {
-                if (detectedPlatform.canInstall)
-                    progress.value = await getResumableUpdateStatus(release, detectedPlatform.kind)
-            } finally {platform.value = detectedPlatform}
-        } else if (manual) ElMessage.success('当前已是最新版本（' + release.currentVersion + '）')
+        if (!manual && !isAutomaticUpdateEnabled()) return
+        const detectedPlatform = release.newer ? await getUpdatePlatform() : null
+        if (updateVisible.value) return
+        if (!detectedPlatform || !findReleaseAsset(release, detectedPlatform.kind)) {
+            if (manual) ElMessage.success('当前已是最新版本（' + release.currentVersion + '）')
+            return
+        }
+        availableRelease.value = release
+        suppressAutomaticUpdates.value = false
+        updateVisible.value = true
+        otherSourcesVisible.value = false
+        sources.value = []
+        otherSource.value = 'github'
+        updateError.value = ''
+        platform.value = null
+        progress.value = {phase: 'idle', downloaded: 0, total: 0}
+        try {
+            if (detectedPlatform.canInstall)
+                progress.value = await getResumableUpdateStatus(release, detectedPlatform.kind)
+        } finally {platform.value = detectedPlatform}
     } catch (error) {
         console.error(error)
         updateError.value = error.message

@@ -106,10 +106,10 @@ const share=useAxisSharing({entry:currentEntry,currentDraft,persist,localAccount
  save:()=>saveDraft(false,true,true),login:async()=>{
     shareLoginReturn.draft={accountId:account.currentAccountId.value,key:editingKey.value,axis:JSON.parse(JSON.stringify(draft.value)),
         timeline:timelineText.value,coverage:coverageText.value,savedDraft}
-    await router.push({name:'login',query:{redirect:router.resolve({path:route.path,query:{share:'resume'}}).fullPath}})
+    await router.push({name:'login'})
  }})
 async function resumeShare(){
- if(loading.value||route.path!=='/team-optimization'||route.query.share!=='resume')return
+ if(loading.value||route.path!=='/team-optimization'||route.query.history)return
  const pending=shareLoginReturn.draft
  if(!pending||pending.accountId!==account.currentAccountId.value)return
  shareLoginReturn.draft=null
@@ -120,7 +120,6 @@ async function resumeShare(){
  coverageText.value=pending.coverage
  savedDraft=pending.savedDraft
  managing.value=true
- await router.replace({path:route.path,query:Object.fromEntries(Object.entries(route.query).filter(([k])=>k!=='share'))})
  await share.show({returning:true})
 }
 watch(()=>[loading.value,route.fullPath],resumeShare)

@@ -8,6 +8,7 @@ const touch = useMediaQuery('(hover: none), (pointer: coarse)')
 const open = ref(false)
 function changeOpen(next) { open.value = props.enabled && next }
 watch(() => props.enabled, enabled => { if (!enabled) open.value = false })
+defineExpose({ dismiss: () => changeOpen(false) })
 </script>
 <template>
     <UiPopover v-if="tapLabel && touch" :open="open" @update:open="changeOpen" :label="tapLabel" :side="side || 'right'">

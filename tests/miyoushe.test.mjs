@@ -158,7 +158,7 @@ test('upstream errors identify the failed stage without relaying response secret
 })
 test('local API rejects foreign origins and unauthenticated requests; logout invalidates session', async t => {
     let cleared = 0
-    const server = createLocalServer({ clientFactory: () => ({ createQR: async () => ({ url: 'https://user.mihoyo.com/qr', expiresAt: Date.now() + 120000 }), clear: () => cleared++, pollQR: async () => ({ status: 'Waiting' }), getRoles: async () => [] }) })
+    const server = createLocalServer({ allowMiyousheQr: true, clientFactory: () => ({ createQR: async () => ({ url: 'https://user.mihoyo.com/qr', expiresAt: Date.now() + 120000 }), clear: () => cleared++, pollQR: async () => ({ status: 'Waiting' }), getRoles: async () => [] }) })
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
     t.after(() => new Promise(resolve => server.close(resolve)))
     const base = `http://127.0.0.1:${server.address().port}/api/mys/`

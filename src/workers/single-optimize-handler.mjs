@@ -1,4 +1,5 @@
 import {beginOptimizationProgress} from '../../beta-data/optimizer-progress.mjs'
+import {hasPanelMaximums} from '../../beta-data/damage-panel-range-optimizer.mjs'
 // Explicit messages preserve validation errors across the Worker boundary.
 export async function initializeSingleOptimizeWorker(scope, loadMona) {
     const started=Date.now()
@@ -14,11 +15,12 @@ export async function initializeSingleOptimizeWorker(scope, loadMona) {
                 if(logCount++<30){const message=args.map(x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch{return String(x)}}).join(' ').slice(0,8000);debug({phase:'kernel-console',level,message})}
             }
             if(data.debug){console.error=logged('error',originalError);console.warn=logged('warn',originalWarn)}
-            const progress=data.progress?beginOptimizationProgress(data.optimizeConfig,data.artifacts,value=>scope.postMessage({type:'progress',data:value})):null
+            const notify=data.progress?value=>scope.postMessage({type:'progress',data:value}):undefined
+            const progress=notify&&!hasPanelMaximums(data.optimizeConfig)?beginOptimizationProgress(data.optimizeConfig,data.artifacts,notify):null
             try {
                 debug({phase:'optimization-started',candidateCount:data.artifacts?.length,algorithm:data.optimizeConfig?.algorithm})
                 const begin=Date.now()
-                const results = mona.OptimizeSingleWasm.optimize(data.optimizeConfig, data.artifacts)
+                const results = mona.OptimizeSingleWasm.optimize(data.optimizeConfig, data.artifacts, notify)
                 progress?.complete()
                 debug({phase:'optimization-finished',elapsedMs:Date.now()-begin,resultCount:results?.length})
                 scope.postMessage({type:'results',data:{results}})

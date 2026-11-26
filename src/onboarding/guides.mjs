@@ -35,7 +35,7 @@ export const ONBOARDING_GUIDES = [
         id: 'detail-import',
         kind: 'detail',
         title: '导入圣遗物与角色',
-        summary: '理清 JSON 导入、截图录入、UID 展柜与导出工具该怎么选。',
+        summary: '理清 JSON 导入、米游社识图、UID 展柜与导出工具该怎么选。',
         pageRoutes: ['/artifacts', '/uid-data', '/help/export-tools'],
         steps: [
             {
@@ -54,12 +54,11 @@ export const ONBOARDING_GUIDES = [
                 body: '点「导入」上传 JSON。导入弹窗里，「删除未出现的圣遗物」适合全量同步，「备份现有套装」可保留旧套装组合。'
             },
             {
-                id: 'artifacts.screenshot',
+                id: 'artifacts.add',
                 route: '/artifacts',
-                anchor: 'artifacts.screenshot',
-                mobileAnchor: 'artifacts.add',
-                title: '单件补充：截图或手动新增',
-                body: '只想临时补几件新圣遗物，可以直接用「截图导入」或点「＋ 新增圣遗物」手动录入。'
+                anchor: 'artifacts.add',
+                title: '单件补充：手动新增',
+                body: '只想临时补几件新圣遗物，可以点「＋ 新增圣遗物」手动录入。'
             },
             {
                 id: 'uid.import-entry',
@@ -146,8 +145,8 @@ export const ONBOARDING_GUIDES = [
                 id: 'artifacts.more',
                 route: '/artifacts',
                 anchor: 'artifacts.more',
-                title: '批量操作与推荐',
-                body: '在「更多」菜单里可以一键全部解锁、查看系统推荐的高潜力圣遗物，或清空当前仓库。'
+                title: '批量操作',
+                body: '在「更多」菜单里可以一键全部解锁或清空当前仓库。'
             },
             {
                 id: 'kumi.header',

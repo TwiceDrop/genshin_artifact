@@ -12,7 +12,7 @@
         <section v-else class="oa-card">
             <div class="oa-line">
                 <span class="oa-line-label">未登录</span>
-                <button type="button" class="oa-plain" @click="router.push({ name: 'login', query: { redirect: '/online-account' } })">登录在线账号</button>
+                <button type="button" class="oa-plain" @click="router.push({ name: 'login' })">登录在线账号</button>
             </div>
         </section>
 

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
-import {ref,computed,watch,nextTick,effectScope} from 'vue';
+import {ref,computed,watch,nextTick,effectScope,reactive} from 'vue';
 import {chars} from '../beta-tools/interface-audit-7108.mjs';
 import {importedAxis} from './helpers/team-dps-configuration.mjs';
 import * as libraryApi from '../beta-data/team-dps-library.mjs';
@@ -13,13 +13,23 @@ test('manager imports, edits, exports, deletes, persists and isolates account ch
  script+='\nglobalThis.ui={library,selected,managing,draft,loading,openManager,importFile,saveDraft,exportDraft,removeDraft,timelineText,coverageText,tasks,saveTask,flushTasks:()=>taskWrites};';
  const account={currentAccountId:ref(1),reloadGeneration:ref(0),applyingCloud:ref(false)},data=new Map([['mona_account_presets_1',{existing:'untouched'}]]),saved=JSON.stringify(data.get('mona_account_presets_1')),downloads=[],unmount=[],scope=effectScope();
  const backend={getItem:async key=>structuredClone(data.get(key)??null),setItem:async(key,value)=>data.set(key,structuredClone(value))};
- const env={...teamEditorEnvironment,...libraryApi,ref,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),useAccountStore:()=>account,backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:[],ElMessage:Object.assign(()=>{}, {success(){}}),console};
+ const route=reactive({path:'/team-optimization',fullPath:'/team-optimization',query:{}});
+ const shareLoginReturn={draft:null},returned=[];
+ const env={...teamEditorEnvironment,...libraryApi,ref,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),useAccountStore:()=>account,backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:[],ElMessage:Object.assign(()=>{}, {success(){}}),console,
+  useRoute:()=>route,shareLoginReturn,useAxisSharing:()=>({...teamEditorEnvironment.useAxisSharing(),show:({returning})=>returned.push(returning)})};
  vm.createContext(env);scope.run(()=>vm.runInContext(ts.transpileModule(script,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,env));
  const ui=env.ui;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,0);
  const text=JSON.stringify(importedAxis()),event={target:{files:[{text:async()=>text}],value:'selected'}};
  await ui.importFile(event);assert.equal(event.target.value,'');assert.equal(ui.selected.value.axis.id,importedAxis().id);assert.equal(data.get(libraryApi.teamDpsLibraryKey(1)).entries.length,1);
  ui.openManager();ui.draft.value.title='编辑后的合成轴';ui.draft.value.durationMs=21000;await ui.saveDraft(true);assert.equal(ui.managing.value,false);assert.equal(ui.selected.value.axis.durationMs,21000);
  await ui.exportDraft();assert.equal(JSON.parse(downloads[0].text).title,'编辑后的合成轴');
+ const savedAxis=JSON.parse(JSON.stringify(ui.selected.value.axis));
+ shareLoginReturn.draft={accountId:1,key:ui.selected.value.key,axis:{...savedAxis,title:'待分享的合成草稿'},
+  timeline:JSON.stringify(savedAxis.timeline),coverage:JSON.stringify(savedAxis.coverage),savedDraft:JSON.stringify(savedAxis)};
+ Object.assign(route,{path:'/intro',fullPath:'/intro'});await nextTick();
+ assert.ok(shareLoginReturn.draft);assert.deepEqual(returned,[]);
+ Object.assign(route,{path:'/team-optimization',fullPath:'/team-optimization'});await nextTick();
+ assert.equal(ui.draft.value.title,'待分享的合成草稿');assert.equal(shareLoginReturn.draft,null);assert.deepEqual(returned,[true]);
  ui.saveTask({key:1,accountId:1,uid:'synthetic-a',state:{budget:123}});ui.saveTask({key:1,accountId:1,uid:'synthetic-b',state:{budget:456}});ui.saveTask({key:1,accountId:1,uid:'synthetic-a',state:{budget:789}});await ui.flushTasks();
  assert.equal(data.get('mona_account_team_dps_tasks_1')[1]['synthetic-a'].budget,789);assert.equal(data.get('mona_account_team_dps_tasks_1')[1]['synthetic-b'].budget,456);
  account.currentAccountId.value=2;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,0);

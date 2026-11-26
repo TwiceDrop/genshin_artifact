@@ -165,60 +165,10 @@
                 </div>
             </div>
 
-            <template v-if="optimizationMode === 'damage'">
-            <p class="constraint-title">{{ t("calcPage.constMin") }}</p>
-            <div>
-                <div class="constraint-min-item">
-                    <span class="constraint-min-title">{{ t("stat.recharge") }}</span>
-                    <div class="slider-div">
-                        <el-slider
-                            :min="1"
-                            :max="4"
-                            :step="0.05"
-                            v-model="constraintMinRecharge"
-                            :show-input="deviceIsPC"
-                        ></el-slider>
-                    </div>
-                </div>
-                <div class="constraint-min-item">
-                    <span class="constraint-min-title">{{ t("stat.elementalMastery") }}</span>
-                    <div class="slider-div">
-                        <el-slider
-                            :min="0"
-                            :max="2000"
-                            :step="10"
-                            v-model="constraintMinElementalMastery"
-                            :show-input="deviceIsPC"
-                        ></el-slider>
-                    </div>
-                </div>
-                <div class="constraint-min-item">
-                    <span class="constraint-min-title">{{ t("stat.critical") }}</span>
-                    <div class="slider-div">
-                        <el-slider
-                            :min="0"
-                            :max="1"
-                            :step="0.01"
-                            v-model="constraintMinCritical"
-                            :show-input="deviceIsPC"
-                        ></el-slider>
-                    </div>
-                </div>
-                <div class="constraint-min-item">
-                    <span class="constraint-min-title">{{ t("stat.criticalDamage") }}</span>
-                    <div class="slider-div">
-                        <el-slider
-                            :min="0"
-                            :max="4"
-                            :step="0.1"
-                            v-model="constraintMinCriticalDamage"
-                            :show-input="deviceIsPC"
-                        ></el-slider>
-                    </div>
-                </div>
-            </div>
-
-            </template>
+            <el-button v-if="optimizationMode === 'damage'" class="panel-range-button" type="primary"
+                aria-haspopup="dialog" @click="showPanelRangeDialog = true">
+                {{ t('calcPage.panelRangeSettings') }}
+            </el-button>
             <p class="common-title2">{{ t("calcPage.filKumi") }}</p>
             <el-input v-model="filterKumiSearch" :placeholder="t('misc.search')" clearable class="filter-kumi-search" />
             <div style="max-height: 50vh; overflow: auto" class="mona-scroll">
@@ -240,6 +190,10 @@
                     </template>
                 </el-tree>
             </div>
+        </el-dialog>
+        <el-dialog v-model="showPanelRangeDialog" custom-class="cx-scope viewport-dialog" append-to-body
+            :title="t('calcPage.panelRangeSettings')" width="min(440px, 94vw)">
+            <PanelRangeFields v-model="panelBounds" />
         </el-dialog>
 
 <!--    artifacts analysis    -->
@@ -343,15 +297,19 @@
                     </div>
                 </template>
             </calc-top-bar>
-            <el-dialog v-model="optimizeSettingsOpen" title="配装设置" width="min(560px, 94vw)"
-                custom-class="cx-scope optimization-target-dialog" modal-class="optimization-target-overlay" append-to-body>
-                    <el-radio-group v-model="optimizationMode" aria-label="配装模式">
-                        <el-radio-button label="damage">伤害配装</el-radio-button>
-                        <el-radio-button label="panel">面板配装</el-radio-button>
-                    </el-radio-group>
-                    <panel-search-config v-if="optimizationMode === 'panel'" v-model="panelSearchOptions" />
-                    <el-tabs v-else v-model="miscTargetFunctionTab">
-                        <el-tab-pane :label="t('calcPage.tfNormal')" name="normal">
+            <UiDialog v-model="optimizeSettingsOpen" title="配装设置" :width="optimizationTargetWidth" animate-width>
+                    <RadioGroupRoot v-model="optimizationMode" class="optimization-switcher" aria-label="配装模式">
+                        <RadioGroupItem value="damage">伤害配装</RadioGroupItem>
+                        <RadioGroupItem value="panel">面板配装</RadioGroupItem>
+                    </RadioGroupRoot>
+                    <panel-search-config v-if="optimizationMode === 'panel'" v-model="panelSearchOptions" class="optimization-mode-panel" />
+                    <TabsRoot v-else v-model="miscTargetFunctionTab" class="optimization-tabs">
+                        <TabsList class="optimization-switcher" aria-label="目标函数">
+                            <TabsTrigger value="normal">{{ t('calcPage.tfNormal') }}</TabsTrigger>
+                            <TabsTrigger value="dsl">MONA-DSL</TabsTrigger>
+                            <TabsTrigger value="generator">DSL 生成器</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="normal">
                             <select-target-function
                                 v-model="targetFunctionName"
                                 :character-name="characterName"
@@ -377,14 +335,19 @@
                                     ></p>
                                 </div>
                             </div>
-                        </el-tab-pane>
-                        <el-tab-pane label="MONA-DSL" name="dsl">
-                            <el-alert type="warning" :title="t('calcPage.beta')" :closable="false" style="margin-bottom: 8px"></el-alert>
-                            <el-input type="textarea" :rows="10" :placeholder="t('misc.code')" v-model="targetFunctionDSLSource" class="code-input"></el-input>
-                            <el-button :disabled="!targetFunctionDSLSource.trim()" @click="shareDsl(targetFunctionDSLSource)">分享 DSL</el-button>
-                        </el-tab-pane>
-                        <el-tab-pane label="DSL 生成器" name="generator"><dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona" /><el-button :disabled="!dslGeneratorState.entries.length" @click="shareDsl(generatedDsl)">分享 DSL</el-button></el-tab-pane>
-                    </el-tabs>
+                        </TabsContent>
+                        <TabsContent value="dsl">
+                            <p class="optimization-notice" role="note">{{ t('calcPage.beta') }}</p>
+                            <textarea v-model="targetFunctionDSLSource" :placeholder="t('misc.code')" :aria-label="t('misc.code')"
+                                rows="10" spellcheck="false" class="optimization-code-input"></textarea>
+                            <UiButton :disabled="!targetFunctionDSLSource.trim()" @click="shareDsl(targetFunctionDSLSource)">分享 DSL</UiButton>
+                        </TabsContent>
+                        <TabsContent value="generator" force-mount v-show="miscTargetFunctionTab === 'generator'">
+                            <dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona"
+                                :wide="wideDslGenerator" :active="optimizeSettingsOpen && miscTargetFunctionTab === 'generator'" />
+                            <UiButton :disabled="!dslGeneratorState.entries.length" @click="shareDsl(generatedDsl)">分享 DSL</UiButton>
+                        </TabsContent>
+                    </TabsRoot>
 
 
                     <div v-if="optimizationResults.length > 0"
@@ -411,7 +374,7 @@
                         ></value-display>
                     </div>
 
-            </el-dialog>
+            </UiDialog>
             <el-dialog v-model="characterDrawerOpen" title="角色" width="min(640px, 94vw)"
                 custom-class="cx-scope viewport-dialog condition-settings-dialog" modal-class="condition-settings-overlay" append-to-body destroy-on-close>
                 <div class="condition-settings-content" data-theme="mist">
@@ -763,9 +726,11 @@ import {wasmSingleOptimize} from "@/wasm/single_optimize"
 import {wasmPanelOptimize} from '@/wasm/panel_optimize'
 import {newPanelSearchOptions,readPanel} from '../../../beta-data/panel-search.mjs'
 import PanelSearchConfig from './PanelSearchConfig.vue'
+import PanelRangeFields from './PanelRangeFields.vue'
 import PanelResultsDialog from './PanelResultsDialog.vue'
 import {createComputeResult} from "@/api/misc"
 import {deviceIsPC} from "@util/device"
+import {useMediaQuery} from "@vueuse/core"
 import SelectArtifact from "@/components/select/SelectArtifact.vue"
 import SelectArtifactSet from "@c/select/SelectArtifactSet"
 import SelectCharacter from "@/components/select/SelectCharacter.vue"
@@ -805,6 +770,9 @@ import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.m
 import { presetPreview } from '@/components/share/preset-preview.mjs'
 import { openContentShare } from '@/components/share/content-share.mjs'
 import DslGenerator from './DslGenerator.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
+import { RadioGroupItem, RadioGroupRoot, TabsContent, TabsList, TabsRoot, TabsTrigger } from 'radix-vue'
 import CalcTopBar from './CalcTopBar.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
 import CharacterTalentCards from '@/components/import/CharacterTalentCards.vue'
@@ -1054,6 +1022,11 @@ const {
 const miscTargetFunctionTab = ref<"normal" | "dsl" | "generator">("normal")
 const optimizationMode = ref<'damage'|'panel'>('damage')
 const panelSearchOptions = ref(newPanelSearchOptions())
+const wideDslGenerator = useMediaQuery('(min-width: 1100px)')
+const optimizationTargetWidth = computed(() =>
+    optimizationMode.value === 'damage' && miscTargetFunctionTab.value === 'generator' && wideDslGenerator.value
+        ? 'min(1320px, 94vw)'
+        : 'min(560px, 94vw)')
 
 
 const dslGeneratorState = ref<IDslGeneratorState>({character: characterName.value, entries: []})
@@ -1150,16 +1123,15 @@ const isAllLocked = computed(() => {
 //////////////////////////////////////////////////////////////
 // optimization setup
 const showConstraintDialog = ref(false)
+const showPanelRangeDialog = ref(false)
 const {
     algorithm,
     constraintArtifactSet,
     constraintSandMainStats,
     constraintGobletMainStats,
     constraintHeadMainStats,
-    constraintMinRecharge,
-    constraintMinElementalMastery,
-    constraintMinCritical,
-    constraintMinCriticalDamage,
+    panelBounds,
+    restorePanelBounds,
 
     constraintSetMode,
     constraintInterface,
@@ -1345,11 +1317,8 @@ function usePreset(name: string, historyItem?: IPreset, conditions: 'preset' | '
     const constraint = item.constraint
     if (constraint) {
         constraintArtifactSet.value = constraint.setNames ?? []
-        constraintMinCriticalDamage.value = constraint.minCriticalDamage ?? 0
-        constraintMinCritical.value = constraint.minCritical ?? 0
-        constraintMinElementalMastery.value = constraint.minElementalMastery ?? 0
-        constraintMinRecharge.value = constraint.minRecharge ?? 1.0
     }
+    restorePanelBounds(constraint)
 
     // use filter
     const filter = item.filter
@@ -1863,7 +1832,7 @@ const comparisonEntry = computed(() => {
 })
 const comparisonKey = computed(() => comparisonEntry.value?.key || `manual:${characterName.value}`)
 const ownershipUid = computed(() => comparisonEntry.value?.uid || miyousheStore.selectedUid.value)
-const exclusionGroups = computed(() => artifactExclusionGroups(miyousheStore.data.value, presetStore.presets.value))
+const exclusionGroups = computed(() => artifactExclusionGroups(miyousheStore.data.value, presetStore.presets.value, ownershipUid.value))
 const excludedPresets = computed(() => exclusionGroups.value.flatMap(group =>
     group.choices.filter(choice => miyousheStore.data.value.excludedArtifactPresets?.[group.key]?.includes(choice.key))))
 const reservedArtifactIds = computed(() => excludedPresetArtifactIds(excludedPresets.value, artifactStore.artifacts.value))
@@ -1987,7 +1956,7 @@ const heroResult = computed(() => {
     const details: string[] = []
     const dsl = reviewDsl.value
     if (dsl && Number.isFinite(dsl.current)) details.push('目标值 ' + (Number.isFinite(dsl.before) ? `${dsl.before.toFixed(1)} → ` : '') + dsl.current.toFixed(1))
-    const rechargeMin = optimizationMode.value === 'damage' ? constraintMinRecharge.value : 0
+    const rechargeMin = optimizationMode.value === 'damage' ? (panelBounds.value.recharge?.min ?? 0) : 0
     if (rechargeMin > 1) details.push(`充能要求 ≥ ${(rechargeMin * 100).toFixed(1)}%`)
     return { index: reviewIndex.value, count, note: parts.join(' · '), detail: details.join(' · '), error: dsl?.error || comparisonDamage.value.error,
         canRestore: !!preOptimizationIds.value, busy: optimizationRunning.value || dynamicScoreState.value.running }
@@ -2206,7 +2175,7 @@ function handleOptimizeArtifact() {
         }
         debug?.capture(optimizeInterface,artifacts,{excludedArtifactPresets:miyousheStore.data.value.excludedArtifactPresets,minimumArtifactLevel:panelMode?panelSearchOptions.value.minArtifactLevel:16,sandMainStats:constraintSandMainStats.value,gobletMainStats:constraintGobletMainStats.value,headMainStats:constraintHeadMainStats.value,reservedPresetArtifactCount:reservedArtifactIds.value.size})
         debugEvent({phase:'parameters-prepared'})
-        if (!artifacts.length) throw new Error('没有符合条件的圣遗物，请检查仓库、主词条筛选及圣遗物替换设置')
+        if (!artifacts.length) throw new Error('没有符合条件的圣遗物，请检查仓库、主词条筛选及圣遗物保护设置')
     } catch (error: any) { reportError(error); return }
 
 
@@ -2619,11 +2588,17 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
     }
 }
 
-.common-title2, .constraint-title {
+.common-title2 {
     margin: 14px 0 7px;
     color: var(--cx-dim);
     font-size: 15px;
     font-weight: 600;
+}
+
+.panel-range-button {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
 }
 
 .common-description {
@@ -2651,37 +2626,6 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
     }
 }
 
-//@media only screen and (min-width: 992px) {
-//    .constraint-min-item {
-//        display: flex;
-//        align-items: center;
-//
-//        .constraint-min-title {
-//            font-size: 0.7rem;
-//            width: 7vw;
-//        }
-//    }
-//}
-//
-//@media only screen and (max-width: 992px) {
-//    .constraint-min-item {
-//        .constraint-min-title {
-//            font-size: 0.7rem;
-//            display: block;
-//        }
-//    }
-//}
-
-.constraint-min-item {
-    .constraint-min-title {
-        font-size: 0.7rem;
-        display: block;
-    }
-
-    .slider-div {
-        width: 100%;
-    }
-}
 </style>
 
 <style scoped src="./calculation-workbench.css"></style>
@@ -2691,6 +2635,34 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
 
 <style>
 /* 目的：配装目标和计算条件居中展示，长内容在窗口内滚动。 */
-.optimization-target-overlay .optimization-target-dialog { margin: 0; max-height: calc(100vh - 32px); display: flex; flex-direction: column; }
-.optimization-target-dialog .el-dialog__body { min-height: 0; overflow-y: auto; }
+.optimization-tabs { display: grid; gap: 12px; margin-top: 12px; }
+.optimization-switcher { display: flex; flex-wrap: wrap; gap: 3px; width: fit-content; max-width: 100%; padding: 3px; border-radius: 8px; background: var(--cx-step); }
+.optimization-switcher button { min-height: 30px; padding: 4px 10px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--cx-dim); font: inherit; font-size: 13px; cursor: pointer; }
+.optimization-switcher button:is([data-state="active"], [data-state="checked"]) { border-color: var(--cx-step-2); background: var(--cx-card); color: var(--cx-letter); font-weight: 650; }
+.optimization-switcher button:focus-visible, .optimization-code-input:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+.optimization-notice { margin: 0 0 8px; color: var(--cx-gold); font-size: 13px; }
+.optimization-code-input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid var(--cx-step-2); border-radius: 8px; background: var(--cx-step); color: var(--cx-letter); font: 13px/1.55 ui-monospace, Consolas, monospace; resize: vertical; }
+@media (prefers-reduced-motion: no-preference) {
+    .optimization-switcher button {
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    }
+
+    .optimization-mode-panel,
+    .optimization-tabs,
+    .optimization-tabs > [data-state="active"] {
+        animation: optimization-content-enter 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes optimization-content-enter {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
 </style>

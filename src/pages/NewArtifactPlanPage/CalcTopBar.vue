@@ -1,9 +1,13 @@
 <template>
     <header class="calc-top-bar" data-tour="calc.top-actions">
-        <h2 class="calc-top-title">单次计算</h2>
-        <div class="calc-top-preset" data-tour="calc.preset">
-            <slot name="preset" />
-            <PageGuideButton guide-id="detail-calculate" />
+        <div class="calc-top-leading">
+            <div class="calc-top-heading">
+                <h2 class="calc-top-title">单次计算</h2>
+                <PageGuideButton guide-id="detail-calculate" />
+            </div>
+            <div class="calc-top-preset" data-tour="calc.preset">
+                <slot name="preset" />
+            </div>
         </div>
         <button type="button" class="calc-top-chip calc-top-target" data-tour="calc.target" aria-haspopup="dialog" @click="emit('target')">
             <small>配装目标</small>
@@ -51,8 +55,24 @@ const emit = defineEmits<{
     background: var(--cx-ground);
 }
 
+.calc-top-leading, .calc-top-heading {
+    display: flex;
+    align-items: center;
+}
+
+.calc-top-leading {
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.calc-top-heading {
+    flex: none;
+    gap: 8px;
+}
+
 .calc-top-title {
-    margin: 0 6px 0 0;
+    margin: 0;
     font-size: 20px;
     font-weight: 700;
     color: var(--cx-letter);
@@ -173,19 +193,18 @@ const emit = defineEmits<{
     }
 }
 
-// 窄屏：预设独占一行，设置与配装操作按可用宽度换行。
+// 窄屏：标题、引导和预设同排，设置与配装操作按可用宽度换行。
 @container single-calculator (max-width: 820px) {
-    .calc-top-title {
-        display: none;
+    .calc-top-leading {
+        flex: 1 1 100%;
     }
 
     .calc-top-chip b {
         max-width: 8em;
     }
 
-    // 预设占一整行；配装目标和自动配装并排在第二行
     .calc-top-preset {
-        flex: 1 1 100%;
+        flex: 1;
         min-width: 0;
     }
 
