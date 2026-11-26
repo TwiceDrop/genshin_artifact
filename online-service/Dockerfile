@@ -7,6 +7,7 @@ COPY online-service/src ./src
 COPY online-service/migrations ./migrations
 COPY online-service/static ./static
 COPY server/usage-stats-features.mjs server/usage-stats-characters.mjs /app/server/
+COPY beta-data/axis-format.mjs beta-data/shared-axis.mjs /app/beta-data/
 COPY LICENSE /app/LICENSE
 USER node
 EXPOSE 8080

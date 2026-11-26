@@ -15,12 +15,13 @@ fixed = [
     "online-service/compose.yaml", "online-service/Caddyfile",
     "online-service/.env.example", "online-service/.gitignore", "online-service/DEPLOY.md",
     "online-service/scripts/init-secrets.mjs", "online-service/scripts/backup.sh", "online-service/scripts/pack.py",
+    "beta-data/axis-format.mjs", "beta-data/shared-axis.mjs",
     "server/usage-stats-features.mjs", "server/usage-stats-characters.mjs",
 ]
 files = [source / name for name in fixed]
 files += sorted((service / "src").rglob("*.mjs"))
 files += sorted((service / "migrations").rglob("*.sql"))
-files += sorted(path for path in (service / "static").iterdir() if path.is_file())
+files += sorted(path for path in (service / "static").rglob("*") if path.is_file())
 for path in files:
     if not path.is_file() or path.is_symlink():
         raise RuntimeError(f"Missing or linked package source: {path}")

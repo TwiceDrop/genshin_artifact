@@ -1,0 +1,987 @@
+{
+  "Skirk": {
+    "name": "丝柯克",
+    "element": "Cryo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "元素战技·点按"
+      },
+      {
+        "id": "skill.hold",
+        "label": "元素战技·长按",
+        "parameters": [
+          {
+            "key": "absorbedRifts",
+            "label": "吸收裂隙",
+            "min": 0,
+            "max": 3,
+            "integer": true,
+            "step": 1,
+            "help": "本次动作吸收的裂隙数量，0～3个",
+            "error": "裂隙吸收数量无效"
+          }
+        ]
+      },
+      {
+        "id": "burst",
+        "label": "元素爆发",
+        "parameters": [
+          {
+            "key": "absorbedRifts",
+            "label": "吸收裂隙",
+            "min": 0,
+            "max": 3,
+            "integer": true,
+            "step": 1,
+            "help": "本次动作吸收的裂隙数量，0～3个",
+            "error": "裂隙吸收数量无效"
+          }
+        ]
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1式"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2式"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3式"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4式"
+      },
+      {
+        "id": "normal.5",
+        "label": "普通攻击·第5式"
+      },
+      {
+        "id": "charged",
+        "label": "重击",
+        "parameters": [
+          {
+            "key": "absorbedRifts",
+            "label": "吸收裂隙",
+            "min": 0,
+            "max": 3,
+            "integer": true,
+            "step": 1,
+            "help": "本次动作吸收的裂隙数量，0～3个",
+            "error": "裂隙吸收数量无效"
+          }
+        ]
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Furina": {
+    "name": "芙宁娜",
+    "element": "Hydro",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "孤心沙龙"
+      },
+      {
+        "id": "burst",
+        "label": "万众狂欢"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "charged",
+        "label": "重击·切换荒芒"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Escoffier": {
+    "name": "爱可菲",
+    "element": "Cryo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "冻霜芭菲"
+      },
+      {
+        "id": "burst",
+        "label": "花刀技法"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·一段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·二段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·三段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Vodyanitsa": {
+    "name": "沃雅妮莎",
+    "element": "Hydro",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "晨声纷流"
+      },
+      {
+        "id": "burst",
+        "label": "终奏·伴尔沉沦"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·一段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·二段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·三段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·四段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Mona": {
+    "name": "莫娜",
+    "element": "Hydro",
+    "actions": [
+      {
+        "id": "burst",
+        "label": "星命定轨",
+        "parameters": [
+          {
+            "key": "bubbleDelayMs",
+            "label": "附加后破泡延迟（秒）",
+            "min": 0,
+            "max": 8000,
+            "scale": 1000,
+            "step": 0.1,
+            "placeholder": "自动",
+            "help": "留空：泡影附加后自动判断破裂，最多等待8秒",
+            "error": "泡影破裂延迟须为0～8秒"
+          }
+        ]
+      },
+      {
+        "id": "skill",
+        "label": "水中幻愿·点按"
+      },
+      {
+        "id": "skill.hold",
+        "label": "水中幻愿·长按"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Alyosha": {
+    "name": "阿罗夏",
+    "element": "Electro",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "伏袭霆击·点按"
+      },
+      {
+        "id": "skill.hold",
+        "label": "伏袭霆击·长按"
+      },
+      {
+        "id": "burst",
+        "label": "守猎进踞"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "YaeMiko": {
+    "name": "八重神子",
+    "element": "Electro",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "野干役咒·杀生樱"
+      },
+      {
+        "id": "burst",
+        "label": "大密法·天狐显真"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Qiqi": {
+    "name": "七七",
+    "element": "Cryo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "仙法·寒病鬼差"
+      },
+      {
+        "id": "burst",
+        "label": "仙法·救苦度厄"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "normal.5",
+        "label": "普通攻击·第5段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Odette": {
+    "name": "奥黛塔",
+    "element": "Cryo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "夜中独舞／破晓终奏"
+      },
+      {
+        "id": "burst",
+        "label": "青鸟终曲"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "normal.5",
+        "label": "普通攻击·第5段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Sandrone": {
+    "name": "桑多涅",
+    "element": "Cryo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "事象数式·游衍解析"
+      },
+      {
+        "id": "burst",
+        "label": "事象数式·万理证毕"
+      },
+      {
+        "id": "charged",
+        "label": "重击·解算模式"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Mitya": {
+    "name": "米提亚",
+    "element": "Electro",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "律定·变量侦测·点按／切换"
+      },
+      {
+        "id": "skill.hold",
+        "label": "律定·变量侦测·长按"
+      },
+      {
+        "id": "burst",
+        "label": "解析·递变之理"
+      },
+      {
+        "id": "charged",
+        "label": "重击／递变聚爆",
+        "parameters": [
+          {
+            "key": "holdMs",
+            "label": "长按时长（秒）",
+            "min": 1000,
+            "max": 10000,
+            "scale": 1000,
+            "step": 0.1,
+            "error": "长按时长须为1～10秒"
+          }
+        ]
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Valeriy": {
+    "name": "瓦列里",
+    "element": "Electro",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "攻势防御·堡垒骤进"
+      },
+      {
+        "id": "burst",
+        "label": "火力焦点·雷霰急袭"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "charged",
+        "label": "重击／臼炮直射"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Sucrose": {
+    "name": "砂糖",
+    "element": "Anemo",
+    "actions": [
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      },
+      {
+        "id": "skill",
+        "label": "风灵作成·陆叁零捌"
+      },
+      {
+        "id": "burst",
+        "label": "禁·风灵作成·柒伍同构贰型"
+      }
+    ]
+  },
+  "Vesna": {
+    "name": "薇斯纳",
+    "element": "Anemo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "操典·制胜有道／翔风剑"
+      },
+      {
+        "id": "burst",
+        "label": "致礼·献予女皇陛下"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "normal.5",
+        "label": "普通攻击·第5段"
+      },
+      {
+        "id": "normal.6",
+        "label": "普通攻击·第6段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      }
+    ]
+  },
+  "Faruzan": {
+    "name": "珐露珊",
+    "element": "Anemo",
+    "actions": [
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "aimed",
+        "label": "瞄准射击"
+      },
+      {
+        "id": "charged",
+        "label": "满蓄力／飓烈箭",
+        "parameters": [
+          {
+            "key": "travelMs",
+            "label": "箭矢飞行时间（秒）",
+            "min": 0,
+            "max": 3000,
+            "scale": 1000,
+            "step": 0.05,
+            "error": "箭矢飞行时间须为0～3秒"
+          }
+        ]
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      },
+      {
+        "id": "skill",
+        "label": "非想风天"
+      },
+      {
+        "id": "burst",
+        "label": "抟风秘道"
+      }
+    ]
+  },
+  "Zibai": {
+    "name": "兹白",
+    "element": "Geo",
+    "actions": [
+      {
+        "id": "skill",
+        "label": "天地忽然身"
+      },
+      {
+        "id": "skill.cycle",
+        "label": "天地忽然身·循环起点"
+      },
+      {
+        "id": "stride",
+        "label": "灵驹飞踏"
+      },
+      {
+        "id": "burst",
+        "label": "三垣威仪法"
+      },
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      }
+    ]
+  },
+  "Columbina": {
+    "name": "哥伦比娅",
+    "element": "Hydro",
+    "actions": [
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "skill",
+        "label": "万古潮汐"
+      },
+      {
+        "id": "skill.cycle",
+        "label": "万古潮汐·循环起点"
+      },
+      {
+        "id": "burst",
+        "label": "她的乡愁"
+      }
+    ]
+  },
+  "Linnea": {
+    "name": "莉奈娅",
+    "element": "Geo",
+    "actions": [
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "aimed",
+        "label": "瞄准射击"
+      },
+      {
+        "id": "charged",
+        "label": "满蓄力瞄准射击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "skill",
+        "label": "对策·露米呀吼吼！"
+      },
+      {
+        "id": "skill.refresh",
+        "label": "刷新露米·循环起点"
+      },
+      {
+        "id": "skill.mega",
+        "label": "露米·百万吨重锤"
+      },
+      {
+        "id": "burst",
+        "label": "备忘·极端环境生存指南"
+      }
+    ]
+  },
+  "Illuga": {
+    "name": "叶洛亚",
+    "element": "Geo",
+    "actions": [
+      {
+        "id": "normal.1",
+        "label": "普通攻击·第1段"
+      },
+      {
+        "id": "normal.2",
+        "label": "普通攻击·第2段"
+      },
+      {
+        "id": "normal.3",
+        "label": "普通攻击·第3段"
+      },
+      {
+        "id": "normal.4",
+        "label": "普通攻击·第4段"
+      },
+      {
+        "id": "charged",
+        "label": "重击"
+      },
+      {
+        "id": "plunge.collision",
+        "label": "下落期间伤害"
+      },
+      {
+        "id": "plunge.low",
+        "label": "低空下落攻击"
+      },
+      {
+        "id": "plunge",
+        "label": "高空下落攻击"
+      },
+      {
+        "id": "skill.hold",
+        "label": "衔莺破晓·长按"
+      },
+      {
+        "id": "skill",
+        "label": "衔莺破晓"
+      },
+      {
+        "id": "burst",
+        "label": "鉴照无影"
+      }
+    ]
+  }
+}

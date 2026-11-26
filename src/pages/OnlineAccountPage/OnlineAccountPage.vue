@@ -5,6 +5,7 @@
 
         <template v-if="user">
             <online-account-card />
+            <my-axis-shares v-if="serviceUrl" :key="serviceUrl + user.id" :service-url="serviceUrl" :user-id="user.id" />
             <cloud-profiles-panel v-if="serviceUrl" :user="user" :service-url="serviceUrl" />
             <cookie-vault-panel :key="user.id" />
         </template>
@@ -32,6 +33,7 @@ import {computed, onActivated, onMounted, ref} from "vue"
 import {useRouter} from "vue-router"
 import {cloudApi} from "@/platform/cloud.mjs"
 import {onlineUser, loadOnlineUser} from "@/cloud/online-user.mjs"
+import MyAxisShares from "./MyAxisShares.vue"
 import OnlineAccountCard from "./OnlineAccountCard.vue"
 import CloudProfilesPanel from "./CloudProfilesPanel.vue"
 import CookieVaultPanel from "./CookieVaultPanel.vue"
