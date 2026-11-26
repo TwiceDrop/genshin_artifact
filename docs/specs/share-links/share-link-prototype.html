@@ -1,0 +1,2771 @@
+<!doctype html>
+<html lang="zh-CN" data-color-mode="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>莫娜占卜铺 · 分享链接高保真设计稿</title>
+<style>
+@font-face {
+  font-family: "Mona Brand";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/long-cang-title.woff2") format("woff2");
+}
+
+:root,
+html[data-color-mode="dark"] {
+  color-scheme: dark;
+  --cx-ground: #0f1428;
+  --cx-card: #161d38;
+  --cx-step: #1b2343;
+  --cx-step-2: #232c52;
+  --cx-letter: #eeeaf6;
+  --cx-dim: #a3abc6;
+  --cx-quiet: #747e9e;
+  --cx-gold: #e2c078;
+  --cx-gold-hover: #eccd8c;
+  --cx-gold-on: #17120a;
+  --cx-gold-soft: rgba(226, 192, 120, 0.13);
+  --cx-gold-edge: rgba(226, 192, 120, 0.36);
+  --cx-up: #ef8f95;
+  --cx-up-bg: rgba(239, 143, 149, 0.12);
+  --cx-up-edge: rgba(239, 143, 149, 0.36);
+  --cx-up-btn: #a93f4b;
+  --cx-down: #6fcf97;
+  --cx-down-bg: rgba(111, 207, 151, 0.12);
+  --cx-down-edge: rgba(111, 207, 151, 0.34);
+  --cx-radius: 18px;
+  --sh-night: #0b1124;
+  --sh-hover: #141c3a;
+  --sh-raised: #1d2750;
+  --el-hydro: #7eb8ff;
+  --el-cryo: #87e4df;
+  --el-pyro: #ff9a81;
+  --el-electro: #c0a2ff;
+  --el-anemo: #77d8bd;
+  --el-geo: #e8c77d;
+  --el-dendro: #b3d975;
+  --code-bg: #10162c;
+  --shadow-dialog: 0 24px 64px rgba(3, 6, 18, 0.62);
+  --shadow-frame: 0 20px 56px rgba(3, 6, 18, 0.55);
+  --font-sans: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", "SFMono-Regular", monospace;
+}
+
+html[data-color-mode="light"] {
+  color-scheme: light;
+  --cx-ground: #eef0f6;
+  --cx-card: #ffffff;
+  --cx-step: #f3f5fa;
+  --cx-step-2: #e2e6f0;
+  --cx-letter: #121733;
+  --cx-dim: #5a6380;
+  --cx-quiet: #7d86a3;
+  --cx-gold: #8a6420;
+  --cx-gold-hover: #9d7327;
+  --cx-gold-on: #ffffff;
+  --cx-gold-soft: rgba(138, 100, 32, 0.10);
+  --cx-gold-edge: rgba(138, 100, 32, 0.32);
+  --cx-up: #c0474f;
+  --cx-up-bg: rgba(192, 71, 79, 0.08);
+  --cx-up-edge: rgba(192, 71, 79, 0.28);
+  --cx-up-btn: #c0474f;
+  --cx-down: #2f8a5b;
+  --cx-down-bg: rgba(47, 138, 91, 0.09);
+  --cx-down-edge: rgba(47, 138, 91, 0.28);
+  --sh-night: #f4f2fa;
+  --sh-hover: #e6e2f3;
+  --sh-raised: #ddd8ef;
+  --el-hydro: #2f7ad6;
+  --el-cryo: #239698;
+  --code-bg: #f6f8fc;
+  --shadow-dialog: 0 22px 54px rgba(18, 23, 51, 0.18);
+  --shadow-frame: 0 18px 46px rgba(18, 23, 51, 0.12);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cx-ground);
+  color: var(--cx-letter);
+  font: 14px/1.55 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.num { font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+
+/* ===== Prototype Top Navigation Chrome (hidden in ?shot= mode) ===== */
+.proto-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--sh-night);
+  border-bottom: 1px solid var(--cx-step-2);
+  flex-wrap: wrap;
+}
+.proto-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.proto-brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--cx-gold-edge);
+}
+.proto-brand-name {
+  font-family: "Mona Brand", "KaiTi", serif;
+  font-size: 20px;
+  color: var(--cx-gold);
+  line-height: 1.1;
+}
+.proto-brand-sub {
+  font-size: 13px;
+  color: var(--cx-dim);
+  padding-left: 10px;
+  border-left: 1px solid var(--cx-step-2);
+}
+.proto-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--cx-step);
+  flex-wrap: wrap;
+}
+.proto-tab {
+  border: 0;
+  background: transparent;
+  color: var(--cx-dim);
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.proto-tab:hover { color: var(--cx-letter); }
+.proto-tab.active {
+  background: var(--cx-gold);
+  color: var(--cx-gold-on);
+  font-weight: 600;
+}
+.proto-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.proto-pill-btn {
+  border: 1px solid var(--cx-step-2);
+  background: var(--cx-card);
+  color: var(--cx-dim);
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.proto-pill-btn:hover { border-color: var(--cx-gold); color: var(--cx-letter); }
+
+.proto-stage {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+}
+.proto-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+}
+.proto-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.proto-controls-label {
+  font-size: 13px;
+  color: var(--cx-dim);
+  margin-right: 4px;
+}
+.seg-group {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--cx-step);
+  gap: 2px;
+}
+.seg-btn {
+  border: 0;
+  background: transparent;
+  color: var(--cx-dim);
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+.seg-btn:hover { color: var(--cx-letter); }
+.seg-btn.active {
+  background: var(--cx-card);
+  color: var(--cx-gold);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+}
+
+/* Shot mode removes all prototype chrome */
+body.shot-mode .proto-bar,
+body.shot-mode .proto-controls,
+body.shot-mode .proto-note { display: none !important; }
+body.shot-mode .proto-stage { max-width: none; padding: 0; margin: 0; }
+body.shot-mode .view-panel { display: none; }
+body.shot-mode .view-panel.active { display: block; }
+
+.view-panel { display: none; }
+.view-panel.active { display: block; }
+
+/* ===== Element Plus Authentic Primitives ===== */
+.el-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 8px;
+  border: 1px solid var(--cx-step-2);
+  background: var(--cx-step);
+  color: var(--cx-letter);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+}
+.el-btn:hover { border-color: var(--cx-gold-edge); background: var(--cx-step-2); }
+.el-btn.primary {
+  background: var(--cx-gold);
+  border-color: var(--cx-gold);
+  color: var(--cx-gold-on);
+}
+.el-btn.primary:hover { background: var(--cx-gold-hover); border-color: var(--cx-gold-hover); }
+.el-btn.danger {
+  background: var(--cx-up-btn);
+  border-color: var(--cx-up-btn);
+  color: #ffffff;
+}
+.el-btn.danger:hover { opacity: 0.92; }
+.el-btn.danger-text {
+  background: transparent;
+  border-color: transparent;
+  color: var(--cx-up);
+  padding: 0 10px;
+}
+.el-btn.danger-text:hover { background: var(--cx-up-bg); border-color: var(--cx-up-edge); }
+.el-btn.ghost {
+  background: transparent;
+  border-color: var(--cx-step-2);
+  color: var(--cx-dim);
+}
+.el-btn.ghost:hover { color: var(--cx-letter); border-color: var(--cx-dim); }
+.el-btn.sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.el-btn.lg { height: 42px; padding: 0 20px; font-size: 15px; border-radius: 10px; }
+.el-btn svg { width: 15px; height: 15px; flex: none; }
+
+.el-btn.share-dirty {
+  border-color: var(--cx-gold-edge);
+  background: var(--cx-gold-soft);
+  color: var(--cx-gold);
+}
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+}
+.status-dot.gold { background: var(--cx-gold); }
+.status-dot.green { background: var(--cx-down); }
+.status-dot.red { background: var(--cx-up); }
+
+/* Toast feedback */
+.toast {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-16px);
+  z-index: 999;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--cx-card);
+  border: 1px solid var(--cx-down-edge);
+  color: var(--cx-letter);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-dialog);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* =====================================================================
+   VIEW 1: DESKTOP APP SHELL + TEAM AXIS EDITOR + SHARE DIALOG
+   ===================================================================== */
+.app-mock-window {
+  position: relative;
+  display: grid;
+  grid-template-columns: 212px minmax(0, 1fr);
+  min-height: 836px;
+  background: var(--cx-ground);
+  border-radius: 16px;
+  border: 1px solid var(--cx-step-2);
+  overflow: hidden;
+  box-shadow: var(--shadow-frame);
+}
+body.shot-mode .app-mock-window {
+  border-radius: 0;
+  border: 0;
+  min-height: 860px;
+  height: 860px;
+  box-shadow: none;
+}
+
+.app-sidebar {
+  background: var(--sh-night);
+  border-right: 1px solid var(--cx-step-2);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sb-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+}
+.sb-brand img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.sb-brand-name { font-family: "Mona Brand", "KaiTi", serif; font-size: 20px; color: var(--cx-gold); display: block; line-height: 1.15; }
+.sb-brand-ver { font-size: 11px; color: var(--cx-dim); }
+.sb-group-title { font-size: 12px; color: var(--cx-quiet); padding: 6px 10px 4px; margin: 0; }
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--cx-dim);
+  font-size: 13px;
+}
+.sb-item.active { background: var(--sh-raised); color: var(--cx-gold); font-weight: 600; }
+.sb-item svg { width: 16px; height: 16px; flex: none; opacity: 0.9; }
+
+.app-main {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+.app-toolbar h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 650;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-toolbar h2 svg { width: 22px; height: 22px; color: var(--cx-gold); }
+.app-toolbar-btns { display: flex; gap: 8px; }
+
+.manager-grid {
+  display: grid;
+  grid-template-columns: 214px minmax(0, 1fr);
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.axis-list-card {
+  background: var(--cx-card);
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.axis-list-item {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--cx-dim);
+  font-size: 13px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.axis-list-item.active {
+  background: var(--cx-gold);
+  color: var(--cx-gold-on);
+  font-weight: 600;
+}
+.axis-list-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.editor-card {
+  background: var(--cx-card);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.config-fields {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.8fr) 110px 125px 110px;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.field-item label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cx-dim);
+  margin-bottom: 6px;
+}
+.mock-input {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--cx-step);
+  border: 1px solid var(--cx-step-2);
+  color: var(--cx-letter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mock-input.gold-val { color: var(--cx-gold); font-weight: 650; }
+
+.editor-tabs-bar {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--cx-step-2);
+  margin-bottom: 12px;
+}
+.editor-tab-item {
+  padding: 0 2px 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cx-gold);
+  border-bottom: 2px solid var(--cx-gold);
+}
+.timeline-mini-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* Miniature authentic TeamActionTimeline */
+.mini-timeline {
+  border-radius: 12px;
+  background: var(--cx-step);
+  overflow: hidden;
+  border: 1px solid var(--cx-step-2);
+  flex: 1;
+}
+.mini-ruler {
+  display: grid;
+  grid-template-columns: 118px repeat(9, 1fr);
+  height: 30px;
+  background: var(--cx-card);
+  border-bottom: 1px solid var(--cx-step-2);
+  align-items: center;
+  font-size: 11px;
+  color: var(--cx-dim);
+}
+.mini-ruler > span:first-child { padding-left: 12px; border-right: 1px solid var(--cx-step-2); height: 100%; display: flex; align-items: center; }
+.mini-ruler > span:not(:first-child) { padding-left: 6px; border-left: 1px solid var(--cx-step-2); height: 100%; display: flex; align-items: center; }
+.mini-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  height: 54px;
+  border-bottom: 1px solid var(--cx-step-2);
+}
+.mini-track:last-child { border-bottom: 0; }
+.mini-track-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--cx-card);
+  border-right: 1px solid var(--cx-step-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.mini-track-person img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.mini-track-lane {
+  position: relative;
+  background: repeating-linear-gradient(to right, transparent 0, transparent calc(11.11% - 1px), rgba(35,44,82,0.55) calc(11.11% - 1px), rgba(35,44,82,0.55) 11.11%);
+}
+.mini-block {
+  position: absolute;
+  top: 9px;
+  height: 36px;
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: var(--cx-card);
+  border-left: 3px solid var(--cx-gold);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.mini-block strong { font-size: 11px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-block span { font-size: 10px; color: var(--cx-dim); line-height: 1.2; }
+
+/* Existing editor-actions + NEW Share button placement */
+.editor-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cx-step-2);
+  flex-wrap: wrap;
+}
+.action-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--cx-step-2);
+  margin: 0 4px;
+}
+.action-spacer { flex: 1; }
+.action-sync-hint {
+  font-size: 12px;
+  color: var(--cx-gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 6px;
+}
+
+/* Modal Backdrop inside App Window */
+.dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 10, 22, 0.46);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+/* ===== Share Dialog Component (el-dialog.cx-scope) ===== */
+.share-dialog {
+  width: 100%;
+  max-width: 520px;
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+  border-radius: var(--cx-radius);
+  box-shadow: var(--shadow-dialog);
+  overflow: hidden;
+}
+.share-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 12px;
+}
+.share-dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--cx-letter);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.share-dialog-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--cx-dim);
+  display: grid;
+  place-items: center;
+}
+.share-dialog-close:hover { background: var(--cx-step); color: var(--cx-letter); }
+
+.share-dialog-body {
+  padding: 4px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Axis Identity Card inside Dialog */
+.axis-identity-box {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--cx-step);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.axis-identity-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.axis-identity-title {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--cx-letter);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.axis-identity-meta {
+  font-size: 12px;
+  color: var(--cx-dim);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.axis-identity-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mini-char-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--cx-dim);
+}
+.mini-char-chip img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--el-color, var(--cx-step-2));
+}
+
+/* Status Banners inside Dialog */
+.state-banner {
+  padding: 12px 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.state-banner svg { width: 18px; height: 18px; flex: none; margin-top: 2px; }
+.state-banner strong { display: block; font-size: 14px; font-weight: 650; margin-bottom: 2px; }
+.state-banner p { margin: 0; color: var(--cx-dim); font-size: 13px; }
+.state-banner.dirty {
+  background: var(--cx-gold-soft);
+  border: 1px solid var(--cx-gold-edge);
+}
+.state-banner.dirty strong, .state-banner.dirty svg { color: var(--cx-gold); }
+.state-banner.synced {
+  background: var(--cx-down-bg);
+  border: 1px solid var(--cx-down-edge);
+}
+.state-banner.synced strong, .state-banner.synced svg { color: var(--cx-down); }
+.state-banner.danger {
+  background: var(--cx-up-bg);
+  border: 1px solid var(--cx-up-edge);
+}
+.state-banner.danger strong, .state-banner.danger svg { color: var(--cx-up); }
+
+/* Version Compare Strip in Dirty State */
+.version-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.version-cell {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--cx-step);
+  border: 1px solid var(--cx-step-2);
+}
+.version-cell.local {
+  border-color: var(--cx-gold-edge);
+}
+.version-cell-label {
+  font-size: 12px;
+  color: var(--cx-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.version-cell.local .version-cell-label { color: var(--cx-gold); font-weight: 600; }
+.version-cell-val {
+  font-size: 13px;
+  color: var(--cx-letter);
+  font-weight: 600;
+}
+.version-cell-sub {
+  font-size: 12px;
+  color: var(--cx-quiet);
+  margin-top: 2px;
+}
+
+/* Link Copy Field */
+.field-block { display: flex; flex-direction: column; gap: 7px; }
+.field-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--cx-dim);
+}
+.field-block-head strong { color: var(--cx-letter); font-weight: 600; }
+.link-row {
+  display: flex;
+  gap: 8px;
+}
+.link-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--cx-step-2);
+  background: var(--cx-step);
+  color: var(--cx-letter);
+  font: 13px/38px var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Expiry Radio Segmented Group */
+.expiry-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.expiry-opt {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--cx-step-2);
+  background: var(--cx-step);
+  color: var(--cx-dim);
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 140ms ease;
+}
+.expiry-opt:hover { border-color: var(--cx-gold-edge); color: var(--cx-letter); }
+.expiry-opt.active {
+  background: var(--cx-gold-soft);
+  border-color: var(--cx-gold);
+  color: var(--cx-gold);
+}
+
+.candidate-hint {
+  font-size: 12px;
+  color: var(--cx-dim);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Inline Revoke Confirm Box */
+.revoke-confirm-box {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--cx-up-bg);
+  border: 1px solid var(--cx-up-edge);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.revoke-confirm-box strong { font-size: 14px; color: var(--cx-up); }
+.revoke-confirm-box p { margin: 0; font-size: 13px; color: var(--cx-letter); line-height: 1.5; }
+.revoke-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.share-dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 22px 18px;
+  border-top: 1px solid var(--cx-step-2);
+  background: rgba(11, 17, 36, 0.24);
+}
+html[data-color-mode="light"] .share-dialog-foot { background: var(--cx-step); }
+.foot-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* =====================================================================
+   PUBLIC PREVIEW SHELL (SHARED BY AXIS, DSL, PRESET, EXPIRED)
+   ===================================================================== */
+.pub-topbar {
+  height: 52px;
+  padding: 0 20px;
+  background: var(--sh-night);
+  border-bottom: 1px solid var(--cx-step-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.pub-topbar.mobile-bar { height: 48px; padding: 0 16px; }
+.pub-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.pub-brand img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.pub-brand-title {
+  font-family: "Mona Brand", "KaiTi", serif;
+  font-size: 20px;
+  color: var(--cx-gold);
+  line-height: 1;
+}
+.pub-kind-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cx-dim);
+  padding-left: 10px;
+  border-left: 1px solid var(--cx-step-2);
+}
+.pub-topbar-meta {
+  font-size: 12px;
+  color: var(--cx-quiet);
+}
+
+/* =====================================================================
+   VIEW 2: MOBILE FOUR-CHARACTER AXIS PREVIEW (390x844)
+   ===================================================================== */
+.mobile-showcase-grid {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+body.shot-mode .mobile-showcase-grid {
+  background: var(--cx-ground);
+  padding: 28px 36px;
+  min-height: 920px;
+  align-items: center;
+}
+.phone-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.phone-caption {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cx-dim);
+}
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  border-radius: 30px;
+  border: 6px solid #263156;
+  background: var(--cx-ground);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: var(--shadow-frame);
+}
+html[data-color-mode="light"] .phone-frame { border-color: #cbd2e4; }
+
+.phone-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.phone-scroll::-webkit-scrollbar { width: 4px; }
+.phone-scroll::-webkit-scrollbar-thumb { background: var(--cx-step-2); border-radius: 4px; }
+
+.axis-hero-mobile h1 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--cx-letter);
+  word-break: break-word;
+}
+.axis-subline {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--cx-dim);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.axis-subline .gold-num { color: var(--cx-gold); font-weight: 650; }
+
+/* 4-member roster strip */
+.team-strip-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.team-slot-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 4px 8px;
+  border-radius: 12px;
+  background: var(--cx-card);
+  border: 1.5px solid transparent;
+  transition: border-color 150ms ease, background-color 150ms ease, opacity 150ms ease;
+}
+.team-slot-btn:hover { background: var(--cx-step); }
+.team-slot-btn.active {
+  border-color: var(--el-color, var(--cx-gold));
+  background: var(--cx-step);
+}
+.team-slot-btn.dimmed { opacity: 0.45; }
+.team-slot-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+.team-slot-avatar img.portrait {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--el-color, var(--cx-step-2));
+  display: block;
+}
+.team-slot-avatar img.el-icon {
+  position: absolute;
+  right: -3px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cx-card);
+  padding: 1px;
+}
+.team-slot-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cx-letter);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.starter-mark {
+  font-size: 10px;
+  color: var(--cx-gold);
+  font-weight: 600;
+  line-height: 1;
+}
+.slot-step-count {
+  font-size: 10px;
+  color: var(--cx-quiet);
+  line-height: 1;
+}
+
+.section-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.section-bar h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--cx-dim);
+}
+.filter-reset-link {
+  border: 0;
+  background: transparent;
+  color: var(--cx-gold);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 4px;
+}
+
+/* ===== TURN-GROUPED ACTION SEQUENCE (Core Reading Innovation) ===== */
+.turn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.turn-card {
+  position: relative;
+  background: var(--cx-card);
+  border-radius: 14px;
+  border: 1px solid var(--cx-step-2);
+  border-left: 4px solid var(--el-color, var(--cx-gold));
+  overflow: hidden;
+  transition: opacity 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.turn-card.dimmed { opacity: 0.36; }
+.turn-card.highlighted {
+  border-color: var(--el-color, var(--cx-gold));
+  box-shadow: 0 0 0 1px rgba(135, 228, 223, 0.25);
+}
+.turn-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 13px;
+  background: var(--cx-step);
+  border-bottom: 1px solid var(--cx-step-2);
+}
+.turn-actor {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.turn-actor img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--el-color, var(--cx-step-2));
+  flex: none;
+}
+.turn-actor-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cx-letter);
+}
+.turn-actor-sub {
+  font-size: 12px;
+  color: var(--cx-dim);
+}
+.turn-span {
+  font-size: 12px;
+  color: var(--cx-dim);
+  white-space: nowrap;
+}
+
+.turn-steps {
+  display: flex;
+  flex-direction: column;
+}
+.step-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 13px;
+  border-bottom: 1px solid rgba(35, 44, 82, 0.55);
+}
+html[data-color-mode="light"] .step-row { border-bottom-color: var(--cx-step-2); }
+.step-row:last-child { border-bottom: 0; }
+.step-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cx-quiet);
+}
+.step-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.step-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cx-letter);
+  line-height: 1.35;
+}
+.step-param {
+  font-size: 12px;
+  color: var(--cx-gold);
+}
+.step-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cx-dim);
+  white-space: nowrap;
+}
+.hide-time .step-time,
+.hide-time .turn-span,
+.hide-time .time-only { display: none !important; }
+
+/* Switch Connector Bridge between Turns */
+.switch-bridge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  color: var(--cx-dim);
+  font-size: 12px;
+}
+.switch-line {
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  color: var(--cx-gold);
+  font-weight: 700;
+}
+.switch-target { color: var(--cx-letter); font-weight: 600; }
+.switch-time { margin-left: auto; color: var(--cx-quiet); font-size: 11px; }
+
+/* Sticky Mobile Bottom Bar */
+.phone-bottom-cta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 16px 14px;
+  background: rgba(11, 17, 36, 0.92);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--cx-step-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+html[data-color-mode="light"] .phone-bottom-cta { background: rgba(255, 255, 255, 0.94); }
+.phone-bottom-cta .el-btn { width: 100%; }
+
+/* =====================================================================
+   VIEW 3: DESKTOP FOUR-CHARACTER AXIS PREVIEW
+   ===================================================================== */
+.desktop-pub-window {
+  background: var(--cx-ground);
+  border-radius: 16px;
+  border: 1px solid var(--cx-step-2);
+  overflow: hidden;
+  box-shadow: var(--shadow-frame);
+  min-height: 820px;
+  display: flex;
+  flex-direction: column;
+}
+body.shot-mode .desktop-pub-window {
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  min-height: 920px;
+}
+.desktop-pub-container {
+  max-width: 1140px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 28px 40px;
+  display: grid;
+  grid-template-columns: 332px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.sticky-aside {
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.pub-card {
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+  border-radius: var(--cx-radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.pub-card h1 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--cx-letter);
+}
+.pub-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--cx-step-2);
+  border-bottom: 1px solid var(--cx-step-2);
+}
+.pub-stat dt { font-size: 12px; color: var(--cx-dim); margin: 0 0 2px; }
+.pub-stat dd { margin: 0; font-size: 16px; font-weight: 700; color: var(--cx-letter); }
+.pub-stat dd.gold { color: var(--cx-gold); }
+
+.desktop-team-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.desktop-team-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--cx-step);
+  border: 1.5px solid transparent;
+  text-align: left;
+  transition: all 140ms ease;
+}
+.desktop-team-btn:hover { background: var(--cx-step-2); }
+.desktop-team-btn.active { border-color: var(--el-color, var(--cx-gold)); background: var(--cx-step-2); }
+.desktop-team-btn.dimmed { opacity: 0.45; }
+.desktop-team-btn img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--el-color, var(--cx-step-2));
+  flex: none;
+}
+.desktop-team-info strong { display: block; font-size: 13px; color: var(--cx-letter); }
+.desktop-team-info span { display: block; font-size: 11px; color: var(--cx-dim); }
+.desktop-team-info span.starter { color: var(--cx-gold); font-weight: 600; }
+
+.aside-download-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aside-download-box .el-btn { width: 100%; }
+.aside-foot-meta {
+  font-size: 12px;
+  color: var(--cx-quiet);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.desktop-reader-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.desktop-reader-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+/* Read-only 4-track Gantt Overview on Desktop */
+.gantt-card {
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+  border-radius: var(--cx-radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gantt-note { font-size: 12px; color: var(--cx-dim); margin: 0; }
+
+/* =====================================================================
+   VIEW 4: MODAL STATES COMPARISON BOARD (Shot #4)
+   ===================================================================== */
+.states-board {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+body.shot-mode .states-board {
+  padding: 24px 28px;
+  background: var(--cx-ground);
+  min-height: 700px;
+}
+.board-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.board-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.board-col-title {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--cx-gold);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.board-col-title span { font-size: 12px; font-weight: 400; color: var(--cx-dim); }
+.entry-strip-card {
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.entry-strip-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.entry-strip-label { font-size: 12px; color: var(--cx-dim); font-weight: 600; }
+.entry-strip-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--cx-step);
+}
+
+/* =====================================================================
+   VIEW 5: DSL + CHARACTER PRESET + EXPIRED (Shot #5)
+   ===================================================================== */
+.other-views-grid {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+}
+body.shot-mode .other-views-grid {
+  padding: 24px 28px;
+  background: var(--cx-ground);
+  min-height: 920px;
+}
+.sub-frame {
+  border-radius: 20px;
+  border: 1px solid var(--cx-step-2);
+  background: var(--cx-ground);
+  overflow: hidden;
+  box-shadow: var(--shadow-frame);
+  display: flex;
+  flex-direction: column;
+}
+.sub-frame-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* DSL Code Viewer */
+.dsl-code-shell {
+  border-radius: 12px;
+  border: 1px solid var(--cx-step-2);
+  background: var(--code-bg);
+  overflow: hidden;
+}
+.dsl-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--cx-step);
+  border-bottom: 1px solid var(--cx-step-2);
+  font-size: 12px;
+  color: var(--cx-dim);
+}
+.dsl-code-actions { display: flex; align-items: center; gap: 6px; }
+.dsl-toggle {
+  border: 1px solid var(--cx-step-2);
+  background: var(--cx-card);
+  color: var(--cx-dim);
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.dsl-toggle.active { border-color: var(--cx-gold-edge); color: var(--cx-gold); background: var(--cx-gold-soft); }
+.dsl-code-body {
+  padding: 12px 0;
+  font: 13px/1.65 var(--font-mono);
+  overflow-x: auto;
+}
+.dsl-line {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  padding: 0 12px 0 0;
+}
+.dsl-ln {
+  text-align: right;
+  padding-right: 10px;
+  color: var(--cx-quiet);
+  user-select: none;
+  font-size: 12px;
+}
+.dsl-src {
+  color: var(--cx-letter);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.dsl-code-body.nowrap .dsl-src { white-space: pre; word-break: normal; }
+.tok-kw { color: var(--cx-gold); font-weight: 600; }
+.tok-id { color: var(--el-cryo); }
+.tok-num { color: var(--el-electro); }
+.tok-key { color: var(--el-hydro); }
+
+/* Preset Preview */
+.preset-head-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.preset-head-row img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--el-cryo);
+  flex: none;
+}
+.preset-head-text h3 { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.preset-stats-inline {
+  margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 13px;
+  color: var(--cx-dim);
+}
+.preset-stats-inline strong { color: var(--cx-letter); }
+
+.artifact-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.artifact-status-bar.included {
+  background: var(--cx-down-bg);
+  border: 1px solid var(--cx-down-edge);
+  color: var(--cx-down);
+}
+.artifact-status-bar.excluded {
+  background: var(--cx-step);
+  border: 1px solid var(--cx-step-2);
+  color: var(--cx-dim);
+}
+
+.preset-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.preset-subcard {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+}
+.preset-subcard h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--cx-dim);
+  font-weight: 600;
+}
+.kv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+}
+.kv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.kv-row span:first-child { color: var(--cx-dim); }
+.kv-row strong { color: var(--cx-letter); font-weight: 600; text-align: right; }
+
+.art-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.art-mini {
+  background: var(--cx-card);
+  border: 1px solid var(--cx-step-2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.art-mini-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 7px;
+  background: var(--cx-step);
+  border-bottom: 1px solid var(--cx-step-2);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cx-letter);
+}
+.art-mini-head img { width: 15px; height: 15px; opacity: 0.9; flex: none; filter: brightness(0) invert(0.88); }
+html[data-color-mode="light"] .art-mini-head img { filter: brightness(0) opacity(0.65); }
+.art-mini-head span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.art-mini-body {
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--cx-dim);
+}
+.art-main-stat { color: var(--cx-gold); font-weight: 650; margin-bottom: 2px; }
+
+/* Expired / Cancelled Card */
+.expired-card-wrap {
+  padding: 44px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.expired-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--cx-step);
+  border: 1px solid var(--cx-step-2);
+  display: grid;
+  place-items: center;
+  color: var(--cx-gold);
+}
+.expired-icon svg { width: 24px; height: 24px; }
+.expired-card-wrap h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.expired-card-wrap p { margin: 0; font-size: 13px; color: var(--cx-dim); line-height: 1.6; max-width: 30ch; }
+
+/* Responsive prototype container */
+@media (max-width: 1180px) {
+  .board-row-3 { grid-template-columns: 1fr; }
+  .other-views-grid { grid-template-columns: 1fr; }
+  .desktop-pub-container { grid-template-columns: 1fr; }
+  .sticky-aside { position: static; }
+  .art-grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .app-mock-window { grid-template-columns: 1fr; }
+  .app-sidebar { display: none; }
+  .manager-grid { grid-template-columns: 1fr; }
+  .config-fields { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast" role="status" aria-live="polite">
+  <span class="status-dot green"></span>
+  <span id="toastText">已复制链接</span>
+</div>
+
+<!-- Prototype Navigation Bar -->
+<header class="proto-bar">
+  <div class="proto-brand">
+    <img src="./assets/mona.png" alt="莫娜占卜铺" />
+    <span class="proto-brand-name">莫娜占卜铺</span>
+    <span class="proto-brand-sub">分享链接 · 高保真交互稿</span>
+  </div>
+  <nav class="proto-tabs" role="tablist" aria-label="设计视图切换">
+    <button class="proto-tab active" data-tab="modal-dirty" role="tab">1. 桌面分享弹窗（本地有修改）</button>
+    <button class="proto-tab" data-tab="mobile-axis" role="tab">2. 手机四人轴预览</button>
+    <button class="proto-tab" data-tab="desktop-axis" role="tab">3. 桌面四人轴预览</button>
+    <button class="proto-tab" data-tab="modal-states" role="tab">4. 弹窗其余状态对照</button>
+    <button class="proto-tab" data-tab="other-public" role="tab">5. DSL / 角色预设 / 失效态</button>
+  </nav>
+  <div class="proto-tools">
+    <button id="themeToggle" class="proto-pill-btn" type="button">切换浅色模式</button>
+  </div>
+</header>
+
+<main class="proto-stage">
+
+  <!-- =================================================================
+       PANEL 1: DESKTOP SHARE MODAL (DIRTY / INTERACTIVE ALL STATES)
+       ================================================================= -->
+  <section id="panel-modal-dirty" class="view-panel active">
+    <div class="proto-controls">
+      <div class="proto-controls-group">
+        <span class="proto-controls-label">弹窗状态</span>
+        <div class="seg-group" id="modalStateSwitch">
+          <button class="seg-btn" data-state="first">首次分享</button>
+          <button class="seg-btn" data-state="synced">已分享</button>
+          <button class="seg-btn" data-state="revoke">取消分享确认</button>
+          <button class="seg-btn active" data-state="dirty">本地有修改（旗舰态）</button>
+        </div>
+      </div>
+      <div class="proto-controls-group">
+        <button class="proto-pill-btn" id="toggleBackdropBtn" type="button">隐藏弹窗看入口位置</button>
+      </div>
+    </div>
+
+    <div class="app-mock-window">
+      <!-- Authentic Mona Sidebar -->
+      <aside class="app-sidebar">
+        <div class="sb-brand">
+          <img src="./assets/mona.png" alt="" />
+          <div>
+            <span class="sb-brand-name">莫娜占卜铺</span>
+            <span class="sb-brand-ver num">V6.5.0</span>
+          </div>
+        </div>
+        <div>
+          <p class="sb-group-title">计算</p>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+            <span>配装计算</span>
+          </div>
+          <div class="sb-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+            <span>多人优化</span>
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span>计算历史</span>
+          </div>
+        </div>
+        <div>
+          <p class="sb-group-title">仓库</p>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9"/></svg>
+            <span>圣遗物仓库</span>
+          </div>
+          <div class="sb-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 10h8M8 14h5"/></svg>
+            <span>计算预设</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Authentic TeamOptimizationWrapper Manager Editor -->
+      <div class="app-main">
+        <header class="app-toolbar">
+          <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+            管理计算配置
+          </h2>
+          <div class="app-toolbar-btns">
+            <button class="el-btn sm" type="button">返回计算</button>
+            <button class="el-btn sm" type="button">新建动作轴</button>
+            <button class="el-btn sm primary" type="button">导入</button>
+          </div>
+        </header>
+
+        <div class="manager-grid">
+          <aside class="axis-list-card">
+            <button class="axis-list-item active" type="button">
+              <span>丝柯克双水冻结 · 18.6s 首轮循环</span>
+              <span class="axis-list-meta"><span class="status-dot" style="background:#17120a"></span> 已分享 · 本地有修改</span>
+            </button>
+            <button class="axis-list-item" type="button">
+              <span>丝柯克长轴二轮（20.4s）</span>
+              <span class="axis-list-meta">仅本地</span>
+            </button>
+            <button class="axis-list-item" type="button">
+              <span>芙宁娜爱可菲双冰测试轴</span>
+              <span class="axis-list-meta"><span class="status-dot green"></span> 已分享</span>
+            </button>
+          </aside>
+
+          <section class="editor-card">
+            <div class="config-fields">
+              <div class="field-item">
+                <label>名称</label>
+                <div class="mock-input">丝柯克双水冻结 · 18.6s 首轮循环（含补裂隙）</div>
+              </div>
+              <div class="field-item">
+                <label>轴长（秒）</label>
+                <div class="mock-input gold-val num">18.6</div>
+              </div>
+              <div class="field-item">
+                <label>初始前台</label>
+                <div class="mock-input">芙宁娜 <span style="opacity:.6">▾</span></div>
+              </div>
+              <div class="field-item">
+                <label>轴尾命中</label>
+                <div class="mock-input">计入 <span style="opacity:.6">▾</span></div>
+              </div>
+            </div>
+
+            <div class="editor-tabs-bar">
+              <div class="editor-tab-item">动作时间轴</div>
+            </div>
+
+            <div class="timeline-mini-toolbar">
+              <button class="el-btn sm" type="button">添加动作</button>
+              <button class="el-btn sm" type="button">按时间排序</button>
+              <button class="el-btn sm" type="button">编辑 JSON</button>
+              <button class="el-btn sm" type="button">倍率预览</button>
+            </div>
+
+            <!-- Authentic 4-track TeamActionTimeline preview -->
+            <div class="mini-timeline">
+              <div class="mini-ruler num">
+                <span>时间（秒）</span>
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span><span>12</span><span>14</span><span>16</span>
+              </div>
+              <div class="mini-track">
+                <div class="mini-track-person"><img src="./assets/furina.png" alt=""/>芙宁娜</div>
+                <div class="mini-track-lane">
+                  <div class="mini-block" style="left:0%;width:9.5%;border-left-color:var(--el-hydro)"><strong>孤心沙龙</strong><span class="num">0.0s</span></div>
+                  <div class="mini-block" style="left:9.8%;width:12%;border-left-color:var(--el-hydro)"><strong>万众狂欢</strong><span class="num">0.9s</span></div>
+                </div>
+              </div>
+              <div class="mini-track">
+                <div class="mini-track-person"><img src="./assets/escoffier.png" alt=""/>爱可菲</div>
+                <div class="mini-track-lane">
+                  <div class="mini-block" style="left:16%;width:8.5%;border-left-color:var(--el-cryo)"><strong>冻霜芭菲</strong><span class="num">2.9s</span></div>
+                  <div class="mini-block" style="left:25%;width:11%;border-left-color:var(--el-cryo)"><strong>花刀技法</strong><span class="num">3.5s</span></div>
+                </div>
+              </div>
+              <div class="mini-track">
+                <div class="mini-track-person"><img src="./assets/mona.png" alt=""/>莫娜</div>
+                <div class="mini-track-lane">
+                  <div class="mini-block" style="left:32%;width:9.5%;border-left-color:var(--el-hydro)"><strong>水中幻愿</strong><span class="num">5.4s</span></div>
+                  <div class="mini-block" style="left:42%;width:11.5%;border-left-color:var(--el-hydro)"><strong>星命定轨</strong><span class="num">6.3s</span></div>
+                </div>
+              </div>
+              <div class="mini-track">
+                <div class="mini-track-person"><img src="./assets/skirk.png" alt=""/>丝柯克</div>
+                <div class="mini-track-lane">
+                  <div class="mini-block" style="left:50%;width:7.5%;border-left-color:var(--el-cryo)"><strong>战技·点按</strong><span class="num">8.5s</span></div>
+                  <div class="mini-block" style="left:58%;width:6.8%;border-left-color:var(--el-cryo)"><strong>普攻1</strong><span class="num">9.3s</span></div>
+                  <div class="mini-block" style="left:65.2%;width:6.8%;border-left-color:var(--el-cryo)"><strong>普攻2</strong><span class="num">9.8s</span></div>
+                  <div class="mini-block" style="left:72.4%;width:6.8%;border-left-color:var(--el-cryo)"><strong>普攻3</strong><span class="num">10.5s</span></div>
+                  <div class="mini-block" style="left:79.6%;width:7.5%;border-left-color:var(--el-cryo)"><strong>重击</strong><span class="num">11.2s</span></div>
+                  <div class="mini-block" style="left:87.6%;width:11%;border-left-color:var(--cx-gold)"><strong>元素爆发</strong><span class="num">12.1s</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Editor Actions Bar: Clear placement of Share alongside Save / Use / Export / Delete -->
+            <div class="editor-actions-bar">
+              <button class="el-btn primary" type="button" onclick="showToast('已保存到本地；如需同步给群友，请在分享中发布更新')">保存</button>
+              <button class="el-btn" type="button">用于计算</button>
+              <span class="action-divider" aria-hidden="true"></span>
+              <button class="el-btn" type="button">导出</button>
+              <button id="editorShareBtn" class="el-btn share-dirty" type="button" onclick="openModalBackdrop()">
+                <span class="status-dot gold"></span>
+                <span>分享 · 待更新</span>
+              </button>
+              <span class="action-spacer"></span>
+              <button class="el-btn danger" type="button">删除</button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Foreground Share Dialog (el-dialog) -->
+      <div id="liveModalBackdrop" class="dialog-backdrop">
+        <div id="liveShareDialog" class="share-dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+          <!-- Populated dynamically by JS for live state switching -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       PANEL 2: MOBILE FOUR-CHARACTER AXIS PUBLIC PREVIEW (390x844)
+       ================================================================= -->
+  <section id="panel-mobile-axis" class="view-panel">
+    <div class="proto-controls">
+      <div class="proto-controls-group">
+        <span class="proto-controls-label">数据条件模拟</span>
+        <div class="seg-group" id="mobileTimeToggle">
+          <button class="seg-btn active" data-time="yes">源数据含时间（默认）</button>
+          <button class="seg-btn" data-time="no">源数据无时间</button>
+        </div>
+        <div class="seg-group" id="mobileTitleToggle">
+          <button class="seg-btn active" data-title="normal">常规标题</button>
+          <button class="seg-btn" data-title="long">超长标题测试</button>
+        </div>
+      </div>
+      <div class="proto-controls-group">
+        <span class="proto-controls-label">提示：点击队伍角色头像可高亮对应行动段</span>
+      </div>
+    </div>
+
+    <div class="mobile-showcase-grid">
+      <!-- Phone 1: Above-the-fold First Screen (390x844) -->
+      <div class="phone-column">
+        <div class="phone-caption">手机端首屏（390 × 844 · 首屏见轴名、队伍、起始动作）</div>
+        <div class="phone-frame" id="mobilePhone1">
+          <header class="pub-topbar mobile-bar">
+            <div class="pub-brand">
+              <img src="./assets/mona.png" alt="莫娜占卜铺" />
+              <span class="pub-brand-title">莫娜占卜铺</span>
+              <span class="pub-kind-label">四人轴</span>
+            </div>
+            <span class="pub-topbar-meta num">11-26 更新</span>
+          </header>
+          <div class="phone-scroll" id="mobileScroll1">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="phone-bottom-cta">
+            <button class="el-btn primary lg" type="button" onclick="showToast('已开始下载 skirk-double-hydro-18.6s.mona-axis.json')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              下载轴文件 (.json)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone 2: Scrolled Down State (Long Combo + Switch + Highlight) -->
+      <div class="phone-column">
+        <div class="phone-caption">向下滚动：中途切人桥接 + 丝柯克 6 步连续行动 + 角色聚焦</div>
+        <div class="phone-frame" id="mobilePhone2">
+          <header class="pub-topbar mobile-bar">
+            <div class="pub-brand">
+              <img src="./assets/mona.png" alt="莫娜占卜铺" />
+              <span class="pub-brand-title">莫娜占卜铺</span>
+              <span class="pub-kind-label">四人轴</span>
+            </div>
+            <span class="pub-topbar-meta num">已聚焦：丝柯克</span>
+          </header>
+          <div class="phone-scroll" id="mobileScroll2">
+            <!-- Rendered by JS (focused on mid-to-end long combo) -->
+          </div>
+          <div class="phone-bottom-cta">
+            <button class="el-btn primary lg" type="button" onclick="showToast('已开始下载 skirk-double-hydro-18.6s.mona-axis.json')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              下载轴文件 (.json)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       PANEL 3: DESKTOP FOUR-CHARACTER AXIS PUBLIC PREVIEW
+       ================================================================= -->
+  <section id="panel-desktop-axis" class="view-panel">
+    <div class="proto-controls">
+      <div class="proto-controls-group">
+        <span class="proto-controls-label">桌面阅读视图</span>
+        <div class="seg-group" id="desktopViewSwitch">
+          <button class="seg-btn active" data-view="turns">分段连招视图（默认）</button>
+          <button class="seg-btn" data-view="gantt">时间轴总览（4 轨）</button>
+        </div>
+      </div>
+      <div class="proto-controls-group">
+        <span class="proto-controls-label">提示：点击左栏队伍成员可筛选高亮其行动段</span>
+      </div>
+    </div>
+
+    <div class="desktop-pub-window" id="desktopPubWindow">
+      <header class="pub-topbar">
+        <div class="pub-brand">
+          <img src="./assets/mona.png" alt="莫娜占卜铺" />
+          <span class="pub-brand-title">莫娜占卜铺</span>
+          <span class="pub-kind-label">四人轴分享</span>
+        </div>
+        <span class="pub-topbar-meta num">公开预览 · 无需登录</span>
+      </header>
+      <div class="desktop-pub-container" id="desktopPubBody">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       PANEL 4: SHARE MODAL OTHER STATES BOARD (Shot #4)
+       ================================================================= -->
+  <section id="panel-modal-states" class="view-panel">
+    <div class="states-board">
+      <div class="board-row-3">
+        <div class="board-col">
+          <div class="board-col-title">状态 A · 首次分享 <span>确认目标轴 + 选有效期</span></div>
+          <div class="share-dialog" id="staticModalFirst"></div>
+        </div>
+        <div class="board-col">
+          <div class="board-col-title">状态 B · 已分享（已同步） <span>查有效期 + 复制原链接</span></div>
+          <div class="share-dialog" id="staticModalSynced"></div>
+        </div>
+        <div class="board-col">
+          <div class="board-col-title">状态 B2 · 取消分享二次确认 <span>原位警示，防攻略链接误删</span></div>
+          <div class="share-dialog" id="staticModalRevoke"></div>
+        </div>
+      </div>
+
+      <div class="entry-strip-card">
+        <div class="entry-strip-item">
+          <span class="entry-strip-label">入口态 1：未分享（默认）</span>
+          <div class="entry-strip-btns">
+            <button class="el-btn sm primary" type="button">保存</button>
+            <button class="el-btn sm" type="button">用于计算</button>
+            <span class="action-divider"></span>
+            <button class="el-btn sm" type="button">导出</button>
+            <button class="el-btn sm" type="button">分享</button>
+            <span class="action-spacer"></span>
+            <button class="el-btn sm danger" type="button">删除</button>
+          </div>
+        </div>
+        <div class="entry-strip-item">
+          <span class="entry-strip-label">入口态 2：已分享且最新</span>
+          <div class="entry-strip-btns">
+            <button class="el-btn sm primary" type="button">保存</button>
+            <button class="el-btn sm" type="button">用于计算</button>
+            <span class="action-divider"></span>
+            <button class="el-btn sm" type="button">导出</button>
+            <button class="el-btn sm" type="button"><span class="status-dot green"></span> 已分享</button>
+            <span class="action-spacer"></span>
+            <button class="el-btn sm danger" type="button">删除</button>
+          </div>
+        </div>
+        <div class="entry-strip-item">
+          <span class="entry-strip-label">入口态 3：本地保存后有未发布修改</span>
+          <div class="entry-strip-btns">
+            <button class="el-btn sm primary" type="button">保存</button>
+            <button class="el-btn sm" type="button">用于计算</button>
+            <span class="action-divider"></span>
+            <button class="el-btn sm" type="button">导出</button>
+            <button class="el-btn sm share-dirty" type="button"><span class="status-dot gold"></span> 分享 · 待更新</button>
+            <span class="action-spacer"></span>
+            <button class="el-btn sm danger" type="button">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       PANEL 5: OTHER PUBLIC VIEWS (DSL + CHARACTER PRESET + EXPIRED)
+       ================================================================= -->
+  <section id="panel-other-public" class="view-panel">
+    <div class="proto-controls">
+      <div class="proto-controls-group">
+        <span class="proto-controls-label">角色预设圣遗物状态</span>
+        <div class="seg-group" id="presetArtifactSwitch">
+          <button class="seg-btn active" data-art="included">已附带当前穿戴（5 件）</button>
+          <button class="seg-btn" data-art="excluded">未附带圣遗物</button>
+        </div>
+        <span class="proto-controls-label" style="margin-left:8px">失效原因</span>
+        <div class="seg-group" id="expiredReasonSwitch">
+          <button class="seg-btn active" data-reason="expired">已过期</button>
+          <button class="seg-btn" data-reason="revoked">已取消分享</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="other-views-grid">
+      <!-- Column 1: Mobile MONA-DSL Preview (390px) -->
+      <div class="sub-frame">
+        <header class="pub-topbar mobile-bar">
+          <div class="pub-brand">
+            <img src="./assets/mona.png" alt="" />
+            <span class="pub-brand-title">莫娜占卜铺</span>
+            <span class="pub-kind-label">MONA-DSL</span>
+          </div>
+          <span class="pub-topbar-meta num">6 行</span>
+        </header>
+        <div class="sub-frame-body">
+          <div>
+            <h3 style="margin:0;font-size:18px;font-weight:700;line-height:1.35">丝柯克七相普攻＋爆发循环权重</h3>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--cx-dim)">
+              <img src="./assets/skirk.png" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid var(--el-cryo)" />
+              <strong style="color:var(--cx-letter)">适用角色：丝柯克</strong>
+              <span>· 冰元素</span>
+            </div>
+          </div>
+
+          <button id="copyDslBtn" class="el-btn primary lg" style="width:100%" type="button" onclick="copyDslAction()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            一键复制 DSL 源码
+          </button>
+
+          <div class="dsl-code-shell">
+            <div class="dsl-code-bar">
+              <span>MONA-DSL · 目标函数</span>
+              <div class="dsl-code-actions">
+                <button id="dslWrapToggle" class="dsl-toggle active" type="button" onclick="toggleDslWrap()">自动换行：开</button>
+              </div>
+            </div>
+            <div id="dslCodeBody" class="dsl-code-body">
+              <div class="dsl-line"><span class="dsl-ln num">1</span><span class="dsl-src"><span class="tok-kw">dmg</span> hit1 = <span class="tok-id">Skirk.normal1</span>({ <span class="tok-key">seven_phase_mode</span>: <span class="tok-kw">true</span> })</span></div>
+              <div class="dsl-line"><span class="dsl-ln num">2</span><span class="dsl-src"><span class="tok-kw">dmg</span> hit2 = <span class="tok-id">Skirk.normal2</span>({ <span class="tok-key">seven_phase_mode</span>: <span class="tok-kw">true</span> })</span></div>
+              <div class="dsl-line"><span class="dsl-ln num">3</span><span class="dsl-src"><span class="tok-kw">dmg</span> hit3 = <span class="tok-id">Skirk.normal3</span>({ <span class="tok-key">seven_phase_mode</span>: <span class="tok-kw">true</span> })</span></div>
+              <div class="dsl-line"><span class="dsl-ln num">4</span><span class="dsl-src"><span class="tok-kw">dmg</span> hit4 = <span class="tok-id">Skirk.charged</span>({ <span class="tok-key">void_rift_count</span>: <span class="tok-num">3</span> })</span></div>
+              <div class="dsl-line"><span class="dsl-ln num">5</span><span class="dsl-src"><span class="tok-kw">dmg</span> hit5 = <span class="tok-id">Skirk.burst</span>({ <span class="tok-key">cunning_stacks</span>: <span class="tok-num">62</span> })</span></div>
+              <div class="dsl-line"><span class="dsl-ln num">6</span><span class="dsl-src"><span class="tok-kw">result</span> = hit1.normal.e * <span class="tok-num">2</span> + hit2.normal.e * <span class="tok-num">2</span> + hit3.normal.e * <span class="tok-num">2</span> + hit4.normal.e * <span class="tok-num">1</span> + hit5.normal.e * <span class="tok-num">1</span></span></div>
+            </div>
+          </div>
+
+          <p class="candidate-hint">复制后可在莫娜占卜铺「配装计算 → 目标函数」切换为 MONA-DSL 粘贴使用。</p>
+        </div>
+      </div>
+
+      <!-- Column 2: Character Preset Public Preview -->
+      <div class="sub-frame">
+        <header class="pub-topbar mobile-bar">
+          <div class="pub-brand">
+            <img src="./assets/mona.png" alt="" />
+            <span class="pub-brand-title">莫娜占卜铺</span>
+            <span class="pub-kind-label">角色预设</span>
+          </div>
+          <span class="pub-topbar-meta">虚构示例 · 无账号信息</span>
+        </header>
+        <div class="sub-frame-body" id="presetViewBody">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Column 3: Expired / Cancelled Public View + Preset Excluded Mini Compare -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="sub-frame">
+          <header class="pub-topbar mobile-bar">
+            <div class="pub-brand">
+              <img src="./assets/mona.png" alt="" />
+              <span class="pub-brand-title">莫娜占卜铺</span>
+              <span class="pub-kind-label">公开分享</span>
+            </div>
+          </header>
+          <div id="expiredViewBody" class="expired-card-wrap">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Mini contrast card: Character Preset WITHOUT artifacts -->
+        <div class="pub-card" style="padding:14px 16px;gap:10px">
+          <div style="font-size:12px;font-weight:650;color:var(--cx-gold)">局部对照：角色预设「未附带圣遗物」态</div>
+          <div class="artifact-status-bar excluded">
+            <span>未附带当前穿戴圣遗物</span>
+            <span style="font-size:12px;font-weight:500">仅配置</span>
+          </div>
+          <p class="candidate-hint">作者未勾选附带当前穿戴的圣遗物；你可参考上方养成、武器与计算设置，用自己的圣遗物仓库进行配装。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ===== Authentic Four-Character Action Axis Data (from beta-data/team-engine/characters/) =====
+const TEAM = [
+  { slot: 'member1', id: 'Furina', name: '芙宁娜', element: 'Hydro', color: 'var(--el-hydro)', avatar: './assets/furina.png', elIcon: './assets/hydro.png', starter: true },
+  { slot: 'member2', id: 'Escoffier', name: '爱可菲', element: 'Cryo', color: 'var(--el-cryo)', avatar: './assets/escoffier.png', elIcon: './assets/cryo.png', starter: false },
+  { slot: 'member3', id: 'Mona', name: '莫娜', element: 'Hydro', color: 'var(--el-hydro)', avatar: './assets/mona.png', elIcon: './assets/hydro.png', starter: false },
+  { slot: 'member4', id: 'Skirk', name: '丝柯克', element: 'Cryo', color: 'var(--el-cryo)', avatar: './assets/skirk.png', elIcon: './assets/cryo.png', starter: false },
+];
+
+const ACTIONS = [
+  { step: 1, actor: 'member1', label: '孤心沙龙', time: '0.0s' },
+  { step: 2, actor: 'member1', label: '万众狂欢', time: '0.9s' },
+  { step: 3, actor: 'member2', label: '冻霜芭菲', time: '2.9s', switchTime: '2.9s' },
+  { step: 4, actor: 'member2', label: '花刀技法', time: '3.5s' },
+  { step: 5, actor: 'member3', label: '水中幻愿·点按', time: '5.4s', switchTime: '5.4s' },
+  { step: 6, actor: 'member3', label: '星命定轨', time: '6.3s', param: '破泡延迟：自动' },
+  { step: 7, actor: 'member4', label: '元素战技·点按', time: '8.5s', switchTime: '8.5s' },
+  { step: 8, actor: 'member4', label: '普通攻击·第1式', time: '9.3s' },
+  { step: 9, actor: 'member4', label: '普通攻击·第2式', time: '9.8s' },
+  { step: 10, actor: 'member4', label: '普通攻击·第3式', time: '10.5s' },
+  { step: 11, actor: 'member4', label: '重击', time: '11.2s', param: '吸收裂隙 3 个' },
+  { step: 12, actor: 'member4', label: '元素爆发', time: '12.1s', param: '吸收裂隙 3 个' },
+];
+
+const TITLES = {
+  normal: '丝柯克双水冻结 · 18.6s 首轮循环（含补裂隙）',
+  long: '丝柯克双水冻结 18.6s 首轮循环（0命苍耀＋芙宁娜二命＋爱可菲减抗＋莫娜星异尾段补裂隙参考轴）'
+};
+
+const SHARE_URL = 'https://mona.example.com/s/k8x4m2p9';
+
+// Group consecutive actions by actor into Turn Blocks
+function groupTurns(actions) {
+  const turns = [];
+  for (const act of actions) {
+    const prev = turns[turns.length - 1];
+    if (prev && prev.actor === act.actor) {
+      prev.steps.push(act);
+    } else {
+      turns.push({ actor: act.actor, switchTime: act.switchTime || null, steps: [act] });
+    }
+  }
+  return turns;
+}
+const TURNS = groupTurns(ACTIONS);
+const memberBySlot = slot => TEAM.find(m => m.slot === slot);
+const stepCountBySlot = slot => ACTIONS.filter(a => a.actor === slot).length;
+
+// ===== State =====
+let currentModalState = 'dirty';
+let currentExpiry = '30d';
+let showTime = true;
+let titleMode = 'normal';
+let mobileHighlight = null;
+let desktopHighlight = null;
+let desktopView = 'turns';
+let presetArtMode = 'included';
+let expiredReason = 'expired';
+let dslWrapped = true;
+
+// ===== Toast =====
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ===== Render Share Dialog HTML =====
+function renderShareDialogHTML(state, interactive) {
+  const identityHTML = `
+    <div class="axis-identity-box">
+      <div class="axis-identity-top">
+        <div class="axis-identity-title">${TITLES.normal}</div>
+        <span class="axis-identity-meta num">12 步 · 18.6s</span>
+      </div>
+      <div class="axis-identity-team">
+        ${TEAM.map(m => `<span class="mini-char-chip"><img src="${m.avatar}" alt="" style="--el-color:${m.color}"/>${m.name}</span>`).join('')}
+      </div>
+    </div>
+  `;
+
+  const closeBtn = interactive
+    ? `<button class="share-dialog-close" type="button" aria-label="关闭" onclick="closeModalBackdrop()">✕</button>`
+    : `<span class="share-dialog-close" aria-hidden="true">✕</span>`;
+
+  if (state === 'first') {
+    return `
+      <div class="share-dialog-head">
+        <h3 class="share-dialog-title" id="dlgTitle">分享四人轴</h3>
+        ${closeBtn}
+      </div>
+      <div class="share-dialog-body">
+        ${identityHTML}
+        <div class="field-block">
+          <div class="field-block-head"><strong>链接有效期</strong><span>过期后链接自动失效</span></div>
+          <div class="expiry-group">
+            ${[['7d','7 天'],['30d','30 天'],['never','永久']].map(([k,lbl]) =>
+              `<button type="button" class="expiry-opt ${currentExpiry===k?'active':''}" ${interactive?`onclick="setExpiry('${k}')"`:''}>${lbl}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <p class="candidate-hint">公开链接无需登录即可查看与下载轴文件，不包含你的圣遗物库存与账号信息。</p>
+      </div>
+      <div class="share-dialog-foot">
+        <div class="foot-right">
+          <button class="el-btn ghost" type="button" ${interactive?'onclick="closeModalBackdrop()"':''}>取消</button>
+          <button class="el-btn primary" type="button" ${interactive?'onclick="handleCreateShare()"':''}>生成并复制链接</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (state === 'synced') {
+    return `
+      <div class="share-dialog-head">
+        <h3 class="share-dialog-title" id="dlgTitle">分享四人轴</h3>
+        ${closeBtn}
+      </div>
+      <div class="share-dialog-body">
+        ${identityHTML}
+        <div class="state-banner synced">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+          <div>
+            <strong>已分享 · 链接内容为最新版本</strong>
+            <p class="num">有效期至 2026-12-26（剩余 30 天）· 上次发布 11-26 15:20</p>
+          </div>
+        </div>
+        <div class="field-block">
+          <div class="field-block-head"><strong>公开链接</strong><span>群友在手机浏览器可直接打开</span></div>
+          <div class="link-row">
+            <div class="link-input">${SHARE_URL}</div>
+            <button class="el-btn primary" type="button" ${interactive?'onclick="showToast(\'已复制分享链接\')"':''}>复制链接</button>
+          </div>
+        </div>
+      </div>
+      <div class="share-dialog-foot">
+        <button class="el-btn danger-text" type="button" ${interactive?'onclick="switchModalState(\'revoke\')"':''}>取消分享</button>
+        <div class="foot-right">
+          <button class="el-btn" type="button" ${interactive?'onclick="closeModalBackdrop()"':''}>关闭</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (state === 'revoke') {
+    return `
+      <div class="share-dialog-head">
+        <h3 class="share-dialog-title" id="dlgTitle">分享四人轴</h3>
+        ${closeBtn}
+      </div>
+      <div class="share-dialog-body">
+        ${identityHTML}
+        <div class="field-block">
+          <div class="field-block-head"><strong>当前公开链接</strong><span class="num">有效期至 2026-12-26</span></div>
+          <div class="link-row">
+            <div class="link-input" style="opacity:.7">${SHARE_URL}</div>
+          </div>
+        </div>
+        <div class="revoke-confirm-box">
+          <strong>确认取消这条轴的公开分享？</strong>
+          <p>取消后原链接立即失效，发在群里和攻略中的链接都将无法打开；本地保存的四人轴不会被删除。</p>
+          <div class="revoke-confirm-actions">
+            <button class="el-btn sm" type="button" ${interactive?'onclick="switchModalState(\'synced\')"':''}>保留分享</button>
+            <button class="el-btn sm danger" type="button" ${interactive?'onclick="handleRevokeShare()"':''}>确认取消分享</button>
+          </div>
+        </div>
+      </div>
+      <div class="share-dialog-foot">
+        <span style="font-size:12px;color:var(--cx-quiet)">原位确认，避免误点</span>
+        <div class="foot-right">
+          <button class="el-btn ghost" type="button" ${interactive?'onclick="switchModalState(\'synced\')"':''}>返回</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Flagship State: dirty (本地有修改)
+  return `
+    <div class="share-dialog-head">
+      <h3 class="share-dialog-title" id="dlgTitle">分享四人轴</h3>
+      ${closeBtn}
+    </div>
+    <div class="share-dialog-body">
+      ${identityHTML}
+      <div class="state-banner dirty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <strong>本地已有新修改，尚未发布到链接</strong>
+          <p>你刚才的改动仅保存在本地；群友点开原链接看到的仍是上次发布的版本。</p>
+        </div>
+      </div>
+
+      <div class="version-compare">
+        <div class="version-cell">
+          <div class="version-cell-label"><span class="status-dot green"></span> 群友当前看到（线上）</div>
+          <div class="version-cell-val num">11 步 · 17.8s</div>
+          <div class="version-cell-sub num">发布于 11-23 19:40</div>
+        </div>
+        <div class="version-cell local">
+          <div class="version-cell-label"><span class="status-dot gold"></span> 本地最新保存</div>
+          <div class="version-cell-val num">12 步 · 18.6s</div>
+          <div class="version-cell-sub num">保存于 刚刚（新增尾段爆发）</div>
+        </div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-block-head"><strong>公开链接（发布后沿用原链接）</strong><span class="num">有效期至 2026-12-26</span></div>
+        <div class="link-row">
+          <div class="link-input">${SHARE_URL}</div>
+          <button class="el-btn" type="button" ${interactive?'onclick="showToast(\'已复制原链接（注意：尚未包含本次本地修改）\')"':''}>复制原链接</button>
+        </div>
+      </div>
+    </div>
+    <div class="share-dialog-foot">
+      <button class="el-btn danger-text" type="button" ${interactive?'onclick="switchModalState(\'revoke\')"':''}>取消分享</button>
+      <div class="foot-right">
+        <button class="el-btn ghost" type="button" ${interactive?'onclick="closeModalBackdrop()"':''}>暂不发布</button>
+        <button class="el-btn primary" type="button" ${interactive?'onclick="handlePublishUpdate()"':''}>发布更新到原链接</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderLiveModal() {
+  document.getElementById('liveShareDialog').innerHTML = renderShareDialogHTML(currentModalState, true);
+  const btn = document.getElementById('editorShareBtn');
+  if (currentModalState === 'first') {
+    btn.className = 'el-btn';
+    btn.innerHTML = '<span>分享</span>';
+  } else if (currentModalState === 'dirty') {
+    btn.className = 'el-btn share-dirty';
+    btn.innerHTML = '<span class="status-dot gold"></span><span>分享 · 待更新</span>';
+  } else {
+    btn.className = 'el-btn';
+    btn.innerHTML = '<span class="status-dot green"></span><span>已分享</span>';
+  }
+}
+
+function switchModalState(st) {
+  currentModalState = st;
+  document.querySelectorAll('#modalStateSwitch .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.state === st));
+  renderLiveModal();
+}
+function setExpiry(k) { currentExpiry = k; renderLiveModal(); }
+function handleCreateShare() { switchModalState('synced'); showToast('已生成公开链接并复制到剪贴板'); }
+function handlePublishUpdate() { switchModalState('synced'); showToast('已发布更新，群里的原链接现已同步为新版'); }
+function handleRevokeShare() { switchModalState('first'); showToast('已取消分享，原链接已失效'); }
+function openModalBackdrop() {
+  document.getElementById('liveModalBackdrop').style.display = 'flex';
+  document.getElementById('toggleBackdropBtn').textContent = '隐藏弹窗看入口位置';
+}
+function closeModalBackdrop() {
+  document.getElementById('liveModalBackdrop').style.display = 'none';
+  document.getElementById('toggleBackdropBtn').textContent = '重新打开分享弹窗';
+}
+
+// ===== Render Turn Sequence HTML (Shared across Mobile & Desktop) =====
+function renderTurnSequenceHTML(highlightSlot, subsetStart = 0) {
+  return TURNS.slice(subsetStart).map((turn, idx) => {
+    const m = memberBySlot(turn.actor);
+    const dimmed = highlightSlot && highlightSlot !== turn.actor;
+    const highlighted = highlightSlot && highlightSlot === turn.actor;
+    const firstT = turn.steps[0].time;
+    const lastT = turn.steps[turn.steps.length - 1].time;
+    const spanText = turn.steps.length > 1 ? `${firstT} – ${lastT}` : firstT;
+
+    const bridge = (idx > 0 || subsetStart > 0) ? `
+      <div class="switch-bridge">
+        <span class="switch-line">↓</span>
+        <span>切至 <span class="switch-target">${m.name}</span></span>
+        ${turn.switchTime ? `<span class="switch-time num time-only">${turn.switchTime} 切人</span>` : ''}
+      </div>
+    ` : '';
+
+    return `
+      ${bridge}
+      <article class="turn-card ${dimmed?'dimmed':''} ${highlighted?'highlighted':''}" style="--el-color:${m.color}">
+        <header class="turn-head">
+          <div class="turn-actor">
+            <img src="${m.avatar}" alt="" style="--el-color:${m.color}" />
+            <span class="turn-actor-name">${m.name}</span>
+            <span class="turn-actor-sub">连段 ${turn.steps.length} 步</span>
+          </div>
+          <span class="turn-span num">${spanText}</span>
+        </header>
+        <div class="turn-steps">
+          ${turn.steps.map(s => `
+            <div class="step-row">
+              <span class="step-num num">${String(s.step).padStart(2, '0')}</span>
+              <div class="step-main">
+                <span class="step-name">${s.label}</span>
+                ${s.param ? `<span class="step-param">${s.param}</span>` : ''}
+              </div>
+              <span class="step-time num">${s.time}</span>
+            </div>
+          `).join('')}
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+// ===== Render Mobile Views =====
+function renderMobileAxis() {
+  const titleText = TITLES[titleMode];
+  const timeCls = showTime ? '' : 'hide-time';
+  const phone1 = document.getElementById('mobilePhone1');
+  const phone2 = document.getElementById('mobilePhone2');
+  phone1.classList.toggle('hide-time', !showTime);
+  phone2.classList.toggle('hide-time', !showTime);
+
+  const rosterHTML = (activeSlot, clickHandler) => `
+    <div class="team-strip-4">
+      ${TEAM.map(m => {
+        const isAct = activeSlot === m.slot;
+        const isDim = activeSlot && !isAct;
+        return `
+          <button type="button" class="team-slot-btn ${isAct?'active':''} ${isDim?'dimmed':''}" style="--el-color:${m.color}" onclick="${clickHandler}('${m.slot}')">
+            <span class="team-slot-avatar">
+              <img class="portrait" src="${m.avatar}" alt="${m.name}" style="--el-color:${m.color}" />
+              <img class="el-icon" src="${m.elIcon}" alt="" />
+            </span>
+            <span class="team-slot-name">${m.name}</span>
+            ${m.starter ? `<span class="starter-mark">初始前台</span>` : `<span class="slot-step-count num">${stepCountBySlot(m.slot)} 步</span>`}
+          </button>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  document.getElementById('mobileScroll1').innerHTML = `
+    <div class="axis-hero-mobile">
+      <h1>${titleText}</h1>
+      <div class="axis-subline num">
+        <span>4 名角色</span>
+        <span>·</span>
+        <span>12 个动作</span>
+        <span class="time-only">·</span>
+        <span class="time-only">轴长 <span class="gold-num">18.6s</span></span>
+      </div>
+    </div>
+    ${rosterHTML(mobileHighlight, 'toggleMobileHighlight')}
+    <div class="section-bar">
+      <h2>操作顺序（按切人分段）</h2>
+      ${mobileHighlight ? `<button class="filter-reset-link" type="button" onclick="toggleMobileHighlight(null)">显示全部</button>` : `<span style="font-size:12px;color:var(--cx-quiet)">点击头像可高亮</span>`}
+    </div>
+    <div class="turn-list">
+      ${renderTurnSequenceHTML(mobileHighlight, 0)}
+    </div>
+    <p class="candidate-hint" style="padding:4px 2px 8px">轴尾命中：计入 · 下载后可在莫娜占卜铺「多人优化 → 导入」直接使用。</p>
+  `;
+
+  // Phone 2 shows scrolled reading experience (Turns 3 & 4 with Skirk highlighted)
+  document.getElementById('mobileScroll2').innerHTML = `
+    ${rosterHTML('member4', 'noop')}
+    <div class="section-bar">
+      <h2>操作顺序（已定位至主输出段）</h2>
+      <span class="filter-reset-link">显示全部</span>
+    </div>
+    <div class="turn-list">
+      ${renderTurnSequenceHTML('member4', 2)}
+    </div>
+    <p class="candidate-hint" style="padding:4px 2px 8px">轴尾命中：计入 · 下载后可在莫娜占卜铺「多人优化 → 导入」直接使用。</p>
+  `;
+}
+
+function toggleMobileHighlight(slot) {
+  mobileHighlight = (mobileHighlight === slot) ? null : slot;
+  renderMobileAxis();
+}
+function noop() {}
+
+// ===== Render Desktop Axis Public Preview =====
+function renderDesktopAxis() {
+  const container = document.getElementById('desktopPubBody');
+  const ganttHTML = `
+    <div class="gantt-card">
+      <div class="mini-timeline">
+        <div class="mini-ruler num">
+          <span>时间（秒）</span>
+          <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span><span>12</span><span>14</span><span>16</span>
+        </div>
+        <div class="mini-track">
+          <div class="mini-track-person"><img src="./assets/furina.png" alt=""/>芙宁娜</div>
+          <div class="mini-track-lane">
+            <div class="mini-block" style="left:0%;width:9.5%;border-left-color:var(--el-hydro)"><strong>孤心沙龙</strong><span class="num">0.0s</span></div>
+            <div class="mini-block" style="left:9.8%;width:12%;border-left-color:var(--el-hydro)"><strong>万众狂欢</strong><span class="num">0.9s</span></div>
+          </div>
+        </div>
+        <div class="mini-track">
+          <div class="mini-track-person"><img src="./assets/escoffier.png" alt=""/>爱可菲</div>
+          <div class="mini-track-lane">
+            <div class="mini-block" style="left:16%;width:8.5%;border-left-color:var(--el-cryo)"><strong>冻霜芭菲</strong><span class="num">2.9s</span></div>
+            <div class="mini-block" style="left:25%;width:11%;border-left-color:var(--el-cryo)"><strong>花刀技法</strong><span class="num">3.5s</span></div>
+          </div>
+        </div>
+        <div class="mini-track">
+          <div class="mini-track-person"><img src="./assets/mona.png" alt=""/>莫娜</div>
+          <div class="mini-track-lane">
+            <div class="mini-block" style="left:32%;width:9.5%;border-left-color:var(--el-hydro)"><strong>水中幻愿·点按</strong><span class="num">5.4s</span></div>
+            <div class="mini-block" style="left:42%;width:11.5%;border-left-color:var(--el-hydro)"><strong>星命定轨</strong><span class="num">6.3s</span></div>
+          </div>
+        </div>
+        <div class="mini-track">
+          <div class="mini-track-person"><img src="./assets/skirk.png" alt=""/>丝柯克</div>
+          <div class="mini-track-lane">
+            <div class="mini-block" style="left:50%;width:7.5%;border-left-color:var(--el-cryo)"><strong>战技·点按</strong><span class="num">8.5s</span></div>
+            <div class="mini-block" style="left:58%;width:6.8%;border-left-color:var(--el-cryo)"><strong>普攻1</strong><span class="num">9.3s</span></div>
+            <div class="mini-block" style="left:65.2%;width:6.8%;border-left-color:var(--el-cryo)"><strong>普攻2</strong><span class="num">9.8s</span></div>
+            <div class="mini-block" style="left:72.4%;width:6.8%;border-left-color:var(--el-cryo)"><strong>普攻3</strong><span class="num">10.5s</span></div>
+            <div class="mini-block" style="left:79.6%;width:7.5%;border-left-color:var(--el-cryo)"><strong>重击</strong><span class="num">11.2s</span></div>
+            <div class="mini-block" style="left:87.6%;width:11%;border-left-color:var(--cx-gold)"><strong>元素爆发</strong><span class="num">12.1s</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="gantt-note">时间轴总览仅在源数据提供时间信息时可用，便于对照切人间隔与总轴长。</p>
+    </div>
+  `;
+
+  container.innerHTML = `
+    <aside class="sticky-aside">
+      <section class="pub-card">
+        <div>
+          <h1>${TITLES.normal}</h1>
+        </div>
+        <dl class="pub-meta-grid num">
+          <div class="pub-stat"><dt>轴长</dt><dd class="gold">18.6s</dd></div>
+          <div class="pub-stat"><dt>动作数</dt><dd>12 步</dd></div>
+          <div class="pub-stat"><dt>切人段</dt><dd>4 段</dd></div>
+        </dl>
+        <div>
+          <div class="section-bar" style="margin-bottom:8px">
+            <h2>队伍角色（点击高亮）</h2>
+            ${desktopHighlight ? `<button class="filter-reset-link" type="button" onclick="toggleDesktopHighlight(null)">重置</button>` : ''}
+          </div>
+          <div class="desktop-team-list">
+            ${TEAM.map(m => {
+              const isAct = desktopHighlight === m.slot;
+              const isDim = desktopHighlight && !isAct;
+              return `
+                <button type="button" class="desktop-team-btn ${isAct?'active':''} ${isDim?'dimmed':''}" style="--el-color:${m.color}" onclick="toggleDesktopHighlight('${m.slot}')">
+                  <img src="${m.avatar}" alt="${m.name}" style="--el-color:${m.color}" />
+                  <span class="desktop-team-info">
+                    <strong>${m.name}</strong>
+                    <span class="${m.starter?'starter':''}" style="white-space:nowrap">${m.starter ? '初始前台 · ' + stepCountBySlot(m.slot) + '步' : stepCountBySlot(m.slot) + ' 个动作'}</span>
+                  </span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+        <div class="aside-download-box">
+          <button class="el-btn primary lg" type="button" onclick="showToast('已开始下载 skirk-double-hydro-18.6s.mona-axis.json')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            下载轴文件 (.mona-axis.json)
+          </button>
+          <p class="candidate-hint">下载后在莫娜占卜铺「多人优化 → 导入」即可直接使用。</p>
+        </div>
+        <div class="aside-foot-meta num">
+          <span>轴尾命中：计入 · 规则版本 mona-team-engine/58</span>
+          <span>最近更新：2026-11-26 15:20</span>
+        </div>
+      </section>
+    </aside>
+
+    <section>
+      <div class="desktop-reader-head">
+        <h2>操作顺序</h2>
+        <div class="seg-group">
+          <button class="seg-btn ${desktopView==='turns'?'active':''}" type="button" onclick="setDesktopView('turns')">分段连招视图</button>
+          <button class="seg-btn ${desktopView==='gantt'?'active':''}" type="button" onclick="setDesktopView('gantt')">时间轴总览</button>
+        </div>
+      </div>
+      ${desktopView === 'turns' ? `<div class="turn-list">${renderTurnSequenceHTML(desktopHighlight, 0)}</div>` : ganttHTML}
+    </section>
+  `;
+}
+
+function toggleDesktopHighlight(slot) {
+  desktopHighlight = (desktopHighlight === slot) ? null : slot;
+  renderDesktopAxis();
+}
+function setDesktopView(v) {
+  desktopView = v;
+  document.querySelectorAll('#desktopViewSwitch .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  renderDesktopAxis();
+}
+
+// ===== Render Other Public Views (Preset + Expired + DSL) =====
+function renderPresetView() {
+  const included = presetArtMode === 'included';
+  const arts = [
+    { slot: '花', icon: './assets/flower.png', set: '深廊终曲', main: '生命 4,780', subs: ['暴伤 +21.8%', '暴击 +10.1%', '攻击 +5.3%', '精通 +19'] },
+    { slot: '羽', icon: './assets/feather.png', set: '深廊终曲', main: '攻击 311', subs: ['暴击 +13.6%', '暴伤 +14.8%', '攻击 +4.7%', '生命 +239'] },
+    { slot: '沙', icon: './assets/sand.png', set: '深廊终曲', main: '攻击 46.6%', subs: ['暴伤 +20.2%', '暴击 +7.0%', '攻击 +18', '防御 +37'] },
+    { slot: '杯', icon: './assets/goblet.png', set: '逐影猎人', main: '冰伤 46.6%', subs: ['暴伤 +25.7%', '暴击 +6.2%', '攻击 +5.8%', '精通 +21'] },
+    { slot: '冠', icon: './assets/head.png', set: '深廊终曲', main: '暴击 31.1%', subs: ['暴伤 +24.1%', '攻击 +9.9%', '生命 +4.1%', '防御 +19'] },
+  ];
+
+  document.getElementById('presetViewBody').innerHTML = `
+    <div class="preset-head-row">
+      <img src="./assets/skirk.png" alt="丝柯克" />
+      <div class="preset-head-text">
+        <h3>丝柯克 · 常规深境冰队预设（虚构示例）</h3>
+        <div class="preset-stats-inline num">
+          <span><strong>丝柯克</strong> · 冰</span>
+          <span>Lv.<strong>90</strong></span>
+          <span><strong>0 命</strong></span>
+          <span>天赋 <strong>10 / 10 / 10</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="artifact-status-bar ${included ? 'included' : 'excluded'}">
+      <span>${included ? '✓ 已附带当前穿戴圣遗物（5 件 · 深廊终曲 4 件）' : '未附带当前穿戴圣遗物'}</span>
+      <span class="num" style="font-size:12px;font-weight:500">${included ? '全 +20' : '仅配置'}</span>
+    </div>
+
+    <div class="preset-2col">
+      <div class="preset-subcard">
+        <h4>武器配置</h4>
+        <div class="kv-list num">
+          <div class="kv-row"><span>武器</span><strong>苍耀（单手剑）</strong></div>
+          <div class="kv-row"><span>等级 / 精炼</span><strong>Lv.90 · R1</strong></div>
+          <div class="kv-row"><span>特效条件</span><strong>默认满层</strong></div>
+        </div>
+      </div>
+      <div class="preset-subcard">
+        <h4>计算设置</h4>
+        <div class="kv-list num">
+          <div class="kv-row"><span>目标函数</span><strong>丝柯克 · 常规输出</strong></div>
+          <div class="kv-row"><span>敌人设置</span><strong>Lv.100 · 全抗 10%</strong></div>
+          <div class="kv-row"><span>套装限制</span><strong>深廊终曲 ×4</strong></div>
+          <div class="kv-row"><span>已启用 BUFF</span><strong>芙宁娜 Q · 爱可菲减抗</strong></div>
+        </div>
+      </div>
+    </div>
+
+    ${included ? `
+      <div>
+        <div class="section-bar" style="margin-bottom:8px">
+          <h2>当前穿戴圣遗物明细（虚构示例数据）</h2>
+          <span style="font-size:12px;color:var(--cx-quiet)">不含 UID 与仓库其余圣遗物</span>
+        </div>
+        <div class="art-grid-5 num">
+          ${arts.map(a => `
+            <div class="art-mini">
+              <div class="art-mini-head"><img src="${a.icon}" alt=""/><span>${a.set}</span></div>
+              <div class="art-mini-body">
+                <div class="art-main-stat">${a.main}</div>
+                ${a.subs.map(s => `<div>${s}</div>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : `
+      <p class="candidate-hint">作者未勾选附带当前穿戴的圣遗物；你可按上方养成、武器与计算设置，在自己的圣遗物仓库中配装。（候选文案）</p>
+    `}
+  `;
+}
+
+function renderExpiredView() {
+  const isExpired = expiredReason === 'expired';
+  document.getElementById('expiredViewBody').innerHTML = `
+    <div class="expired-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        <line x1="2" y1="2" x2="22" y2="22"/>
+      </svg>
+    </div>
+    <h3>${isExpired ? '该分享链接已过期' : '该分享已取消'}</h3>
+    <p>${isExpired
+      ? '链接已超过作者设置的有效期，内容不再公开访问。如需查看，请联系作者重新分享。'
+      : '作者已取消这条内容的公开分享。如需查看最新版本，请联系作者重新获取链接。'
+    }</p>
+    <button class="el-btn ghost sm" type="button" style="margin-top:4px">了解莫娜占卜铺</button>
+  `;
+}
+
+function toggleDslWrap() {
+  dslWrapped = !dslWrapped;
+  const body = document.getElementById('dslCodeBody');
+  const btn = document.getElementById('dslWrapToggle');
+  body.classList.toggle('nowrap', !dslWrapped);
+  btn.classList.toggle('active', dslWrapped);
+  btn.textContent = dslWrapped ? '自动换行：开' : '自动换行：关（横滚）';
+}
+function copyDslAction() {
+  const btn = document.getElementById('copyDslBtn');
+  btn.textContent = '✓ 已复制 DSL 源码';
+  showToast('MONA-DSL 源码已复制到剪贴板');
+  setTimeout(() => {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 一键复制 DSL 源码`;
+  }, 1800);
+}
+
+// ===== Wire Prototype Controls =====
+function activateTab(tabId) {
+  document.querySelectorAll('.proto-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabId));
+}
+document.querySelectorAll('.proto-tab').forEach(t => t.addEventListener('click', () => activateTab(t.dataset.tab)));
+document.querySelectorAll('#modalStateSwitch .seg-btn').forEach(b => b.addEventListener('click', () => switchModalState(b.dataset.state)));
+document.getElementById('toggleBackdropBtn').addEventListener('click', () => {
+  const bd = document.getElementById('liveModalBackdrop');
+  if (bd.style.display === 'none') openModalBackdrop(); else closeModalBackdrop();
+});
+document.querySelectorAll('#mobileTimeToggle .seg-btn').forEach(b => b.addEventListener('click', () => {
+  showTime = b.dataset.time === 'yes';
+  document.querySelectorAll('#mobileTimeToggle .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+  renderMobileAxis();
+}));
+document.querySelectorAll('#mobileTitleToggle .seg-btn').forEach(b => b.addEventListener('click', () => {
+  titleMode = b.dataset.title;
+  document.querySelectorAll('#mobileTitleToggle .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+  renderMobileAxis();
+}));
+document.querySelectorAll('#desktopViewSwitch .seg-btn').forEach(b => b.addEventListener('click', () => setDesktopView(b.dataset.view)));
+document.querySelectorAll('#presetArtifactSwitch .seg-btn').forEach(b => b.addEventListener('click', () => {
+  presetArtMode = b.dataset.art;
+  document.querySelectorAll('#presetArtifactSwitch .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+  renderPresetView();
+}));
+document.querySelectorAll('#expiredReasonSwitch .seg-btn').forEach(b => b.addEventListener('click', () => {
+  expiredReason = b.dataset.reason;
+  document.querySelectorAll('#expiredReasonSwitch .seg-btn').forEach(x => x.classList.toggle('active', x === b));
+  renderExpiredView();
+}));
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const html = document.documentElement;
+  const next = html.dataset.colorMode === 'dark' ? 'light' : 'dark';
+  html.dataset.colorMode = next;
+  document.getElementById('themeToggle').textContent = next === 'dark' ? '切换浅色模式' : '切换夜空深色';
+});
+
+// ===== Initial Render + Shot Mode Query Params =====
+renderLiveModal();
+document.getElementById('staticModalFirst').innerHTML = renderShareDialogHTML('first', false);
+document.getElementById('staticModalSynced').innerHTML = renderShareDialogHTML('synced', false);
+document.getElementById('staticModalRevoke').innerHTML = renderShareDialogHTML('revoke', false);
+renderMobileAxis();
+renderDesktopAxis();
+renderPresetView();
+renderExpiredView();
+
+const qs = new URLSearchParams(location.search);
+if (qs.get('theme') === 'light') {
+  document.documentElement.dataset.colorMode = 'light';
+}
+const shot = qs.get('shot');
+if (shot) {
+  document.body.classList.add('shot-mode');
+  if (shot === 'modal-dirty') { activateTab('modal-dirty'); switchModalState('dirty'); }
+  else if (shot === 'mobile-axis') { activateTab('mobile-axis'); }
+  else if (shot === 'desktop-axis') { activateTab('desktop-axis'); setDesktopView('turns'); }
+  else if (shot === 'modal-states') { activateTab('modal-states'); }
+  else if (shot === 'other-public') { activateTab('other-public'); }
+}
+</script>
+</body>
+</html>
