@@ -66,12 +66,12 @@ export function withDslSegmentTargets(api, SegmentExpression, metadata) {
             },
         },
         OptimizeSingleWasm: {
-            optimize(input, artifacts) {
+            optimize(input, artifacts, onProgress) {
                 const source = segmentedSource(input.target_function);
                 const parsed = parseSegmentDsl(source);
-                if (!parsed) return api.OptimizeSingleWasm.optimize(input, artifacts);
+                if (!parsed) return api.OptimizeSingleWasm.optimize(input, artifacts, onProgress);
                 return withTarget(source, parsed, input, evaluate =>
-                    searchSegmentBuilds(api, input, artifacts, build => evaluate(build).result));
+                    searchSegmentBuilds(api, input, artifacts, build => evaluate(build).result, onProgress));
             },
         },
         BonusPerStat: {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {api, named, original, sum, vesna} from '../beta-tools/runtime.mjs';
 import {fixture} from '../beta-tools/interface-audit-7108.mjs';
+import {readPanel} from '../beta-data/panel-search.mjs';
 import {dslObjective} from '../src/algorithms/single-result-comparison.mjs';
 import {createMonaEvaluator} from '../src/algorithms/artifact-score/evaluator.mjs';
 
@@ -224,5 +225,29 @@ test('segmented search honors main-stat filters, two-piece pairs and base-panel 
         assert.deepEqual(slots.map(slot => results[0][slot.toLowerCase()]), selected.map(piece => piece.id));
         near(results[0].value, expected);
         assert.equal(results[0].ratio, 1);
+    }
+});
+
+test('segmented search applies an inclusive base-panel maximum before ranking', () => {
+    const dsl_source = 'state dry = { buffs: [] }\nprop atk = Mavuika.atk @dry\nresult = atk';
+    const target_function = {name: 'MavuikaDefault', use_dsl: true, dsl_source, params: 'NoConfig'};
+    const extraAttack = {...gear[1], id: 12, main_stat: ['ATKFixed', 311]};
+    const strong = [gear[0], extraAttack, ...gear.slice(2)];
+    const inventory = [...gear, extraAttack];
+    const atkMax = readPanel(api, base, gear).atk;
+    assert.ok(readPanel(api, base, strong).atk > atkMax);
+
+    for (const algorithm of ['AStar', 'Naive']) {
+        const input = {...base, target_function, algorithm};
+        const unrestricted = api.OptimizeSingleWasm.optimize(input, inventory);
+        assert.deepEqual(unrestricted.map(({feather}) => feather), [12, 2]);
+        assert.ok(unrestricted[0].value < atkMax);
+
+        const progress = [];
+        const constraint = {set_mode: 'Any', panel_max: {atk: atkMax}};
+        const rows = api.OptimizeSingleWasm.optimize({...input, constraint}, inventory, event => progress.push(event));
+        assert.deepEqual(rows.map(({feather, value}) => [feather, value]), [[2, unrestricted[1].value]]);
+        assert.equal(progress.at(-1).percent, 100);
+        assert.equal(progress.at(-1).remainingGroups, 0);
     }
 });
