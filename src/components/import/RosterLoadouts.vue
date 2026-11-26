@@ -85,7 +85,9 @@ watch([open, selection], () => { naming.value = '' })
 function share() {
     open.value = false
     // The built-in game preset label contains the account UID.
-    emit('share', selectedSaved.value?.label || props.entry.label+'预设')
+    const localName = selection.value === 'current' && row.value?.manual && props.baseEntry.preset && presetSource(props.baseEntry.preset) !== 'game'
+        ? props.baseEntry.presetName : ''
+    emit('share', selectedSaved.value?.label || localName || props.entry.label+'预设')
 }
 function currentIds() {
     return retainRosterGear(data.value, presets.presets.value, inventory, row.value, props.baseEntry.equipped)

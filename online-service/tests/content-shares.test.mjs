@@ -26,21 +26,22 @@ test('DSL and presets publish immutable, anonymous snapshots and honor expiry an
     assert.equal(update.status,400)
     const piece={position:'flower',level:20,set:'合成套装',main:'生命值 +4780',subs:['暴击率 +3.1%'],id:'PRIVATE'}
     const preset={kind:'preset',days:null,requestId:randomUUID(),content:{title:'合成预设',character:'Amber',level:80,constellation:2,
-        talents:[6,7,8],weapon:{name:'合成弓',level:80,refine:2,account:'PRIVATE'},target:'合成目标',
+        talents:[6,7,8],weapon:{name:'合成弓',level:80,refine:2,account:'PRIVATE',params:[{label:'层数',value:'2',account:'PRIVATE'}]},target:'合成目标',
         enemy:{level:93,pyro_res:.2,uid:'PRIVATE'},limits:{minRecharge:1.3},sets:['合成套装'],filters:{sand:[],cup:[],head:['暴击率']},
         buffs:['合成增益'],includeEquipment:false,equipment:[piece],miyousheKey:'PRIVATE'}}
     const hidden=await post(preset)
     assert.equal(hidden.status,200)
     assert.equal(hidden.body.content.equipment,undefined)
     const omitted=await (await fetch(publicUrl(hidden.body.id))).text()
-    assert.match(omitted,/这份预设仅含养成/)
+    assert.match(omitted,/此预设仅含养成/)
     assert.doesNotMatch(omitted,/PRIVATE|4780|gear-cards/)
     const withGear=await post({...preset,requestId:randomUUID(),content:{...preset.content,includeEquipment:true}})
     assert.equal(withGear.status,200)
     assert.ok(!JSON.stringify(withGear.body.content).includes('PRIVATE'))
     const gearPage=await (await fetch(publicUrl(withGear.body.id))).text()
-    assert.match(gearPage,/生命值 \+4780/)
+    assert.match(gearPage,/生命值 \+4,780/)
     assert.match(gearPage,/火 20%/)
+    assert.match(gearPage,/<dt>层数<\/dt><dd>2<\/dd>/)
     assert.equal((await f.request('/v1/shares/'+hidden.body.id,{method:'DELETE',token:other.sessionToken})).status,404)
     const mine=await f.request('/v1/shares',{token:owner.sessionToken})
     assert.deepEqual(mine.body.shares.map(item=>item.kind).sort(),['dsl','preset','preset'])

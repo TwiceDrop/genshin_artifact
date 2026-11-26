@@ -9,6 +9,21 @@ import { newEnemyConfig } from '@/composables/enemy'
 
 const label = (catalog,key) => locale[catalog[key]?.nameLocale] || key
 const fields = (source,keys) => Object.fromEntries(keys.filter(key=>source?.[key]!==undefined).map(key=>[key,source[key]]))
+function publicWeapon(weapon) {
+    const data = weapons[weapon.name]
+    const result = { name:label(weapons,weapon.name), level:weapon.level, refine:weapon.refine }
+    const params = []
+    for (const config of data?.configs || []) {
+        const value = weapon.params?.[weapon.name]?.[config.name]
+        if (typeof value !== 'boolean' && !Number.isFinite(value)) continue
+        const display = config.type === 'option' ? config.options[value] :
+            typeof value === 'boolean' ? (value ? '是' : '否') : String(value)
+        if (display !== undefined) params.push({label:locale[config.title], value:display})
+    }
+    if (params.length) result.params = params
+    return result
+}
+
 export function presetPreview(preset,title,items,statName) {
     const {character,weapon,targetFunction,filter,constraint} = preset
     const panel = preset.panelSearch ?? newPanelSearchOptions()
@@ -19,7 +34,7 @@ export function presetPreview(preset,title,items,statName) {
     const content = {
         title, character:character.name, level:character.level, constellation:character.constellation ?? 0,
         talents:[character.skill1,character.skill2,character.skill3].map(level=>level+1),
-        weapon:{ name:label(weapons,weapon.name), level:weapon.level, refine:weapon.refine }, target,
+        weapon:publicWeapon(weapon), target,
         enemy:fields(preset.enemy ?? defaults,Object.keys(defaults)),
         limits:fields(constraint,['minRecharge','minElementalMastery','minCritical','minCriticalDamage']),
         sets:(constraint?.setNames || []).map(name=>label(sets,name)),

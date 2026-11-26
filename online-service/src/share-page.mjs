@@ -114,6 +114,9 @@ export const shareHeaders = { 'Cache-Control':'no-store', 'X-Content-Type-Option
     'Content-Security-Policy':"default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; base-uri 'none'; frame-ancestors 'none'" }
 export async function shareAsset(name) {
     const fixed = { 'mona.png':'image/png', 'share.css':'text/css', 'share.js':'text/javascript', 'brand.woff2':'font/woff2' }
+    if (['slot-flower.png','slot-feather.png','slot-sand.png','slot-cup.png','slot-head.png'].includes(name)) {
+        return { type:'image/png', body:await readFile(new URL('../static/'+name,import.meta.url)) }
+    }
     if (Object.hasOwn(fixed,name)) return { type:fixed[name], body:await readFile(new URL('../static/'+name,import.meta.url)) }
     if (!name.endsWith('.webp') || !roles[name.slice(0,-5)]?.portrait) return null
     return { type:'image/webp', body:await readFile(new URL('../static/share-portraits/'+name,import.meta.url)) }

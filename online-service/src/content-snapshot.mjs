@@ -43,6 +43,9 @@ export function contentSnapshot(kind, input) {
         limits:numericFields(input.limits,thresholds), sets:list(input.sets,string),
         filters:Object.fromEntries(['sand','cup','head'].map(key=>[key,list(filters[key],string)])),
         buffs:list(input.buffs,string), includeEquipment:input.includeEquipment }
+    if (weapon.params !== undefined) {
+        result.weapon.params = list(weapon.params, param => ({label:string(param?.label), value:string(param?.value)}))
+    }
     if (result.includeEquipment) {
         result.equipment = list(input.equipment,piece,5)
         if (new Set(result.equipment.map(p=>p.position)).size !== result.equipment.length) throw invalid('圣遗物部位重复')
