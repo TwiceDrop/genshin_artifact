@@ -1,6 +1,7 @@
 <template>
     <!-- Element 组件自带的默认文字（暂无数据、无匹配数据等）跟随界面语言，原来没设置时一律是英文 -->
     <el-config-provider :locale="elementLocale">
+    <ContentShareDialog />
     <main-page></main-page>
     <usage-stats-notice></usage-stats-notice>
     <OnboardingHubDialog />
@@ -62,6 +63,7 @@ import {createPatchChecker, startPatchChecks} from '@/platform/patch-update.mjs'
 import {refreshPatchInfo} from '@/platform/patch-info.mjs'
 import {ElMessage} from 'element-plus'
 import {elementLocale} from '@/i18n/element-locale'
+import ContentShareDialog from '@/components/share/ContentShareDialog.vue'
 import MainPage from "@page/MainPage"
 import UsageStatsNotice from "@/components/UsageStatsNotice.vue"
 import OnboardingHubDialog from "@/onboarding/OnboardingHubDialog.vue"

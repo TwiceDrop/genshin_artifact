@@ -11,7 +11,7 @@
                 <b v-else-if="displayEntry.level != null">Lv. {{ displayEntry.level }}</b>
                 <div class="portrait-actions">
                     <RosterLoadouts :entry="entry" :base-entry="baseEntry" :character-presets="characterPresets"
-                        @select-preset="$emit('select-preset', $event)" @create-preset="saveCopy" />
+                        @select-preset="$emit('select-preset', $event)" @create-preset="saveCopy" @share="sharePreset" />
                     <UiButton v-if="!entry.characterVariant" size="small" variant="danger" @click="$emit('remove')">删除角色</UiButton>
                     <UiButton size="small" class="calculation-settings" :disabled="!entry.preset" aria-haspopup="dialog" @click="settingsOpen = true">计算设置</UiButton>
                 </div>
@@ -98,6 +98,8 @@ import { computed, defineAsyncComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMediaQuery } from '@vueuse/core'
 import RosterWeaponCard from './RosterWeaponCard.vue'
+import { openContentShare } from '@/components/share/content-share.mjs'
+import { presetPreview } from '@/components/share/preset-preview.mjs'
 import RosterLoadouts from './RosterLoadouts.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiDialog from '@/components/ui/UiDialog.vue'
@@ -311,6 +313,10 @@ const panel = computed(() => {
     } catch (e) { return { error: e.message } }
 })
 const highlightedStats = computed(() => panelHighlights[props.entry.characterName])
+function sharePreset(title) {
+    const {content,equipment} = presetPreview(displayEntry.value.preset,title,equippedItems.value,name=>t('stat',name))
+    openContentShare('preset',content,equipment)
+}
 const equippedItems = computed(() => slots.value.map(slot => slot.item))
 const scoreContext = computed(() => {
     const { characterName, label, constellation, element, preset, raw } = displayEntry.value

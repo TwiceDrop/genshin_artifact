@@ -1,5 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import metadata from '../static/share-catalog.json' with { type: 'json' }
+import roles from '../static/share-roles.json' with { type: 'json' }
+import { renderContent } from './share-content-page.mjs'
 import { axisSummary } from '../../beta-data/shared-axis.mjs'
 
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]))
@@ -8,11 +10,12 @@ const eventLabels = { switch:'切至', cast:'施放', hit:'命中', heal:'治疗
 const castLabels = { skill:'元素战技', burst:'元素爆发' }
 const detailLabels = {team:'全队',active:'当前前台',increase:'增加',decrease:'减少',damage:'受伤',frozen:'冻结',shield:'护盾',nightsoul:'夜魂',cryo_aura:'冰附着'}
 function portrait(member) {
-    const role = metadata[member.character]
-    return `<span class="portrait"><span>${escape(role.name.slice(0,1))}</span><img alt="" src="/share-assets/${encodeURIComponent(member.character)}.webp"></span>`
+    const role = roles[member.character]
+    const image = role.portrait ? `<img alt="" src="/share-assets/${encodeURIComponent(member.character)}.webp">` : ''
+    return `<span class="portrait ${escape(role.element)}"><span>${escape(role.name.slice(0,1))}</span>${image}</span>`
 }
-function page(title, main) {
-    return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>${escape(title)} · 莫娜占卜铺</title><link rel="stylesheet" href="/share-assets/share.css"><script src="/share-assets/share.js" defer></script></head><body><header><img src="/share-assets/mona.png" alt=""><b>莫娜占卜铺</b><span>四人轴分享</span></header>${main}</body></html>`
+function page(title, main, type = '四人轴分享') {
+    return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>${escape(title)} · 莫娜占卜铺</title><link rel="stylesheet" href="/share-assets/share.css"><script src="/share-assets/share.js" defer></script></head><body><header><img src="/share-assets/mona.png" alt=""><b>莫娜占卜铺</b><span>${escape(type)}</span></header>${main}</body></html>`
 }
 function describeEvent(row, member, members, legacy) {
     const action = metadata[member.character].actions.find(item => item.id === row.action)
@@ -47,7 +50,13 @@ function timelineOverview(members, rows, end) {
         return `<div class="track ${metadata[member.character].element}" data-slot="${escape(member.slot)}"><b>${escape(metadata[member.character].name)}</b><svg viewBox="0 0 1000 24" preserveAspectRatio="none" role="img" aria-label="${escape(metadata[member.character].name)}"><path d="M0 12H1000"></path>${dots}</svg></div>`
     }).join('') + `<small>记录时刻范围　0s — ${seconds(end)}</small>`
 }
-export function renderShare({ axis, publishedAt }, id) {
+export function renderShare(published, id) {
+    if (published.kind === 'dsl' || published.kind === 'preset') {
+        const { kind, content } = published
+        const role = roles[content.character]
+        return page(content.title, renderContent(kind, content, role, portrait(content), escape), kind === 'dsl' ? 'MONA-DSL' : '角色预设')
+    }
+    const { axis, publishedAt } = published
     const legacy = axis.format === 'mona-team-axis'
     const members = new Map(axis.members.map(m => [m.slot, m]))
     const rows = [...axis.timeline].sort((a,b) => a.timeMs-b.timeMs).map(row => ({
@@ -99,13 +108,13 @@ export function renderShareError(code) {
         SHARE_NOT_FOUND: ['分享链接不存在','请核对链接地址。'],
     }[code]
     const [title,detail] = content || ['暂时无法读取分享','请稍后重试。']
-    return page(title, `<section class="failure"><h1>${title}</h1><p>${detail}</p>${content?'':'<button id="retry">重试</button>'}</section>`)
+    return page(title, `<section class="failure"><h1>${title}</h1><p>${detail}</p>${content?'':'<button id="retry">重试</button>'}</section>`, '分享链接')
 }
 export const shareHeaders = { 'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'no-referrer',
     'Content-Security-Policy':"default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; base-uri 'none'; frame-ancestors 'none'" }
 export async function shareAsset(name) {
     const fixed = { 'mona.png':'image/png', 'share.css':'text/css', 'share.js':'text/javascript', 'brand.woff2':'font/woff2' }
     if (Object.hasOwn(fixed,name)) return { type:fixed[name], body:await readFile(new URL('../static/'+name,import.meta.url)) }
-    if (!name.endsWith('.webp') || !Object.hasOwn(metadata,name.slice(0,-5))) return null
+    if (!name.endsWith('.webp') || !roles[name.slice(0,-5)]?.portrait) return null
     return { type:'image/webp', body:await readFile(new URL('../static/share-portraits/'+name,import.meta.url)) }
 }

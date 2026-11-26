@@ -332,10 +332,11 @@
                 @run="optimizeSettingsOpen = false; handleOptimizeArtifact()">
                 <template #preset>
                     <div class="preset-actions">
-                        <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handleClickSaveOptimizeConfig()">
+                        <el-dropdown split-button trigger="click" @click="handleSavePreset(miscCurrentPresetName)" @command="handlePresetCommand">
                             <template v-if="!miscCurrentPresetName">{{ t("calcPage.newPreset") }}</template>
                             <template v-else>{{ t("calcPage.savePreset") }}「{{ presetStore.displayName(miscCurrentPresetName) }}」</template>
                             <template #dropdown><el-dropdown-menu>
+                                <el-dropdown-item command="share">分享当前预设</el-dropdown-item>
                                 <el-dropdown-item command="save-as">{{ t('calcPage.saveAsPreset') }}</el-dropdown-item>
                             </el-dropdown-menu></template>
                         </el-dropdown>
@@ -380,8 +381,9 @@
                         <el-tab-pane label="MONA-DSL" name="dsl">
                             <el-alert type="warning" :title="t('calcPage.beta')" :closable="false" style="margin-bottom: 8px"></el-alert>
                             <el-input type="textarea" :rows="10" :placeholder="t('misc.code')" v-model="targetFunctionDSLSource" class="code-input"></el-input>
+                            <el-button :disabled="!targetFunctionDSLSource.trim()" @click="shareDsl(targetFunctionDSLSource)">分享 DSL</el-button>
                         </el-tab-pane>
-                        <el-tab-pane label="DSL 生成器" name="generator"><dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona" /></el-tab-pane>
+                        <el-tab-pane label="DSL 生成器" name="generator"><dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona" /><el-button :disabled="!dslGeneratorState.entries.length" @click="shareDsl(generatedDsl)">分享 DSL</el-button></el-tab-pane>
                     </el-tabs>
 
 
@@ -800,6 +802,8 @@ import {useCharacterWeapon} from "@/composables/weapon"
 import OptimizationResultsDialog from './OptimizationResultsDialog.vue'
 import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.mjs'
+import { presetPreview } from '@/components/share/preset-preview.mjs'
+import { openContentShare } from '@/components/share/content-share.mjs'
 import DslGenerator from './DslGenerator.vue'
 import CalcTopBar from './CalcTopBar.vue'
 import CharacterHeroCard from './CharacterHeroCard.vue'
@@ -1045,6 +1049,16 @@ const panelSearchOptions = ref(newPanelSearchOptions())
 
 
 const dslGeneratorState = ref({character: characterName.value, entries: [] as any[]})
+function handlePresetCommand(command: string) {
+    if (command !== 'share') return handleClickSaveOptimizeConfig()
+    const preset = getPresetItem(), name = miscCurrentPresetName.value
+    const title = name && !presetStore.getPreset(name)?.item.miyousheKey ? name : characterLocale.value+'预设'
+    const {content,equipment} = presetPreview(preset,title,artifactItems.value,(key:string)=>t('stat',key))
+    openContentShare('preset',content,equipment)
+}
+function shareDsl(source: string) {
+    openContentShare('dsl',{ character:characterName.value,title:characterLocale.value+' · MONA-DSL',source })
+}
 const generatedDsl = computed(() => generateDsl(dslGeneratorState.value))
 watch(characterName, name => { dslGeneratorState.value = {character:name,entries:[]} }, {flush:'sync'})
 watch([miscTargetFunctionTab, generatedDsl], ([mode, source]) => {

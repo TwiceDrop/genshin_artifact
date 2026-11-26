@@ -95,6 +95,7 @@ export function createApi(options) {
                     return response.end(renderShareError(error.code))
                 }
                 if (publicLink[2]) {
+                    if (published.kind !== 'axis') throw new ApiError(404, 'NOT_FOUND', '此分享没有轴文件')
                     const filename = encodeURIComponent(published.axis.id.replace(/[^\p{L}\p{N}._-]/gu, '_').slice(0,80)) + '.mona-axis.json'
                     response.setHeader('Content-Disposition', "attachment; filename=axis.mona-axis.json; filename*=UTF-8''" + filename)
                     return send(200, published.axis)

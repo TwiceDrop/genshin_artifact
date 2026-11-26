@@ -34,4 +34,32 @@ li:first-child{border:0}li small{display:block;color:var(--gold)}li div{overflow
 #overview{padding:20px}.track{display:grid;grid-template-columns:75px 1fr;align-items:center;margin-bottom:10px}.track svg{width:100%;height:28px;fill:var(--element);background:var(--step)}.track path{stroke:var(--edge);stroke-width:2}
 .failure{max-width:440px;margin:12vh auto;padding:28px;text-align:center}.failure p{color:var(--dim)}footer{display:none}
 [hidden]{display:none!important}
+.public-content{display:block;max-width:940px;padding:24px 18px 60px;overflow-wrap:anywhere}
+.shared-role,.code-tools{display:flex;align-items:center;gap:10px}
+.shared-role{margin:12px 0;color:var(--dim)}
+.shared-role .portrait{width:44px;height:44px}
+.public-content .download{width:100%;margin:12px 0;cursor:pointer}
+.source-card,.setting-card,.gear-omitted,.gear-included{background:var(--card);padding:16px;border:1px solid var(--edge);border-radius:14px;margin:12px 0}
+.code-tools{justify-content:space-between}
+.code-tools button{color:var(--letter);background:var(--step);border:1px solid var(--edge);border-radius:8px;padding:6px 10px;cursor:pointer}
+#dsl-source{background:#10162c;padding:12px 0;overflow:auto;counter-reset:line;tab-size:4}
+.code-line{display:inline-block;box-sizing:border-box;min-width:100%;padding:0 12px 0 46px;position:relative;vertical-align:top}
+.code-line:before{counter-increment:line;content:counter(line);position:absolute;left:0;width:34px;text-align:right;color:var(--dim);user-select:none}
+.code-line:empty:after{content:' '}
+.code-line em{color:var(--gold);font-style:normal}
+#dsl-source.wrapped .code-line{white-space:pre-wrap;width:100%;overflow-wrap:anywhere}
+.copy-field{position:fixed;left:-9999px}
+.preset-settings{display:grid;grid-template-columns:1fr 2fr;gap:12px}
+.gear-included{color:#a9dcbf}
+.gear-included b{margin-right:8px}
+.setting-card dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px}
+.setting-card dd{margin:0}
+.setting-card dt,.gear-omitted p{color:var(--dim)}
+.gear-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.gear-cards h3{margin:5px 0}
+.gear-cards b{color:var(--gold)}
+.gear-cards ul{padding:0;margin:8px 0 0}
+.gear-cards li{display:block;padding:3px 0}
+.public-content #copy-status:empty{display:none}
+@media(max-width:640px){.preset-settings{display:block}.public-content{padding:16px 14px 32px}}
 @media(max-width:959px){header{height:48px;padding:0 16px}main{display:block;margin:0 auto;padding:16px 14px 110px}aside{position:static;padding:0;border:0;background:transparent}h1{font-size:20px}.roster{grid-template-columns:repeat(4,minmax(0,1fr));margin:12px 0}.member{min-height:78px}.download-box,.modes,aside>small{display:none}footer{display:block;position:fixed;bottom:0;width:100%;padding:8px 14px max(8px,env(safe-area-inset-bottom));background:#0b1124;border-top:1px solid var(--edge)}nav{margin-top:16px}.failure{margin:12vh 16px}.modes{display:none}}
