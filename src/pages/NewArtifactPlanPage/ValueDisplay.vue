@@ -1,8 +1,9 @@
 <template>
     <div class="root">
-        <div class="back" :style="styleForBack"></div>
-        <span class="display">{{ (value * 100).toFixed(1) }}
-            <span v-if="extra">/ {{ extra }}</span>
+        <div v-if="value != null" class="back" :style="styleForBack"></div>
+        <span class="display">
+            <template v-if="value != null">{{ (value * 100).toFixed(1) }}</template>
+            <span v-if="extra">{{ value != null ? '/ ' : '' }}{{ extra }}</span>
         </span>
     </div>
 </template>

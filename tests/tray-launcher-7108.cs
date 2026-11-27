@@ -96,7 +96,7 @@ public static class TrayLauncherProbe
                         menu.Items[1].Text == "关闭莫娜占卜铺", "菜单名称或数量错误。");
                     Require(FileVersionInfo.GetVersionInfo(exe).ProductVersion == "7.1.08beta", "EXE 版本错误。");
                     var output = (TextBox)form.Controls[0];
-                    Require(output.Text.Contains("莫娜已启动：http://127.0.0.1:4184/#/calculate"), "真实服务日志未接入。");
+                    Require(Array.IndexOf(output.Lines, "莫娜已启动：http://127.0.0.1:4184/#/") >= 0, "真实服务日志未接入。");
                     Require(!output.Text.Contains("MONA_LAUNCHER_READY"), "内部就绪信号进入了显示日志。");
                     string served = ReadIndex();
                     File.WriteAllText(Path.Combine(evidence, "served-index.html"), served);
@@ -121,7 +121,7 @@ public static class TrayLauncherProbe
                     menu.Items[0].PerformClick();
                     Application.DoEvents();
                     Require(form.Visible && ReadIndex() == expected, "打开界面未恢复日志和服务。");
-                    Require(openedUrl == "http://127.0.0.1:4184/#/calculate" && browserOpens == 1, "打开界面没有调用原访问地址。");
+                    Require(openedUrl == "http://127.0.0.1:4184/#/" && browserOpens == 1, "打开界面没有调用原访问地址。");
                 });
 
                 Check("3 重复 EXE 启动只发送打开信号", () =>

@@ -76,5 +76,5 @@ export function searchSegmentBuilds(api, input, artifacts, evaluate, onProgress)
 
     const ranked = results.finish();
     const best = ranked[0]?.value;
-    return ranked.map(row => ({...row, ratio: best === 0 ? Number(row.value === best) : row.value / best}));
+    return ranked.map(row => ({...row, ratio: best > 0 ? row.value / best : null}));
 }

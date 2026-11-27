@@ -223,6 +223,7 @@ export default {
         panelRangeStat: "属性",
         panelRangeMin: "下限",
         panelRangeMax: "上限",
+        invalidPanelRange: "面板属性下限不能大于上限。",
         filKumi: "过滤圣遗物组",
         artAnalysis: "圣遗物分析",
         statCurve: "词条收益曲线",

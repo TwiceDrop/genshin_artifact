@@ -106,6 +106,29 @@ test('legacy objective keeps its search scores and ranking', () => {
     assert.deepEqual(api.OptimizeSingleWasm.optimize(input, pool), legacy);
 });
 
+test('Lumine keeps legacy traveler declarations and her own charged-hit correction in segmented DSL', () => {
+    const input = fixture('LumineDendro');
+    const source = [
+        'dmg first = AetherDendro.Normal1',
+        'dmg charged = AetherDendro.Charged2',
+        'prop atk = AetherDendro.atk',
+        'prop em = AetherDendro.em',
+        'print(first.normal.e, charged.normal.e, atk, em)',
+    ].join('\n');
+    const legacy = run(source, input, input.artifacts);
+    const segmented = run('state spare = { buffs: [] }\n' + source, input, input.artifacts);
+    segmented.forEach((value, index) => near(value, legacy[index]));
+    const aether = run(source, fixture('AetherDendro'), input.artifacts);
+    assert.ok(segmented[1] > aether[1]);
+
+    const wrongElement = api.DSLInterface.run(
+        'state spare = { buffs: [] }\n' + source.replace('AetherDendro.Normal1', 'AetherCryo.Normal1'),
+        input, input.artifacts,
+    );
+    assert.equal(wrongElement.is_error, true);
+    assert.match(wrongElement.error_msg, /第 2 行.*AetherCryo.*LumineDendro/);
+});
+
 test('declared effect fields preserve zero and agree with the public damage calculator', () => {
     const source = [
         'state full = { buffs: [] }',
@@ -184,6 +207,27 @@ test('disabled BUFF parameters are ignored and transformative damage works witho
     near(api.OptimizeSingleWasm.optimize({...base, target_function}, gear)[0].value, legacy);
 });
 
+test('segmented DSL respects the single-hit scope of a manual reaction panel', () => {
+    const input = {
+        ...fixture('Kaeya'),
+        direct_stellar_context: {
+            owner: {id: 'Kaeya', em: 0, critRate: 0, critDamage: 0},
+            scalingStat: 100, skillMultiplier: 1, baseMultiplier: 1, element: 'Electro', resistanceMultiplier: 1,
+        },
+    };
+    const source = 'state spare = { buffs: [] }\ndmg hit = Kaeya.Normal1\nresult = hit.direct_stellarconduct.e';
+    const target = {name: 'Custom', use_dsl: true, dsl_source: source, params: 'NoConfig'};
+    const scopeError = /手填单次伤害面板仅支持单次伤害计算/;
+
+    near(api.CalculatorInterface.get_damage_analysis(input, null).direct_stellarconduct.expectation, 100);
+    assert.throws(() => api.OptimizeSingleWasm.optimize({...input, target_function: target}, input.artifacts), scopeError);
+    assert.throws(() => api.BonusPerStat.bonus_per_stat({...input, tf: target}), scopeError);
+    assert.throws(() => api.DSLInterface.prepareObjective(source, input), scopeError);
+    const response = api.DSLInterface.run(source, input, input.artifacts);
+    assert.equal(response.is_error, true);
+    assert.match(response.error_msg, scopeError);
+});
+
 test('search mastery threshold uses base mastery before extra reaction mastery', () => {
     const buffs = [named('NahidaTalent1', {max_em: 1000})];
     const dsl_source = 'state dry = { buffs: [] }\nprop atk = Mavuika.atk @dry\nresult = atk';
@@ -249,5 +293,24 @@ test('segmented search applies an inclusive base-panel maximum before ranking', 
         assert.deepEqual(rows.map(({feather, value}) => [feather, value]), [[2, unrestricted[1].value]]);
         assert.equal(progress.at(-1).percent, 100);
         assert.equal(progress.at(-1).remainingGroups, 0);
+    }
+});
+
+test('segmented search keeps nonpositive scores and ranks without a ratio', () => {
+    const input = fixture('Kaeya');
+    const weaker = {...input.artifacts[1], id: 12, main_stat: ['ATKFixed', 13]};
+    const inventory = [...input.artifacts, weaker];
+    for (const objective of ['-atk', '0']) {
+        const source = 'state spare = { buffs: [] }\nprop atk = Kaeya.atk\nresult = ' + objective;
+        const target_function = {name: 'Custom', use_dsl: true, dsl_source: source, params: 'NoConfig'};
+        const rows = api.OptimizeSingleWasm.optimize({...input, target_function}, inventory);
+        assert.deepEqual(rows.map(row => row.ratio), [null, null]);
+        if (objective === '-atk') {
+            assert.deepEqual(rows.map(row => row.feather), [12, 2]);
+            near(rows[1].value, -readPanel(api, input, input.artifacts).atk);
+            near(rows[0].value - rows[1].value, 298);
+        } else {
+            assert.deepEqual(rows.map(row => [row.feather, row.value]), [[2, 0], [12, 0]]);
+        }
     }
 });

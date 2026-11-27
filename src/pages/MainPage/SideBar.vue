@@ -99,7 +99,7 @@ const groups = computed(() => [
 ])
 
 const accountItems = computed(() => [
-    { path: '/online-account', to: onlineUser.user ? '/online-account' : '/login?redirect=/online-account',
+    { path: '/online-account', to: onlineUser.user ? '/online-account' : '/login',
         label: onlineUser.user ? onlineUser.user.username || onlineUser.user.email : '点击登录',
         icon: IconEpAvatar, avatar: onlineUser.user && avatarUrl(onlineUser.user.avatar) },
     { path: '/account', label: t('nav.account') + ' / ' + currentAccountName.value, icon: IconEpUser },

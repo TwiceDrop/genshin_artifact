@@ -97,13 +97,15 @@ import AstrolabeDial from '@/pages/about/IntroPage/AstrolabeDial.vue'
 import MonaPortrait from '@/components/misc/MonaPortrait.vue'
 import { cloudApi } from '@/platform/cloud.mjs'
 import { isNative } from '@/platform/native.mjs'
-import { chooseOffline, clearOfflineChoice } from '@/platform/login-gate.mjs'
+import { chooseOffline, clearOfflineChoice, isOfflineChosen } from '@/platform/login-gate.mjs'
+import { contentShareReturnPath } from '@/components/share/content-share.mjs'
 
 const webTitle = process.env.MONA_TITLE
 const deviceName = isNative ? 'Android' : 'Windows'
 const legal = name => `${process.env.BASE_URL}legal/${name}.html`
 const tabs = [{ mode: 'password', label: '密码登录' }, { mode: 'code', label: '验证码登录' }]
 const router = useRouter()
+let returnToShare = isOfflineChosen()
 
 // mode：password 密码登录 / code 验证码登录 / register 注册 / reset 重设密码 / naming 登录后设置用户名
 const mode = ref('password')
@@ -129,7 +131,8 @@ function switchMode(next) {
     error.value = ''; notice.value = ''; password.value = ''; confirmPassword.value = ''
 }
 function leave() {
-    return router.replace({ name: 'home' })
+    const path = returnToShare && contentShareReturnPath.value
+    return router.replace(path || { name: 'home' })
 }
 async function run(action) {
     busy.value = true; error.value = ''; notice.value = ''
@@ -191,6 +194,7 @@ function saveUsername() {
 }
 function continueOffline() {
     chooseOffline()
+    returnToShare = true
     leave()
 }
 

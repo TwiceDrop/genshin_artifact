@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import vm from 'node:vm'
 import { compileScript, parse } from '@vue/compiler-sfc'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { CloudGateway } from '../server/cloud.mjs'
 import { publicAccount } from '../server/cookie.mjs'
 import { withDefaultCloudUrl } from '../server/cloud-config.mjs'
@@ -19,7 +19,7 @@ test('the login page opens Home for online and offline entry even with an old re
     const source = fs.readFileSync(new URL('../src/pages/LoginPage/LoginPage.vue', import.meta.url), 'utf8')
     const script = compileScript(parse(source).descriptor, { id: 'login-routes' }).content
         .replace(/^import .*\r?\n/gm, '').replace('export default', 'module.exports =')
-    function openPage({ configUser = null, loginUser = user } = {}) {
+    function openPage({ configUser = null, loginUser = user, offlineChosen = false, sharePath = '' } = {}) {
         const events = []
         let mount
         const module = {}
@@ -30,6 +30,7 @@ test('the login page opens Home for online and offline entry even with an old re
             useRoute: () => ({ query: { redirect: '/team-optimization?share=resume' } }),
             useRouter: () => ({ replace: destination => events.push(destination.name ?? destination) }),
             cloudApi: async path => ({ user: path === 'config' ? configUser : loginUser }),
+            isOfflineChosen: () => offlineChosen, contentShareReturnPath: ref(sharePath),
             chooseOffline: () => events.push('offline'), clearOfflineChoice: () => events.push('online'),
         })
         const page = module.exports.setup({}, { expose() {} })
@@ -56,6 +57,94 @@ test('the login page opens Home for online and offline entry even with an old re
     const activeSession = openPage({ configUser: user })
     await activeSession.mount()
     assert.deepEqual(activeSession.events, ['home'])
+
+    const sharePath = '/calculate?mode=synthetic'
+    const shareLogin = openPage({ offlineChosen: true, sharePath })
+    shareLogin.page.account.value = 'synthetic'
+    shareLogin.page.password.value = 'synthetic-password'
+    await shareLogin.page.submit()
+    assert.deepEqual(shareLogin.events, ['online', sharePath])
+
+    const shareOffline = openPage({ sharePath })
+    shareOffline.page.continueOffline()
+    assert.deepEqual(shareOffline.events, ['offline', sharePath])
+})
+
+test('preset and DSL share forms keep their draft until navigation returns to the source page', async () => {
+    const source = fs.readFileSync(new URL('../src/components/share/ContentShareDialog.vue', import.meta.url), 'utf8')
+    const script = compileScript(parse(source).descriptor, { id: 'content-share-login' }).content
+        .replace(/^import .*\r?\n/gm, '').replace('export default', 'module.exports =')
+    for (const kind of ['preset', 'dsl']) {
+        const route = reactive({ name: 'calculate', fullPath: '/calculate?mode=synthetic' })
+        const sourcePath = route.fullPath
+        const draft = ref(null)
+        const module = {}
+        const events = new EventTarget()
+        const destinations = []
+        let signedIn = false
+        let published
+        function navigate(name, fullPath) { Object.assign(route, { name, fullPath }) }
+        vm.runInNewContext(script, {
+            module, computed, ref, watch, draft, returnPath: ref(''),
+            CharacterPortrait: null, characterData: {}, locale: {},
+            useRoute: () => route,
+            useRouter: () => ({ push: destination => { destinations.push(destination); navigate('login', '/login') } }),
+            useAccountStore: () => ({ currentAccountId: ref(1) }),
+            onBeforeUnmount() {}, window: events, clearTimeout, setTimeout,
+            navigator: { clipboard: { writeText: async () => {} } },
+            cloudApi: async (path, method, body) => {
+                if (path === 'config') return { user: signedIn ? user : null, url: 'https://cloud.example.test' }
+                assert.equal(path, 'v1/shares')
+                assert.equal(method, 'POST')
+                published = body
+                return { status: 'active', id: 'synthetic-share' }
+            },
+        })
+        const page = module.exports.setup({}, { expose() {} })
+        draft.value = { kind, content: { title: 'Initial title' }, equipment: [{ slot: 'Flower' }], requestId: 'synthetic' }
+        page.title.value = 'Edited title'
+        page.term.value = '7'
+        page.withGear.value = kind === 'preset'
+        await page.publish()
+        assert.equal(page.visible.value, false)
+
+        signedIn = true
+        events.dispatchEvent(new Event('mona-cloud-context-change'))
+        navigate('home', '/')
+        await nextTick()
+        assert.equal(page.visible.value, false)
+        navigate('calculate', sourcePath)
+        await nextTick()
+        assert.equal(page.visible.value, true)
+        assert.deepEqual(JSON.parse(JSON.stringify(destinations)), [{ name: 'login' }])
+        assert.equal(page.title.value, 'Edited title')
+        assert.equal(page.term.value, '7')
+        assert.equal(page.withGear.value, kind === 'preset')
+        await page.publish()
+        assert.equal(published.content.title, 'Edited title')
+        assert.equal(published.days, 7)
+        if (kind === 'preset') assert.deepEqual(published.content.equipment, draft.value.equipment)
+    }
+})
+
+test('the team axis share dialog waits for a signed-in session when returning from login', async () => {
+    const source = fs.readFileSync(new URL('../src/pages/TeamOptimizationPage/axis-sharing.mjs', import.meta.url), 'utf8')
+        .replace(/^import .*\r?\n/gm, '').replace(/^export /gm, '')
+    let signedIn = false
+    const useAxisSharing = vm.runInNewContext(source + '\nuseAxisSharing', {
+        computed, ref, onBeforeUnmount() {}, window: new EventTarget(),
+        cloudApi: async () => ({ user: signedIn ? user : null }),
+    })
+    const share = useAxisSharing({ entry: ref(null) })
+    const offline = share.show({ returning: true })
+    assert.equal(share.open.value, false)
+    await offline
+    assert.equal(share.open.value, false)
+
+    signedIn = true
+    await share.show({ returning: true })
+    assert.equal(share.open.value, true)
+    assert.equal(share.verified.value, true)
 })
 
 function memoryStore(initial) {

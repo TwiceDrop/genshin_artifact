@@ -165,7 +165,7 @@
                 </div>
             </div>
 
-            <el-button v-if="optimizationMode === 'damage'" class="panel-range-button" type="primary"
+            <el-button v-if="optimizationMode === 'damage'" ref="panelRangeTrigger" class="panel-range-button" type="primary"
                 aria-haspopup="dialog" @click="showPanelRangeDialog = true">
                 {{ t('calcPage.panelRangeSettings') }}
             </el-button>
@@ -191,10 +191,11 @@
                 </el-tree>
             </div>
         </el-dialog>
-        <el-dialog v-model="showPanelRangeDialog" custom-class="cx-scope viewport-dialog" append-to-body
-            :title="t('calcPage.panelRangeSettings')" width="min(440px, 94vw)">
+        <UiDialog v-model="showPanelRangeDialog" :title="t('calcPage.panelRangeSettings')" width="440px"
+            :return-focus="() => panelRangeTrigger?.$el.focus()">
             <PanelRangeFields v-model="panelBounds" />
-        </el-dialog>
+            <p v-if="invalidPanelRange" class="panel-range-error" role="alert">{{ t('calcPage.invalidPanelRange') }}</p>
+        </UiDialog>
 
 <!--    artifacts analysis    -->
         <el-dialog custom-class="cx-scope"
@@ -368,7 +369,7 @@
                         ></el-input-number>
                         <value-display
                             v-if="!panelResultSnapshot"
-                            :value="optimizationResults[optimizationResultIndex - 1].ratio"
+                            :value="optimizationResults[0].value > 0 ? optimizationResults[optimizationResultIndex - 1].ratio : null"
                             :extra="optimizationResults[optimizationResultIndex - 1].value.toFixed(1)"
                             style="margin-top: 12px"
                         ></value-display>
@@ -1038,6 +1039,7 @@ function handlePresetCommand(command: string) {
     openContentShare('preset',content,equipment)
 }
 function shareDsl(source: string) {
+    optimizeSettingsOpen.value = false
     openContentShare('dsl',{ character:characterName.value,title:characterLocale.value+' · MONA-DSL',source })
 }
 const generatedDsl = computed(() => generateDsl(dslGeneratorState.value))
@@ -1124,6 +1126,7 @@ const isAllLocked = computed(() => {
 // optimization setup
 const showConstraintDialog = ref(false)
 const showPanelRangeDialog = ref(false)
+const panelRangeTrigger = ref<{ $el: HTMLButtonElement } | null>(null)
 const {
     algorithm,
     constraintArtifactSet,
@@ -1138,6 +1141,8 @@ const {
     presetConstraint,
     presetFilter,
 } = useComputeConstraint()
+const invalidPanelRange = computed(() => Object.values(panelBounds.value).some(range =>
+    range?.min != null && range.max != null && range.min > range.max))
 const filterKumiRef = ref<InstanceType<typeof ElTree> | null>(null)
 const filterKumiSearch = ref("")
 const filteredKumiIds = ref<number[]>([])
@@ -1709,7 +1714,7 @@ interface ResultEntry {
     goblet: null | number,
     head: null | number,
     value: number,
-    ratio: number,
+    ratio: number | null,
 }
 
 const optimizationResults = ref<ResultEntry[]>([])
@@ -2136,6 +2141,10 @@ async function exportOptimizationDebug() {
 function handleOptimizeArtifact() {
     if (optimizationRunning.value || dynamicScoreState.value.running) return
     if (calculationState.active) { ElMessage.info('当前有计算线程正在进行'); return }
+    if (optimizationMode.value === 'damage' && invalidPanelRange.value) {
+        ElMessage.error(t('calcPage.invalidPanelRange'))
+        return
+    }
     optimizationError.value = ''
     const newDebug = () => createOptimizationDebug({version:process.env.MONA_VERSION,environment:{userAgent:navigator.userAgent,language:navigator.language,hardwareConcurrency:navigator.hardwareConcurrency,crossOriginIsolated:globalThis.crossOriginIsolated,wasmAvailable:typeof WebAssembly!=='undefined'}})
     const debug = optimizationDebugEnabled.value ? newDebug() : null
@@ -2599,6 +2608,10 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
     width: 100%;
     justify-content: center;
     text-align: center;
+}
+
+.panel-range-error {
+    color: var(--el-color-danger);
 }
 
 .common-description {

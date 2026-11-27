@@ -66,11 +66,11 @@ import { cloudApi } from '@/platform/cloud.mjs'
 import { characterData } from '@/assets/character'
 import locale from '@/i18n/generated/zh-cn.json'
 import CharacterPortrait from '@/components/display/CharacterPortrait.vue'
-import { pendingContentShare as draft } from './content-share.mjs'
+import { pendingContentShare as draft, contentShareReturnPath as returnPath } from './content-share.mjs'
 
 const route=useRoute(), router=useRouter(), account=useAccountStore()
 const term=ref('30'), title=ref(''), withGear=ref(false), busy=ref(false), copied=ref(false)
-const link=ref(''), error=ref(''), locked=ref(false), returnPath=ref('')
+const link=ref(''), error=ref(''), locked=ref(false)
 const record=ref(null), confirming=ref(false), copyStatus=ref(''), urlInput=ref(null)
 let owner, copyTimer
 const visible=computed(()=>Boolean(draft.value && !returnPath.value && route.name!=='login'))
@@ -95,7 +95,7 @@ onBeforeUnmount(()=>{
 watch(()=>route.fullPath, path=>{
     if (!draft.value || route.name==='login') return
     if (path===returnPath.value) returnPath.value=''
-    else close()
+    else if (!returnPath.value) close()
 })
 async function copy(){
     const item=draft.value
@@ -127,7 +127,7 @@ async function publish(){
         if(item!==draft.value) return
         if(!config.user){
             returnPath.value=route.fullPath
-            await router.push({name:'login',query:{redirect:returnPath.value}})
+            await router.push({name:'login'})
             return
         }
         const content={...item.content,title:title.value.trim()}

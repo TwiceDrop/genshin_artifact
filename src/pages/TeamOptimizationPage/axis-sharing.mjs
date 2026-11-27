@@ -79,7 +79,7 @@ export function useAxisSharing({ entry, currentDraft, save, persist, login, loca
     }
     async function show({ returning = false } = {}) {
         const token = ++generation
-        open.value = true
+        open.value = !returning
         busy.value = true
         message.value = ''
         verified.value = false
@@ -91,8 +91,14 @@ export function useAxisSharing({ entry, currentDraft, save, persist, login, loca
                 if (!returning) await login()
                 return
             }
+            open.value = true
             await refresh(token)
-        } catch (error) { if (token === generation) message.value = error.message }
+        } catch (error) {
+            if (token === generation) {
+                open.value = true
+                message.value = error.message
+            }
+        }
         finally { if (token === generation) busy.value = false }
     }
     async function copy() {

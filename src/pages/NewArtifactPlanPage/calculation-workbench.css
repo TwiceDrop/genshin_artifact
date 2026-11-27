@@ -101,7 +101,7 @@
 .damage-card :deep(.damage-values.expected .damage-number:not(.increase):not(.decrease)) { color: var(--accent); }
 .config-weapon :deep(.description) { color: var(--ink-secondary); }
 @container single-calculator (max-width: 820px) {
-    .preset-actions { max-width: 50%; }
+    .preset-actions { max-width: 100%; }
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .artifacts .add-button { transition: transform 120ms ease-out; }

@@ -29,7 +29,10 @@ function boundValue(stat, side) {
 }
 
 function setBound(stat, side, input) {
-    if (input.validity.badInput) return
+    if (input.validity.badInput) {
+        input.value = String(boundValue(stat, side))
+        return
+    }
     const range = {...props.modelValue[stat.key]}
     if (input.value === '') delete range[side]
     else range[side] = input.valueAsNumber / (stat.percent ? 100 : 1)

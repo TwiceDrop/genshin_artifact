@@ -70,8 +70,53 @@ test('both damage algorithms find builds below the initial 100 when they exceed 
                 candidatesById.get(row.flower), candidatesById.get(row.feather), ...fixed,
             ]).atk)), expected, character + ' ' + algorithm)
             assert.equal(rows[0].ratio, 1)
+            assert.ok(progress.at(-1).evaluated <= panels.length)
             assert.equal(progress.at(-1).percent, 100)
             assert.equal(progress.at(-1).remainingGroups, 0)
         }
     }
+})
+
+test('HP caps prune impossible domains and preserve the top 100 eligible builds', () => {
+    const input = optimizer(fixture('Kaeya', 'MaxATK'))
+    const inventory = gear.flatMap((artifact, slot) => Array.from({length: 4}, (_, index) => ({
+        ...artifact,
+        id: 4 * slot + index + 1,
+        main_stat: slot === 0 && index >= 2 ? ['HPFixed', 7780] : artifact.main_stat,
+        sub_stats: [['ATKPercentage', index * 4 ** slot * .0001]],
+    })))
+    const eligibleInventory = inventory.filter(artifact => artifact.id !== 3 && artifact.id !== 4)
+    const eligibleBuild = gear.map((_, slot) => inventory[4 * slot])
+    const maxHp = readPanel(api, input, eligibleBuild).hp
+
+    for (const algorithm of ['AStar', 'Naive']) {
+        const config = {...input, algorithm}
+        const optimizeWithCap = (hp, onProgress) => api.OptimizeSingleWasm.optimize({
+            ...config, constraint: {...config.constraint, panel_max: {hp}},
+        }, inventory, onProgress)
+
+        const progress = []
+        assert.deepEqual(optimizeWithCap(1, event => progress.push(event)), [])
+        assert.equal(progress.at(-1).candidateSpace, 1024)
+        assert.equal(progress.at(-1).evaluated, 0)
+        assert.equal(progress.at(-1).percent, 100)
+
+        const expected = api.OptimizeSingleWasm.optimize(config, eligibleInventory)
+        assert.equal(expected.length, 100)
+        assert.deepEqual(optimizeWithCap(maxHp), expected)
+    }
+})
+
+test('Vesna applies main stat filters after the same inventory checks with or without a panel cap', () => {
+    const input = {...optimizer(fixture('Vesna')), filter: {head_main_stat: ['CriticalRate']}}
+    const withCap = {...input, constraint: {...input.constraint, panel_max: {hp: 100000}}}
+    for (const algorithm of ['AStar', 'Naive']) {
+        const expected = api.OptimizeSingleWasm.optimize({...input, algorithm}, gear)
+        assert.equal(expected.length, 1)
+        assert.equal(expected[0].head, undefined)
+        assert.deepEqual(api.OptimizeSingleWasm.optimize({...withCap, algorithm}, gear), expected)
+    }
+    const incomplete = gear.filter(artifact => artifact.slot !== 'Head')
+    assert.throws(() => api.OptimizeSingleWasm.optimize(input, incomplete), /候选不足五个部位/)
+    assert.throws(() => api.OptimizeSingleWasm.optimize(withCap, incomplete), /候选不足五个部位/)
 })

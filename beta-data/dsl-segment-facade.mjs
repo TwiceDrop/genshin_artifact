@@ -1,4 +1,5 @@
 import {normalizeBonusInput} from './interface-contracts.mjs';
+import {assertNoExplicitDamagePanel} from './lunar-context-facade.mjs';
 import {searchSegmentBuilds} from './dsl-segment-search.mjs';
 import {parseSegmentDsl} from './dsl-segment-source.mjs';
 import {prepareDslSegmentTarget} from './dsl-segment-target.mjs';
@@ -33,7 +34,10 @@ function segmentedSource(target) {
 }
 
 export function withDslSegmentTargets(api, SegmentExpression, metadata) {
-    const prepare = (source, parsed, input) => prepareDslSegmentTarget(api, SegmentExpression, metadata, source, parsed, input);
+    function prepare(source, parsed, input) {
+        assertNoExplicitDamagePanel(input);
+        return prepareDslSegmentTarget(api, SegmentExpression, metadata, source, parsed, input);
+    }
 
     function withTarget(source, parsed, input, run) {
         const target = prepare(source, parsed, input);

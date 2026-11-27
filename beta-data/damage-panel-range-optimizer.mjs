@@ -19,17 +19,51 @@ export function withDamagePanelRangeOptimization(api) {
     })}
 }
 
+function createHealthPruner(api, input, pools, maximum) {
+    if (maximum == null || input.buffs?.length !== 0 || input.target_function?.use_dsl ||
+        pools.some(pool => !pool.length)) return null
+
+    // With no configured buffs, equipping gear keeps the no-artifact HP and
+    // adds flat HP and nonnegative HP percentage/set bonuses. A flower's flat
+    // main stat alone can raise the floor without modelling any conversions.
+    const hasNegativeHealth = pools.some(pool => pool.some(artifact =>
+        [artifact.main_stat, ...artifact.sub_stats].some(([stat, value]) =>
+            (stat === 'HPFixed' || stat === 'HPPercentage') && value < 0)))
+    if (hasNegativeHealth) return null
+
+    const {hp: unequippedHp} = readPanel(api, input, [])
+    const flowerMinimums = new WeakMap()
+    return ([flowers]) => {
+        if (!flowerMinimums.has(flowers)) {
+            flowerMinimums.set(flowers, flowers.reduce((minimum, {main_stat: [stat, value]}) =>
+                Math.min(minimum, stat === 'HPFixed' ? value : 0), Infinity))
+        }
+        const floor = unequippedHp + flowerMinimums.get(flowers)
+        // A different native addition order can round panel totals at a tie.
+        return floor - Math.abs(floor) * 16 * Number.EPSILON > maximum
+    }
+}
+
 function optimizeWithPanelMaximums(api, input, artifacts, onProgress) {
     const maximums = PANEL_STATS.filter(({key}) => input.constraint.panel_max[key] != null)
     const {panel_max, ...constraint} = input.constraint
     const nativeInput = {...input, constraint}
-    const pools = PANEL_SLOTS.map((slot, index) => {
-        const allowed = input.filter?.[resultSlots[index] + '_main_stat']
-        return artifacts.filter(a => a.slot === slot && (!allowed?.length || allowed.includes(a.main_stat[0])))
+    const excludedByMainStat = []
+    const pools = PANEL_SLOTS.map(slot => {
+        const allowed = slot === 'Flower' || slot === 'Feather'
+            ? undefined : input.filter?.[slot.toLowerCase() + '_main_stat']
+        return artifacts.filter(artifact => {
+            if (artifact.slot !== slot) return false
+            if (!allowed?.length || allowed.includes(artifact.main_stat[0])) return true
+            excludedByMainStat.push(artifact)
+            return false
+        })
     })
     const artifactsById = new Map(artifacts.map(a => [a.id, a]))
     const combinations = domains => domains.reduce((count, pool) => count * Math.max(1, pool.length), 1)
     const candidateSpace = combinations(pools)
+    const exceedsHealthCap = createHealthPruner(api, nativeInput, pools, panel_max.hp)
+    const fitsByBuild = new Map()
     let best = [], covered = 0, evaluated = 0, lastReport = -Infinity
     function report(force = false) {
         if (!onProgress) return
@@ -42,16 +76,28 @@ function optimizeWithPanelMaximums(api, input, artifacts, onProgress) {
 
     function visit(domains) {
         const remaining = combinations(domains)
-        const results = api.OptimizeSingleWasm.optimize(nativeInput, domains.flat())
+        if (exceedsHealthCap?.(domains)) {
+            covered += remaining
+            report()
+            return
+        }
+        // Adapters inspect the inventory before the native main-stat filter runs.
+        const candidates = [...domains.flat(), ...excludedByMainStat]
+        const results = api.OptimizeSingleWasm.optimize(nativeInput, candidates)
         const found = new Map(best.map(row => [resultSlots.map(slot => row[slot]).join(':'), row]))
+        const newlyChecked = []
         for (const row of results) {
             if (best.length === RESULT_LIMIT && row.value <= best.at(-1).value) break
             const ids = resultSlots.map(slot => row[slot])
             const key = ids.join(':')
             if (found.has(key)) continue
-            const panel = readPanel(api, nativeInput, ids.filter(id => id != null).map(id => artifactsById.get(id)))
-            evaluated++
-            if (maximums.every(({key}) => panel[key] <= panel_max[key])) found.set(key, row)
+            if (!fitsByBuild.has(key)) {
+                const panel = readPanel(api, nativeInput, ids.filter(id => id != null).map(id => artifactsById.get(id)))
+                evaluated++
+                fitsByBuild.set(key, maximums.every(({key}) => panel[key] <= panel_max[key]))
+                newlyChecked.push(key)
+            }
+            if (fitsByBuild.get(key)) found.set(key, row)
         }
         best = [...found.values()].sort((a, b) => b.value - a.value).slice(0, RESULT_LIMIT)
 
@@ -62,15 +108,17 @@ function optimizeWithPanelMaximums(api, input, artifacts, onProgress) {
             (best.length === RESULT_LIMIT && unseenScore <= best.at(-1).value)) {
             covered += remaining
             report()
-            return
+        } else {
+            const split = domains.reduce((largest, pool, i) => pool.length > domains[largest].length ? i : largest, 0)
+            const pool = domains[split], mid = Math.floor(pool.length / 2)
+            for (const half of [pool.slice(0, mid), pool.slice(mid)]) {
+                const part = [...domains]
+                part[split] = half
+                visit(part)
+            }
         }
-        const split = domains.reduce((largest, pool, i) => pool.length > domains[largest].length ? i : largest, 0)
-        const pool = domains[split], mid = Math.floor(pool.length / 2)
-        for (const half of [pool.slice(0, mid), pool.slice(mid)]) {
-            const part = [...domains]
-            part[split] = half
-            visit(part)
-        }
+        // Descendants can rediscover these builds. Sibling domains are disjoint.
+        for (const key of newlyChecked) fitsByBuild.delete(key)
     }
     report(true)
     visit(pools)

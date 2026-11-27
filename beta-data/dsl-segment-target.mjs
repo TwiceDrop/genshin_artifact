@@ -1,6 +1,7 @@
 import {normalizeBuffParameters} from './buff-rule-registry.mjs';
 import {assertDirectReactionDsl} from './direct-reaction-scope.mjs';
 import {segmentDslError} from './dsl-segment-source.mjs';
+import {travelerModelName} from './traveler-model.mjs';
 
 const elements = ['None', 'Pyro', 'Hydro', 'Electro', 'Cryo', 'Anemo', 'Geo', 'Dendro', 'Physical'];
 const panelProperties = new Map(Object.entries({
@@ -53,19 +54,23 @@ function expressionPosition(source) {
 
 function prepareDeclaration(declaration, input, character, skillNames) {
     const {member, character: name, position, params, kind} = declaration;
+    const current = input.character.name;
     return stage('准备声明', position, () => {
-        if (name !== input.character.name) throw Error('声明角色 ' + name + ' 与当前角色 ' + input.character.name + ' 不一致');
+        if (name !== current && name !== travelerModelName(current)) {
+            throw Error('声明角色 ' + name + ' 与当前角色 ' + current + ' 不一致');
+        }
         if (kind === 'prop') {
             if (!panelProperties.has(member) && !nativeProperties.has(member)) throw Error('未知属性 ' + member);
             return {...declaration, panelKey: panelProperties.get(member)};
         }
         if (member === 'transformative') return {...declaration, transformative: true};
-        const index = Object.keys(skillNames[name] ?? {}).find(key => skillNames[name][key] === member);
+        const skills = skillNames[current];
+        const index = Object.keys(skills ?? {}).find(key => skills[key] === member);
         if (index === undefined) throw Error('未知技能 ' + name + '.' + member);
         const {fumo, ...settings} = params;
         if (Object.hasOwn(params, 'fumo') && !elements.includes(fumo)) throw Error('附魔元素无效 ' + fumo);
         validateFields(settings, character?.configSkill ?? [], name + '.' + member + ' 技能');
-        const skill = {index: Number(index), config: Object.keys(settings).length ? {[name]: settings} : 'NoConfig'};
+        const skill = {index: Number(index), config: Object.keys(settings).length ? {[current]: settings} : 'NoConfig'};
         return {...declaration, skill, infusion: fumo && fumo !== 'None' ? fumo : null,
             key: JSON.stringify([skill, fumo])};
     });

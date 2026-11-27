@@ -4,13 +4,13 @@ import {bindReactionBuffs} from './reaction-parameter-rules.mjs';
 import {calculateDirectStellarConduct} from './direct-stellar-conduct.mjs';
 import {calculateDirectLunarDamage} from './lunar-damage.mjs';
 export const hasLunarContext=input=>!!(input?.direct_lunar_context||input?.ordinary_bloom_context);
-function inspectInputs(args){
+function inspectInputs(args,checkBuffScope){
  const contexts=[],seen=new WeakSet();
  const walk=x=>{
   if(!x||typeof x!=='object'||ArrayBuffer.isView(x)||x instanceof ArrayBuffer||seen.has(x))return;
   seen.add(x);
   if(x.single_hit_context||hasLunarContext(x)||x.direct_stellar_context)contexts.push(x);
-  if(x.character&&Array.isArray(x.buffs))for(const buff of x.buffs){
+  if(checkBuffScope&&x.character&&Array.isArray(x.buffs))for(const buff of x.buffs){
    if(!['IndependentDamageMultiplier','StellarSwirlDamageMultiplier'].includes(buff.name))continue;
    const p=buff.config?.[buff.name]||{};
    if(p.active===false)continue;
@@ -24,14 +24,22 @@ function inspectInputs(args){
 
 // Explicit reaction panels are single-hit inputs. They must never be held fixed
 // while a caller changes candidate artifacts to claim optimization or gain curves.
+function assertExplicitPanelScope(contexts, input){
+ if(contexts.length&&(contexts.length!==1||contexts[0]!==input))throw Error('手填单次伤害面板仅支持单次伤害计算，不能用于配装、词条收益、DSL或队伍优化。');
+}
+export function assertNoExplicitDamagePanel(input){
+ assertExplicitPanelScope(inspectInputs([input],false));
+}
+
 export function withLunarDamageContexts(base){
  return Object.fromEntries(Object.entries(base).map(([name,Class])=>[name,name==='TransformativeDamage'?Class:new Proxy(Class||{}, {get(target,method){
   const fn=Reflect.get(target,method);
   if(typeof fn!=='function')return fn;
   return (...args)=>{
-   const contexts=inspectInputs(args);
+   const contexts=inspectInputs(args,true);
    if(!contexts.length)return fn(...args);
-   if(name!=='CalculatorInterface'||method!=='get_damage_analysis'||contexts.length!==1||contexts[0]!==args[0])throw Error('手填单次伤害面板仅支持单次伤害计算，不能用于配装、词条收益、DSL或队伍优化。');
+   const acceptsPanel=name==='CalculatorInterface'&&method==='get_damage_analysis';
+   assertExplicitPanelScope(contexts,acceptsPanel?args[0]:undefined);
    const input=args[0];
    if(input.single_hit_context){if(hasLunarContext(input)||input.direct_stellar_context)throw Error('单次面板不能与其他反应上下文同时提供');return {single_hit:calculateSingleHit({...input.single_hit_context,character:input.character,buffs:input.buffs}),reaction_model:{input_mode:'explicit-single-hit-panels',formula_version:'7.1.07'}};}
    if(!hasLunarContext(input)&&!input.direct_stellar_context)return fn(...args);

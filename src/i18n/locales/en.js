@@ -221,6 +221,7 @@ export default {
         panelRangeStat: "Stat",
         panelRangeMin: "Minimum",
         panelRangeMax: "Maximum",
+        invalidPanelRange: "A stat’s minimum cannot exceed its maximum.",
         filKumi: "Filter Artifact Group",
         artAnalysis: "Artifacts Analysis",
         statCurve: "Stats Gain Curve",
