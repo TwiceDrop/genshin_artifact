@@ -12,7 +12,9 @@ import { deepCopy, downloadString } from '@/utils/common'
 import { isPickerCharacter } from '@/import/character-summary.mjs'
 import { useMona } from '@/wasm/mona'
 import { useAccountStore } from '@/store/pinia/account'
-import { listDslEntries, removeDslEntry, saveDslEntry } from '@/store/dsl-library'
+import { cloudApi } from '@/platform/cloud.mjs'
+import { openContentShare } from '@/components/share/content-share.mjs'
+import { listDslEntries, removeDslEntry, saveDslEntry, updateDistributedDslEntries } from '@/store/dsl-library'
 import { generateDsl } from '@/algorithms/dsl-generator.mjs'
 import { exportDslDocument, importDslDocument, validateDslDocument } from '@/algorithms/dsl-library.mjs'
 import type { DslLibraryDocument, DslLibraryEntry, DslNamedBuff } from '@/types/dsl-library'
@@ -94,6 +96,7 @@ export function useDslManagement() {
         loading: true,
         busy: false,
         error: '',
+        onlineStatus: '',
         mona,
         wide,
         canSave: computed((): boolean => {
@@ -119,6 +122,8 @@ export function useDslManagement() {
         confirmDelete,
         importFile,
         exportEntry,
+        shareEntry,
+        updateOnline,
         selectWeapon,
         addBuff,
         removeBuff,
@@ -150,7 +155,7 @@ export function useDslManagement() {
     watch([account.currentAccountId, account.reloadGeneration], ([id]) => {
         if (contextAccount !== id) {
             vm.draft = vm.deleteTarget = null
-            vm.error = ''
+            vm.error = vm.onlineStatus = ''
             list.value = []
             contextAccount = id
         }
@@ -162,7 +167,7 @@ export function useDslManagement() {
 
     function selectCharacter(name: string) {
         vm.character = name
-        vm.error = ''
+        vm.error = vm.onlineStatus = ''
     }
 
     function openNew() {
@@ -274,6 +279,38 @@ export function useDslManagement() {
             const document: DslLibraryDocument = importDslDocument(raw, catalog.value)
             const next = await saveDslEntry(id, { ...document, id: newEntryId() }, false)
             if (acceptEntries(id, next)) vm.character = document.character
+        })
+    }
+
+    function shareEntry(entry: DslLibraryEntry) {
+        openContentShare('dsl', { title: entry.name, character: entry.character, source: entry.source })
+    }
+
+    function updateOnline() {
+        const character = selectedRole()
+        const accountGeneration = account.reloadGeneration.value
+        vm.onlineStatus = ''
+        return run(async id => {
+            const config = await cloudApi('config')
+            const context = { url: config.url, userId: config.user?.id }
+            const result = await cloudApi('v1/dsl-catalog/' + character, 'GET', undefined, context)
+            if (contextAccount !== id || accountGeneration !== account.reloadGeneration.value) return
+            const latest = await cloudApi('config')
+            if (latest.url !== context.url || contextAccount !== id || accountGeneration !== account.reloadGeneration.value) return
+            if (result.character !== character || !Number.isInteger(result.revision) || result.revision < 0 || !Array.isArray(result.entries)) {
+                throw new Error('DSL 发布版本或条目列表无效')
+            }
+            const ids = new Set<string>()
+            const entries = result.entries.map((entry: { id: string; document: DslLibraryDocument }) => {
+                const document = validateDslDocument(entry.document, catalog.value)
+                if (document.character !== character || !/^[0-9a-f-]{36}$/.test(entry.id) || ids.has(entry.id)) {
+                    throw new Error('DSL 条目标识、角色或重复项无效')
+                }
+                ids.add(entry.id)
+                return { ...document, id: 'online:' + context.url + ':' + entry.id, distribution: { service: context.url, revision: result.revision } }
+            })
+            const saved = await updateDistributedDslEntries(id, character, context.url, result.revision, entries)
+            if (acceptEntries(id, saved) && selectedRole() === character) vm.onlineStatus = '已更新'
         })
     }
 

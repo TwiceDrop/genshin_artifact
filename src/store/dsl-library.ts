@@ -20,3 +20,12 @@ export function saveDslEntry(accountId: number, entry: DslLibraryEntry, existing
 export function removeDslEntry(accountId: number, id: string) {
     return backend.updateAccountItem<DslLibraryEntry[]>(accountId, dslLibraryKey(accountId), entries => (entries ?? []).filter(item => item.id !== id))
 }
+
+export function updateDistributedDslEntries(accountId: number, character: string, service: string, revision: number, incoming: DslLibraryEntry[]) {
+    return backend.updateAccountItem<DslLibraryEntry[]>(accountId, dslLibraryKey(accountId), value => {
+        const entries = value ?? []
+        const fromCatalog = (entry: DslLibraryEntry) => entry.character === character && entry.distribution?.service === service
+        if (entries.some(entry => fromCatalog(entry) && entry.distribution!.revision > revision)) return entries
+        return [...entries.filter(entry => !fromCatalog(entry)), ...incoming]
+    })
+}

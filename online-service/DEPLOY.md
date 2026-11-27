@@ -99,3 +99,11 @@ curl --fail http://127.0.0.1:18080/healthz
 - [文件型 secret 的权限行为](https://docs.docker.com/reference/compose-file/services/#secrets)
 - [Caddy 自动 HTTPS](https://caddyserver.com/docs/automatic-https)
 - [Caddy 反向代理](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy)
+
+## MONA-DSL 在线分发
+
+在服务部署的 `.env` 中配置独立的随机 `DSL_ADMIN_TOKEN`，重启服务后通过 HTTPS 打开 `/admin/dsl`。直接启动 Node 服务时也可使用 `DSL_ADMIN_TOKEN_FILE`。口令留空时，管理员接口关闭。
+
+在客户端「DSL管理」导出 `.mona-dsl.json`，到管理端选同一角色，添加或替换手法。核对列表和源码后发布该角色的整组手法。删除先进入草稿，发布后生效。管理端用版本号防止覆盖另一位管理员先发布的改动。
+
+玩家在「DSL管理」选择角色并点击「在线更新」，使用客户端已配置的在线服务地址。已下载的在线手法保存在该本地账户，可离线从配装目标中使用。每次同步只替换同一角色、同一服务的在线手法。

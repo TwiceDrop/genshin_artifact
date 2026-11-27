@@ -1,3 +1,4 @@
+import { createDslCatalog, dslAdminPageFile, DSL_CATALOG_BODY_LIMIT } from './dsl-catalog.mjs'
 import { createShares } from './axis-shares.mjs'
 import { renderShare, renderShareError, shareAsset, shareHeaders } from './share-page.mjs'
 import { createServer } from 'node:http'
@@ -36,6 +37,7 @@ export function createApi(options) {
     const { pool, config, onError = logError } = options
     const auth = createAuth({ ...options, onError }), cookieVaults = createCookieVaults(options), profiles = createProfiles(options)
     const shares = createShares(options)
+    const dslCatalog = createDslCatalog(options)
     const usageStats = createUsageStats(options)
     return createServer(async (request, response) => {
         const send = (status, value) => {
@@ -47,9 +49,13 @@ export function createApi(options) {
             const url = new URL(request.url, 'http://service.local')
             const path = url.pathname
             const method = request.method
+            const catalogPath = /^\/v1\/dsl-catalog\/([A-Za-z0-9]+)$/.exec(path)
             const publicRead = method === 'GET' && (path.startsWith('/s/') || path.startsWith('/share-assets/'))
             const origin = request.headers.origin
-            if (origin && !publicRead) {
+            // Browsers send Origin for the admin page's same-origin PUT as well.
+            const sameOriginCatalogWrite = catalogPath && method === 'PUT'
+                && (origin === 'https://' + request.headers.host || origin === 'http://' + request.headers.host)
+            if (origin && !publicRead && !sameOriginCatalogWrite) {
                 if (!config.allowedOrigins.includes(origin)) throw new ApiError(403, 'ORIGIN_NOT_ALLOWED', '此来源不能访问在线服务')
                 response.setHeader('Access-Control-Allow-Origin', origin)
                 response.setHeader('Vary', 'Origin')
@@ -71,7 +77,17 @@ export function createApi(options) {
             if (method === 'POST' && path === '/v1/auth/password/reset') return send(200, await auth.resetPassword(await bodyOf(request), ip))
             if (method === 'POST' && path === '/v1/usage-stats') return send(200, await usageStats.ingest(await bodyOf(request, USAGE_UPLOAD_LIMITS.bodyBytes), ip))
             if (method === 'GET' && path === '/v1/usage-stats/summary') return send(200, await usageStats.summary(url.searchParams, request.headers.authorization))
-            const pageFile = method === 'GET' && path.startsWith('/admin/') ? await usageStatsPageFile(path) : null
+            if (method === 'GET' && path === '/v1/admin/dsl-catalog') {
+                dslCatalog.authorize(request.headers.authorization)
+                return send(200, await dslCatalog.list())
+            }
+            if (catalogPath && method === 'GET') return send(200, await dslCatalog.read(catalogPath[1]))
+            if (catalogPath && method === 'PUT') {
+                dslCatalog.authorize(request.headers.authorization)
+                return send(200, await dslCatalog.publish(catalogPath[1], await bodyOf(request, DSL_CATALOG_BODY_LIMIT)))
+            }
+            const pageFile = method === 'GET' && path.startsWith('/admin/')
+                ? await dslAdminPageFile(path) ?? await usageStatsPageFile(path) : null
             if (pageFile) {
                 response.writeHead(200, { 'Content-Type': pageFile.type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
                     'Content-Security-Policy': USAGE_STATS_PAGE_POLICY, 'Referrer-Policy': 'no-referrer' })

@@ -4,7 +4,7 @@ async function request(path, method = 'GET', body, expectedContext) {
     if (isNative) return (await import('./cloud-mobile.mjs')).mobileCloudApi(path, method, body, expectedContext)
     const response = await fetch(`/api/cloud/${path}`, {
         method, credentials: 'same-origin', cache: 'no-store',
-        headers: { 'X-Mona-Local': '1', ...(expectedContext ? { 'X-Mona-Cloud-Url': encodeURIComponent(expectedContext.url), 'X-Mona-Cloud-User': expectedContext.userId } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { 'X-Mona-Local': '1', ...(expectedContext ? { 'X-Mona-Cloud-Url': encodeURIComponent(expectedContext.url), ...(expectedContext.userId ? { 'X-Mona-Cloud-User': expectedContext.userId } : {}) } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     })
     if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('在线账号需要本机服务，请从桌面启动器打开')

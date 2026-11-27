@@ -30,9 +30,10 @@
           >
             导入文件
           </UiButton>
-          <UiButton variant="outline" disabled>
-            在线分享
+          <UiButton variant="outline" :disabled="vm.loading || vm.busy" @click="vm.updateOnline">
+            在线更新
           </UiButton>
+          <span role="status">{{ vm.onlineStatus }}</span>
           <input
             ref="fileInputRef"
             type="file"
@@ -60,6 +61,7 @@
       <li v-for="entry in vm.entries" :key="entry.id" class="cx-panel dsl-item">
         <header class="cx-panel-heading">
           <h2 class="cx-panel-title">{{ entry.name }}</h2>
+          <span v-if="entry.distribution">在线手法</span>
         </header>
         <div class="cx-panel-body dsl-item-main">
           <p v-if="entry.description?.trim()" class="dsl-item-desc dsl-item-desc--multiline">{{ entry.description }}</p>
@@ -78,7 +80,11 @@
             <pre class="dsl-item-source" tabindex="0" :aria-label="'MONA-DSL ' + entry.name">{{ entry.source }}</pre>
           </details>
           <div class="dsl-item-actions">
+            <UiButton variant="outline" size="small" :disabled="vm.busy" :aria-label="'分享 ' + entry.name" @click="vm.shareEntry(entry)">
+              在线分享
+            </UiButton>
             <UiButton
+              v-if="!entry.distribution"
               variant="outline"
               size="small"
               :disabled="vm.busy"
@@ -97,6 +103,7 @@
               导出
             </UiButton>
             <UiButton
+              v-if="!entry.distribution"
               variant="danger"
               size="small"
               :disabled="vm.busy"

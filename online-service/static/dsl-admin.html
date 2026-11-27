@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MONA-DSL 分发管理 · 莫娜占卜铺</title>
+    <link rel="stylesheet" href="/admin/dsl.css">
+    <script src="/admin/dsl.js" defer></script>
+</head>
+<body>
+    <header><strong>莫娜占卜铺</strong><span>MONA-DSL 分发管理</span></header>
+    <main>
+        <form id="unlock" class="panel" method="post" action="/admin/dsl">
+            <label for="token">管理员口令</label>
+            <input id="token" type="password" required autocomplete="off">
+            <button class="primary" type="submit">解锁</button>
+            <p id="unlock-status" role="status"></p>
+        </form>
+        <div id="workspace" hidden>
+            <div class="workspace-heading">
+                <div><h1 id="role-name">角色</h1><p id="revision"></p></div>
+                <div class="actions">
+                    <button id="reload" type="button">刷新</button>
+                    <button id="publish" class="primary" type="button">发布角色手法</button>
+                </div>
+            </div>
+            <p id="status" role="status"></p>
+            <div class="workspace-grid">
+                <section class="panel">
+                    <label for="roles">角色目录</label>
+                    <select id="roles" name="character"></select>
+                </section>
+                <section class="panel">
+                    <div class="actions"><h2>手法</h2><button type="button" id="add">添加 JSON</button></div>
+                    <input id="file" type="file" accept=".json,application/json" hidden>
+                    <ul id="entries"></ul>
+                </section>
+                <section class="panel preview">
+                    <h2 id="preview-title">源码</h2>
+                    <pre id="source" tabindex="0" aria-labelledby="preview-title"></pre>
+                </section>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

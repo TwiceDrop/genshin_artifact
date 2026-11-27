@@ -28,40 +28,70 @@ document.getElementById('retry')?.addEventListener('click', () => location.reloa
 
 const copyCode = document.getElementById('copy-code')
 if (copyCode) {
-    const code = document.getElementById('dsl-source'), wrap = document.getElementById('wrap-code')
+    const code = document.getElementById('dsl-source')
+    const wrap = document.getElementById('wrap-code')
     const status = document.getElementById('copy-status')
+    const source = JSON.parse(copyCode.dataset.source)
+    const buttons = [copyCode, document.getElementById('copy-code-small')]
+    const labels = buttons.map(button => button.textContent)
+    const narrow = matchMedia('(max-width:767px)')
     let timer
+    let changedWrap = false
+
     function setWrap(enabled) {
         code.classList.toggle('wrapped', enabled)
         wrap.setAttribute('aria-pressed', String(enabled))
         wrap.textContent = '自动换行：' + (enabled ? '开' : '关')
     }
-    setWrap(matchMedia('(max-width:959px)').matches)
-    wrap.addEventListener('click', () => setWrap(!code.classList.contains('wrapped')))
-    copyCode.addEventListener('click', async () => {
-        const source = JSON.parse(copyCode.dataset.source)
-        try { await navigator.clipboard.writeText(source) }
-        catch {
-            const field = document.createElement('textarea')
-            field.value = source
-            field.className = 'copy-field'
-            document.body.append(field)
-            field.select()
-            let copied
-            try { copied = document.execCommand('copy') } catch { copied = false }
-            finally { field.remove() }
-            if (!copied) {
-                const range = document.createRange()
-                range.selectNodeContents(code.querySelector('code'))
-                const selection = window.getSelection()
-                selection.removeAllRanges()
-                selection.addRange(range)
-                status.textContent = '请长按或选中源码复制。'
-                return
-            }
-        }
-        status.textContent = copyCode.textContent = '✓ 已复制 DSL 源码'
-        clearTimeout(timer)
-        timer = setTimeout(() => { copyCode.textContent = '一键复制 DSL 源码'; status.textContent = '' }, 1800)
+    setWrap(narrow.matches)
+    narrow.addEventListener('change', event => {
+        if (!changedWrap) setWrap(event.matches)
     })
+    wrap.addEventListener('click', () => {
+        changedWrap = true
+        setWrap(!code.classList.contains('wrapped'))
+    })
+
+    function legacyCopy() {
+        const previousFocus = document.activeElement
+        const field = document.createElement('textarea')
+        field.value = source
+        field.readOnly = true
+        field.className = 'copy-field'
+        document.body.append(field)
+        field.select()
+        try { return document.execCommand('copy') }
+        catch { return false }
+        finally { field.remove(); previousFocus?.focus({ preventScroll: true }) }
+    }
+
+    function restoreLabels() {
+        buttons.forEach((button, index) => { button.textContent = labels[index] })
+    }
+
+    async function copy(event) {
+        const button = event.currentTarget
+        let copied
+        try { await navigator.clipboard.writeText(source); copied = true }
+        catch { copied = legacyCopy() }
+        clearTimeout(timer)
+        restoreLabels()
+        if (copied) {
+            status.textContent = '已复制'
+            status.classList.remove('copy-failed')
+            button.textContent = '✓ 已复制'
+            timer = setTimeout(() => { restoreLabels(); status.textContent = '' }, 1800)
+            return
+        }
+        status.classList.add('copy-failed')
+        status.textContent = '当前浏览器限制自动复制，请长按下方代码手动复制'
+        const selection = window.getSelection()
+        if (selection) {
+            const range = document.createRange()
+            range.selectNodeContents(code.querySelector('code'))
+            selection.removeAllRanges()
+            selection.addRange(range)
+        }
+    }
+    buttons.forEach(button => button.addEventListener('click', copy))
 }

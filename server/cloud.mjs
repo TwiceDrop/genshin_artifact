@@ -13,7 +13,7 @@ const publicKey = value => ({ key: value.key, salt: value.salt, kdf: value.kdf }
 // 这些接口成功时返回新会话：本机保存令牌，不交给页面
 const sessionRoutes = new Set(['/v1/auth/email/verify', '/v1/auth/register', '/v1/auth/password/login'])
 const publicConfig = saved => ({ url: saved?.url || '', user: saved?.user || null, expiresAt: saved?.expiresAt || null })
-const remoteRoute = /^\/v1\/(?:auth\/email\/(?:request|verify)|auth\/register|auth\/password\/(?:login|reset)|auth\/logout|me(?:\/(?:password|email))?|sessions(?:\/[a-zA-Z0-9-]+)?|cookie-vaults(?:\/(?:miyoushe|hoyolab)\/[0-9]{1,20})?|shares(?:\/[a-zA-Z0-9-]+)?|profiles(?:\/[a-zA-Z0-9-]+(?:\/(?:revisions(?:\/[0-9]+)?|history(?:\/[a-zA-Z0-9-]+)?))?)?)$/
+const remoteRoute = /^\/v1\/(?:auth\/email\/(?:request|verify)|auth\/register|auth\/password\/(?:login|reset)|auth\/logout|me(?:\/(?:password|email))?|sessions(?:\/[a-zA-Z0-9-]+)?|cookie-vaults(?:\/(?:miyoushe|hoyolab)\/[0-9]{1,20})?|dsl-catalog\/[A-Za-z0-9]+|shares(?:\/[a-zA-Z0-9-]+)?|profiles(?:\/[a-zA-Z0-9-]+(?:\/(?:revisions(?:\/[0-9]+)?|history(?:\/[a-zA-Z0-9-]+)?))?)?)$/
 
 // Online sessions use a separate DPAPI file; the game Cookie vault is read only
 // when the user explicitly selects a saved account to encrypt and upload.
@@ -63,7 +63,9 @@ export class CloudGateway {
         const remoteUrl = new URL(route, 'https://local.invalid')
         if (!remoteRoute.test(remoteUrl.pathname) || remoteUrl.origin !== 'https://local.invalid') return { status: 404, data: { error: '接口不存在' } }
         const headers = { 'Content-Type': 'application/json' }
-        if (saved.sessionToken) headers.Authorization = `Bearer ${saved.sessionToken}`
+        const readingDslCatalog = remoteUrl.pathname.startsWith('/v1/dsl-catalog/')
+        if (readingDslCatalog && method !== 'GET') return { status: 405, data: { error: '接口不支持此操作' } }
+        if (saved.sessionToken && !readingDslCatalog) headers.Authorization = `Bearer ${saved.sessionToken}`
         const response = await this.fetcher(saved.url + remoteUrl.pathname + remoteUrl.search, {
             method, headers, redirect: 'error', signal: AbortSignal.timeout(60000),
             ...(!['GET', 'HEAD'].includes(method) ? { body: JSON.stringify(body) } : {}),

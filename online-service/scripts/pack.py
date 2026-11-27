@@ -18,6 +18,26 @@ fixed = [
     "beta-data/axis-format.mjs", "beta-data/shared-axis.mjs",
     "server/usage-stats-features.mjs", "server/usage-stats-characters.mjs",
 ]
+fixed += [
+    "beta-data/buff-rule-registry.mjs",
+    "beta-data/buff-rule-schema.mjs",
+    "beta-data/character-elements.mjs",
+    "beta-data/direct-reaction-scope.mjs",
+    "beta-data/dsl-segment-source.mjs",
+    "beta-data/dsl-segment-target.mjs",
+    "beta-data/dsl-tokens.mjs",
+    "beta-data/effect-rule-engine.mjs",
+    "beta-data/traveler-model.mjs",
+    "beta-data/dsl-skill-names.json",
+    "src/algorithms/dsl-generator.mjs",
+    "src/algorithms/dsl-library.mjs",
+    "src/algorithms/reaction-labels.mjs",
+    "src/assets/_gen_character.js",
+    "src/assets/_gen_weapon.js",
+    "src/assets/_gen_buff.js",
+    "src/import/character-summary.mjs",
+    "src/import/character-talents.mjs",
+]
 files = [source / name for name in fixed]
 files += sorted((service / "src").rglob("*.mjs"))
 files += sorted((service / "migrations").rglob("*.sql"))

@@ -37,9 +37,10 @@ async function execute(path, method, body, expectedContext) {
         if (method === 'PUT') { await write({ ...config, cookieKey: { userId: config.user.id, ...publicKey(body) } }); return { ok: true } }
         if (method === 'DELETE') { const { cookieKey, ...rest } = config; await write(rest); return { ok: true } }
     }
+    const readingDslCatalog = /^v1\/dsl-catalog\/[A-Za-z0-9]+$/.test(path)
     const response = await CapacitorHttp.request({
         url: `${serviceUrl(config.url)}/${path}`, method,
-        headers: { ...(config.sessionToken ? { Authorization: `Bearer ${config.sessionToken}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { ...(config.sessionToken && !readingDslCatalog ? { Authorization: `Bearer ${config.sessionToken}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
         ...(body === undefined ? {} : { data: body }), responseType: 'json',
         connectTimeout: 15000, readTimeout: 60000, disableRedirects: true,
     })

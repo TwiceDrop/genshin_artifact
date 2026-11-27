@@ -7,15 +7,28 @@ const minimums = {minRecharge:'充能效率',minCritical:'暴击率',minCritical
 const pct = value => Number((value * 100).toFixed(3))+'%'
 
 export function renderContent(kind, c, role, portrait, escape) {
-    const identity = '<div class="shared-role">'+portrait+'<b>'+escape(role.name)+'</b> · '+escape(elements[role.element] || role.element)+'</div>'
-    const heading = '<h1>'+escape(c.title)+'</h1>'+identity
-    if (kind === 'dsl') {
-        const lines = c.source.split(/\r\n|\r|\n/)
-        const code = lines.map(line => '<span class="code-line">'+line.split(/(\b(?:dmg|result|let|true|false|\d+(?:\.\d+)?)\b)/g)
-            .map((part,i)=>i%2 ? '<em>'+escape(part)+'</em>' : escape(part)).join('')+'</span>').join('\n')
-        return '<main class="public-content">'+heading+'<button class="download" id="copy-code" data-source="'+escape(JSON.stringify(c.source))+'">一键复制 DSL 源码</button><section class="source-card"><div class="code-tools"><strong>MONA-DSL · '+lines.length+' 行</strong><button id="wrap-code">自动换行</button></div><pre id="dsl-source"><code>'+code+'</code></pre></section><p role="status" id="copy-status"></p><p>复制源码后，在「配装计算 → 目标函数」中选择「MONA-DSL」并粘贴。</p></main>'
-    }
-    return renderPreset(c, role, portrait, escape)
+    if (kind !== 'dsl') return renderPreset(c, role, portrait, escape)
+    const lines = c.source.split(/\r\n|\r|\n/)
+    const code = lines.map((line, index) => {
+        const tokens = line.split(/(\b(?:dmg|result|let|true|false|\d+(?:\.\d+)?)\b)/g)
+            .map((part, i) => i % 2 ? '<em>' + escape(part) + '</em>' : escape(part)).join('')
+        return `<span class="code-line" data-line="${index + 1}"><span class="line-source">${tokens}</span></span>`
+    }).join('')
+    return `<main class="dsl-reader">
+        <div class="dsl-heading"><div><h1>${escape(c.title)}</h1>
+            <div class="dsl-role">${portrait}<span>${escape(role.name)} · ${escape(elements[role.element] || role.element)} · ${lines.length} 行</span></div></div>
+            <button type="button" class="download" id="copy-code" data-source="${escape(JSON.stringify(c.source))}">一键复制 DSL 源码</button>
+        </div>
+        <p role="status" id="copy-status"></p>
+        <section class="source-card">
+            <div class="code-tools"><strong>MONA-DSL · ${lines.length} 行</strong><div>
+                <button type="button" id="wrap-code" aria-controls="dsl-source">自动换行</button>
+                <button type="button" id="copy-code-small">复制</button>
+            </div></div>
+            <div class="source-body"><pre id="dsl-source" tabindex="0" aria-label="MONA-DSL"><code>${code}</code></pre></div>
+        </section>
+        <p class="dsl-help">复制后，在莫娜占卜铺「配装计算 → 目标函数」中选择「MONA-DSL」粘贴。</p>
+    </main>`
 }
 
 function resistanceText(enemy) {

@@ -34,24 +34,42 @@ li:first-child{border:0}li small{display:block;color:var(--gold)}li div{overflow
 #overview{padding:20px}.track{display:grid;grid-template-columns:75px 1fr;align-items:center;margin-bottom:10px}.track svg{width:100%;height:28px;fill:var(--element);background:var(--step)}.track path{stroke:var(--edge);stroke-width:2}
 .failure{max-width:440px;margin:12vh auto;padding:28px;text-align:center}.failure p{color:var(--dim)}footer{display:none}
 [hidden]{display:none!important}
-.public-content{display:block;max-width:940px;padding:24px 18px 60px;overflow-wrap:anywhere}
-.shared-role,.code-tools{display:flex;align-items:center;gap:10px}
-.shared-role{margin:12px 0;color:var(--dim)}
-.shared-role .portrait{width:44px;height:44px}
-.public-content .download{width:100%;margin:12px 0;cursor:pointer}
-.source-card{background:var(--card);padding:16px;border:1px solid var(--edge);border-radius:14px;margin:12px 0}
-.code-tools{justify-content:space-between}
-.code-tools button{color:var(--letter);background:var(--step);border:1px solid var(--edge);border-radius:8px;padding:6px 10px;cursor:pointer}
-#dsl-source{background:#10162c;padding:12px 0;overflow:auto;counter-reset:line;tab-size:4}
-.code-line{display:inline-block;box-sizing:border-box;min-width:100%;padding:0 12px 0 46px;position:relative;vertical-align:top}
-.code-line:before{counter-increment:line;content:counter(line);position:absolute;left:0;width:34px;text-align:right;color:var(--dim);user-select:none}
-.code-line:empty:after{content:' '}
-.code-line em{color:var(--gold);font-style:normal}
-#dsl-source.wrapped .code-line{white-space:pre-wrap;width:100%;overflow-wrap:anywhere}
-.copy-field{position:fixed;left:-9999px}
-.public-content #copy-status:empty{display:none}
-@media(max-width:640px){.public-content{padding:16px 14px 32px}}
+/* DSL reader */
+.dsl-reader { display:block; max-width:960px; margin:24px auto 48px; padding:0 14px; font-variant-numeric:tabular-nums; }
+.dsl-heading { display:grid; gap:14px; margin-bottom:16px; }
+.dsl-heading h1 { margin:0 0 8px; overflow-wrap:anywhere; }
+.dsl-role { display:flex; align-items:center; gap:8px; color:var(--dim); }
+.dsl-role .portrait { width:28px; height:28px; flex:none; }
+.dsl-heading .download { min-height:44px; border-color:transparent; }
+.source-card { border-radius:14px; border:1px solid #232c52; overflow:hidden; }
+.code-tools { display:flex; align-items:center; justify-content:space-between; gap:5px; min-height:40px; padding:0 12px; background:var(--step); font-size:13px; }
+.code-tools > div { display:flex; gap:5px; }
+.code-tools button { min-height:28px; padding:2px 6px; white-space:nowrap; }
+.source-body { position:relative; background:#10162c; }
+.source-body:has(pre:not(.wrapped))::after { content:''; pointer-events:none; position:absolute; inset:0 0 0 auto; width:24px; background:linear-gradient(to right,transparent,#10162c); }
+#dsl-source { margin:0; max-height:66vh; padding:10px 12px; overflow:auto; tab-size:4; font:13px/1.65 ui-monospace, Consolas, monospace; }
+#dsl-source:focus-visible { outline:2px solid var(--gold); outline-offset:-2px; }
+#dsl-source code { display:block; min-width:max-content; }
+#dsl-source.wrapped code { min-width:0; }
+.code-line { display:grid; grid-template-columns:34px minmax(0,1fr); column-gap:8px; min-height:1.65em; }
+.code-line::before { content:attr(data-line) / ''; text-align:right; user-select:none; color:var(--dim); }
+.wrapped .line-source { white-space:pre-wrap; overflow-wrap:anywhere; }
+.line-source em { color:var(--gold); font-style:normal; }
+.copy-field,#copy-status:not(.copy-failed) { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+#copy-status.copy-failed { margin:-4px 0 12px; padding:8px 12px; border-radius:8px; color:var(--gold); background:rgba(226,192,120,.10); }
+.dsl-help { margin-top:14px; font-size:13px; color:var(--dim); }
+@media(min-width:768px) {
+    .dsl-heading { grid-template-columns:minmax(0,1fr) auto; align-items:start; }
+}
+@media(prefers-color-scheme:light) {
+    .source-body { background:#f6f8fc; color:#121733; }
+    .source-body:has(pre:not(.wrapped))::after { background:linear-gradient(to right,transparent,#f6f8fc); }
+    .line-source em { color:#8a6420; }
+    .code-line::before { color:#5a6380; }
+}
 @media(max-width:959px){header{height:48px;padding:0 16px}main{display:block;margin:0 auto;padding:16px 14px 110px}aside{position:static;padding:0;border:0;background:transparent}h1{font-size:20px}.roster{grid-template-columns:repeat(4,minmax(0,1fr));margin:12px 0}.member{min-height:78px}.download-box,.modes,aside>small{display:none}footer{display:block;position:fixed;bottom:0;width:100%;padding:8px 14px max(8px,env(safe-area-inset-bottom));background:#0b1124;border-top:1px solid var(--edge)}nav{margin-top:16px}.failure{margin:12vh 16px}.modes{display:none}}
+
+@media(min-width:768px) { body:has(.dsl-reader) > header { height:52px; padding:0 22px; } }
 
 /* The public service renders independently from the Vue app. Map its shell
    palette to the night tokens used by content-theme.css. */

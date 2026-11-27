@@ -12,4 +12,5 @@ export interface DslLibraryDocument {
 
 export interface DslLibraryEntry extends DslLibraryDocument {
     id: string
+    distribution?: { service: string; revision: number }
 }
