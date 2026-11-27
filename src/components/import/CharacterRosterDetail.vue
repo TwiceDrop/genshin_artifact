@@ -22,54 +22,64 @@
             <RosterWeaponCard :entry="displayEntry" @change-weapon="changeWeapon" />
             <CharacterTalentCards :entry="displayEntry" @change-levels="changeTalentLevels" />
             <CharacterConstellation :entry="displayEntry" @change-rank="changeRank" />
-            <section class="block stats"><h4>角色面板</h4>
-                <p v-if="panel.error" class="issue">{{ panel.error }}</p>
-                <div v-else class="stat-grid">
-                    <RosterStatRow v-for="([key, label, percent], index) in rows" :key="entry.characterName + key"
-                        :side="narrow ? 'bottom' : index % 2 === 0 ? 'left' : 'right'"
-                        :label="label" :percentage="percent" :composition="panel.value?.[key]"
-                        :highlighted="highlightedStats?.includes(key)" />
+            <section class="cx-panel">
+                <header class="cx-panel-heading"><h4 class="cx-panel-title">角色面板</h4></header>
+                <div class="cx-panel-body">
+                    <p v-if="panel.error" class="issue">{{ panel.error }}</p>
+                    <div v-else class="stat-grid">
+                        <RosterStatRow v-for="([key, label, percent], index) in rows" :key="entry.characterName + key"
+                            :side="narrow ? 'bottom' : index % 2 === 0 ? 'left' : 'right'"
+                            :label="label" :percentage="percent" :composition="panel.value?.[key]"
+                            :highlighted="highlightedStats?.includes(key)" />
+                    </div>
                 </div>
             </section>
             <p v-if="entry.warning || entry.error" class="issue">{{ entry.warning || entry.error }}</p>
         </div>
-        <section class="equipment"><h4>圣遗物 <span>{{ slots.filter(s => s.item || s.raw).length }} / 5</span></h4>
-            <div v-if="buildScore.count" class="build-score">
-                喵喵总分 <strong class="miao-score" :data-grade="buildScore.grade">{{ buildScore.total?.toFixed(1) }} {{ buildScore.grade }}</strong>
-            </div>
-            <div class="gear-grid"><div v-for="(slot, index) in slots" :key="slot.position" class="gear-slot">
-                <ArtifactCard v-if="slot.item" :item="slot.item" :icon-src="localPieceIcon(slot.item)" :highlight-tags="highlightedTags"
-                    :score="scoresBySlot.get(index)?.score" :grade="scoresBySlot.get(index)?.grade" show-grade readonly
-                    :score-details="() => scoreDetails(slot.item, scoreContext, equippedItems)" :score-side="narrow ? 'bottom' : 'left'">
-                    <template #icon>
-                        <UiDropdownMenu>
-                            <template #trigger>
-                                <button class="gear-icon-button" type="button" :aria-label="t('misc', slot.position) + '装备操作'"
-                                    @focus="gearTrigger = $event.currentTarget">
-                                    <ArtifactIcon :item="slot.item" :src="localPieceIcon(slot.item)" />
-                                </button>
+        <section class="equipment cx-panel">
+            <header class="cx-panel-heading equipment-heading">
+                <h4 class="cx-panel-title">圣遗物</h4>
+                <span>{{ slots.filter(s => s.item || s.raw).length }} / 5</span>
+            </header>
+            <div class="cx-panel-body">
+                <div v-if="buildScore.count" class="build-score">
+                    喵喵总分 <strong class="miao-score" :data-grade="buildScore.grade">{{ buildScore.total?.toFixed(1) }} {{ buildScore.grade }}</strong>
+                </div>
+                <div class="gear-grid">
+                    <div v-for="(slot, index) in slots" :key="slot.position" class="gear-slot">
+                        <ArtifactCard v-if="slot.item" :item="slot.item" :icon-src="localPieceIcon(slot.item)" :highlight-tags="highlightedTags"
+                            :score="scoresBySlot.get(index)?.score" :grade="scoresBySlot.get(index)?.grade" show-grade readonly
+                            :score-details="() => scoreDetails(slot.item, scoreContext, equippedItems)" :score-side="narrow ? 'bottom' : 'left'">
+                            <template #icon>
+                                <UiDropdownMenu>
+                                    <template #trigger>
+                                        <button class="gear-icon-button" type="button" :aria-label="t('misc', slot.position) + '装备操作'"
+                                            @focus="gearTrigger = $event.currentTarget">
+                                            <ArtifactIcon :item="slot.item" :src="localPieceIcon(slot.item)" />
+                                        </button>
+                                    </template>
+                                    <UiDropdownMenuItem @select="openGear(slot.position)">
+                                        <IconEpSwitch class="gear-menu-icon" aria-hidden="true" />换一件
+                                    </UiDropdownMenuItem>
+                                    <UiDropdownMenuItem @select="unequip(slot.position)">
+                                        <IconEpDownload class="gear-menu-icon" aria-hidden="true" />卸下
+                                    </UiDropdownMenuItem>
+                                </UiDropdownMenu>
                             </template>
-                            <UiDropdownMenuItem @select="openGear(slot.position)">
-                                <IconEpSwitch class="gear-menu-icon" aria-hidden="true" />换一件
-                            </UiDropdownMenuItem>
-                            <UiDropdownMenuItem @select="unequip(slot.position)">
-                                <IconEpDownload class="gear-menu-icon" aria-hidden="true" />卸下
-                            </UiDropdownMenuItem>
-                        </UiDropdownMenu>
-                    </template>
-                </ArtifactCard>
-                <div v-else class="empty"><strong>{{ t('misc', slot.position) }}</strong><small>{{ slot.raw?.name || slot.raw?.set?.name || '未装备' }}</small>
-                    <small v-if="slot.error" class="issue">{{ slot.error }}</small></div>
-                <button v-if="!slot.item" class="gear-action" type="button" aria-haspopup="dialog" :aria-label="'选择' + t('misc', slot.position)"
-                    @click="openGear(slot.position, $event)">＋ 选择</button>
-            </div>
-                <section class="set-effects"><h5>圣遗物套装效果</h5>
-                    <div v-for="effect in setEffects" :key="effect.key">
-                        <strong>{{ effect.name }} · {{ effect.pieces }}件套</strong>
-                        <p>{{ effect.text }}</p>
+                        </ArtifactCard>
+                        <div v-else class="empty"><strong>{{ t('misc', slot.position) }}</strong><small>{{ slot.raw?.name || slot.raw?.set?.name || '未装备' }}</small>
+                            <small v-if="slot.error" class="issue">{{ slot.error }}</small></div>
+                        <button v-if="!slot.item" class="gear-action" type="button" aria-haspopup="dialog" :aria-label="'选择' + t('misc', slot.position)"
+                            @click="openGear(slot.position, $event)">＋ 选择</button>
                     </div>
-                    <small v-if="!setEffects.length">无</small>
-                </section>
+                    <section class="set-effects"><h5>圣遗物套装效果</h5>
+                        <div v-for="effect in setEffects" :key="effect.key">
+                            <strong>{{ effect.name }} · {{ effect.pieces }}件套</strong>
+                            <p>{{ effect.text }}</p>
+                        </div>
+                        <small v-if="!setEffects.length">无</small>
+                    </section>
+                </div>
             </div>
         </section>
         <RosterEditDialog ref="editDialog" :character="entry.label" />
@@ -341,7 +351,6 @@ const rows = computed(() => [
 
 <style scoped>
 .character-sheet { display: grid; grid-template-columns: minmax(160px, .63fr) minmax(266px, 1fr) minmax(350px, 1.45fr); align-items: start; gap: 12px; margin-top: 14px; color: var(--cx-letter); }
-.character-sheet h3, .character-sheet h4, .character-sheet dl, .character-sheet dd, .character-sheet ol { margin: 0; }
 .portrait { position: relative; min-height: 456px; align-self: stretch; overflow: hidden; isolation: isolate; border-radius: 15px; background: radial-gradient(ellipse at 55% 30%, var(--cx-step-2), var(--cx-card) 76%); }
 .portrait > img { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: var(--portrait-focus-x, 50%) 24%; }
 .identity { --scrim: rgba(10,14,29,.91); --letters: #fff; position: absolute; inset: auto 0 0; padding: 70px 17px 19px; background: linear-gradient(transparent, var(--scrim)); color: var(--letters); }
@@ -356,12 +365,10 @@ const rows = computed(() => [
 .portrait-actions > button:first-child { min-width: 0; }
 .calculate-loadout { width: 100%; margin-top: 8px; border-color: var(--cx-gold); color: var(--cx-gold); }
 .build { display: grid; gap: 9px; min-width: 0; }
-.block, .equipment { background: var(--cx-card); padding: 14px 16px; border-radius: 13px; min-width: 0; }
-.character-sheet h4 { display: flex; align-items: baseline; justify-content: space-between; font-size: 15px; margin-bottom: 10px; }
-.character-sheet h4 span, dt, small { color: var(--cx-dim); font-size: 12px; font-weight: 500; }
+.equipment-heading { justify-content: space-between; }
+.equipment-heading span, small { color: var(--cx-dim); font-size: 12px; font-weight: 500; }
 .stat-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 14px; }
 .issue { font-size: 12px; color: var(--cx-gold); overflow-wrap: anywhere; }
-.equipment { padding: 14px; }
 .build-score { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; font-size: 13px; }
 .gear-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
 .gear-slot { min-width: 0; display: flex; flex-direction: column; align-items: stretch; border-radius: 9px; background: var(--cx-step); }

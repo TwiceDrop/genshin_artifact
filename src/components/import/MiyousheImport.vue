@@ -9,7 +9,7 @@
                 <template #actions="{ openManual }">
                     <UiDropdownMenu content-class="character-add-menu">
                         <template #trigger>
-                            <UiButton ref="addTrigger" data-tour="uid.import-entry" class="mys-add" aria-label="添加角色">
+                            <UiButton ref="addTrigger" data-tour="uid.import-entry" variant="primary" class="mys-add" aria-label="添加角色">
                                 <i-ep-plus /><span>添加角色</span><i-ep-arrow-down />
                             </UiButton>
                         </template>
@@ -462,7 +462,6 @@ onBeforeUnmount(() => {
 </script>
 <style scoped>
 .mys-import { display: grid; gap: 14px; color: var(--cx-letter); }
-.mys-add.ui-button { display: grid; grid-template-columns: 14px auto 14px; align-items: center; justify-content: center; gap: 5px; border-radius: 999px; color: var(--cx-gold); border: 1px dashed currentColor; }
 .mys-add svg { width: 14px; height: 14px; }
 .mys-account, .mys-records { display: grid; gap: 12px; }
 .mys-characters { min-width: 0; }

@@ -1,12 +1,12 @@
 <template>
-    <section class="constellation-card" :data-element="entry.element"
+    <section class="constellation-card cx-panel" :data-element="entry.element"
         @pointerdown="press" @pointermove="move" @pointercancel="endPress" @pointerup="endPress"
         @touchend="held && $event.preventDefault()" @contextmenu="suppressTouchMenu" @click.capture="activate">
-        <header>
-            <h4>命之座</h4>
+        <header class="cx-panel-heading">
+            <h4 class="cx-panel-title">命之座</h4>
             <span class="rank-count">{{ entry.constellation }} / 6</span>
         </header>
-        <ol class="rank-list" :style="stripStyle">
+        <ol class="rank-list cx-panel-body" :style="stripStyle">
             <li v-for="(stage, i) in stages" :key="i">
                 <UiHoverDetails ref="effectDetails" enabled :tap-label="directSelection ? undefined : stage.name" :side="i % 2 === 0 ? 'left' : 'right'">
                     <template #trigger>
@@ -104,18 +104,17 @@ function status(i) {
 </script>
 
 <style scoped>
-.constellation-card { --light: #ecc887; --halo: rgba(227, 185, 98, .27); padding: 14px 16px; border-radius: 13px; background: var(--cx-card); color: var(--cx-letter); }
+.constellation-card { --light: #ecc887; --halo: rgba(227, 185, 98, .27); }
 [data-element="Dendro"] { --light: #b5ef72; --halo: rgba(148, 211, 73, .42); }
 [data-element="Electro"] { --light: #d7adff; --halo: rgba(173, 108, 225, .4); }
 [data-element="Pyro"] { --light: #ffaf86; --halo: rgba(223, 116, 71, .4); }
 [data-element="Hydro"] { --light: #83d8ff; --halo: rgba(75, 168, 213, .4); }
 [data-element="Anemo"] { --light: #90e6ce; --halo: rgba(77, 186, 156, .4); }
 [data-element="Cryo"] { --light: #b7eaff; --halo: rgba(110, 193, 222, .4); }
-header { display: flex; align-items: baseline; justify-content: space-between; }
-header h4 { margin: 0; font-size: 15px; }
+header { justify-content: space-between; }
 .rank-count { font-size: 12px; color: var(--cx-dim); font-variant-numeric: tabular-nums; }
 [data-rank] { -webkit-user-select: none; user-select: none; }
-.rank-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; list-style: none; padding: 0; margin: 8px 0 0; }
+.rank-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; list-style: none; margin: 0; }
 .rank-list li { display: flex; min-width: 0; }
 .rank { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left; font: inherit; line-height: 1.35; color: var(--cx-dim); padding: 9px 7px; border: 1px solid transparent; border-radius: 9px; background: var(--cx-step); cursor: pointer; }
 .rank:hover, .rank[aria-expanded="true"], .rank[aria-pressed="true"] { border-color: var(--cx-gold); color: var(--cx-letter); }

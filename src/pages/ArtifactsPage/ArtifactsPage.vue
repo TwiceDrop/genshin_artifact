@@ -1,5 +1,5 @@
 <template>
-    <div class="art-page cx-scope">
+    <div class="art-page cx-scope cx-page-frame">
         <artifact-score-dialog v-if="showScore" v-model="showScore" :item="scoreItem" :initial-character="scoreCharacter" />
         <!-- new artifact dialog -->
         <add-artifact-dialog
@@ -47,78 +47,83 @@
         </el-dialog>
 
         <header class="art-bar">
-            <div class="art-row">
-                <h2 class="art-title">{{ t("misc.artifact") }}</h2>
-                <span class="art-count">共 {{ artifactStore.artifactsCount }} 件</span>
-                <PageGuideButton guide-id="detail-artifacts" />
-                <span class="art-spacer"></span>
-                <button type="button" class="art-btn art-wide" data-tour="artifacts.import" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
-                <el-dropdown class="art-wide" trigger="click" @command="handleOutputCommand">
-                    <button type="button" class="art-btn">{{ t("misc.export") }} <icon-ep-arrow-down aria-hidden="true" /></button>
-                    <template #dropdown><el-dropdown-menu>
-                        <el-dropdown-item command="monaJson">{{ t("artPage.monaJSON") }}</el-dropdown-item>
-                        <el-dropdown-item command="share">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
-                    </el-dropdown-menu></template>
-                </el-dropdown>
-                <el-dropdown trigger="click" @command="handleDropdownCommand">
-                    <button type="button" class="art-btn" data-tour="artifacts.more">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
-                    <template #dropdown><el-dropdown-menu>
-                        <template v-if="narrowArt">
-                            <el-dropdown-item command="importJson">{{ t("misc.import") }}</el-dropdown-item>
-                            <el-dropdown-item command="exportJson">{{ t("artPage.exportMona") }}</el-dropdown-item>
-                            <el-dropdown-item command="exportShare">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
-                        </template>
-                        <el-dropdown-item command="unlockAll" :divided="narrowArt">{{ t("artPage.unlockAll") }}</el-dropdown-item>
-                        <el-dropdown-item command="deleteAll" divided class="art-danger">{{ t("misc.clear") }}</el-dropdown-item>
-                    </el-dropdown-menu></template>
-                </el-dropdown>
-                <button type="button" class="art-add" data-tour="artifacts.add" @click="handleClickAddArtifact">＋ 新增圣遗物</button>
-            </div>
-
-            <nav data-tour="artifacts.slots" class="art-slots" aria-label="部位">
-                <button v-for="tab in slotTabs" :key="tab.name" type="button" :aria-pressed="activeName === tab.name" @click="activeName = tab.name">
-                    <img v-if="tab.icon" :src="tab.icon" alt="" />
-                    <b>{{ tab.label }}</b>
-                    <small>{{ tab.count }}</small>
-                </button>
-            </nav>
-
-            <div class="art-filters">
-                <div class="art-filter">
-                    <select-artifact-set v-model="filterSet" :multiple="true" :multiple-limit="1000"
-                        :placeholder="t('misc.artifactSet')"
-                    ></select-artifact-set>
+            <div class="cx-panel">
+                <div class="cx-panel-heading cx-panel-heading--page">
+                    <h2 class="cx-panel-title">{{ t("misc.artifact") }}</h2>
+                    <span class="art-count">共 {{ artifactStore.artifactsCount }} 件</span>
+                    <PageGuideButton guide-id="detail-artifacts" />
                 </div>
-                <div class="art-filter">
-                    <select-artifact-main-stat
-                        v-model="filterMainStat"
-                        :include-any="false"
-                        :multiple="true"
-                        :placeholder="t('misc.mainStat')"
-                    ></select-artifact-main-stat>
-                </div>
-                <div class="art-filter art-score-filter">
-                    <CharacterAvatarPicker v-model="scoreCharacter" :options="scoreCharacterOptions"
-                        title="评分角色" placeholder="评分角色" clearable />
-                </div>
-                <UiPopover v-model:open="displaySettingsOpen" label="显示设置">
-                    <template #trigger><UiButton class="art-display-trigger">显示设置</UiButton></template>
-                    <div class="art-display-settings">
-                        <label class="art-display-option">
-                            <CheckboxRoot v-model:checked="hideFixedMainStats" class="art-display-check">
-                                <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
-                            </CheckboxRoot>
-                            花和羽毛不显示主词条
-                        </label>
-                        <label class="art-display-option">
-                            <CheckboxRoot v-model:checked="hideMiaoScore" class="art-display-check">
-                                <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
-                            </CheckboxRoot>
-                            不显示喵喵评分
-                        </label>
+                <div class="art-controls cx-panel-body">
+                    <div class="art-actions">
+                        <button type="button" class="art-btn art-wide" data-tour="artifacts.import" @click="handleImportJsonClicked">{{ t("misc.import") }}</button>
+                        <el-dropdown class="art-wide" trigger="click" @command="handleOutputCommand">
+                            <button type="button" class="art-btn">{{ t("misc.export") }} <icon-ep-arrow-down aria-hidden="true" /></button>
+                            <template #dropdown><el-dropdown-menu>
+                                <el-dropdown-item command="monaJson">{{ t("artPage.monaJSON") }}</el-dropdown-item>
+                                <el-dropdown-item command="share">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
+                            </el-dropdown-menu></template>
+                        </el-dropdown>
+                        <el-dropdown trigger="click" @command="handleDropdownCommand">
+                            <button type="button" class="art-btn" data-tour="artifacts.more">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
+                            <template #dropdown><el-dropdown-menu>
+                                <template v-if="narrowArt">
+                                    <el-dropdown-item command="importJson">{{ t("misc.import") }}</el-dropdown-item>
+                                    <el-dropdown-item command="exportJson">{{ t("artPage.exportMona") }}</el-dropdown-item>
+                                    <el-dropdown-item command="exportShare">{{ isNative ? '保存分享文件' : t("artPage.shareLink") }}</el-dropdown-item>
+                                </template>
+                                <el-dropdown-item command="unlockAll" :divided="narrowArt">{{ t("artPage.unlockAll") }}</el-dropdown-item>
+                                <el-dropdown-item command="deleteAll" divided class="art-danger">{{ t("misc.clear") }}</el-dropdown-item>
+                            </el-dropdown-menu></template>
+                        </el-dropdown>
+                        <button type="button" class="art-add" data-tour="artifacts.add" @click="handleClickAddArtifact">＋ 新增圣遗物</button>
                     </div>
-                </UiPopover>
-                <el-checkbox v-model="filterGe16">{{ t("artPage.show16") }}</el-checkbox>
+
+                    <nav data-tour="artifacts.slots" class="art-slots" aria-label="部位">
+                        <button v-for="tab in slotTabs" :key="tab.name" type="button" :aria-pressed="activeName === tab.name" @click="activeName = tab.name">
+                            <img v-if="tab.icon" :src="tab.icon" alt="" />
+                            <b>{{ tab.label }}</b>
+                            <small>{{ tab.count }}</small>
+                        </button>
+                    </nav>
+
+                    <div class="art-filters">
+                        <div class="art-filter">
+                            <select-artifact-set v-model="filterSet" :multiple="true" :multiple-limit="1000"
+                                :placeholder="t('misc.artifactSet')"
+                            ></select-artifact-set>
+                        </div>
+                        <div class="art-filter">
+                            <select-artifact-main-stat
+                                v-model="filterMainStat"
+                                :include-any="false"
+                                :multiple="true"
+                                :placeholder="t('misc.mainStat')"
+                            ></select-artifact-main-stat>
+                        </div>
+                        <div class="art-filter art-score-filter">
+                            <CharacterAvatarPicker v-model="scoreCharacter" :options="scoreCharacterOptions"
+                                title="评分角色" placeholder="评分角色" clearable />
+                        </div>
+                        <UiPopover v-model:open="displaySettingsOpen" label="显示设置">
+                            <template #trigger><UiButton class="art-display-trigger">显示设置</UiButton></template>
+                            <div class="art-display-settings">
+                                <label class="art-display-option">
+                                    <CheckboxRoot v-model:checked="hideFixedMainStats" class="art-display-check">
+                                        <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
+                                    </CheckboxRoot>
+                                    花和羽毛不显示主词条
+                                </label>
+                                <label class="art-display-option">
+                                    <CheckboxRoot v-model:checked="hideMiaoScore" class="art-display-check">
+                                        <CheckboxIndicator><IconEpCheck aria-hidden="true" /></CheckboxIndicator>
+                                    </CheckboxRoot>
+                                    不显示喵喵评分
+                                </label>
+                            </div>
+                        </UiPopover>
+                        <el-checkbox v-model="filterGe16">{{ t("artPage.show16") }}</el-checkbox>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -545,48 +550,34 @@ function handleOutputCommand(command: string) {
 </script>
 
 <style scoped lang="scss">
-// 圣遗物页（夜空风格）：颜色读 src/styles/content-theme.css 的 --cx-* 和外框的 --sh-*
-// 和计算器一样：整页是一块内容区底色的圆角区域
 .art-page {
-    min-height: calc(100vh - 48px);
-    padding: 0 clamp(10px, 1.3vw, 18px) 18px;
-    box-sizing: border-box;
-    border-radius: var(--cx-radius);
-    background: var(--cx-ground);
-    color: var(--cx-letter);
+    padding-top: 0;
 }
 
 .art-bar {
     position: sticky;
     top: 0;
     z-index: 6;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
     margin-bottom: 6px;
     padding: 16px 0 12px;
     background: var(--cx-ground);
 }
 
-.art-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+.art-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
 }
 
-.art-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
+.art-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .art-count {
     color: var(--cx-dim);
-}
-
-.art-spacer {
-    flex: 1;
 }
 
 .art-btn {
@@ -597,7 +588,7 @@ function handleOutputCommand(command: string) {
     padding: 0 16px;
     border: 0;
     border-radius: 10px;
-    background: var(--cx-card);
+    background: var(--cx-step);
     color: var(--cx-letter);
     font: inherit;
     cursor: pointer;
@@ -638,7 +629,7 @@ function handleOutputCommand(command: string) {
         padding: 0 14px;
         border: 0;
         border-radius: 999px;
-        background: var(--cx-card);
+        background: var(--cx-step);
         color: var(--cx-dim);
         font: inherit;
         cursor: pointer;
@@ -782,11 +773,6 @@ html[data-color-mode="dark"] .art-slots button:not([aria-pressed=true]) img {
     }
 
     .art-wide {
-        display: none;
-    }
-
-    // 手机顶栏已显示页面标题
-    .art-title {
         display: none;
     }
 

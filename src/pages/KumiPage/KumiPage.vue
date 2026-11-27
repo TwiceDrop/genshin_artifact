@@ -1,5 +1,5 @@
 <template>
-    <div class="kumi-page cx-scope">
+    <div class="kumi-page cx-scope cx-page-frame">
         <el-dialog
             v-model="showSelectArtifactDialog"
             custom-class="cx-scope"
@@ -14,36 +14,43 @@
         </el-dialog>
 
         <div class="kumi-layout">
-            <aside class="kumi-folders" aria-label="收藏夹">
-                <button type="button" class="kumi-new-folder" @click="handleNewDir">＋ 新建收藏夹</button>
-                <nav class="kumi-folder-list">
-                    <button v-for="dir in dirItems" :key="dir.index" type="button" :aria-pressed="currentDirId === dir.index"
-                            @click="currentDirId = dir.index">
-                        <icon-ep-folder aria-hidden="true" />
-                        <span>{{ dir.title }}</span>
-                        <small>{{ kumiStore.kumisByDirId.value[dir.index]?.length ?? 0 }}</small>
-                    </button>
-                </nav>
+            <aside class="kumi-folders cx-panel" aria-labelledby="kumi-folders-title">
+                <header class="cx-panel-heading"><h2 id="kumi-folders-title" class="cx-panel-title">收藏夹</h2></header>
+                <div class="kumi-folder-body cx-panel-body">
+                    <button type="button" class="kumi-new-folder" @click="handleNewDir">＋ 新建收藏夹</button>
+                    <nav class="kumi-folder-list">
+                        <button v-for="dir in dirItems" :key="dir.index" type="button" :aria-pressed="currentDirId === dir.index"
+                                @click="currentDirId = dir.index">
+                            <icon-ep-folder aria-hidden="true" />
+                            <span>{{ dir.title }}</span>
+                            <small>{{ kumiStore.kumisByDirId.value[dir.index]?.length ?? 0 }}</small>
+                        </button>
+                    </nav>
+                </div>
             </aside>
 
             <section class="kumi-main">
-                <header class="kumi-bar" data-tour="kumi.header">
-                    <h2>{{ currentDirTitle }} <PageGuideButton guide-id="detail-artifacts" /></h2>
-                    <span class="kumi-count">{{ currentKumiList.length }} 组</span>
-                    <span class="kumi-spacer"></span>
-                    <el-input v-model="searchString" class="kumi-search" :placeholder="t('misc.search')" clearable>
-                        <template #prefix><icon-ep-search aria-hidden="true" /></template>
-                    </el-input>
-                    <el-dropdown trigger="click" @command="handleCommand">
-                        <button type="button" class="kumi-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
-                        <template #dropdown><el-dropdown-menu>
-                            <el-dropdown-item command="add" class="kumi-narrow-only">新建收藏夹</el-dropdown-item>
-                            <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="rename">重命名</el-dropdown-item>
-                            <el-dropdown-item command="clear">清空</el-dropdown-item>
-                            <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="delete" divided>删除收藏夹</el-dropdown-item>
-                        </el-dropdown-menu></template>
-                    </el-dropdown>
-                    <button type="button" class="kumi-add" @click="handleNewKumi">＋ 新建套装</button>
+                <header class="kumi-bar cx-panel" data-tour="kumi.header">
+                    <div class="cx-panel-heading cx-panel-heading--page">
+                        <h2 class="cx-panel-title">{{ currentDirTitle }}</h2>
+                        <span class="kumi-count">{{ currentKumiList.length }} 组</span>
+                        <PageGuideButton guide-id="detail-artifacts" />
+                    </div>
+                    <div class="kumi-actions cx-panel-body">
+                        <el-input v-model="searchString" class="kumi-search" :placeholder="t('misc.search')" clearable>
+                            <template #prefix><icon-ep-search aria-hidden="true" /></template>
+                        </el-input>
+                        <el-dropdown trigger="click" @command="handleCommand">
+                            <button type="button" class="kumi-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
+                            <template #dropdown><el-dropdown-menu>
+                                <el-dropdown-item command="add" class="kumi-narrow-only">新建收藏夹</el-dropdown-item>
+                                <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="rename">重命名</el-dropdown-item>
+                                <el-dropdown-item command="clear">清空</el-dropdown-item>
+                                <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="delete" divided>删除收藏夹</el-dropdown-item>
+                            </el-dropdown-menu></template>
+                        </el-dropdown>
+                        <button type="button" class="kumi-add" @click="handleNewKumi">＋ 新建套装</button>
+                    </div>
                 </header>
 
                 <div v-if="filteredKumiList.length > 0" class="kumi-grid">
@@ -259,16 +266,6 @@ function handleCommand(command: string) {
 </script>
 
 <style scoped lang="scss">
-// 圣遗物套装页（夜空风格）：颜色读 src/styles/content-theme.css 的 --cx-*
-.kumi-page {
-    min-height: calc(100vh - 48px);
-    padding: 16px clamp(10px, 1.3vw, 18px) 18px;
-    box-sizing: border-box;
-    border-radius: var(--cx-radius);
-    background: var(--cx-ground);
-    color: var(--cx-letter);
-}
-
 .kumi-layout {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
@@ -279,6 +276,9 @@ function handleCommand(command: string) {
 .kumi-folders {
     position: sticky;
     top: 16px;
+}
+
+.kumi-folder-body {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -288,7 +288,7 @@ function handleCommand(command: string) {
     height: 42px;
     border: 0;
     border-radius: 12px;
-    background: var(--cx-card);
+    background: var(--cx-step);
     color: var(--cx-letter);
     font: inherit;
     font-weight: 600;
@@ -336,7 +336,7 @@ function handleCommand(command: string) {
         }
 
         &[aria-pressed=true] {
-            background: var(--cx-card);
+            background: var(--cx-step-2);
             color: var(--cx-letter);
             font-weight: 600;
 
@@ -348,25 +348,18 @@ function handleCommand(command: string) {
 }
 
 .kumi-bar {
+    margin-bottom: 14px;
+}
+
+.kumi-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 14px;
-
-    h2 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-    }
 }
 
 .kumi-count {
     color: var(--cx-dim);
-}
-
-.kumi-spacer {
-    flex: 1;
 }
 
 .kumi-search {
@@ -381,7 +374,7 @@ function handleCommand(command: string) {
     padding: 0 16px;
     border: 0;
     border-radius: 10px;
-    background: var(--cx-card);
+    background: var(--cx-step);
     color: var(--cx-letter);
     font: inherit;
     cursor: pointer;
@@ -409,7 +402,7 @@ function handleCommand(command: string) {
 
 .kumi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
     gap: 14px;
 }
 
@@ -426,10 +419,6 @@ function handleCommand(command: string) {
 @media (max-width: 767px) {
     :global(.kumi-narrow-only) {
         display: flex !important;
-    }
-
-    .kumi-page {
-        padding-top: 12px;
     }
 
     .kumi-layout {
@@ -455,7 +444,7 @@ function handleCommand(command: string) {
             flex: none;
             min-height: 38px;
             border-radius: 999px;
-            background: var(--cx-card);
+            background: var(--cx-step);
 
             &[aria-pressed=true] {
                 background: var(--cx-gold);
@@ -466,10 +455,6 @@ function handleCommand(command: string) {
                 }
             }
         }
-    }
-
-    .kumi-bar h2 {
-        display: none;
     }
 
     .kumi-search {

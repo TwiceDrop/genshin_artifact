@@ -1,8 +1,8 @@
 <template>
-    <section class="kumi-card">
-        <header class="kumi-head">
+    <section class="kumi-card cx-panel">
+        <header class="kumi-head cx-panel-heading">
             <div class="kumi-title">
-                <h3>{{ props.data.title }}</h3>
+                <h3 class="cx-panel-title">{{ props.data.title }}</h3>
                 <p>{{ summary || '还没有圣遗物' }}</p>
             </div>
             <el-dropdown trigger="click" @command="handleCommand">
@@ -13,7 +13,7 @@
                 </el-dropdown-menu></template>
             </el-dropdown>
         </header>
-        <div class="kumi-slots">
+        <div class="kumi-slots cx-panel-body">
             <div v-for="(artifact, index) in artifacts" :key="positions[index]" class="kumi-slot" :class="{ empty: !artifact }">
                 <button type="button" class="kumi-slot-main"
                         :aria-label="artifact ? `更换${slotLabel(index)}` : `选择${slotLabel(index)}`"
@@ -110,20 +110,9 @@ function handleCommand(command: string) {
 
 <style lang="scss" scoped>
 .kumi-slot-stat.recommended { color: var(--cx-gold); }
-.kumi-card {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 16px 18px;
-    border-radius: 16px;
-    background: var(--cx-card);
-    color: var(--cx-letter);
-}
-
 .kumi-head {
-    display: flex;
     align-items: flex-start;
-    gap: 10px;
+    flex-wrap: nowrap;
 }
 
 .kumi-title {
@@ -131,9 +120,6 @@ function handleCommand(command: string) {
     min-width: 0;
 
     h3 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 700;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

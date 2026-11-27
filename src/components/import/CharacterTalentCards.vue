@@ -1,43 +1,45 @@
 <template>
-    <section class="talent-panel">
-        <h4>天赋</h4>
-        <ul class="combat-talents">
-            <li v-for="(talent, index) in talents?.slice(0, kinds.length) || kinds" :key="index">
-                <UiHoverDetails v-if="talents" enabled :tap-label="talent.name">
-                    <template #trigger>
-                        <button type="button" class="talent-card">
-                            <span class="talent-symbol">
-                                <img :src="iconUrl(talent.icon)" alt="" />
-                            </span>
-                            <span class="talent-copy">
-                                <strong>{{ talent.name }}</strong>
-                                <span>{{ kinds[index] }} <b>Lv. {{ entry.talentLevels[index] }}</b></span>
-                            </span>
-                        </button>
-                    </template>
-                    <GameEffectText :title="talent.name" :effect="talent.effect" />
-                </UiHoverDetails>
-                <div v-else class="talent-card"><span class="talent-copy"><strong>{{ kinds[index] }}</strong><span>Lv. {{ entry.talentLevels[index] }}</span></span></div>
-            </li>
-        </ul>
-        <div class="talent-footer">
-            <ul v-if="passives.length" class="passive-talents" aria-label="固有天赋">
-                <li v-for="talent in passives" :key="talent.name">
-                    <UiHoverDetails enabled :tap-label="talent.name">
+    <section class="cx-panel">
+        <header class="cx-panel-heading"><h4 class="cx-panel-title">天赋</h4></header>
+        <div class="cx-panel-body">
+            <ul class="combat-talents">
+                <li v-for="(talent, index) in talents?.slice(0, kinds.length) || kinds" :key="index">
+                    <UiHoverDetails v-if="talents" enabled :tap-label="talent.name">
                         <template #trigger>
-                            <button type="button" class="passive-icon talent-symbol" :aria-label="talent.name">
-                                <img :src="iconUrl(talent.icon)" alt="" />
+                            <button type="button" class="talent-card">
+                                <span class="talent-symbol">
+                                    <img :src="iconUrl(talent.icon)" alt="" />
+                                </span>
+                                <span class="talent-copy">
+                                    <strong>{{ talent.name }}</strong>
+                                    <span>{{ kinds[index] }} <b>Lv. {{ entry.talentLevels[index] }}</b></span>
+                                </span>
                             </button>
                         </template>
                         <GameEffectText :title="talent.name" :effect="talent.effect" />
                     </UiHoverDetails>
+                    <div v-else class="talent-card"><span class="talent-copy"><strong>{{ kinds[index] }}</strong><span>Lv. {{ entry.talentLevels[index] }}</span></span></div>
                 </li>
             </ul>
-            <UiButton v-if="$slots.editor" class="edit-talents" size="small" :aria-expanded="editing"
-                @click="editing = !editing">修改天赋等级</UiButton>
-            <UiButton v-else class="edit-talents" size="small" aria-haspopup="dialog" :disabled="!entry.preset" @click="openEditor">修改天赋等级</UiButton>
+            <div class="talent-footer">
+                <ul v-if="passives.length" class="passive-talents" aria-label="固有天赋">
+                    <li v-for="talent in passives" :key="talent.name">
+                        <UiHoverDetails enabled :tap-label="talent.name">
+                            <template #trigger>
+                                <button type="button" class="passive-icon talent-symbol" :aria-label="talent.name">
+                                    <img :src="iconUrl(talent.icon)" alt="" />
+                                </button>
+                            </template>
+                            <GameEffectText :title="talent.name" :effect="talent.effect" />
+                        </UiHoverDetails>
+                    </li>
+                </ul>
+                <UiButton v-if="$slots.editor" class="edit-talents" size="small" :aria-expanded="editing"
+                    @click="editing = !editing">修改天赋等级</UiButton>
+                <UiButton v-else class="edit-talents" size="small" aria-haspopup="dialog" :disabled="!entry.preset" @click="openEditor">修改天赋等级</UiButton>
+            </div>
+            <slot v-if="$slots.editor && editing" name="editor" />
         </div>
-        <slot v-if="$slots.editor && editing" name="editor" />
         <UiDialog v-if="!$slots.editor" v-model="editing" title="修改天赋等级" width="370px">
             <div v-for="(kind, i) in kinds" :key="kind" class="level-row">
                 <div><strong>{{ talents?.[i]?.name || kind }}</strong><small v-if="talents?.[i]?.name">{{ kind }}</small></div>
@@ -89,8 +91,6 @@ function iconUrl(icon) { return process.env.BASE_URL + 'talent-icons/' + icon + 
 </script>
 
 <style scoped>
-.talent-panel { padding: 14px 16px; border-radius: 13px; background: var(--cx-card); }
-h4 { font-size: 15px; margin: 0 0 8px; }
 ul { padding: 0; margin: 0; list-style: none; }
 .combat-talents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .talent-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }

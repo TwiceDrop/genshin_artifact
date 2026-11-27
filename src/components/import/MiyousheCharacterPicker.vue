@@ -1,31 +1,31 @@
 <template>
     <section class="mys-character-picker">
-        <div v-if="roster" class="roster-bar">
-            <div class="roster-toolbar">
-                <div class="roster-heading-row">
-                    <h2 class="roster-heading">{{ t("misc.character") }}</h2>
-                    <slot name="heading-actions" />
+        <section v-if="roster" class="cx-panel" aria-labelledby="roster-heading">
+            <header class="cx-panel-heading cx-panel-heading--page">
+                <h2 id="roster-heading" class="cx-panel-title">{{ t("misc.character") }}</h2>
+                <slot name="heading-actions" />
+            </header>
+            <div class="roster-body cx-panel-body">
+                <div ref="strip" class="roster-avatars" role="group" aria-label="已保存的角色"
+                    :class="{ 'is-dragging': dragging }" @pointerdown="startDrag" @pointermove="moveDockPointer"
+                    @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag" @pointerleave="leaveDock"
+                    @click.capture="ignoreDragClick" @dragstart.prevent @scroll.passive="positionDock"
+                    @wheel.passive="stopCoasting" @keydown="stopCoasting">
+                    <button v-for="entry in rosterEntries" :key="entry.key" type="button" class="roster-avatar"
+                        :title="entry.label" :aria-label="entry.label" :aria-pressed="selectedKey === entry.key"
+                        :tabindex="selectedKey === entry.key ? 0 : -1"
+                        :disabled="disabled" @click="choose(entry)">
+                        <UiAvatar class="roster-face" :src="entry.avatar">
+                            {{ entry.label?.slice(0, 2) }}
+                        </UiAvatar>
+                    </button>
                 </div>
                 <div class="roster-actions">
-                    <UiButton ref="browseTrigger" class="roster-browse" aria-haspopup="dialog" @click="allOpen = true">全部角色 · {{ rosterEntries.length }}</UiButton>
-                    <div class="roster-file-actions"><slot name="actions" :open-manual="() => manualOpen = true" /></div>
+                    <UiButton ref="browseTrigger" aria-haspopup="dialog" @click="allOpen = true">全部角色 · {{ rosterEntries.length }}</UiButton>
+                    <slot name="actions" :open-manual="() => manualOpen = true" />
                 </div>
             </div>
-            <div ref="strip" class="roster-avatars" role="group" aria-label="已保存的角色"
-                :class="{ 'is-dragging': dragging }" @pointerdown="startDrag" @pointermove="moveDockPointer"
-                @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag" @pointerleave="leaveDock"
-                @click.capture="ignoreDragClick" @dragstart.prevent @scroll.passive="positionDock"
-                @wheel.passive="stopCoasting" @keydown="stopCoasting">
-                <button v-for="entry in rosterEntries" :key="entry.key" type="button" class="roster-avatar"
-                    :title="entry.label" :aria-label="entry.label" :aria-pressed="selectedKey === entry.key"
-                    :tabindex="selectedKey === entry.key ? 0 : -1"
-                    :disabled="disabled" @click="choose(entry)">
-                    <UiAvatar class="roster-face" :src="entry.avatar">
-                        {{ entry.label?.slice(0, 2) }}
-                    </UiAvatar>
-                </button>
-            </div>
-        </div>
+        </section>
         <CharacterRosterDetail v-if="roster && detailEntry" :key="detailEntry.key" :entry="detailEntry" :base-entry="selectedEntry" :roster="uidEntries"
             :character-presets="characterPresets" @select-preset="selectCharacterPreset" @created-preset="activateNewPreset"
             @remove="requestRemoval([selectedEntry.key])" />
@@ -383,13 +383,9 @@ watch(selectedKey, () => {
 [aria-pressed="true"] > .manage-check { background: var(--cx-gold); color: var(--cx-gold-on); border-color: var(--cx-gold); }
 .confirm-delete { margin-left: 8px; }
 .saved-character-grid { display: grid; gap: 12px; min-width: 0; color: var(--cx-letter); }
-.mys-character-picker:has(.roster-bar) { container: roster / inline-size; }
-.roster-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title title" "avatars actions"; align-items: center; row-gap: 14px; column-gap: 12px; isolation: isolate; }
-.roster-toolbar { display: contents; }
-.roster-heading-row { grid-area: title; display: flex; align-items: center; gap: 8px; flex: none; }
-.roster-heading { margin: 0; font-size: 20px; font-weight: 700; }
-.roster-bar::before { content: ''; grid-row: 2; grid-column: 1 / -1; align-self: stretch; background: var(--cx-card); border-radius: 16px; z-index: -1; }
-.roster-avatars { grid-area: avatars; min-width: 0; display: flex; margin: 16px 0 16px 18px; padding-inline: 6px; overflow-x: auto; scrollbar-width: none; user-select: none; }
+.mys-character-picker:has(.roster-body) { container: roster / inline-size; }
+.roster-body { display: flex; align-items: center; gap: 12px; }
+.roster-avatars { flex: 1; min-width: 0; display: flex; padding-inline: 6px; overflow-x: auto; scrollbar-width: none; user-select: none; }
 .roster-avatars::-webkit-scrollbar { display: none; }
 .roster-avatars.is-dragging, .roster-avatars.is-dragging .roster-avatar { cursor: grabbing; }
 .roster-avatar {
@@ -412,17 +408,12 @@ watch(selectedKey, () => {
     .roster-avatar .roster-face { transform: translateX(var(--dock-shift, 0px)) scale(var(--dock-scale, 1)); }
     .roster-avatar::after { transform: translateX(var(--dock-shift, 0px)); }
 }
-.roster-actions { grid-area: actions; margin-right: 18px; display: flex; align-items: center; gap: 8px; }
-.roster-file-actions { display: grid; gap: 4px; }
-.roster-actions .roster-browse { border-radius: 999px; --roster-white: #fff; border: 1px dashed var(--roster-white); box-shadow: 0 0 0 1px var(--cx-step-2); }
+.roster-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .character-picker-row[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--cx-gold); }
 .roster-dialog-grid .character-picker-list { overflow-y: auto; max-height: min(58dvh, 42rem); padding: 3px; }
 @container roster (max-width: 680px) {
-    .roster-bar { grid-template-columns: minmax(0, 1fr); grid-template-areas: "toolbar" "avatars"; row-gap: 10px; }
-    .roster-toolbar { grid-area: toolbar; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-    .roster-avatars { margin: 10px 12px; }
-    .roster-actions { margin-right: 0; gap: 4px; }
-    .roster-actions :deep(.ui-button) { padding-inline: 8px; }
+    .roster-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .roster-avatars:empty { display: none; }
 }
 @media (hover: none) and (pointer: coarse) {
     .roster-avatars { padding-inline: 2px; }
