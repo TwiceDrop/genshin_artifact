@@ -4,7 +4,7 @@ import test from 'node:test'
 import characters from '../src/assets/_gen_character.js'
 import weapons from '../src/assets/_gen_weapon.js'
 import buffs from '../src/assets/_gen_buff.js'
-import { exportDslDocument, importDslDocument } from '../src/algorithms/dsl-library.mjs'
+import { dslShareId, exportDslDocument, importDslDocument } from '../src/algorithms/dsl-library.mjs'
 import { generateDsl, skillRows } from '../src/algorithms/dsl-generator.mjs'
 import { api } from '../beta-tools/runtime.mjs'
 
@@ -88,4 +88,15 @@ test('malformed JSON, a new format version and unsupported record data report th
         { name: 'burst', buffs: [{ name: 'XilonenE', config: { XilonenE: { elements: [true] } } }] },
     ] }
     assert.throws(restore, /命名状态配置无效/)
+})
+
+test('DSL share import uses only a public id from the configured service', () => {
+    const host = 'https://mona.example.test'
+    const id = '10203040-1234-1234-1234-123412341234'
+    assert.equal(dslShareId(host + ':443/s/' + id + '?tracking=chat', host), id)
+    assert.throws(() => dslShareId(host + '.other.test/s/' + id, host), /当前在线服务/)
+    assert.throws(() => dslShareId('https://user@mona.example.test/s/' + id, host), /当前在线服务/)
+    assert.throws(() => dslShareId('blob:' + host + '/s/' + id, host), /当前在线服务/)
+    assert.throws(() => dslShareId(host + '/s/' + id + '/download', host), /格式不正确/)
+    assert.throws(() => dslShareId(host + '/s/' + id, ''), /设置在线服务地址/)
 })

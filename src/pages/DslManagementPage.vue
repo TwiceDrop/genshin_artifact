@@ -30,6 +30,9 @@
           >
             导入文件
           </UiButton>
+          <UiButton variant="outline" :disabled="vm.loading || vm.busy" @click="openFrom($event, vm.openLinkImport)">
+            导入链接
+          </UiButton>
           <UiButton variant="outline" :disabled="vm.loading || vm.busy" @click="vm.updateOnline">
             在线更新
           </UiButton>
@@ -47,7 +50,7 @@
       </div>
     </section>
 
-    <p v-if="vm.error && !vm.draft && !vm.deleteTarget" class="dsl-error" role="alert">
+    <p v-if="vm.error && !vm.draft && !vm.deleteTarget && !vm.linkImportOpen" class="dsl-error" role="alert">
       {{ vm.error }}
     </p>
     <section class="cx-panel dsl-default" aria-label="角色默认函数">
@@ -116,6 +119,29 @@
         </div>
       </li>
     </ul>
+
+    <UiDialog
+      v-if="pageActive"
+      :model-value="vm.linkImportOpen"
+      title="导入分享链接"
+      width="min(460px, 96vw)"
+      prevent-outside
+      :return-focus="returnFocus"
+      @update:model-value="!$event && vm.closeLinkImport()"
+    >
+      <form class="dsl-field" @submit.prevent="vm.importLink()">
+        <label class="dsl-label" for="dsl-share-link">分享链接</label>
+        <input id="dsl-share-link" v-model.trim="vm.shareLink" class="dsl-input" type="url"
+          name="shareLink" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+          enterkeyhint="done" required :disabled="vm.busy" :aria-invalid="vm.error ? true : undefined"
+          :aria-describedby="vm.error ? 'dsl-share-link-error' : undefined" @input="vm.error = ''" />
+        <p v-if="vm.error" id="dsl-share-link-error" class="dsl-error" role="alert">{{ vm.error }}</p>
+        <div class="dsl-dialog-footer">
+          <UiButton :disabled="vm.busy" @click="vm.closeLinkImport()">取消</UiButton>
+          <UiButton variant="primary" type="submit" :loading="vm.busy">导入</UiButton>
+        </div>
+      </form>
+    </UiDialog>
 
     <UiDialog
       v-if="pageActive"
@@ -293,7 +319,7 @@ onDeactivated(() => {
   pageActive.value = false
 })
 
-watch(() => Boolean(vm.draft || vm.deleteTarget), open => {
+watch(() => Boolean(vm.draft || vm.deleteTarget || vm.linkImportOpen), open => {
   if (!open) returnFocus()
 }, { flush: 'post' })
 
@@ -317,7 +343,7 @@ function returnFocus() {
   if (!previous) return
   opener = null
   requestAnimationFrame(() => {
-    if (!pageActive.value || vm.draft || vm.deleteTarget) return
+    if (!pageActive.value || vm.draft || vm.deleteTarget || vm.linkImportOpen) return
     const element = previous?.isConnected ? previous : pageRoot.value?.querySelector<HTMLElement>('[data-dsl-add]')
     element?.focus()
   })

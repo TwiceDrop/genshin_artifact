@@ -16,7 +16,7 @@ import { cloudApi } from '@/platform/cloud.mjs'
 import { openContentShare } from '@/components/share/content-share.mjs'
 import { listDslEntries, removeDslEntry, saveDslEntry, updateDistributedDslEntries } from '@/store/dsl-library'
 import { generateDsl } from '@/algorithms/dsl-generator.mjs'
-import { exportDslDocument, importDslDocument, validateDslDocument } from '@/algorithms/dsl-library.mjs'
+import { dslShareId, exportDslDocument, importDslDocument, validateDslDocument } from '@/algorithms/dsl-library.mjs'
 import type { DslLibraryDocument, DslLibraryEntry, DslNamedBuff } from '@/types/dsl-library'
 import type { IDslGeneratorState } from '@/types/preset'
 import type { IWeapon, WeaponType } from '@/types/weapon'
@@ -93,6 +93,8 @@ export function useDslManagement() {
         entries: computed(() => list.value.filter(entry => entry.character === selectedRole())),
         draft: null as Editor | null,
         deleteTarget: null as DslLibraryEntry | null,
+        linkImportOpen: false,
+        shareLink: '',
         loading: true,
         busy: false,
         error: '',
@@ -121,6 +123,9 @@ export function useDslManagement() {
         closeDelete,
         confirmDelete,
         importFile,
+        openLinkImport,
+        closeLinkImport,
+        importLink,
         exportEntry,
         shareEntry,
         updateOnline,
@@ -155,6 +160,8 @@ export function useDslManagement() {
     watch([account.currentAccountId, account.reloadGeneration], ([id]) => {
         if (contextAccount !== id) {
             vm.draft = vm.deleteTarget = null
+            vm.linkImportOpen = false
+            vm.shareLink = ''
             vm.error = vm.onlineStatus = ''
             list.value = []
             contextAccount = id
@@ -277,8 +284,42 @@ export function useDslManagement() {
             const raw = await file.text()
             if (contextAccount !== id) return
             const document: DslLibraryDocument = importDslDocument(raw, catalog.value)
-            const next = await saveDslEntry(id, { ...document, id: newEntryId() }, false)
-            if (acceptEntries(id, next)) vm.character = document.character
+            await addImportedDocument(id, document)
+        })
+    }
+
+    async function addImportedDocument(id: number, document: DslLibraryDocument) {
+        const next = await saveDslEntry(id, { ...document, id: newEntryId() }, false)
+        if (!acceptEntries(id, next)) return false
+        vm.character = document.character
+        return true
+    }
+
+    function openLinkImport() {
+        vm.shareLink = vm.error = ''
+        vm.linkImportOpen = true
+    }
+
+    function closeLinkImport() {
+        if (vm.busy) return
+        vm.linkImportOpen = false
+        vm.shareLink = vm.error = ''
+    }
+
+    function importLink() {
+        const link = vm.shareLink.trim()
+        const generation = account.reloadGeneration.value
+        return run(async accountId => {
+            const config = await cloudApi('config')
+            const id = dslShareId(link, config.url)
+            const context = { url: config.url, userId: config.user?.id }
+            const result = await cloudApi('v1/dsl-shares/' + id, 'GET', undefined, context)
+            if (contextAccount !== accountId || account.reloadGeneration.value !== generation) return
+            const document: DslLibraryDocument = validateDslDocument(result.document, catalog.value)
+            if (await addImportedDocument(accountId, document)) {
+                vm.linkImportOpen = false
+                vm.shareLink = ''
+            }
         })
     }
 

@@ -122,3 +122,17 @@ export function importDslDocument(text, catalog) {
     }
     return validateDslDocument(file.document, catalog)
 }
+
+export function dslShareId(link, serviceUrl) {
+    if (!serviceUrl) throw new Error('请先设置在线服务地址')
+    let url
+    try { url = new URL(link) }
+    catch { throw new Error('分享链接格式不正确') }
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password ||
+        url.origin !== new URL(serviceUrl).origin) {
+        throw new Error('请使用当前在线服务生成的分享链接')
+    }
+    const match = /^\/s\/([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/i.exec(url.pathname)
+    if (!match) throw new Error('分享链接格式不正确')
+    return match[1].toLowerCase()
+}

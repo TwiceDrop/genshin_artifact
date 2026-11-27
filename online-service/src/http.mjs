@@ -119,6 +119,13 @@ export function createApi(options) {
                 response.writeHead(200, { ...shareHeaders, 'Content-Type':'text/html; charset=utf-8' })
                 return response.end(renderShare(published, publicLink[1]))
             }
+            const dslShare = /^\/v1\/dsl-shares\/([^/]+)$/.exec(path)
+            if (method === 'GET' && dslShare) {
+                const published = await shares.read(dslShare[1])
+                if (published.kind !== 'dsl') throw new ApiError(404, 'SHARE_NOT_FOUND', '此链接没有分享 MONA-DSL')
+                const { title, character, source } = published.content
+                return send(200, { document: { name:title, character, source, generator:null, weapon:null } })
+            }
             const identity = await auth.authenticate(request.headers.authorization)
             const userId = identity.user.id
             if (path === '/v1/shares' && method === 'POST') return send(200, await shares.create(userId, await bodyOf(request, 524288)))
