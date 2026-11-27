@@ -24,6 +24,7 @@ export default {
         account: "Local Account",
         artifact: "Artifact",
         kumi: "Artifact Group",
+        dslManagement: "DSL Management",
         preset: "Preset",
         compute: "Computation",
         calculate: "Calculator",

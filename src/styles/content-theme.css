@@ -35,6 +35,56 @@ html[data-color-mode="dark"] .side-drawer {
     --cx-down: #6fcf97;
 }
 
+/* 内容页共用外框和分区，标题、面板和页面底色各有一层。 */
+.cx-page-frame {
+    box-sizing: border-box;
+    min-height: calc(100vh - 48px);
+    padding: 16px clamp(10px, 1.3vw, 18px) 18px;
+    border-radius: var(--cx-radius);
+    background: var(--cx-ground);
+    color: var(--cx-letter);
+}
+
+.cx-panel {
+    --cx-panel-padding: clamp(12px, 1.45vw, 16px);
+    min-width: 0;
+    border: 1px solid var(--cx-step-2);
+    border-radius: 16px;
+    background: var(--cx-card);
+}
+
+.cx-panel-heading {
+    padding: 10px var(--cx-panel-padding);
+    border-bottom: 1px solid var(--cx-step-2);
+    border-radius: 15px 15px 0 0;
+    background: var(--cx-step-2);
+    color: var(--cx-letter);
+}
+
+.cx-panel-heading:not(summary) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cx-panel-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.cx-panel-heading--page .cx-panel-title {
+    font-size: 20px;
+}
+
+.cx-panel-body {
+    min-width: 0;
+    padding: 12px var(--cx-panel-padding);
+}
+
 /* 内容区和抽屉里的 Element Plus 控件用金色做主色。加 html 前缀是为了压过计算器旧「雾蓝」主题的 scoped 规则 */
 html[data-color-mode],
 html[data-color-mode] .cx-scope,

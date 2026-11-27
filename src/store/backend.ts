@@ -86,6 +86,38 @@ class LocalBackend {
         return typeof content === 'string' ? JSON.parse(content) : content
     }
 
+    async updateAccountItem<T>(accountId: number, key: string, update: (value: T | null) => T | undefined, meta: BackendMeta) {
+        const { db, storeName } = await openLocalDatabase()
+        try {
+            const transaction = db.transaction(storeName, 'readwrite')
+            const store = transaction.objectStore(storeName)
+            const committed = new Promise<void>((resolve, reject) => {
+                transaction.oncomplete = () => resolve()
+                transaction.onabort = () => reject(transaction.error)
+            })
+            let next: T | undefined
+            try {
+                const [value, rawAccounts] = await Promise.all([requestValue(store.get(key)), requestValue(store.get('mona_accounts'))])
+                const accounts = typeof rawAccounts === 'string' ? JSON.parse(rawAccounts) : rawAccounts
+                if (accounts?.allAccounts.some((entry: { id: number }) => entry.id === accountId)) {
+                    next = update(typeof value === 'string' ? JSON.parse(value) : value ?? null)
+                    if (next !== undefined) {
+                        store.put(next, key)
+                        store.put(meta, BACKEND_META_KEY)
+                    }
+                }
+            } catch (error) {
+                try { transaction.abort() } catch { /* The failed request may have already aborted it. */ }
+                await committed.catch(() => {})
+                throw error
+            }
+            await committed
+            return next
+        } finally {
+            db.close()
+        }
+    }
+
     async setItem(key: string, value: any, meta: BackendMeta) {
         await localforage.setItem(key, value)
         await localforage.setItem(BACKEND_META_KEY, meta)
@@ -456,6 +488,21 @@ class MixedBackend {
     setItem(key: string, value: any, options: { source?: string } = {}) {
         const snapshot = JSON.parse(JSON.stringify(value))
         return this.setSnapshot(key, snapshot, options.source || 'local')
+    }
+
+    async updateAccountItem<T>(accountId: number, key: string, update: (value: T | null) => T | undefined) {
+        let next: T | undefined
+        let mirrorError: unknown
+        await this.enqueue([key], async () => {
+            await this.checkConsistency()
+            const meta = genMeta()
+            next = await this.localBackend.updateAccountItem(accountId, key, update, meta)
+            if (next !== undefined) {
+                try { await this.mirror([[key, next]], [], meta) }
+                catch (error) { mirrorError = error }
+            }
+        }, { keys: [key], source: 'local' })
+        return { entries: next, mirrorError }
     }
 
     // Queue immediately under the captured account key. Give the UI a frame before

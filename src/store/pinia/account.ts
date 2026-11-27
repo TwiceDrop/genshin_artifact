@@ -8,6 +8,7 @@ import { useMiyousheStore, watchContent as miyousheWatchContent, watchComparison
 import { statGainCache } from '../stat-gain-cache'
 import { connectSavedRolePresets } from '@/import/role-presets'
 import { singleDraftKey } from '../single-calculation-draft'
+import { dslLibraryKey } from '../dsl-library'
 
 interface Account {
     id: number;
@@ -188,6 +189,7 @@ export async function deleteAccount(id: number) {
         return
     }
     accountStore.deleteAccount(id)
+    await backend.batch([['mona_accounts', accountWatchContent()]], [dslLibraryKey(id)])
     localStorage.removeItem(singleDraftKey(id))
     const artKey = `mona_account_artifacts_${id}`
     await backend.removeItem(artKey)

@@ -65,6 +65,11 @@ const routes = [
         }
     },
     {
+        path: "/dsl-management",
+        component: () => import("@page/DslManagementPage.vue"),
+        meta: { title: "DSL管理" },
+    },
+    {
         path: "/help/export-tools",
         component: ExportToolPage,
         meta: {

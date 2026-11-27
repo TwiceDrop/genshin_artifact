@@ -56,6 +56,7 @@ import SidebarMenuButton from "@/components/ui/sidebar/SidebarMenuButton.vue"
 import {openHub} from "@/onboarding/controller.mjs"
 import IconEpQuestionFilled from "~icons/ep/question-filled"
 import IconEpHouse from "~icons/ep/house"
+import IconEpDocument from "~icons/ep/document"
 import {useFeatureLinks} from "./useFeatureLinks"
 import IconEpDownload from "~icons/ep/download"
 import IconEpUser from "~icons/ep/user"
@@ -92,6 +93,7 @@ const groups = computed(() => [
     ] },
     { key: "repo", title: t("nav.repo"), items: [
         features.value.artifacts, features.value.kumi,
+        { path: "/dsl-management", label: t("nav.dslManagement"), icon: IconEpDocument },
     ] },
     { key: "other", title: t("nav.other"), items: [
         { path: "/help/export-tools", label: t("nav.exportTool"), icon: IconEpDownload },

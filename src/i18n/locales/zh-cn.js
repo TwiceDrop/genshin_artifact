@@ -24,6 +24,7 @@ export default {
         account: "本地账户",
         artifact: "圣遗物",
         kumi: "圣遗物套装",
+        dslManagement: "DSL管理",
         preset: "计算预设",
         compute: "计算",
         calculate: "计算器",

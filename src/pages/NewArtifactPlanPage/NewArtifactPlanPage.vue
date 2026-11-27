@@ -304,10 +304,11 @@
                         <RadioGroupItem value="panel">面板配装</RadioGroupItem>
                     </RadioGroupRoot>
                     <panel-search-config v-if="optimizationMode === 'panel'" v-model="panelSearchOptions" class="optimization-mode-panel" />
-                    <TabsRoot v-else v-model="miscTargetFunctionTab" class="optimization-tabs">
+                    <TabsRoot v-else v-model="optimizationTargetTab" class="optimization-tabs">
                         <TabsList class="optimization-switcher" aria-label="目标函数">
                             <TabsTrigger value="normal">{{ t('calcPage.tfNormal') }}</TabsTrigger>
                             <TabsTrigger value="dsl">MONA-DSL</TabsTrigger>
+                            <TabsTrigger value="saved">已保存手法</TabsTrigger>
                             <TabsTrigger value="generator">DSL 生成器</TabsTrigger>
                         </TabsList>
                         <TabsContent value="normal">
@@ -343,9 +344,30 @@
                                 rows="10" spellcheck="false" class="optimization-code-input"></textarea>
                             <UiButton :disabled="!targetFunctionDSLSource.trim()" @click="shareDsl(targetFunctionDSLSource)">分享 DSL</UiButton>
                         </TabsContent>
-                        <TabsContent value="generator" force-mount v-show="miscTargetFunctionTab === 'generator'">
+                        <TabsContent value="saved">
+                            <div class="optimization-saved" :aria-busy="savedTargetsLoading ? 'true' : undefined">
+                                <p v-if="savedTargetsError" class="optimization-saved-error" role="alert">{{ savedTargetsError }}</p>
+                                <div v-if="savedTargets.length > 0" class="optimization-saved-list">
+                                    <UiButton
+                                        v-for="entry in savedTargets"
+                                        :key="entry.id"
+                                        class="optimization-saved-item"
+                                        :class="{ 'is-selected': savedTargetId === entry.id }"
+                                        :aria-pressed="savedTargetId === entry.id"
+                                        @click="selectSavedTarget(entry.id)"
+                                    >
+                                        <span class="optimization-saved-name">{{ entry.name }}</span>
+                                        <span v-if="entry.description" class="optimization-saved-desc">{{ entry.description }}</span>
+                                    </UiButton>
+                                </div>
+                                <div v-else-if="!savedTargetsLoading && !savedTargetsError" class="optimization-saved-empty">
+                                    <RouterLink to="/dsl-management" class="optimization-saved-link">DSL管理</RouterLink>
+                                </div>
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="generator" force-mount v-show="optimizationTargetTab === 'generator'">
                             <dsl-generator v-model="dslGeneratorState" :input="damageAnalysisWasmInterface" :mona="mona"
-                                :wide="wideDslGenerator" :active="optimizeSettingsOpen && miscTargetFunctionTab === 'generator'" />
+                                :wide="wideDslGenerator" :active="optimizeSettingsOpen && optimizationTargetTab === 'generator'" />
                             <UiButton :disabled="!dslGeneratorState.entries.length" @click="shareDsl(generatedDsl)">分享 DSL</UiButton>
                         </TabsContent>
                     </TabsRoot>
@@ -771,6 +793,7 @@ import {remainingOptimizationTime} from '../../../beta-data/optimizer-progress.m
 import { presetPreview } from '@/components/share/preset-preview.mjs'
 import { openContentShare } from '@/components/share/content-share.mjs'
 import DslGenerator from './DslGenerator.vue'
+import { useSavedDslTarget } from './useSavedDslTarget'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiDialog from '@/components/ui/UiDialog.vue'
 import { RadioGroupItem, RadioGroupRoot, TabsContent, TabsList, TabsRoot, TabsTrigger } from 'radix-vue'
@@ -1023,9 +1046,20 @@ const {
 const miscTargetFunctionTab = ref<"normal" | "dsl" | "generator">("normal")
 const optimizationMode = ref<'damage'|'panel'>('damage')
 const panelSearchOptions = ref(newPanelSearchOptions())
+const {
+    optimizationTargetTab, savedTargets, savedTargetId, savedTargetsLoading, savedTargetsError,
+    activeSavedTarget, selectSavedTarget, forgetSavedTarget,
+} = useSavedDslTarget({
+    open: computed(() => optimizeSettingsOpen.value && optimizationMode.value === 'damage'),
+    character: characterName,
+    accountId: accountStore.currentAccountId,
+    reloadGeneration: accountStore.reloadGeneration,
+    mode: miscTargetFunctionTab,
+    source: targetFunctionDSLSource,
+})
 const wideDslGenerator = useMediaQuery('(min-width: 1100px)')
 const optimizationTargetWidth = computed(() =>
-    optimizationMode.value === 'damage' && miscTargetFunctionTab.value === 'generator' && wideDslGenerator.value
+    optimizationMode.value === 'damage' && optimizationTargetTab.value === 'generator' && wideDslGenerator.value
         ? 'min(1320px, 94vw)'
         : 'min(560px, 94vw)')
 
@@ -1274,6 +1308,7 @@ function usePreset(name: string, historyItem?: IPreset, conditions: 'preset' | '
 
     const saved = historyItem || entry.item
     const item = restorePresetConfiguration(loadout ? presetForRosterLoadout(saved, loadout) : saved)
+    forgetSavedTarget()
     prepareCharacterSwitch(item.character.name, conditions === 'current')
     optimizationMode.value = item.optimizationMode ?? 'damage'
     panelSearchOptions.value = item.panelSearch ? deepCopy(item.panelSearch) : newPanelSearchOptions()
@@ -1822,7 +1857,7 @@ watch([damageSkillGroups, characterSkillIndex], ([groups, index]) => {
 // 顶部条「配装目标」按钮上显示的名字
 const optimizeTargetLabel = computed(() => {
     if (optimizationMode.value === 'panel') return '面板配装'
-    if (miscTargetFunctionTab.value !== 'normal') return '自定义 DSL'
+    if (miscTargetFunctionTab.value !== 'normal') return activeSavedTarget.value?.name ?? '自定义 DSL'
     return ta(targets[targetFunctionName.value].nameLocale)
 })
 const resultObjectiveLabel=computed(()=>{
@@ -2655,6 +2690,16 @@ const { pending: pendingDraft, restoring: resumingDraft, resume: resumeDraft, re
 .optimization-switcher button:focus-visible, .optimization-code-input:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
 .optimization-notice { margin: 0 0 8px; color: var(--cx-gold); font-size: 13px; }
 .optimization-code-input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid var(--cx-step-2); border-radius: 8px; background: var(--cx-step); color: var(--cx-letter); font: 13px/1.55 ui-monospace, Consolas, monospace; resize: vertical; }
+.optimization-saved { display: grid; gap: 8px; }
+.optimization-saved-list { display: grid; gap: 8px; }
+.optimization-saved-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--cx-step-2); border-radius: 8px; background: var(--cx-step); color: var(--cx-letter); text-align: left; white-space: normal; }
+.optimization-saved-item.is-selected { border-color: var(--cx-gold); background: var(--cx-card); }
+.optimization-saved-item:focus-visible, .optimization-saved-link:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+.optimization-saved-name { font-weight: 600; overflow-wrap: anywhere; }
+.optimization-saved-desc { color: var(--cx-dim); font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.optimization-saved-error { margin: 0; color: var(--cx-gold); font-size: 13px; }
+.optimization-saved-empty { display: flex; align-items: center; padding: 8px 0; }
+.optimization-saved-link { color: var(--cx-gold); font-size: 13px; text-decoration: underline; }
 @media (prefers-reduced-motion: no-preference) {
     .optimization-switcher button {
         transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
