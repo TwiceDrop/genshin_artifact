@@ -142,3 +142,30 @@ Status: ready-for-agent
 另外请确认：新增文案「面板属性下限不能大于上限。」（中英文各一条）是否就是要用的措辞。
 
 Gemini 还认为 R2 的两层弹窗会互相抢焦点导致无法输入。浏览器里实测输入和 Tab 切换正常，没有复现，所以没有列入。
+
+### 审查 `5c26e09`、`ae248db`、`2c6e43c`（11-27）
+
+方式：界面给 Gemini 4 Neon，数据与逻辑给 Codex（`gpt-6.2-sol`）。Claude 跑了 `tests/dsl-library.test.mjs`（4 项通过）和 `tests/usage-stats-features.test.mjs`（2 项失败），在浏览器里看过 DSL 管理页的桌面和 390px 宽布局。没有做多窗口、云档案和 GPU 实测，没有跑全量测试。本节行号对应 `2c6e43c`。
+
+| 编号 | 级别 | 问题与改法 | 依据 |
+| --- | --- | --- | --- |
+| N1 | 高 | 完整备份不含 DSL 手法库，换机恢复后手法全部丢失，导入仍提示成功。备份和恢复只遍历 `profile-domains.mjs`。给离线备份加可选的手法库字段，旧备份缺字段时照常导入。`account-backup.mjs:58`、`:98` | Codex 用合成数据复现；Claude 核对源码 |
+| N2 | 中 | 两份默认参数相同的同名 BUFF 分别绑到两个状态，只改其中一份，另一份跟着变，保存的源码也变。`updateBuff` 按名称加参数匹配。给每份 BUFF 独立标识。`useDslManagement.ts:297` | Codex 复现；Claude 核对源码 |
+| N3 | 中 | 选中已保存手法后切到「MONA-DSL」看源码，再切本地账户，旧账户的手法源码仍是当前配装目标，还能存进新账户的预设。切标签时保留来源归属。`useSavedDslTarget.ts:34` | Codex 复现；Claude 核对源码 |
+| N4 | 中 | 新页面 `/dsl-management` 没有登记使用统计功能 ID，控制台报错，`usage-stats-features.test.mjs` 失败。在 `server/usage-stats-features.mjs` 登记 | 测试和浏览器实测 |
+| N5 | 中 | 删除账号后编号会被复用。另一个窗口里没关的手法草稿保存时，会写进复用该编号的新账户。给账户一个不复用的身份。`account.ts:56`、`backend.ts:100`。Codex 定为高，这里因需要多窗口按特定顺序操作而降级 | 源码推断，未实测 |
+| N6 | 中 | 账户删除的事务失败时，内存里的账户列表已经改了，数据没清完，加载遮罩不关闭。`backend.ts:26`、`account.ts:186` | Codex 读源码，Claude 未复核 |
+| N7 | 中 | 手机上圣遗物页吸顶区约 330px，列表几乎看不到。小屏取消整块吸顶或只留部位条。`ArtifactsPage.vue:771` | Gemini 按代码估算，未实测 |
+| N8 | 中 | 「已保存手法」列表项的样式权重低于 `UiButton` 的 scoped 规则，两行布局、内边距和 44px 触控高度都不生效。`NewArtifactPlanPage.vue:2695` | 源码确认，未实测 |
+| N9 | 中 | `UiSelect` 是多根节点，`DslInputs.vue` 传的 `class` 不会落到触发器上，下拉框宽度异常。用 `:deep(.select-trigger)`。`DslInputs.vue:23`、`:35` | 源码确认，未实测 |
+| N10 | 低 | 编辑器把来源从生成器切到 MONA-DSL 时不带过生成结果，输入框空白或是旧源码，保存会丢掉这次修改和生成器结构。`useDslManagement.ts:243` | 源码确认 |
+| N11 | 低 | `source` 为 `result =` 这类残缺源码也能导入，到配装时才报错。`dsl-library.mjs:85` | Codex 复现 |
+| N12 | 低 | 旧库首次迁移若中途中断，默认账户能用但保存手法会误报账户已删除。`account.ts:205` | Codex 读源码，Claude 未复核 |
+| N13 | 低 | 480px 以下武器卡片不再上下排，长武器名折成多行。`RosterWeaponCard.vue:70` | Gemini 读代码，未实测 |
+
+另外两点：
+
+- `ElMessage` 和 Element Plus 弹窗可能被固定层级的 `UiDialog` 盖住，和 R8 是同一个根因，一起改。
+- 手法库不进云档案同步，「下载为新本地账号」不会带手法。规格本期只要求本地管理和文件交换，是否纳入需要开发者决定。
+
+`usage-stats-features.test.mjs` 的另一项失败（`/presets`）不是这 3 个提交引入的。
