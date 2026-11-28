@@ -9,9 +9,15 @@ test('DSL and presets publish immutable, anonymous snapshots and honor expiry an
     const owner=await f.login(), other=await f.login('reader@example.test')
     const post=(body,token=owner.sessionToken)=>f.request('/v1/shares',{method:'POST',token,body})
     const source='dmg hit = Amber.test({ a: 0 })\r\nresult = hit.e  // <合成>\n'
-    const description='第一行\r\n第二行 <合成描述>'
+    const description='第一行\r\n第二行 <合成描述> 🧪'
     const dsl={kind:'dsl',days:7,requestId:randomUUID(),content:{character:'Amber',title:'合成目标',source,description,uid:'PRIVATE'}}
     assert.equal((await post(dsl,'')).status,401)
+    for (const invalidDescription of ['第一行\0第二行', '\uD800', '\uDC00']) {
+        const rejected = await post({ ...dsl, content:{ ...dsl.content, description:invalidDescription } })
+        assert.equal(rejected.status, 400)
+        assert.equal(rejected.body.error.code, 'INVALID_INPUT')
+        assert.equal(rejected.body.error.message, 'DSL 手法描述含有无法发布的字符，请编辑描述后重试。')
+    }
     const created=await post(dsl)
     assert.equal(created.status,200,JSON.stringify(created.body))
     const {id,content}=created.body

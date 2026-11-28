@@ -32,7 +32,13 @@ export function contentSnapshot(kind, input) {
     const base = { title:string(input.title), character:input.character }
     if (kind === 'dsl') {
         const { description } = input
-        if (description !== undefined && typeof description !== 'string') throw invalid('DSL 条目描述必须是文本')
+        if (description !== undefined) {
+            if (typeof description !== 'string') throw invalid('DSL 条目描述必须是文本')
+            // PostgreSQL JSONB rejects NUL and unpaired UTF-16 surrogate code units.
+            if (description.includes('\0') || !description.isWellFormed()) {
+                throw invalid('DSL 手法描述含有无法发布的字符，请编辑描述后重试。')
+            }
+        }
         return { ...base, source:string(input.source), ...(description === undefined ? {} : { description }) }
     }
     if (kind !== 'preset') throw invalid('分享类型无效')
