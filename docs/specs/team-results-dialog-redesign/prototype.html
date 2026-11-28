@@ -1,0 +1,1279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>四人圣遗物搭配结果 · 方案 A 交互示意图</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    /* 页面容器跟随主题切换 */
+    body[data-theme="dark"] {
+      background: #090d1c;
+      color: #eeeaf6;
+      --ui-bar-bg: #121830;
+      --ui-bar-border: #232c52;
+      --ui-muted: #98a1be;
+      --ui-pill-bg: #0c1124;
+      --ui-active-bg: #e2c078;
+      --ui-active-fg: #17120a;
+
+      /* 精确对应 src/styles/content-theme.css 深色 Token */
+      --cx-ground: #0f1428;
+      --cx-card: #161d38;
+      --cx-step: #1b2343;
+      --cx-step-2: #232c52;
+      --cx-step-3: #2b3663;
+      --cx-letter: #eeeaf6;
+      --cx-dim: #a3abc6;
+      --cx-faint: #757f9e;
+      --cx-gold: #e2c078;
+      --cx-gold-on: #17120a;
+      --tr-gold-tint: rgba(226, 192, 120, 0.14);
+      --tr-gold-ring: rgba(226, 192, 120, 0.42);
+      --tr-warn: #f0b254;
+      --tr-warn-tint: rgba(240, 178, 84, 0.14);
+      --tr-diff-ring: rgba(126, 184, 255, 0.56);
+      --tr-diff-tint: rgba(126, 184, 255, 0.11);
+      --tr-shadow: 0 22px 60px rgba(4, 7, 18, 0.55);
+    }
+
+    body[data-theme="light"] {
+      background: #e4e7f0;
+      color: #121733;
+      --ui-bar-bg: #ffffff;
+      --ui-bar-border: #dbe1ef;
+      --ui-muted: #5a6380;
+      --ui-pill-bg: #eef0f6;
+      --ui-active-bg: #8a6420;
+      --ui-active-fg: #ffffff;
+
+      /* 精确对应 src/styles/content-theme.css 浅色 Token */
+      --cx-ground: #eef0f6;
+      --cx-card: #ffffff;
+      --cx-step: #f3f5fa;
+      --cx-step-2: #e6eaf3;
+      --cx-step-3: #d8dfee;
+      --cx-letter: #121733;
+      --cx-dim: #5a6380;
+      --cx-faint: #7f88a3;
+      --cx-gold: #8a6420;
+      --cx-gold-on: #ffffff;
+      --tr-gold-tint: rgba(138, 100, 32, 0.10);
+      --tr-gold-ring: rgba(138, 100, 32, 0.36);
+      --tr-warn: #b46a0c;
+      --tr-warn-tint: rgba(180, 106, 12, 0.11);
+      --tr-diff-ring: rgba(58, 118, 209, 0.50);
+      --tr-diff-tint: rgba(58, 118, 209, 0.08);
+      --tr-shadow: 0 18px 48px rgba(18, 23, 51, 0.14);
+    }
+
+    .page-wrap {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* 顶部演示控制台 */
+    .demo-bar {
+      background: var(--ui-bar-bg);
+      border: 1px solid var(--ui-bar-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .demo-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .demo-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ui-muted);
+    }
+
+    .seg {
+      display: inline-flex;
+      background: var(--ui-pill-bg);
+      border: 1px solid var(--ui-bar-border);
+      border-radius: 9px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .seg button {
+      border: 0;
+      background: transparent;
+      color: var(--ui-muted);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .seg button.active {
+      background: var(--ui-active-bg);
+      color: var(--ui-active-fg);
+      font-weight: 600;
+    }
+
+    .demo-note {
+      background: var(--ui-bar-bg);
+      border: 1px solid var(--ui-bar-border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--ui-muted);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .demo-note strong { color: var(--cx-letter); }
+
+    /* 应用弹窗舞台 */
+    .app-stage {
+      background: var(--cx-ground);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid var(--cx-step-2);
+    }
+
+    .app-dialog {
+      background: var(--cx-card);
+      color: var(--cx-letter);
+      border-radius: 18px;
+      border: 1px solid var(--cx-step-2);
+      box-shadow: var(--tr-shadow);
+      overflow: hidden;
+      transition: max-width 0.22s ease;
+    }
+
+    .app-dialog.is-mobile {
+      max-width: 410px;
+      margin: 0 auto;
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--cx-step-2);
+      gap: 12px;
+    }
+
+    .dialog-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .dialog-title {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 650;
+      color: var(--cx-letter);
+    }
+
+    .dialog-count-pill {
+      font-size: 12px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: var(--cx-step);
+      color: var(--cx-dim);
+    }
+
+    .dialog-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 0;
+      background: transparent;
+      color: var(--cx-dim);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .dialog-close:hover { background: var(--cx-step); color: var(--cx-letter); }
+
+    /* 工具栏 */
+    .sort-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px 18px;
+      padding: 12px 20px;
+      background: color-mix(in srgb, var(--cx-step) 48%, transparent);
+      border-bottom: 1px solid var(--cx-step-2);
+      font-size: 13px;
+      color: var(--cx-dim);
+    }
+
+    .sort-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .sort-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sort-select {
+      background: var(--cx-step);
+      color: var(--cx-letter);
+      border: 1px solid var(--cx-step-2);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+    }
+    .sort-select:focus { border-color: var(--cx-gold); }
+
+    .check-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--cx-dim);
+    }
+
+    .legend-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .app-dialog.is-mobile .legend-group { display: none; }
+
+    /* 列表区域 */
+    .dialog-body {
+      padding: 16px 20px 20px;
+    }
+
+    .result-list {
+      max-height: 680px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 4px;
+    }
+
+    .result-list::-webkit-scrollbar { width: 6px; }
+    .result-list::-webkit-scrollbar-thumb { background: var(--cx-step-2); border-radius: 999px; }
+
+    /* 方案 A 卡片 */
+    .team-card {
+      background: var(--cx-step);
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .team-card:hover {
+      background: color-mix(in srgb, var(--cx-step) 72%, var(--cx-step-2));
+      border-color: var(--cx-step-3);
+    }
+
+    .team-card.chosen {
+      background: color-mix(in srgb, var(--cx-step) 84%, var(--cx-gold) 7%);
+      border-color: var(--tr-gold-ring);
+      box-shadow: inset 3px 0 0 0 var(--cx-gold);
+    }
+
+    .card-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 16px;
+      padding-bottom: 11px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--cx-step-2);
+    }
+
+    .card-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 18px;
+      min-width: 0;
+    }
+
+    .rank-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--cx-step-2);
+      color: var(--cx-letter);
+    }
+
+    .rank-badge.is-top {
+      background: var(--cx-gold);
+      color: var(--cx-gold-on);
+    }
+
+    .chosen-tag {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--tr-gold-tint);
+      color: var(--cx-gold);
+      border: 1px solid var(--tr-gold-ring);
+    }
+
+    .kpi-primary {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .kpi-primary .k-label { font-size: 12px; color: var(--cx-dim); }
+    .kpi-primary .k-val { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--cx-letter); }
+
+    .diff-pill {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--cx-card);
+      color: var(--cx-dim);
+      font-weight: 500;
+    }
+
+    .diff-pill.is-top {
+      background: var(--tr-gold-tint);
+      color: var(--cx-gold);
+      font-weight: 600;
+    }
+
+    .kpi-dps {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding-left: 14px;
+      border-left: 1px solid var(--cx-step-2);
+    }
+    .kpi-dps .k-label { font-size: 12px; color: var(--cx-dim); }
+    .kpi-dps .k-val { font-size: 16px; font-weight: 700; color: var(--cx-gold); }
+
+    .kpi-secondary {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px 14px;
+      font-size: 12px;
+      color: var(--cx-dim);
+    }
+
+    .kpi-secondary strong {
+      color: var(--cx-letter);
+      font-weight: 550;
+      margin-left: 3px;
+    }
+
+    .detail-btn {
+      flex-shrink: 0;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--cx-step-2);
+      color: var(--cx-letter);
+      border: 1px solid var(--cx-step-3);
+      transition: filter 0.14s;
+    }
+    .detail-btn:hover { filter: brightness(1.08); }
+    .detail-btn.is-primary {
+      background: var(--cx-gold);
+      color: var(--cx-gold-on);
+      border-color: var(--cx-gold);
+    }
+
+    /* 4角色对齐行表 */
+    .members-table {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .member-row {
+      display: grid;
+      grid-template-columns: 120px 168px 160px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
+      padding: 7px 8px;
+      border-radius: 9px;
+    }
+
+    .member-row:nth-child(even) {
+      background: color-mix(in srgb, var(--cx-card) 46%, transparent);
+    }
+
+    .m-person {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .m-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .m-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cx-letter);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .m-dmg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .m-dmg-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .m-dmg-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cx-letter);
+    }
+
+    .m-dmg-pct {
+      font-size: 12px;
+      color: var(--cx-dim);
+    }
+
+    .m-bar-track {
+      height: 5px;
+      border-radius: 999px;
+      background: var(--cx-card);
+      overflow: hidden;
+    }
+
+    .m-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .m-sets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .set-pill {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .set-pill.tier-4 {
+      background: var(--tr-gold-tint);
+      color: var(--cx-gold);
+      border: 1px solid var(--tr-gold-ring);
+      font-weight: 600;
+    }
+
+    .set-pill.tier-2 {
+      background: var(--cx-step-2);
+      color: var(--cx-letter);
+    }
+
+    .set-pill.tier-0 {
+      background: transparent;
+      color: var(--cx-dim);
+      border: 1px dashed var(--cx-step-3);
+    }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .slot-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 7px;
+      border-radius: 8px;
+      background: var(--cx-card);
+      border: 1px solid var(--cx-step-2);
+      min-width: 0;
+      transition: border-color 0.14s, background 0.14s;
+    }
+
+    .slot-chip:hover {
+      border-color: var(--tr-gold-ring);
+    }
+
+    .slot-chip.is-unmaxed {
+      background: var(--tr-warn-tint);
+      border-color: color-mix(in srgb, var(--tr-warn) 48%, transparent);
+    }
+
+    .slot-chip.is-diff {
+      background: var(--tr-diff-tint);
+      border-color: var(--tr-diff-ring);
+    }
+
+    .slot-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .slot-info {
+      min-width: 0;
+      flex: 1;
+      line-height: 1.25;
+    }
+
+    .slot-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .slot-set {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--cx-letter);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slot-lv {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cx-dim);
+      flex-shrink: 0;
+    }
+    .slot-lv.is-warn { color: var(--tr-warn); }
+
+    .slot-sub {
+      font-size: 11px;
+      color: var(--cx-faint);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 手机/窄屏折行模式 */
+    .app-dialog.is-mobile .dialog-body { padding: 12px; }
+    .app-dialog.is-mobile .sort-bar { padding: 10px 14px; }
+    .app-dialog.is-mobile .kpi-dps { padding-left: 0; border-left: 0; }
+    .app-dialog.is-mobile .member-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 10px;
+      background: var(--cx-card);
+      margin-bottom: 4px;
+    }
+    .app-dialog.is-mobile .slots-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* 优化前现状样式 */
+    .legacy-row {
+      padding: 16px;
+      border: 1px solid var(--cx-step-2);
+      border-radius: 13px;
+      cursor: pointer;
+      background: var(--cx-card);
+      color: var(--cx-dim);
+    }
+    .legacy-row.chosen {
+      border-color: var(--cx-gold);
+      background: var(--cx-step);
+    }
+    .legacy-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      font-size: 15px;
+    }
+    .legacy-member {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+      font-size: 14px;
+      color: var(--cx-dim);
+    }
+    .legacy-member b { min-width: 70px; }
+
+    /* 共享悬停浮层（单实例，避免 2000 节点挂载卡顿） */
+    .art-tooltip {
+      position: fixed;
+      z-index: 99;
+      pointer-events: none;
+      min-width: 220px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--cx-card);
+      color: var(--cx-letter);
+      border: 1px solid var(--cx-step-3);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+      font-size: 12px;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.12s, transform 0.12s;
+    }
+    .art-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .tip-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--cx-step-2);
+    }
+    .tip-subs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 12px;
+      color: var(--cx-dim);
+      margin-top: 6px;
+    }
+    .tip-diff {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--cx-step-3);
+      color: #7eb8ff;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="page-wrap">
+    <div class="demo-bar">
+      <div class="demo-group">
+        <span class="demo-label">视图对比</span>
+        <div class="seg" id="mode-seg">
+          <button class="active" data-mode="planA">方案 A · 全宽对齐行表（已选定）</button>
+          <button data-mode="legacy">优化前（现状对照）</button>
+        </div>
+      </div>
+
+      <div class="demo-group">
+        <div class="seg" id="vp-seg">
+          <button class="active" data-vp="desktop">桌面端</button>
+          <button data-vp="mobile">手机端 410px</button>
+        </div>
+        <div class="seg" id="theme-seg">
+          <button class="active" data-theme="dark">夜空深色</button>
+          <button data-theme="light">日间浅色</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-note">
+      <div id="note-text"></div>
+      <div>说明：单浮层预览（悬停圣遗物槽位）· 实装时槽位图标直接取 <code>artifactsData[setName][position].url</code></div>
+    </div>
+
+    <div class="app-stage">
+      <div class="app-dialog" id="dialog">
+        <div class="dialog-head">
+          <div class="dialog-title-wrap">
+            <h2 class="dialog-title">四人圣遗物搭配结果</h2>
+            <span class="dialog-count-pill tabular">共 100 套 · 示例前 4 套</span>
+          </div>
+          <button class="dialog-close" aria-label="关闭">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="sort-bar">
+          <div class="sort-left">
+            <label class="sort-label">
+              <span>排序</span>
+              <select id="sort-select" class="sort-select">
+                <option value="expectation" selected>期望伤害</option>
+                <option value="critical">暴击伤害</option>
+                <option value="non_critical">非暴击伤害</option>
+              </select>
+            </label>
+            <label class="check-label" id="diff-wrap">
+              <input type="checkbox" id="diff-check" checked />
+              <span>高亮与第1套差异</span>
+            </label>
+            <div class="legend-group" id="legend-group">
+              <span class="legend-item">
+                <span class="swatch" style="background: var(--tr-warn-tint); border: 1px solid var(--tr-warn);"></span>
+                未满级（&lt; +20）
+              </span>
+              <span class="legend-item" id="legend-diff">
+                <span class="swatch" style="background: var(--tr-diff-tint); border: 1px solid var(--tr-diff-ring);"></span>
+                与第1套不同
+              </span>
+            </div>
+          </div>
+          <div class="tabular">当前选中：<strong id="chosen-text" style="color: var(--cx-gold);">第2套</strong></div>
+        </div>
+
+        <div class="dialog-body">
+          <div class="result-list" id="result-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="art-tooltip" id="tooltip"></div>
+
+  <script>
+    const SLOTS = [
+      { key: 'flower', label: '花', full: '生之花', svg: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" fill="currentColor"/><path d="M8 2.2c1.2 1.2 1.2 2.8 0 3.6-1.2-.8-1.2-2.4 0-3.6zm0 11.6c-1.2-1.2-1.2-2.8 0-3.6 1.2.8 1.2 2.4 0 3.6zM2.2 8c1.2-1.2 2.8-1.2 3.6 0-.8 1.2-2.4 1.2-3.6 0zm11.6 0c-1.2 1.2-2.8 1.2-3.6 0 .8-1.2 2.4-1.2 3.6 0z" fill="currentColor" opacity=".82"/></svg>' },
+      { key: 'feather', label: '羽', full: '死之羽', svg: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M12.8 3.2C9.5 3.4 6.2 5.4 4.2 8.7L3 13l4.3-1.2c3.3-2 5.3-5.3 5.5-8.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3.5 12.5L10 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>' },
+      { key: 'sand', label: '沙', full: '时之沙', svg: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4.5 2.5h7M4.5 13.5h7M5.5 2.5v2.3c0 1.2 1.1 2.2 2.5 3.2 1.4-1 2.5-2 2.5-3.2V2.5M5.5 13.5v-2.3c0-1.2 1.1-2.2 2.5-3.2 1.4 1 2.5 2 2.5 3.2v2.3" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      { key: 'goblet', label: '杯', full: '空之杯', svg: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4.5 3h7v2.8a3.5 3.5 0 0 1-7 0V3zM8 9.3V13M5.5 13h5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+      { key: 'head', label: '头', full: '理之冠', svg: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 11.5L3.8 5.2 6.8 8 8 4.2 9.2 8l3-2.8 1.3 6.3H2.5z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/></svg>' }
+    ];
+
+    const SET_COLORS = {
+      '纺月的夜歌': '#8b9dff',
+      '黑曜秘典': '#63c7b2',
+      '追忆之注连': '#e88b8b',
+      '逐影猎人': '#d9b566',
+      '绝缘之旗印': '#b88cff',
+      '深廊终曲': '#74c0fc',
+      '烬城勇者绘卷': '#f59f64',
+      '翠绿之影': '#70d6b3',
+      '炉火融炼之心': '#f08c6c',
+      '黄金剧团': '#e6c567'
+    };
+
+    const MEMBERS = [
+      { name: '兹白', short: '兹', color: '#e8c77d' },
+      { name: '哥伦比娅', short: '哥', color: '#7eb8ff' },
+      { name: '莉奈娅', short: '莉', color: '#e8c77d' },
+      { name: '叶洛亚', short: '叶', color: '#e8c77d' }
+    ];
+
+    const METRIC_LABELS = {
+      expectation: '期望伤害',
+      critical: '暴击伤害',
+      non_critical: '非暴击伤害'
+    };
+
+    // 合成示例数据（数值对应讨论截图，主副词条作原型展示）
+    const BUILDS = [
+      {
+        id: 1, duration: 21.1, expectation: 1190470.13, critical: 1342446.51, non_critical: 468773.63,
+        members: [
+          {
+            dmg: { expectation: 617426.16, critical: 698200.4, non_critical: 241200.12 },
+            artifacts: [
+              { id: 101, set: '黑曜秘典', lv: 20, main: '生命', subs: ['暴伤 +21.8%', '暴击 +10.5%', '防御 +12.4%', '充能 +5.2%'] },
+              { id: 102, set: '纺月的夜歌', lv: 20, main: '攻击', subs: ['暴伤 +20.2%', '暴击 +9.7%', '防御 +11.7%', '精通 +23'] },
+              { id: 103, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴击 +13.2%', '暴伤 +14.8%', '充能 +11.0%', '生命 +4.7%'] },
+              { id: 104, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴伤 +26.4%', '暴击 +7.0%', '精通 +37', '攻击 +4.1%'] },
+              { id: 105, set: '纺月的夜歌', lv: 20, main: '暴伤', subs: ['暴击 +12.8%', '防御 +13.1%', '充能 +6.5%', '精通 +19'] }
+            ]
+          },
+          {
+            dmg: { expectation: 242562.81, critical: 274110.22, non_critical: 96300.5 },
+            artifacts: [
+              { id: 201, set: '追忆之注连', lv: 20, main: '生命', subs: ['生命 +15.2%', '暴伤 +19.4%', '暴击 +6.6%', '充能 +11.7%'] },
+              { id: 202, set: '逐影猎人', lv: 20, main: '攻击', subs: ['暴击 +10.9%', '暴伤 +14.0%', '生命 +14.6%', '充能 +5.8%'] },
+              { id: 203, set: '黑曜秘典', lv: 20, main: '充能', subs: ['生命 +15.8%', '暴伤 +20.2%', '暴击 +7.4%', '精通 +19'] },
+              { id: 204, set: '逐影猎人', lv: 20, main: '生命%', subs: ['暴击 +10.1%', '暴伤 +18.7%', '充能 +11.0%', '攻击 +5.3%'] },
+              { id: 205, set: '绝缘之旗印', lv: 0, main: '暴击', subs: ['生命 +5.3%', '充能 +5.8%', '暴伤 +7.0%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 284952.11, critical: 320185.3, non_critical: 112104.25 },
+            artifacts: [
+              { id: 301, set: '深廊终曲', lv: 20, main: '生命', subs: ['防御 +19.7%', '暴击 +10.5%', '暴伤 +13.2%', '充能 +6.5%'] },
+              { id: 302, set: '绝缘之旗印', lv: 20, main: '攻击', subs: ['防御 +16.8%', '暴伤 +21.0%', '暴击 +7.0%', '充能 +11.0%'] },
+              { id: 303, set: '烬城勇者绘卷', lv: 20, main: '防御%', subs: ['暴击 +11.3%', '暴伤 +15.5%', '充能 +12.3%', '精通 +21'] },
+              { id: 304, set: '绝缘之旗印', lv: 20, main: '防御%', subs: ['暴伤 +22.5%', '暴击 +7.8%', '充能 +10.4%', '攻击 +4.7%'] },
+              { id: 305, set: '绝缘之旗印', lv: 20, main: '暴击', subs: ['暴伤 +21.0%', '防御 +14.6%', '充能 +11.7%', '生命 +4.1%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 45529.04, critical: 49950.59, non_critical: 19168.76 },
+            artifacts: [
+              { id: 401, set: '翠绿之影', lv: 20, main: '生命', subs: ['精通 +65', '充能 +16.2%', '暴击 +6.6%', '防御 +7.3%'] },
+              { id: 402, set: '翠绿之影', lv: 20, main: '攻击', subs: ['精通 +79', '充能 +11.7%', '暴伤 +12.4%', '生命 +5.3%'] },
+              { id: 403, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +17.5%', '暴击 +7.4%', '防御 +11.0%', '攻击 +5.8%'] },
+              { id: 404, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +15.5%', '暴伤 +14.0%', '生命 +9.9%', '防御 +6.6%'] },
+              { id: 405, set: '翠绿之影', lv: 0, main: '精通', subs: ['充能 +6.5%', '暴击 +3.5%', '防御 +5.8%'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 2, duration: 21.1, expectation: 1186191.34, critical: 1344667.84, non_critical: 470816.68,
+        members: [
+          {
+            dmg: { expectation: 620105.11, critical: 704310.12, non_critical: 243120.44 },
+            artifacts: [
+              { id: 101, set: '黑曜秘典', lv: 20, main: '生命', subs: ['暴伤 +21.8%', '暴击 +10.5%', '防御 +12.4%', '充能 +5.2%'] },
+              { id: 112, set: '纺月的夜歌', lv: 20, main: '攻击', subs: ['暴伤 +24.9%', '暴击 +7.4%', '防御 +12.4%', '充能 +5.8%'] },
+              { id: 103, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴击 +13.2%', '暴伤 +14.8%', '充能 +11.0%', '生命 +4.7%'] },
+              { id: 104, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴伤 +26.4%', '暴击 +7.0%', '精通 +37', '攻击 +4.1%'] },
+              { id: 105, set: '纺月的夜歌', lv: 20, main: '暴伤', subs: ['暴击 +12.8%', '防御 +13.1%', '充能 +6.5%', '精通 +19'] }
+            ]
+          },
+          {
+            dmg: { expectation: 244828.66, critical: 277220.41, non_critical: 97410.11 },
+            artifacts: [
+              { id: 201, set: '追忆之注连', lv: 20, main: '生命', subs: ['生命 +15.2%', '暴伤 +19.4%', '暴击 +6.6%', '充能 +11.7%'] },
+              { id: 202, set: '逐影猎人', lv: 20, main: '攻击', subs: ['暴击 +10.9%', '暴伤 +14.0%', '生命 +14.6%', '充能 +5.8%'] },
+              { id: 203, set: '黑曜秘典', lv: 20, main: '充能', subs: ['生命 +15.8%', '暴伤 +20.2%', '暴击 +7.4%', '精通 +19'] },
+              { id: 204, set: '逐影猎人', lv: 20, main: '生命%', subs: ['暴击 +10.1%', '暴伤 +18.7%', '充能 +11.0%', '攻击 +5.3%'] },
+              { id: 205, set: '绝缘之旗印', lv: 0, main: '暴击', subs: ['生命 +5.3%', '充能 +5.8%', '暴伤 +7.0%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 275180, critical: 312405.11, non_critical: 110680.13 },
+            artifacts: [
+              { id: 311, set: '炉火融炼之心', lv: 20, main: '生命', subs: ['防御 +18.2%', '暴击 +9.3%', '暴伤 +14.8%', '充能 +11.0%'] },
+              { id: 302, set: '绝缘之旗印', lv: 20, main: '攻击', subs: ['防御 +16.8%', '暴伤 +21.0%', '暴击 +7.0%', '充能 +11.0%'] },
+              { id: 303, set: '烬城勇者绘卷', lv: 20, main: '防御%', subs: ['暴击 +11.3%', '暴伤 +15.5%', '充能 +12.3%', '精通 +21'] },
+              { id: 304, set: '绝缘之旗印', lv: 20, main: '防御%', subs: ['暴伤 +22.5%', '暴击 +7.8%', '充能 +10.4%', '攻击 +4.7%'] },
+              { id: 305, set: '绝缘之旗印', lv: 20, main: '暴击', subs: ['暴伤 +21.0%', '防御 +14.6%', '充能 +11.7%', '生命 +4.1%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 46077.56, critical: 50732.2, non_critical: 19606 },
+            artifacts: [
+              { id: 401, set: '翠绿之影', lv: 20, main: '生命', subs: ['精通 +65', '充能 +16.2%', '暴击 +6.6%', '防御 +7.3%'] },
+              { id: 402, set: '翠绿之影', lv: 20, main: '攻击', subs: ['精通 +79', '充能 +11.7%', '暴伤 +12.4%', '生命 +5.3%'] },
+              { id: 403, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +17.5%', '暴击 +7.4%', '防御 +11.0%', '攻击 +5.8%'] },
+              { id: 404, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +15.5%', '暴伤 +14.0%', '生命 +9.9%', '防御 +6.6%'] },
+              { id: 405, set: '翠绿之影', lv: 0, main: '精通', subs: ['充能 +6.5%', '暴击 +3.5%', '防御 +5.8%'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 3, duration: 21.1, expectation: 1179369.53, critical: 1331055.58, non_critical: 465512.6,
+        members: [
+          {
+            dmg: { expectation: 615514.85, critical: 695120.2, non_critical: 240100.3 },
+            artifacts: [
+              { id: 101, set: '黑曜秘典', lv: 20, main: '生命', subs: ['暴伤 +21.8%', '暴击 +10.5%', '防御 +12.4%', '充能 +5.2%'] },
+              { id: 102, set: '纺月的夜歌', lv: 20, main: '攻击', subs: ['暴伤 +20.2%', '暴击 +9.7%', '防御 +11.7%', '精通 +23'] },
+              { id: 103, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴击 +13.2%', '暴伤 +14.8%', '充能 +11.0%', '生命 +4.7%'] },
+              { id: 104, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴伤 +26.4%', '暴击 +7.0%', '精通 +37', '攻击 +4.1%'] },
+              { id: 105, set: '纺月的夜歌', lv: 20, main: '暴伤', subs: ['暴击 +12.8%', '防御 +13.1%', '充能 +6.5%', '精通 +19'] }
+            ]
+          },
+          {
+            dmg: { expectation: 242060.88, critical: 273190.1, non_critical: 95910.4 },
+            artifacts: [
+              { id: 201, set: '追忆之注连', lv: 20, main: '生命', subs: ['生命 +15.2%', '暴伤 +19.4%', '暴击 +6.6%', '充能 +11.7%'] },
+              { id: 202, set: '逐影猎人', lv: 20, main: '攻击', subs: ['暴击 +10.9%', '暴伤 +14.0%', '生命 +14.6%', '充能 +5.8%'] },
+              { id: 203, set: '黑曜秘典', lv: 20, main: '充能', subs: ['生命 +15.8%', '暴伤 +20.2%', '暴击 +7.4%', '精通 +19'] },
+              { id: 204, set: '逐影猎人', lv: 20, main: '生命%', subs: ['暴击 +10.1%', '暴伤 +18.7%', '充能 +11.0%', '攻击 +5.3%'] },
+              { id: 205, set: '绝缘之旗印', lv: 0, main: '暴击', subs: ['生命 +5.3%', '充能 +5.8%', '暴伤 +7.0%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 276351.85, critical: 313010.8, non_critical: 110400.9 },
+            artifacts: [
+              { id: 321, set: '黄金剧团', lv: 20, main: '生命', subs: ['防御 +15.3%', '暴击 +11.7%', '暴伤 +13.2%', '充能 +5.8%'] },
+              { id: 302, set: '绝缘之旗印', lv: 20, main: '攻击', subs: ['防御 +16.8%', '暴伤 +21.0%', '暴击 +7.0%', '充能 +11.0%'] },
+              { id: 303, set: '烬城勇者绘卷', lv: 20, main: '防御%', subs: ['暴击 +11.3%', '暴伤 +15.5%', '充能 +12.3%', '精通 +21'] },
+              { id: 304, set: '绝缘之旗印', lv: 20, main: '防御%', subs: ['暴伤 +22.5%', '暴击 +7.8%', '充能 +10.4%', '攻击 +4.7%'] },
+              { id: 305, set: '绝缘之旗印', lv: 20, main: '暴击', subs: ['暴伤 +21.0%', '防御 +14.6%', '充能 +11.7%', '生命 +4.1%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 45441.96, critical: 49734.48, non_critical: 19101 },
+            artifacts: [
+              { id: 401, set: '翠绿之影', lv: 20, main: '生命', subs: ['精通 +65', '充能 +16.2%', '暴击 +6.6%', '防御 +7.3%'] },
+              { id: 402, set: '翠绿之影', lv: 20, main: '攻击', subs: ['精通 +79', '充能 +11.7%', '暴伤 +12.4%', '生命 +5.3%'] },
+              { id: 403, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +17.5%', '暴击 +7.4%', '防御 +11.0%', '攻击 +5.8%'] },
+              { id: 404, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +15.5%', '暴伤 +14.0%', '生命 +9.9%', '防御 +6.6%'] },
+              { id: 405, set: '翠绿之影', lv: 0, main: '精通', subs: ['充能 +6.5%', '暴击 +3.5%', '防御 +5.8%'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 4, duration: 21.1, expectation: 1179105.49, critical: 1331036.49, non_critical: 468263.37,
+        members: [
+          {
+            dmg: { expectation: 617127.25, critical: 697800.12, non_critical: 241890 },
+            artifacts: [
+              { id: 101, set: '黑曜秘典', lv: 20, main: '生命', subs: ['暴伤 +21.8%', '暴击 +10.5%', '防御 +12.4%', '充能 +5.2%'] },
+              { id: 102, set: '纺月的夜歌', lv: 20, main: '攻击', subs: ['暴伤 +20.2%', '暴击 +9.7%', '防御 +11.7%', '精通 +23'] },
+              { id: 103, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴击 +13.2%', '暴伤 +14.8%', '充能 +11.0%', '生命 +4.7%'] },
+              { id: 104, set: '纺月的夜歌', lv: 20, main: '防御%', subs: ['暴伤 +26.4%', '暴击 +7.0%', '精通 +37', '攻击 +4.1%'] },
+              { id: 105, set: '纺月的夜歌', lv: 20, main: '暴伤', subs: ['暴击 +12.8%', '防御 +13.1%', '充能 +6.5%', '精通 +19'] }
+            ]
+          },
+          {
+            dmg: { expectation: 242484.36, critical: 273810, non_critical: 96990.12 },
+            artifacts: [
+              { id: 201, set: '追忆之注连', lv: 20, main: '生命', subs: ['生命 +15.2%', '暴伤 +19.4%', '暴击 +6.6%', '充能 +11.7%'] },
+              { id: 202, set: '逐影猎人', lv: 20, main: '攻击', subs: ['暴击 +10.9%', '暴伤 +14.0%', '生命 +14.6%', '充能 +5.8%'] },
+              { id: 203, set: '黑曜秘典', lv: 20, main: '充能', subs: ['生命 +15.8%', '暴伤 +20.2%', '暴击 +7.4%', '精通 +19'] },
+              { id: 204, set: '逐影猎人', lv: 20, main: '生命%', subs: ['暴击 +10.1%', '暴伤 +18.7%', '充能 +11.0%', '攻击 +5.3%'] },
+              { id: 205, set: '绝缘之旗印', lv: 0, main: '暴击', subs: ['生命 +5.3%', '充能 +5.8%', '暴伤 +7.0%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 273978.45, critical: 309612.22, non_critical: 110220 },
+            artifacts: [
+              { id: 301, set: '深廊终曲', lv: 20, main: '生命', subs: ['防御 +19.7%', '暴击 +10.5%', '暴伤 +13.2%', '充能 +6.5%'] },
+              { id: 302, set: '绝缘之旗印', lv: 20, main: '攻击', subs: ['防御 +16.8%', '暴伤 +21.0%', '暴击 +7.0%', '充能 +11.0%'] },
+              { id: 333, set: '烬城勇者绘卷', lv: 20, main: '充能', subs: ['防御 +16.8%', '暴击 +8.9%', '暴伤 +14.0%', '精通 +19'] },
+              { id: 304, set: '绝缘之旗印', lv: 20, main: '防御%', subs: ['暴伤 +22.5%', '暴击 +7.8%', '充能 +10.4%', '攻击 +4.7%'] },
+              { id: 305, set: '绝缘之旗印', lv: 20, main: '暴击', subs: ['暴伤 +21.0%', '防御 +14.6%', '充能 +11.7%', '生命 +4.1%'] }
+            ]
+          },
+          {
+            dmg: { expectation: 45515.43, critical: 49814.15, non_critical: 19163.25 },
+            artifacts: [
+              { id: 401, set: '翠绿之影', lv: 20, main: '生命', subs: ['精通 +65', '充能 +16.2%', '暴击 +6.6%', '防御 +7.3%'] },
+              { id: 402, set: '翠绿之影', lv: 20, main: '攻击', subs: ['精通 +79', '充能 +11.7%', '暴伤 +12.4%', '生命 +5.3%'] },
+              { id: 403, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +17.5%', '暴击 +7.4%', '防御 +11.0%', '攻击 +5.8%'] },
+              { id: 404, set: '翠绿之影', lv: 20, main: '精通', subs: ['充能 +15.5%', '暴伤 +14.0%', '生命 +9.9%', '防御 +6.6%'] },
+              { id: 405, set: '翠绿之影', lv: 0, main: '精通', subs: ['充能 +6.5%', '暴击 +3.5%', '防御 +5.8%'] }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const state = { mode: 'planA', sortMetric: 'expectation', chosenId: 2, showDiff: true };
+    const fmt = (n) => Number(n).toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+
+    function activeSets(artifacts) {
+      const map = new Map();
+      for (const a of artifacts) map.set(a.set, (map.get(a.set) || 0) + 1);
+      const res = [];
+      for (const [name, cnt] of map.entries()) {
+        if (cnt >= 4) res.push({ name, tier: 4 });
+        else if (cnt >= 2) res.push({ name, tier: 2 });
+      }
+      return res.sort((a, b) => b.tier - a.tier);
+    }
+
+    function renderSetBadges(artifacts) {
+      const list = activeSets(artifacts);
+      if (!list.length) return '<span class="set-pill tier-0">散件</span>';
+      return list.map(s => `<span class="set-pill tier-${s.tier}" title="${s.name} ${s.tier}件套">${s.name} ${s.tier}件</span>`).join('');
+    }
+
+    function renderPlanA(sorted) {
+      const baseline = sorted[0];
+      const topVal = baseline[state.sortMetric];
+      const others = Object.entries(METRIC_LABELS).filter(([k]) => k !== state.sortMetric);
+
+      return sorted.map((row, idx) => {
+        const rank = idx + 1;
+        const isChosen = row.id === state.chosenId;
+        const val = row[state.sortMetric];
+        const dps = val / row.duration;
+        const diffHtml = rank === 1
+          ? '<span class="diff-pill is-top">最高</span>'
+          : (topVal > 0 ? `<span class="diff-pill tabular">${(((val - topVal) / topVal) * 100).toFixed(2)}%</span>` : '');
+
+        const membersHtml = row.members.map((m, r) => {
+          const info = MEMBERS[r];
+          const dmg = m.dmg[state.sortMetric];
+          const pct = val > 0 ? (dmg / val) * 100 : 0;
+          const slotsHtml = m.artifacts.map((art, sIdx) => {
+            const slot = SLOTS[sIdx];
+            const setColor = SET_COLORS[art.set] || '#a3abc6';
+            const unmaxed = art.lv < 20;
+            const isDiff = state.showDiff && rank > 1 && baseline.members[r].artifacts[sIdx].id !== art.id;
+            const cls = ['slot-chip', unmaxed ? 'is-unmaxed' : '', isDiff ? 'is-diff' : ''].filter(Boolean).join(' ');
+            const payload = encodeURIComponent(JSON.stringify({ ...art, slotFull: slot.full, diff: isDiff }));
+            return `
+              <div class="${cls}" data-art="${payload}">
+                <div class="slot-icon" style="background:color-mix(in srgb, ${setColor} 18%, var(--cx-step-2));color:${setColor};">${slot.svg}</div>
+                <div class="slot-info">
+                  <div class="slot-top">
+                    <span class="slot-set">${art.set}</span>
+                    <span class="slot-lv tabular ${unmaxed ? 'is-warn' : ''}">+${art.lv}</span>
+                  </div>
+                  <div class="slot-sub">${slot.label}${sIdx >= 2 ? ' · ' + art.main : ''}</div>
+                </div>
+              </div>`;
+          }).join('');
+
+          return `
+            <div class="member-row">
+              <div class="m-person">
+                <div class="m-avatar" style="background:color-mix(in srgb, ${info.color} 20%, var(--cx-step-2));border:1.5px solid ${info.color};color:${info.color};">${info.short}</div>
+                <span class="m-name">${info.name}</span>
+              </div>
+              <div class="m-dmg">
+                <div class="m-dmg-top tabular">
+                  <span class="m-dmg-val">${fmt(dmg)}</span>
+                  <span class="m-dmg-pct">${pct.toFixed(1)}%</span>
+                </div>
+                <div class="m-bar-track"><div class="m-bar-fill" style="width:${pct.toFixed(1)}%;background:${info.color};"></div></div>
+              </div>
+              <div class="m-sets">${renderSetBadges(m.artifacts)}</div>
+              <div class="slots-grid">${slotsHtml}</div>
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="team-card ${isChosen ? 'chosen' : ''}" onclick="selectBuild(${row.id})">
+            <div class="card-top">
+              <div class="card-metrics">
+                <div class="rank-group">
+                  <span class="rank-badge tabular ${rank === 1 ? 'is-top' : ''}">第${rank}套</span>
+                  ${isChosen ? '<span class="chosen-tag">当前已选</span>' : ''}
+                </div>
+                <div class="kpi-primary">
+                  <span class="k-label">${METRIC_LABELS[state.sortMetric]}</span>
+                  <strong class="k-val tabular">${fmt(val)}</strong>
+                  ${diffHtml}
+                </div>
+                <div class="kpi-dps">
+                  <span class="k-label">DPS</span>
+                  <strong class="k-val tabular">${fmt(dps)}</strong>
+                </div>
+                <div class="kpi-secondary tabular">
+                  ${others.map(([k, label]) => `<span>${label}<strong>${fmt(row[k])}</strong></span>`).join('')}
+                </div>
+              </div>
+              <button class="detail-btn ${isChosen ? 'is-primary' : ''}" onclick="event.stopPropagation(); selectBuild(${row.id});">查看详情</button>
+            </div>
+            <div class="members-table">${membersHtml}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderLegacy(sorted) {
+      return sorted.map((row, idx) => {
+        const rank = idx + 1;
+        const isChosen = row.id === state.chosenId;
+        const dps = row[state.sortMetric] / row.duration;
+        return `
+          <div class="legacy-row ${isChosen ? 'chosen' : ''}" onclick="selectBuild(${row.id})">
+            <div class="legacy-head tabular">
+              <strong>第${rank}套</strong>
+              <span>期望伤害 ${fmt(row.expectation)}</span>
+              <span>暴击伤害 ${fmt(row.critical)}</span>
+              <span>非暴击伤害 ${fmt(row.non_critical)}</span>
+              <span>DPS ${fmt(dps)}</span>
+              <button class="detail-btn" onclick="event.stopPropagation(); selectBuild(${row.id});">查看详情</button>
+            </div>
+            <div>
+              ${row.members.map((m, r) => `
+                <div class="legacy-member tabular">
+                  <b>${MEMBERS[r].name}</b>
+                  <span>${fmt(m.dmg[state.sortMetric])}</span>
+                  ${m.artifacts.map(a => `<span>${a.set} +${a.lv}</span>`).join('')}
+                </div>`).join('')}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function render() {
+      const sorted = [...BUILDS].sort((a, b) => b[state.sortMetric] - a[state.sortMetric]);
+      const list = document.getElementById('result-list');
+      const isLegacy = state.mode === 'legacy';
+
+      document.getElementById('note-text').innerHTML = isLegacy
+        ? '<strong>优化前（现状对照）</strong>：文字同色灰、右侧大面积留白、按钮悬在中段、5 件圣遗物重复罗列文本。'
+        : '<strong>方案 A · 全宽对齐行表</strong>：顶栏突出主指标/差值/DPS 且按钮右对齐；4 位角色按「头像｜伤害占比条｜生效套装｜花羽沙杯头 5 槽位」跨套严格纵向对齐。';
+
+      document.getElementById('diff-wrap').style.display = isLegacy ? 'none' : 'inline-flex';
+      document.getElementById('legend-group').style.display = isLegacy ? 'none' : '';
+      document.getElementById('legend-diff').style.display = state.showDiff ? 'inline-flex' : 'none';
+
+      const chosenRank = sorted.findIndex(r => r.id === state.chosenId) + 1;
+      document.getElementById('chosen-text').textContent = `第${chosenRank}套`;
+
+      list.innerHTML = isLegacy ? renderLegacy(sorted) : renderPlanA(sorted);
+    }
+
+    function selectBuild(id) {
+      state.chosenId = id;
+      render();
+    }
+
+    // 单一共享浮层（事件委托，避免 2000 槽位性能问题）
+    const tip = document.getElementById('tooltip');
+    const listEl = document.getElementById('result-list');
+    let activeChip = null;
+
+    function moveTip(e) {
+      const pad = 14;
+      const w = tip.offsetWidth || 230;
+      const h = tip.offsetHeight || 130;
+      let x = e.clientX + pad;
+      let y = e.clientY + pad;
+      if (x + w > window.innerWidth - 10) x = e.clientX - w - pad;
+      if (y + h > window.innerHeight - 10) y = e.clientY - h - pad;
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+    }
+
+    listEl.addEventListener('mouseover', (e) => {
+      const chip = e.target.closest('.slot-chip[data-art]');
+      if (!chip || chip === activeChip) return;
+      activeChip = chip;
+      const d = JSON.parse(decodeURIComponent(chip.dataset.art));
+      tip.innerHTML = `
+        <div class="tip-head">
+          <strong>${d.set}</strong>
+          <span class="tabular" style="font-weight:700;color:${d.lv < 20 ? 'var(--tr-warn)' : 'var(--cx-gold)'};">+${d.lv}</span>
+        </div>
+        <div style="color:var(--cx-dim);">${d.slotFull} · 主词条 <strong style="color:var(--cx-letter);">${d.main}</strong></div>
+        <div class="tip-subs tabular">${d.subs.map(s => `<span>${s}</span>`).join('')}</div>
+        ${d.diff ? '<div class="tip-diff">● 与第1套此部位装备不同</div>' : ''}
+      `;
+      moveTip(e);
+      tip.classList.add('visible');
+    });
+
+    listEl.addEventListener('mousemove', (e) => {
+      if (activeChip) moveTip(e);
+    });
+
+    listEl.addEventListener('mouseout', (e) => {
+      if (!activeChip) return;
+      if (!e.relatedTarget || !activeChip.contains(e.relatedTarget)) {
+        activeChip = null;
+        tip.classList.remove('visible');
+      }
+    });
+
+    document.querySelectorAll('#mode-seg button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#mode-seg button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.mode = btn.dataset.mode;
+        render();
+      });
+    });
+
+    document.querySelectorAll('#vp-seg button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#vp-seg button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('dialog').classList.toggle('is-mobile', btn.dataset.vp === 'mobile');
+      });
+    });
+
+    document.querySelectorAll('#theme-seg button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#theme-seg button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.body.dataset.theme = btn.dataset.theme;
+      });
+    });
+
+    document.getElementById('sort-select').addEventListener('change', (e) => {
+      state.sortMetric = e.target.value;
+      render();
+    });
+
+    document.getElementById('diff-check').addEventListener('change', (e) => {
+      state.showDiff = e.target.checked;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
