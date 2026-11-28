@@ -30,7 +30,11 @@ function piece(item) {
 export function contentSnapshot(kind, input) {
     if (!input || !Object.hasOwn(roles,input.character)) throw invalid('分享角色无效')
     const base = { title:string(input.title), character:input.character }
-    if (kind === 'dsl') return { ...base, source:string(input.source) }
+    if (kind === 'dsl') {
+        const { description } = input
+        if (description !== undefined && typeof description !== 'string') throw invalid('DSL 条目描述必须是文本')
+        return { ...base, source:string(input.source), ...(description === undefined ? {} : { description }) }
+    }
     if (kind !== 'preset') throw invalid('分享类型无效')
     if (typeof input.includeEquipment !== 'boolean') throw invalid('请选择圣遗物附带状态')
     const { weapon, filters } = input

@@ -9,18 +9,19 @@ test('DSL and presets publish immutable, anonymous snapshots and honor expiry an
     const owner=await f.login(), other=await f.login('reader@example.test')
     const post=(body,token=owner.sessionToken)=>f.request('/v1/shares',{method:'POST',token,body})
     const source='dmg hit = Amber.test({ a: 0 })\r\nresult = hit.e  // <合成>\n'
-    const dsl={kind:'dsl',days:7,requestId:randomUUID(),content:{character:'Amber',title:'合成目标',source,uid:'PRIVATE'}}
+    const description='第一行\r\n第二行 <合成描述>'
+    const dsl={kind:'dsl',days:7,requestId:randomUUID(),content:{character:'Amber',title:'合成目标',source,description,uid:'PRIVATE'}}
     assert.equal((await post(dsl,'')).status,401)
     const created=await post(dsl)
     assert.equal(created.status,200,JSON.stringify(created.body))
     const {id,content}=created.body
-    assert.deepEqual(content,{character:'Amber',title:'合成目标',source})
+    assert.deepEqual(content,{character:'Amber',title:'合成目标',source,description})
     assert.equal((await post(dsl)).body.id,id)
     const publicUrl=id=>f.base+'/s/'+id
     const dslDownload = shareId => f.request('/v1/dsl-shares/' + shareId)
     const downloaded = await dslDownload(id)
     assert.equal(downloaded.status, 200)
-    assert.deepEqual(downloaded.body, { document: { name:'合成目标', character:'Amber', source, generator:null, weapon:null } })
+    assert.deepEqual(downloaded.body, { document: { name:'合成目标', character:'Amber', source, description, generator:null, weapon:null } })
     const html=await (await fetch(publicUrl(id))).text()
     assert.match(html,/一键复制 DSL 源码/)
     assert.match(html,/&lt;合成&gt;/)
@@ -52,7 +53,10 @@ test('DSL and presets publish immutable, anonymous snapshots and honor expiry an
     assert.deepEqual(mine.body.shares.map(item=>item.kind).sort(),['dsl','preset','preset'])
     await f.request('/v1/shares/'+hidden.body.id,{method:'DELETE',token:owner.sessionToken})
     assert.equal((await fetch(publicUrl(hidden.body.id))).status,410)
-    const secondDsl = await post({ ...dsl, requestId:randomUUID() })
+    const secondDsl = await post({ ...dsl, requestId:randomUUID(), content:{ ...dsl.content, description:undefined } })
+    const withoutDescription = await dslDownload(secondDsl.body.id)
+    assert.equal(withoutDescription.status, 200)
+    assert.deepEqual(withoutDescription.body, { document: { name:'合成目标', character:'Amber', source, generator:null, weapon:null } })
     await f.request('/v1/shares/'+secondDsl.body.id,{method:'DELETE',token:owner.sessionToken})
     assert.equal((await dslDownload(secondDsl.body.id)).body.error.code, 'SHARE_REVOKED')
     f.advance(7*86400000)

@@ -324,7 +324,9 @@ export function useDslManagement() {
     }
 
     function shareEntry(entry: DslLibraryEntry) {
-        openContentShare('dsl', { title: entry.name, character: entry.character, source: entry.source })
+        openContentShare('dsl', {
+            title: entry.name, character: entry.character, source: entry.source, description: entry.description,
+        })
     }
 
     function updateOnline() {

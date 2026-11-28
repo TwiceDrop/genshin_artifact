@@ -123,8 +123,8 @@ export function createApi(options) {
             if (method === 'GET' && dslShare) {
                 const published = await shares.read(dslShare[1])
                 if (published.kind !== 'dsl') throw new ApiError(404, 'SHARE_NOT_FOUND', '此链接没有分享 MONA-DSL')
-                const { title, character, source } = published.content
-                return send(200, { document: { name:title, character, source, generator:null, weapon:null } })
+                const { title, character, source, description } = published.content
+                return send(200, { document: { name:title, character, source, description, generator:null, weapon:null } })
             }
             const identity = await auth.authenticate(request.headers.authorization)
             const userId = identity.user.id
