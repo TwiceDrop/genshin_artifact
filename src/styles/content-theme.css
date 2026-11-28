@@ -35,6 +35,11 @@ html[data-color-mode="dark"] .side-drawer {
     --cx-down: #6fcf97;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    .mona-hover-enter[data-state$="open"] { animation: mona-hover-in 140ms cubic-bezier(.34, 1.45, .64, 1) backwards; }
+    @keyframes mona-hover-in { from { opacity: 0; transform: translateY(-5px) scale(.97); } }
+}
+
 /* 内容页共用外框和分区，标题、面板和页面底色各有一层。 */
 .cx-page-frame {
     box-sizing: border-box;
