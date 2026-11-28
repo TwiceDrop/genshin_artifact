@@ -1,6 +1,6 @@
 # 四人圣遗物搭配结果弹窗优化（方案 A）
 
-Status: ready-for-agent
+Status: done
 
 2026-11-28 开发者选定 **方案 A（全宽对齐行表型）**，用于优化「多人优化 → 查看搭配结果」弹窗（`src/pages/TeamOptimizationPage/TeamDpsPage.vue` 中的 `四人圣遗物搭配结果` `el-dialog`）。
 

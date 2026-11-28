@@ -127,16 +127,10 @@
    <p>已用时间 {{ duration(elapsed) }}　{{ progress.eta_scope==='compile'?'构图预计剩余':'预计剩余' }} {{ formatComputeTime(progress.eta_ms) }}</p>
    <template #footer><el-button @click="backgroundCalculation">后台计算</el-button><el-button @click="controller?.abort()">取消计算</el-button></template>
   </el-dialog>
-  <el-dialog v-model="showResults" title="四人圣遗物搭配结果" width="94%" custom-class="team-dps-dialog team-dps-results cx-scope viewport-dialog">
-   <div class="sort-bar"><label>排序 <el-select popper-class="team-dps-popper" v-model="sortMetric"><el-option v-for="[key,title] in damageModes" :key="key" :value="key" :label="title"/></el-select></label><span>共{{ output?.results.length||0 }}套</span></div>
-   <div class="result-list">
-    <div v-for="row in sortedResults" :key="row.index" class="team-row" :class="{chosen:selectedIndex===row.index+1}" role="button" tabindex="0" @click="selectResult(row.index)" @keydown.enter="selectResult(row.index)">
-     <strong>第{{ row.rank }}套</strong><span v-for="[key,title] in damageModes" :key="key">{{ title }} {{ number(row.result[key]) }}</span><span>DPS {{ number(row.result[sortMetric]/row.result.duration) }}</span>
-     <el-button @click.stop="selectResult(row.index)">查看详情</el-button>
-     <div v-for="(role,r) in roles" :key="role" class="row-member"><b>{{ labels[r] }}</b><span>{{ number(row.result.character_damage[r][sortMetric]) }}</span><span v-for="id in Object.values(row.result.artifacts[r])" :key="id">{{ artifactTitle(Number(id)) }}</span></div>
-    </div>
-   </div>
-  </el-dialog>
+  <TeamResultsDialog v-model:visible="showResults" v-model:sort-metric="sortMetric"
+    :damage-modes="damageModes" :results="sortedResults" :selected-index="selectedIndex"
+    :roles="roles" :labels="labels" :items="resultContext?.items" :element-colors="elementColors"
+    @select="selectResult" />
  </div>
 </template>
 <script setup lang="ts">
@@ -161,6 +155,7 @@ import {usageStatsDebugInfo, recordUsage, recordCharacterUsage} from '../../usag
 import {patchDebugInfo} from '../../platform/patch-info.mjs'
 import {normalizeEnemy} from '../../../beta-data/enemy-interface.mjs'
 import TeamDpsEvents from './TeamDpsEvents.vue'
+import TeamResultsDialog from './TeamResultsDialog.vue'
 import {useEnemy} from '@/composables/enemy'
 import EnemyConfig from '@/pages/NewArtifactPlanPage/EnemyConfig.vue'
 import ArtifactConfig from '@/pages/NewArtifactPlanPage/ArtifactConfig.vue'
@@ -187,7 +182,7 @@ const axisDurationMs=computed(()=>props.configuration.format==='mona-action-axis
 const engineRulesVersion=TEAM_ACTION_RULES_VERSION
 const emit=defineEmits(['save-task'])
 const roles=props.configuration.members.map((m:any)=>m.character),labels=roles.map((role:string)=>locale[characterData[role].nameLocale])
-const damageModes=[['expectation','期望伤害'],['critical','暴击伤害'],['non_critical','非暴击伤害']]
+const damageModes=[['expectation','期望伤害'],['critical','暴击伤害'],['non_critical','非暴击伤害']] as const
 const statFilters:[string,string,number][]=[['minRecharge','最低充能效率 %',100],['minCritical','最低暴击率 %',100],['minCriticalDamage','最低暴击伤害 %',100],['minElementalMastery','最低元素精通',1]]
 const mainFilters=[['sandMainStats','sand','时之沙'],['gobletMainStats','cup','空之杯'],['headMainStats','head','理之冠']]
 const elementColors:Record<string,string>={Hydro:'#7eb8ff',Cryo:'#87e4df',Pyro:'#ff9a81',Electro:'#c0a2ff',Anemo:'#77d8bd',Geo:'#e8c77d',Dendro:'#b3d975'}
@@ -206,7 +201,7 @@ function fresh(role:string){const name=characterPackages[role].defaultWeapon;ret
 const names=ref(['','','','']),members=ref<any[]>(roles.map(fresh))
 const editingRole=ref(0),editingMember=computed(()=>members.value[editingRole.value])
 const weaponConfigs=(r:number)=>{const name=members.value[r].weapon.name;return (weaponData[name].configs||[]).filter((c:any)=>!AUTO_WEAPON_FIELDS[name]?.includes(c.name))}
-const objective=ref('damage'),metric=ref('expectation'),sortMetric=ref('expectation'),count=ref(100),budget=ref(2000),minLevel=ref(0),initialHp=ref([100,100,100,100]),healthBranch=ref(0)
+const objective=ref('damage'),metric=ref('expectation'),sortMetric=ref<(typeof damageModes)[number][0]>('expectation'),count=ref(100),budget=ref(2000),minLevel=ref(0),initialHp=ref([100,100,100,100]),healthBranch=ref(0)
 const searchAlgorithm=ref('auto')
 const computeBackend=ref('gpu')
 const errorDialog=ref(false)
@@ -276,7 +271,6 @@ const panelSum=(values:any)=>Object.values(values||{}).reduce((n:number,v:any)=>
 const number=(n:number)=>n.toLocaleString('zh-CN',{maximumFractionDigits:2})
 const duration=(ms:number)=>{const s=Math.max(0,Math.floor(ms/1000));return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`}
 const elapsed=computed(()=>clock.value-started.value),progressPercent=computed(()=>progress.value.total_teams?Number(Math.min(100,progress.value.evaluated_teams/progress.value.total_teams*100).toFixed(2)):0)
-function artifactTitle(id:number){const a=resultContext.value.items.get(id);return `${locale[artifactsData[a.setName].nameLocale]} +${a.level}`}
 function openEventHit({hit,probability}:any){return openHitAnalysis(hit,probability)}
 async function openHitAnalysis(hit:any,probability?:number){
  const detail={hit,probability:typeof probability==='number'?probability:undefined,enemy:selected.value.enemy??normalizeEnemy(resultContext.value.input.team_dps.enemy),character:selected.value.profiles[hit.role].character};
@@ -355,8 +349,8 @@ if(props.historyDetail){
 .summary{display:flex;align-items:baseline;gap:28px;flex-wrap:wrap;margin:16px 0}.summary>div{display:flex;align-items:baseline;gap:12px}.summary span{font-size:16px;color:var(--cx-dim)}.summary strong{font-size:clamp(32px,3.4vw,44px);font-weight:700;letter-spacing:-.025em}.metric-total strong{color:#e76d76}.metric-dps strong{color:var(--cx-gold)}.metric-time strong{color:#4a9f9e}.metric-time strong small{font-size:20px;margin-left:3px}.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.metric-switch{display:flex;padding:4px;gap:3px;border:1px solid var(--cx-step-2);border-radius:24px;background:var(--cx-step)}.metric-switch button{padding:8px 14px;border:0;background:transparent;color:var(--cx-dim);border-radius:20px;font-size:16px;cursor:pointer}.metric-switch button.active{background:var(--cx-step);color:var(--cx-gold);font-weight:650}.selection{display:flex;align-items:center;gap:10px;color:var(--cx-dim);font-size:15px}.selection .el-input-number{width:130px}.result-meta{display:flex;gap:16px;flex-wrap:wrap;color:var(--cx-dim);font-size:14px;margin:12px 0}
 .contribution-row{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(200px,25%);align-items:center;gap:16px;border-top:1px solid var(--cx-step-2);padding:12px 0}.contribution-person{display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;color:var(--cx-dim);font:inherit;font-size:16px;cursor:pointer}.contribution-person img{height:44px;width:44px;border:1px solid var(--cx-step-2);border-radius:50%;background:var(--cx-step)}.contribution-damage{display:flex;flex-direction:column;gap:6px}.contribution-track{height:11px;border-radius:8px;background:var(--cx-step);overflow:hidden}.contribution-track>span{display:block;height:100%;border-radius:8px}.contribution-damage strong{font-size:20px;color:var(--cx-letter);font-weight:650}.contribution-damage small{font-size:14px;color:var(--cx-dim);font-weight:400}.contribution-equipment{display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.45;color:var(--cx-dim)}.contribution-equipment>span:last-child{color:var(--cx-dim)}
 .result-member{margin:14px 0 0;padding-top:14px;border-top:1px solid var(--cx-step-2)}.result-member h3{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 8px;font-size:19px}.damage{font-size:14px;font-weight:400;color:var(--cx-dim)}.build-panel{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 10px;color:var(--cx-gold);font-size:15px}.gear{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:8px}.detail-card{padding:2px 18px}.detail-card :deep(.el-collapse-item__header){height:46px}.detail-card :deep(.el-collapse-item__wrap){border-bottom:0}.hit-table :deep(.el-table__row){cursor:pointer}.health-values{display:block;white-space:nowrap}.health-ratio{color:var(--cx-dim);display:block;margin-top:4px;font-size:14px}.member-settings .el-select{width:100%}
-.sort-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px;color:var(--cx-dim);font-size:16px}.sort-bar label{display:flex;gap:12px;align-items:center}.sort-bar .el-select{width:170px}.result-list{max-height:65vh;overflow-y:auto}.team-row{padding:16px;border:1px solid var(--cx-step-2);border-radius:13px;margin-bottom:10px;cursor:pointer;background:var(--cx-card)}.team-row>span{margin-left:14px;font-size:15px;color:var(--cx-dim)}.team-row>strong{color:var(--cx-dim)}.team-row.chosen{border-color:var(--cx-gold);background:var(--cx-step)}.row-member{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;font-size:14px;color:var(--cx-dim)}.row-member>b{min-width:70px;color:var(--cx-dim)}.team-row:focus,.roster-member:focus-visible,.constellation-line button:focus-visible,.metric-switch button:focus-visible{outline:2px solid var(--cx-gold);outline-offset:3px}
+.roster-member:focus-visible,.constellation-line button:focus-visible,.metric-switch button:focus-visible{outline:2px solid var(--cx-gold);outline-offset:3px}
 @media(max-width:1200px){.team-workspace{grid-template-columns:minmax(0,1fr) 300px}.dps-card{padding:16px}.equipment-grid{grid-template-columns:minmax(0,1fr) 90px}.weapon-field{grid-column:1/-1}.optimization-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.roster-member img{width:68px;height:68px}.roster-member strong{font-size:16px}.contribution-row{grid-template-columns:130px minmax(0,1fr) 200px}}
 @media(max-width:850px){.team-workspace{grid-template-columns:1fr}.character-panel{position:static}.panel-stats{display:grid;grid-template-columns:1fr 1fr;column-gap:20px}.general-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel-empty{min-height:40px}.panel-identity{margin:10px 0}.equipment-grid{grid-template-columns:minmax(0,1fr) 100px 130px}.weapon-field{grid-column:auto}.roster-member img{width:76px;height:76px}.contribution-row{grid-template-columns:130px minmax(0,1fr)}.contribution-equipment{grid-column:2}.summary{gap:20px}}
-@media(max-width:550px){.team-dps{gap:10px}.dps-card{padding:14px;border-radius:12px}.general-grid{gap:12px}.setting-field>label{font-size:14px}.role-chip{font-size:12px;padding:1px 5px}.roster-member{padding:7px 2px}.roster-member img{width:56px;height:56px}.roster-member strong{font-size:14px}.team-roster{gap:4px}.equipment-grid{grid-template-columns:1fr 1fr}.weapon-field{grid-column:1/-1}.optimization-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.actions>.el-button{padding:0 13px}.actions>.el-checkbox{margin-left:0}.panel-stats{grid-template-columns:1fr}.card-heading h3{font-size:18px}.constellation-line{gap:7px}.constellation-line>span{width:100%}.constellation-line button{width:34px;height:34px}.metric-switch button{padding:7px 10px;font-size:14px}.contribution-row{grid-template-columns:108px minmax(0,1fr);gap:10px}.contribution-person{gap:6px;font-size:14px}.contribution-person img{width:34px;height:34px}.contribution-damage strong{font-size:17px}.summary strong{font-size:30px}.summary{gap:14px}.team-row>span{display:block;margin:8px 0}.sort-bar{align-items:flex-start}}
+@media(max-width:550px){.team-dps{gap:10px}.dps-card{padding:14px;border-radius:12px}.general-grid{gap:12px}.setting-field>label{font-size:14px}.role-chip{font-size:12px;padding:1px 5px}.roster-member{padding:7px 2px}.roster-member img{width:56px;height:56px}.roster-member strong{font-size:14px}.team-roster{gap:4px}.equipment-grid{grid-template-columns:1fr 1fr}.weapon-field{grid-column:1/-1}.optimization-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.actions>.el-button{padding:0 13px}.actions>.el-checkbox{margin-left:0}.panel-stats{grid-template-columns:1fr}.card-heading h3{font-size:18px}.constellation-line{gap:7px}.constellation-line>span{width:100%}.constellation-line button{width:34px;height:34px}.metric-switch button{padding:7px 10px;font-size:14px}.contribution-row{grid-template-columns:108px minmax(0,1fr);gap:10px}.contribution-person{gap:6px;font-size:14px}.contribution-person img{width:34px;height:34px}.contribution-damage strong{font-size:17px}.summary strong{font-size:30px}.summary{gap:14px}}
 </style>
