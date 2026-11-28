@@ -395,9 +395,7 @@ const rows = computed(() => [
     .portrait > img { top: 0; right: 0; width: 70%; object-position: var(--portrait-focus-x, 50%) 22%; }
     .identity { position: relative; inset: auto; min-width: 0; padding: 35px 15px 12px; }
     .gear-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .gear-slot :deep(.art-head) { padding-right: 0; flex-wrap: wrap; }
     .gear-slot :deep(.art-card) { padding: 9px; }
-    .gear-slot :deep(.art-subs) { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: no-preference) {
     .character-sheet { animation: character-detail-enter 170ms ease-out; }

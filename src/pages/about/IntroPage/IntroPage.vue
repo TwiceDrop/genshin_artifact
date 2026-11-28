@@ -20,9 +20,12 @@
             </nav>
             <span class="welcome-version">V{{ version }}</span>
             <div class="welcome-update" @click.stop>
-                <el-button link @click="requestManualUpdateCheck">{{ t('intro.checkForUpdates') }}</el-button>
-                <el-switch v-model="automaticUpdates" size="small" :active-text="t('intro.automaticUpdateCheck')"
-                           @change="changeAutomaticUpdates" />
+                <UiButton class="welcome-update-button" @click="requestManualUpdateCheck">{{ t('intro.checkForUpdates') }}</UiButton>
+                <label class="welcome-update-preference" :class="{ active: automaticUpdates }">
+                    <UiSwitch :model-value="automaticUpdates" :aria-label="t('intro.automaticUpdateCheck')"
+                        @update:model-value="changeAutomaticUpdates" />
+                    <span>{{ t('intro.automaticUpdateCheck') }}</span>
+                </label>
             </div>
         </footer>
     </div>
@@ -34,10 +37,12 @@ import AstrolabeDial from "./AstrolabeDial.vue"
 import StarField from "./StarField.vue"
 import QuickLaunchGrid from "./QuickLaunchGrid.vue"
 import MonaPortrait from "@/components/misc/MonaPortrait.vue"
+import UiButton from "@/components/ui/UiButton.vue"
+import UiSwitch from "@/components/ui/UiSwitch.vue"
 
 import {onActivated, onBeforeUnmount, onDeactivated, onMounted, ref} from "vue"
-import {ElMessage} from "element-plus"
 import {useI18n} from "@/i18n/i18n"
+import {showCalculationNotice} from "@/store/calculation-history"
 import {AUTOMATIC_UPDATE_CHANGED_EVENT, isAutomaticUpdateEnabled,
     requestManualUpdateCheck, setAutomaticUpdateEnabled} from "@/platform/release-update.mjs"
 
@@ -92,7 +97,7 @@ onBeforeUnmount(() => window.removeEventListener(AUTOMATIC_UPDATE_CHANGED_EVENT,
 function changeAutomaticUpdates(enabled: boolean) {
     if (!setAutomaticUpdateEnabled(enabled)) {
         refreshAutomaticUpdates()
-        ElMessage.error('无法保存更新偏好，请检查浏览器存储设置')
+        showCalculationNotice('error', '无法保存更新偏好，请检查浏览器存储设置')
     }
 }
 </script>
@@ -274,23 +279,51 @@ function changeAutomaticUpdates(enabled: boolean) {
     display: flex;
     align-items: center;
     gap: 16px;
+}
 
-    :deep(.el-button.is-link) {
-        --el-button-text-color: var(--wl-dim);
-        --el-button-hover-link-text-color: var(--wl-letter);
-        font-size: 13px;
-    }
+.welcome-update-button[data-slot="button"] {
+    min-height: auto;
+    padding: 2px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--wl-dim);
+    font-size: 13px;
+    font-weight: 500;
 
-    :deep(.el-switch) {
-        --el-switch-on-color: var(--wl-gold);
-    }
-
-    :deep(.el-switch__label) {
-        color: var(--wl-dim);
-    }
-
-    :deep(.el-switch__label.is-active) {
+    &:hover {
+        background: transparent;
         color: var(--wl-letter);
+    }
+}
+
+.welcome-update-preference {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 24px;
+    white-space: nowrap;
+    color: var(--wl-dim);
+    font-size: 12px;
+    cursor: pointer;
+
+    &.active {
+        color: var(--wl-letter);
+    }
+
+    :deep([data-slot="switch"]) {
+        --cx-gold: var(--wl-gold);
+        width: 30px;
+        height: 16px;
+        padding: 1px;
+    }
+
+    :deep(.ui-switch-thumb) {
+        width: 12px;
+        height: 12px;
+    }
+
+    :deep(.ui-switch-thumb[data-state="checked"]) {
+        transform: translateX(14px);
     }
 }
 
@@ -352,5 +385,6 @@ function changeAutomaticUpdates(enabled: boolean) {
         flex-wrap: wrap;
         justify-content: center;
     }
+    .welcome-update-button[data-slot="button"] {min-height: 40px;}
 }
 </style>

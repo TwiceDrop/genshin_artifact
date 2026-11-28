@@ -1,51 +1,79 @@
 <template>
-    <section class="cloud-profiles">
-        <div class="profiles-heading"><h3>数据同步</h3><el-button :disabled="working" @click="refresh">刷新云档案</el-button></div>
-        <el-alert v-if="error || sync.state.error" :title="error || sync.state.error" type="error" :closable="false" show-icon />
+    <section class="oa-panel cloud-profiles" aria-labelledby="oa-profiles">
+        <header class="oa-panel-head">
+            <div class="profiles-title">
+                <h3 id="oa-profiles" class="oa-panel-title">数据同步</h3>
+                <span class="profile-badge" :data-status="binding?.status">{{ binding ? statusLabel(binding.status) : '未关联' }}</span>
+            </div>
+            <div class="oa-actions oa-actions-end">
+                <UiButton :disabled="working" @click="refresh">刷新云档案</UiButton>
+                <UiButton v-if="binding" variant="primary" :disabled="working || binding.status === 'conflict' || binding.status === 'deleted'"
+                    @click="run(() => sync.syncCurrent())">立即同步</UiButton>
+            </div>
+        </header>
         <div class="profile-current">
-            <div class="profiles-heading"><strong>当前本地账号 · {{ account.currentAccountName.value }}</strong><el-tag>{{ binding ? statusLabel(binding.status) : '未关联' }}</el-tag></div>
-            <div v-if="binding" class="profile-meta"><span>云端修订 {{ binding.baseRevision }}</span><span v-if="binding.lastSyncedAt">{{ dateText(binding.lastSyncedAt) }}</span></div>
-            <div v-if="binding?.error && binding.error !== error" class="profile-error" role="alert">{{ binding.error }}</div>
-            <div class="profile-actions">
-                <el-button v-if="!binding" type="primary" :disabled="working" @click="run(() => sync.createCurrent())">关联当前账号并自动同步</el-button>
+            <div class="oa-list-main">
+                <strong>当前本地账号 · {{ account.currentAccountName.value }}</strong>
+                <div v-if="binding" class="profile-meta oa-meta">
+                    <span>云端修订 {{ binding.baseRevision }}</span><span v-if="binding.lastSyncedAt">{{ dateText(binding.lastSyncedAt) }}</span>
+                </div>
+            </div>
+            <div class="oa-actions oa-actions-end">
+                <UiButton v-if="!binding" variant="primary" :disabled="working" @click="run(() => sync.createCurrent())">关联当前账号并自动同步</UiButton>
                 <template v-else>
-                    <el-switch :model-value="binding.enabled" active-text="自动同步" :disabled="working || binding.status === 'deleted'" @change="value => run(() => sync.setEnabled(account.currentAccountId.value, value))" />
-                    <el-button :disabled="working || binding.status === 'conflict' || binding.status === 'deleted'" @click="run(() => sync.syncCurrent())">立即同步</el-button>
-                    <el-button :disabled="working" @click="run(() => sync.unlink(account.currentAccountId.value))">解除关联</el-button>
+                    <label class="profile-sync-switch">
+                        <UiSwitch :model-value="binding.enabled" :disabled="working || binding.status === 'deleted'" aria-label="自动同步"
+                            @update:model-value="value => run(() => sync.setEnabled(account.currentAccountId.value, value))" />
+                        <span>自动同步</span>
+                    </label>
+                    <UiButton class="oa-quiet-danger" variant="danger" :disabled="working" @click="run(() => sync.unlink(account.currentAccountId.value))">解除关联</UiButton>
                 </template>
             </div>
-            <div v-if="binding?.status === 'conflict'" class="profile-conflict">
-                <div>冲突修订 {{ binding.conflictRevision }}</div>
-                <div class="profile-actions">
-                    <el-button :disabled="working" @click="run(() => sync.resolveCurrent('remote'))">采用云端</el-button>
-                    <el-button :disabled="working" @click="run(() => sync.resolveCurrent('local'))">保留本机</el-button>
-                    <el-button type="primary" :disabled="working" @click="run(() => sync.resolveCurrent('copy'))">另存为新云档案</el-button>
-                </div>
+        </div>
+        <UiAlert v-if="error || sync.state.error" tone="error" class="profiles-alert">{{ error || sync.state.error }}</UiAlert>
+        <UiAlert v-if="binding?.error && binding.error !== error" tone="error" class="profiles-alert">{{ binding.error }}</UiAlert>
+        <div v-if="binding?.status === 'conflict'" class="profile-conflict">
+            <div>冲突修订 {{ binding.conflictRevision }}</div>
+            <div class="oa-actions">
+                <UiButton :disabled="working" @click="run(() => sync.resolveCurrent('remote'))">采用云端</UiButton>
+                <UiButton :disabled="working" @click="run(() => sync.resolveCurrent('local'))">保留本机</UiButton>
+                <UiButton variant="primary" :disabled="working" @click="run(() => sync.resolveCurrent('copy'))">另存为新云档案</UiButton>
             </div>
         </div>
-        <div class="sync-categories">
-            <strong>同步内容</strong>
-            <el-checkbox v-for="item in categories" :key="item.key" :model-value="settings[item.key]" :disabled="working" @change="value => setCategory(item.key, value)">{{ item.label }}</el-checkbox>
+        <fieldset class="sync-categories">
+            <legend>同步内容</legend>
+            <div class="sync-options">
+                <UiCheckbox v-for="item in categories" :key="item.key" class="sync-category" :model-value="settings[item.key]"
+                    :disabled="working" @update:model-value="value => setCategory(item.key, value)"><span>{{ item.label }}</span></UiCheckbox>
+            </div>
+        </fieldset>
+        <div class="profile-archive">
+            <UiEmpty v-if="!activeProfiles.length" description="暂无云档案" />
+            <div v-else class="oa-list">
+                <article v-for="profile in activeProfiles" :key="profile.id" class="oa-list-row cloud-profile">
+                    <div class="oa-list-summary">
+                        <div class="oa-list-main">
+                            <div class="profile-name"><strong>{{ profile.name }}</strong><span class="profile-badge">修订 {{ profile.revision }}</span></div>
+                            <div class="oa-meta">{{ dateText(profile.updatedAt) }}</div>
+                        </div>
+                        <div class="oa-actions oa-actions-end">
+                            <UiButton size="small" :disabled="working || !profile.revision" @click="run(() => sync.downloadNew(profile.id))">下载为新本地账号</UiButton>
+                            <UiButton size="small" :disabled="working || !profile.revision" @click="loadVersions(profile)">查看修订</UiButton>
+                            <UiConfirmPopover title="删除云档案及全部修订和历史？" confirm-text="删除" cancel-text="取消" @confirm="run(() => sync.deleteCloud(profile.id))">
+                                <UiButton size="small" class="oa-quiet-danger" variant="danger" :disabled="working">删除云档案</UiButton>
+                            </UiConfirmPopover>
+                        </div>
+                    </div>
+                    <div v-if="versions[profile.id]" class="profile-versions">
+                        <div v-for="revision in versions[profile.id].items" :key="revision.revision" class="oa-list-summary profile-version">
+                            <span class="oa-list-main oa-meta">修订 {{ revision.revision }} · {{ revisionLabel(revision.status) }} · {{ dateText(revision.createdAt) }}</span>
+                            <UiButton size="small" :disabled="working" @click="run(() => sync.downloadNew(profile.id, revision.revision))">下载此修订</UiButton>
+                        </div>
+                        <UiButton v-if="versions[profile.id].nextCursor" size="small" :disabled="working" @click="loadVersions(profile, true)">更多修订</UiButton>
+                    </div>
+                </article>
+            </div>
         </div>
-        <el-empty v-if="!activeProfiles.length" description="暂无云档案" />
-        <article v-for="profile in activeProfiles" :key="profile.id" class="cloud-profile">
-            <div class="profiles-heading"><strong>{{ profile.name }}</strong><el-tag>修订 {{ profile.revision }}</el-tag></div>
-            <div class="profile-meta"><span>{{ dateText(profile.updatedAt) }}</span></div>
-            <div class="profile-actions">
-                <el-button :disabled="working || !profile.revision" @click="run(() => sync.downloadNew(profile.id))">下载为新本地账号</el-button>
-                <el-button :disabled="working || !profile.revision" @click="loadVersions(profile)">查看修订</el-button>
-                <el-popconfirm :teleported="false" title="删除云档案及全部修订和历史？" confirm-button-text="删除" cancel-button-text="取消" @confirm="run(() => sync.deleteCloud(profile.id))">
-                    <template #reference><el-button type="danger" plain :disabled="working">删除云档案</el-button></template>
-                </el-popconfirm>
-            </div>
-            <div v-if="versions[profile.id]" class="profile-versions">
-                <div v-for="revision in versions[profile.id].items" :key="revision.revision" class="profile-version">
-                    <span>修订 {{ revision.revision }} · {{ revisionLabel(revision.status) }} · {{ dateText(revision.createdAt) }}</span>
-                    <el-button :disabled="working" @click="run(() => sync.downloadNew(profile.id, revision.revision))">下载此修订</el-button>
-                </div>
-                <el-button v-if="versions[profile.id].nextCursor" :disabled="working" @click="loadVersions(profile, true)">更多修订</el-button>
-            </div>
-        </article>
     </section>
 </template>
 
@@ -54,6 +82,12 @@ import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useAccountStore } from '@/store/pinia/account'
 import { profileSync as sync } from '@/cloud/profile-sync'
 import { cloudApi } from '@/platform/cloud.mjs'
+import UiAlert from '@/components/ui/UiAlert.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiCheckbox from '@/components/ui/UiCheckbox.vue'
+import UiConfirmPopover from '@/components/ui/UiConfirmPopover.vue'
+import UiEmpty from '@/components/ui/UiEmpty.vue'
+import UiSwitch from '@/components/ui/UiSwitch.vue'
 
 const props = defineProps({ user: { type: Object, required: true }, serviceUrl: { type: String, required: true } })
 const account = useAccountStore(), error = ref(''), pending = ref(false), versions = ref({})
@@ -88,128 +122,123 @@ onBeforeUnmount(() => { disposed = true; generation++ })
 </script>
 
 <style scoped lang="scss">
-// 夜空风格：颜色读外层 .cx-scope 的 --cx-*
-.cloud-profiles {
-    max-width: 760px;
-    margin-bottom: 12px;
-    padding: 16px 18px;
-    border-radius: 16px;
-    background: var(--cx-card);
-    color: var(--cx-letter);
-
-    :deep(.el-alert) {
-        margin-bottom: 12px;
-    }
-}
-
-.profiles-heading {
+.profiles-title, .profile-name, .profile-meta {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 12px;
-
-    h3 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-    strong {
-        overflow-wrap: anywhere;
-    }
-}
-
-.sync-categories {
-    display: flex;
-    align-items: center;
-    gap: 6px 18px;
     flex-wrap: wrap;
-    padding: 6px 0 14px;
+    gap: 7px;
+}
+
+.profile-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border: 1px solid var(--oa-line);
+    border-radius: 6px;
+    background: var(--cx-step);
+    color: var(--cx-dim);
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.profile-badge[data-status="synced"] {
+    color: var(--cx-down);
+    background: color-mix(in srgb, var(--cx-down) 10%, var(--cx-card));
+}
+
+.profile-badge:is([data-status="syncing"], [data-status="waiting"], [data-status="running"], [data-status="dirty"]) {
+    color: var(--cx-gold);
+    background: color-mix(in srgb, var(--cx-gold) 12%, var(--cx-card));
+}
+
+.profile-badge:is([data-status="error"], [data-status="conflict"], [data-status="deleted"]) {
+    color: var(--cx-up);
+    background: color-mix(in srgb, var(--cx-up) 10%, var(--cx-card));
 }
 
 .profile-current {
-    padding: 12px 0;
-}
-
-.profile-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-
-    .el-button {
-        margin-left: 0;
-    }
-
-    .el-switch {
-        margin-right: 8px;
-    }
-}
-
-.profile-meta {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-    color: var(--cx-dim);
-    font-size: 14px;
-}
-
-.profile-error {
-    margin: 10px 0;
-    color: var(--cx-up);
-    overflow-wrap: anywhere;
-}
-
-.cloud-profile {
-    padding: 14px 0;
-    box-shadow: 0 -1px 0 var(--cx-step-2);
-}
-
-.profile-conflict {
-    margin-top: 16px;
-
-    > .profile-actions {
-        margin-top: 10px;
-    }
-}
-
-.profile-versions {
-    margin-top: 12px;
-}
-
-.profile-version {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 0;
-    font-size: 14px;
-    box-shadow: 0 -1px 0 var(--cx-step-2);
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 12px;
+    border: 1px solid var(--oa-line);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--cx-step) 55%, var(--cx-card));
 }
 
-@media (max-width: 640px) {
-    .profile-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+.profile-meta { margin-top: 3px; }
+.profiles-alert { margin-top: 10px; color: var(--cx-up); }
 
-        .el-switch {
-            grid-column: 1 / -1;
-        }
+.profile-sync-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    font-size: 13px;
+    white-space: nowrap;
+}
 
-        .el-button {
-            width: 100%;
-        }
+.sync-categories {
+    min-width: 0;
+    margin: 16px 0 0;
+    padding: 6px 0 0;
+    border: 0;
+
+    legend { padding: 0; font-size: 13px; font-weight: 700; }
+}
+
+.sync-options {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+
+.sync-category {
+    justify-content: space-between;
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid var(--oa-line);
+    border-radius: 7px;
+
+    :deep([data-slot="checkbox"]) { order: 1; }
+}
+
+.profile-conflict {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.profile-archive {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--oa-line);
+}
+
+.profile-name { margin-bottom: 3px; }
+
+.profile-versions {
+    margin-top: 10px;
+    border-top: 1px solid var(--oa-line);
+}
+
+.profile-version { padding: 8px 0; }
+
+@media (min-width: 640px) {
+    .sync-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .oa-panel-head > .oa-actions, .profile-current > .oa-actions {
+        margin-inline-start: auto;
     }
+}
 
-    .profiles-heading {
-        align-items: flex-start;
-    }
-
-    .profile-version {
-        align-items: flex-start;
-        flex-direction: column;
+@media (max-width: 639px) {
+    .cloud-profiles .oa-actions-end {
+        justify-content: flex-start;
     }
 }
 </style>

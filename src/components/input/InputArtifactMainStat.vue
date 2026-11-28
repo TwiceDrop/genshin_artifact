@@ -1,25 +1,13 @@
 <template>
-    <el-input
-        :model-value="modelValue.value"
-        @update:modelValue="handleChangeValue"
-    >
-        <template #prepend>
-            <select-artifact-main-stat
-                :include-any="false"
-                :position="position"
-                :model-value="name"
-                @update:modelValue="handleChangeName"
-                style="width: 100px"
-            ></select-artifact-main-stat>
-        </template>
-
-        <template v-if="isPercent" #append>
-            <span>%</span>
-        </template>
-    </el-input>
+    <ArtifactStatField :model-value="modelValue.value" :label="label" :percentage="isPercent" @update:model-value="handleChangeValue">
+        <SelectArtifactMainStat shadcn :include-any="false" :position="position" :model-value="name"
+            :placeholder="label" @update:model-value="handleChangeName" />
+    </ArtifactStatField>
 </template>
 
 <script>
+import ArtifactStatField from './ArtifactStatField.vue'
+import { useI18n } from '@/i18n/i18n'
 import { artifactTags } from "@const/artifact"
 
 import SelectArtifactMainStat from "@c/select/SelectArtifactMainStat"
@@ -29,7 +17,12 @@ export default {
     props: ["modelValue", "position"],
     emits: ["update:modelValue"],
     components: {
+        ArtifactStatField,
         SelectArtifactMainStat
+    },
+    setup() {
+        const { t } = useI18n()
+        return { label: t('misc.mainStat') }
     },
     methods: {
         handleChangeName(name) {

@@ -49,8 +49,6 @@ html[data-color-mode="dark"] .el-radio-button {--el-radio-button-checked-bg-colo
 html[data-color-mode="dark"] .el-switch {--el-switch-on-color:var(--cx-gold);--el-switch-off-color:#47566b}
 html[data-color-mode="dark"] .config-root {background:var(--mona-inset)!important}
 html[data-color-mode="dark"] .header-row .big-title {background:var(--cx-step-2)!important;color:var(--cx-letter)}
-html[data-color-mode="dark"] .mona-scroll::-webkit-scrollbar-track {background:#16202b}
-html[data-color-mode="dark"] .mona-scroll::-webkit-scrollbar-thumb {background:#42546b}
 html[data-color-mode="dark"] ::selection {background:var(--cx-gold);color:var(--cx-gold-on)}
 html[data-color-mode="dark"] .el-button--danger {
   --el-button-bg-color:#a93f4b; --el-button-border-color:#bd5260; --el-button-text-color:#fff;

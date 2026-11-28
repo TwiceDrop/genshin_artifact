@@ -6,7 +6,23 @@ import {isLimitedWeapon, limitedWeaponEffects, LIMITED_WEAPONS} from './limited-
 import {markReactionAvailability} from './reaction-availability.mjs';
 const clone=x=>JSON.parse(JSON.stringify(x)),named=(name,config)=>({name,config:{[name]:config}});
 const sum=x=>Object.values(x||{}).reduce((a,b)=>a+b,0);
-export function createBeta2(base,extension,support){
+export function createVesnaCandidateValidator(support){
+ const supported=new Set([...support.artifacts,'ScarletProof','HeartOfTheFurnace']);
+ return (input,candidates)=>{
+  if(input.character?.name!=='Vesna')return;
+  const slots=new Set(),unsupported=new Map();
+  for(const artifact of candidates){
+   const {set_name,slot}=artifact;
+   slots.add(slot);
+   if(supported.has(set_name))continue;
+   if(unsupported.has(set_name)&&unsupported.get(set_name)!==slot)
+    throw Error('薇斯纳候选中存在未适配的可成套圣遗物：'+set_name);
+   unsupported.set(set_name,slot);
+  }
+  if(slots.size<5)throw Error('薇斯纳已支持套装的候选不足五个部位，请导入装备或调整筛选。');
+ };
+}
+export function createBeta2(base,extension,support,validateCandidates=createVesnaCandidateValidator(support)){
  const supported=new Set([...support.artifacts,'ScarletProof','HeartOfTheFurnace']);
  const nativeBuffs=new Set([...support.buffs,'VesnaSupport']);
  function prepare(raw,candidates){
@@ -53,12 +69,7 @@ export function createBeta2(base,extension,support){
   if(x.artifacts)x.artifacts=normalizeArtifacts(x.artifacts);
   let normalizedCandidates;
   if(candidates){
-   const slots=new Map();for(const a of candidates){if(!slots.has(a.set_name))slots.set(a.set_name,new Set());slots.get(a.set_name).add(a.slot);}
-   normalizedCandidates=clone(candidates).map(a=>{
-    if(supported.has(a.set_name))return a;
-    if(slots.get(a.set_name).size===1)return {...a,set_name:'Empty'};
-    throw Error('薇斯纳候选中存在未适配的可成套圣遗物：'+a.set_name);
-   });
+   normalizedCandidates=clone(candidates).map(a=>supported.has(a.set_name)?a:{...a,set_name:'Empty'});
   }
   return {x,candidates:normalizedCandidates,state:displayedState,vodyState:state};
  }
@@ -76,7 +87,7 @@ export function createBeta2(base,extension,support){
   if(input?.character?.name!=='Vesna')return target[method](...args);
   if(className==='TeamOptimizationWasm')throw Error('薇斯纳暂不支持多人联合配装，请使用单人计算。');
   const {x,candidates,state,vodyState}=prepare(input,className==='OptimizeSingleWasm'?args[1]:undefined);
-  if(className==='OptimizeSingleWasm'&&(!candidates?.length||new Set(candidates.map(a=>a.slot)).size<5))throw Error('薇斯纳已支持套装的候选不足五个部位，请导入装备或调整筛选。');
+  if(className==='OptimizeSingleWasm')validateCandidates(input,args[1]??[]);
   if(!extension[className]?.[method])throw Error('薇斯纳暂不支持此入口：'+className+'.'+String(method));
   const r=extension[className][method](x,...(className==='OptimizeSingleWasm'?[candidates]:args.slice(1)));
   if(x.weapon?.name==='BeyondTheChrysalis'&&['CommonInterface','CalculatorInterface'].includes(className))r.weapon_effects=chrysalisEffects(x.weapon);

@@ -1,24 +1,21 @@
 <template>
     <div>
-        <div
+        <UiButton
             class="root"
             :class="{ over: isDragover }"
-            ref="rootBox"
+            :disabled="disabled"
             @dragenter="handleDragEnter"
             @dragleave="handleDragLeave"
             @dragover="handleDragover"
             @drop="handleDrop"
             @click="handleClick"
         >
-            <div class="center-div">
-                <el-icon>
-                    <i-fa6-solid-upload></i-fa6-solid-upload>
-                </el-icon>
-<!--                <i class="el-icon-upload"></i>-->
+            <span class="center-div">
+                <i-fa6-solid-upload aria-hidden="true" />
                 <span>点击，或拖拽上传</span>
-            </div>
-        </div>
-        <p v-if="hasFile" class="filename">{{ fileName }}</p>
+            </span>
+        </UiButton>
+        <p v-if="file" class="filename">{{ file.name }}</p>
 
         <input type="file" ref="fileInput" class="file-input"
             @change="handleSelectFile"
@@ -30,11 +27,15 @@
 
 <script setup lang="ts">
 // drag drop
-import {Ref} from "vue";
+import { computed, ref, type Ref } from "vue"
+import UiButton from "@/components/ui/UiButton.vue"
 
 const props = defineProps<{
+    file: File | null
     accept?: string
+    disabled?: boolean
 }>()
+const emit = defineEmits<{ (event: 'update:file', value: File | null): void }>()
 
 const isDragover = ref(false)
 
@@ -56,9 +57,10 @@ function handleDragover(e: DragEvent) {
 
 
 // select or drop file
-const file: Ref<null | File> = ref(null)
-const hasFile = ref(false)
-const fileName = ref("")
+const file = computed({
+    get: () => props.file,
+    set: value => emit('update:file', value),
+})
 const fileInput: Ref<null | HTMLInputElement> = ref(null)
 
 function handleClick() {
@@ -79,8 +81,6 @@ function handleSelectFile() {
         // console.log(files)
         if (files.length > 0) {
             file.value = files[0]
-            hasFile.value = true
-            fileName.value = files[0].name
         }
     }
 }
@@ -89,6 +89,7 @@ function handleDrop(ev: DragEvent) {
     ev.preventDefault()
 
     isDragover.value = false
+    if (props.disabled) return
 
     let f: File | null = null
 
@@ -117,29 +118,13 @@ function handleDrop(ev: DragEvent) {
     // let fileReader = new FileReader()
     file.value = f
 
-    if (f) {
-        hasFile.value = true
-        fileName.value = f.name
-    }
-
-    // let df = e.dataTransfer
-    // if (df.length === 0) {
-    //     return;
-    // }
-    //
-    // let file = df.files[0];
-    // let fileReader = new FileReader();
-    //
-    // fileReader.onload = (readResult) => {
-    //     this.json = readResult.target.result;
-    // };
-    // fileReader.readAsText(file);
 }
 
 function getReadPromise(): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!file.value) {
             reject("未选择文件")
+            return
         }
 
         try {
@@ -168,6 +153,8 @@ defineExpose({
 
 <style scoped lang="scss">
 .root {
+    width: 100%;
+    background: var(--cx-card);
     border: 1px dashed #d9d9d9;
     height: 180px;
     border-radius: 5px;
@@ -193,14 +180,15 @@ defineExpose({
         //justify-content: center;
         pointer-events: none;
 
-        i {
-            font-size: 30px;
-            color: #c0c4cc;
+        svg {
+            width: 30px;
+            height: 30px;
+            color: var(--cx-dim);
         }
 
         span {
             font-size: 14px;
-            color: #606266;
+            color: var(--cx-dim);
             margin-top: 8px;
         }
     }
@@ -208,7 +196,7 @@ defineExpose({
 
 .filename {
     font-size: 12px;
-    color: #606266;
+    color: var(--cx-dim);
     margin: 0;
     height: 28px;
     line-height: 28px;

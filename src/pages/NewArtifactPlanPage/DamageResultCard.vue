@@ -6,14 +6,14 @@
             <button type="button" class="dmg-link" @click="emit('details')">伤害明细 ›</button>
         </header>
         <div class="dmg-body">
-            <nav class="dmg-skills" aria-label="技能">
+            <UiHoverPreview as="nav" target=".dmg-group > button" class="dmg-skills" aria-label="技能">
                 <div v-for="group in groups" :key="group.title" class="dmg-group">
                     <span class="dmg-group-title">{{ group.title }}</span>
                     <button v-for="skill in group.items" :key="skill.index" type="button"
                             :class="{ on: skill.index === modelValue, 'direct-reaction': directReactionSkills.has(skill.index) }" :aria-pressed="skill.index === modelValue"
                             @click="emit('update:modelValue', skill.index)">{{ skill.label }}</button>
                 </div>
-            </nav>
+            </UiHoverPreview>
             <div class="dmg-main">
                 <slot />
             </div>
@@ -22,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import UiHoverPreview from "@/components/ui/UiHoverPreview.vue"
 import type {SkillGroup} from "@/utils/character-skill-groups"
 
 defineProps<{ groups: SkillGroup[], modelValue: number, directReactionSkills: Set<number> }>()
@@ -67,12 +68,18 @@ const emit = defineEmits<{ (e: "update:modelValue", value: number): void, (e: "d
 }
 
 .dmg-skills {
+    --hover-preview-radius: 9px;
+    --hover-preview-fill: var(--cx-step);
+    --hover-preview-edge: inset 0 0 0 1px color-mix(in srgb, var(--cx-dim) 18%, transparent);
     display: flex;
     flex-direction: column;
     gap: 2px;
     max-height: 520px;
     overflow-y: auto;
 }
+
+.dmg-skills > :deep(.ui-hover-preview) { z-index: -1; }
+.dmg-skills[data-hover-preview="true"] .dmg-group button:hover:not(.on) { background: transparent; }
 
 .dmg-group {
     display: flex;

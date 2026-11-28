@@ -13,13 +13,14 @@ import locale from '@/i18n/generated/zh-cn.json'
 import { recordUsage } from '@/usage-stats/index.mjs'
 import { importUidPackage } from '@/import/uid-package.mjs'
 import { importRolePresets, isRolePresetFile } from './role-presets.js'
+import { isWarehouseFile } from './warehouse-file.js'
 
-async function restoreGood(file, store, source, session) {
+async function restoreGood(file, store, source, session, dialogs) {
     let uid = validateGoodRoster(file)
     session.check()
     try {
         if (!uid) {
-            const input = await ElMessageBox.prompt('导入到原神 UID', '导入 GOOD v3', {
+            const input = await dialogs.prompt('导入到原神 UID', '导入 GOOD v3', {
                 inputValue: store.selectedUid.value || '', inputPattern: /^\d{8,10}$/, inputErrorMessage: '请输入 8 至 10 位原神 UID',
             })
             uid = input.value
@@ -27,7 +28,7 @@ async function restoreGood(file, store, source, session) {
         }
         const warehouse = file.artifacts ? Object.values(convertGoodArtifacts(file)).flat() : []
         return await savePreparedSnapshot(uid, async draft => {
-            const traveler = await travelerForGood(file, uid, draft.roster.data.value.entries)
+            const traveler = await travelerForGood(file, uid, draft.roster.data.value.entries, dialogs)
             return goodRosterSnapshot(file, uid, { traveler, catalog: { characters, weapons, artifacts, locale },
                 data: draft.roster.data.value, presets: draft.presets.presets.value, inventory: draft.inventory.artifacts.value,
                 convertArtifacts: convertGoodArtifacts })
@@ -38,19 +39,19 @@ async function restoreGood(file, store, source, session) {
     }
 }
 
-async function travelerForGood(file, uid, entries) {
+async function travelerForGood(file, uid, entries, dialogs) {
     if (!file.characters.some(c => c?.key === 'Traveler')) return
     const saved = entries.find(e => e.uid === uid && [10000005, 10000007].includes(e.id))
     if (saved) return saved.id === 10000005 ? 'Aether' : 'Lumine'
-    const input = await ElMessageBox.prompt('此 UID 的旅行者是空还是荧？', '导入 GOOD v3', {
+    const input = await dialogs.prompt('此 UID 的旅行者是空还是荧？', '导入 GOOD v3', {
         inputPattern: /^(空|荧)$/, inputErrorMessage: '请输入空或荧',
     })
     return input.value === '空' ? 'Aether' : 'Lumine'
 }
 
-export async function restoreCharacterFile(file, accountId, checkAccount) {
+export async function restoreCharacterFile(file, accountId, checkAccount, dialogs = ElMessageBox) {
     const store = useMiyousheStore()
-    const session = uidImportSession(accountId, checkAccount)
+    const session = uidImportSession(accountId, checkAccount, dialogs)
     const save = snapshot => saveGameSnapshot(snapshot, accountId, file.name, checkAccount, false, session)
     if (file.size > 50 * 1024 * 1024) throw new Error('文件超过 50 MB')
     const raw = JSON.parse(await file.text())
@@ -73,8 +74,12 @@ export async function restoreCharacterFile(file, accountId, checkAccount) {
         recordUsage('action.uid-data-restore')
         return { presets: raw.length }
     }
+    if (isWarehouseFile(raw)) {
+        session.check()
+        return { warehouseFile: raw }
+    }
     if (raw?.format === 'GOOD') {
-        const result = await restoreGood(raw, store, file.name, session)
+        const result = await restoreGood(raw, store, file.name, session, dialogs)
         if (result) recordUsage('action.uid-data-restore')
         return result
     }

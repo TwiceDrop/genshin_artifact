@@ -1,10 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import fs from 'node:fs'
 import { createRequire } from 'node:module'
+import { loadCloudUi } from './helpers/cloud-ui-fixture.mjs'
 const require=createRequire(import.meta.url)
 const {JSDOM}=require('jsdom')
-const {parse,compileScript,compileTemplate}=require('@vue/compiler-sfc')
 
 test('cloud profile controls enable automatic sync, resolve conflicts and download revisions with bound identity',async()=>{
     const dom=new JSDOM('<html><body><div id="app"></div></body></html>',{url:'http://127.0.0.1',pretendToBeVisual:true})
@@ -12,20 +11,18 @@ test('cloud profile controls enable automatic sync, resolve conflicts and downlo
     globalThis.ResizeObserver=class{observe(){}unobserve(){}disconnect(){}}
     globalThis.requestAnimationFrame=dom.window.requestAnimationFrame.bind(dom.window)
     globalThis.cancelAnimationFrame=dom.window.cancelAnimationFrame.bind(dom.window)
-    const Vue=require('vue'),ElementPlus=require('element-plus'),calls=[]
+    const Vue=require('vue'),calls=[]
     const account={currentAccountId:Vue.ref(7),currentAccountName:Vue.ref('合成档案')}
     const state=Vue.reactive({bindings:[],profiles:[{id:'profile-a',name:'另一台设备',revision:4,updatedAt:'2026-11-07T00:00:00Z'}],busy:false,error:''})
     let categorySettings={uid:true,history:true,artifacts:true,characters:true,teams:true}
     const sync={state,getSyncSettings:()=>({...categorySettings}),setSyncSettings:async value=>{categorySettings=value;calls.push(['categories',value])},refresh:async()=>calls.push(['refresh']),createCurrent:async()=>{calls.push(['create']);state.bindings.push({localAccountId:7,profileId:'profile-a',baseRevision:2,enabled:true,status:'synced'})},syncCurrent:async()=>calls.push(['sync']),setEnabled:async(...args)=>calls.push(['enabled',...args]),unlink:async()=>{calls.push(['unlink']);state.bindings=[]},downloadNew:async(...args)=>calls.push(['download',...args]),resolveCurrent:async(...args)=>calls.push(['resolve',...args]),deleteCloud:async(...args)=>calls.push(['delete',...args])}
     const cloudApi=async(...args)=>{calls.push(['api',...args]);return{revisions:[{revision:3,status:'conflict',createdAt:'2026-11-07T00:00:00Z'}],nextCursor:null}}
-    const filename='src/pages/OnlineAccountPage/CloudProfilesPanel.vue'
-    const {descriptor}=parse(fs.readFileSync(new URL('../'+filename,import.meta.url),'utf8'),{filename})
-    const script=compileScript(descriptor,{id:'profiles'}),template=compileTemplate({source:descriptor.template.content,filename,id:'profiles',compilerOptions:{bindingMetadata:script.bindings}})
-    assert.deepEqual(template.errors,[])
-    const code=script.content.replace(/^import .*\r?\n/gm,'').replace('export default','const component =')
-    const render=template.code.replace(/import \{([^}]+)\} from "vue"/g,(_,names)=>`const {${names.replace(/\s+as\s+/g,':')}}=Vue`).replace('export function render','function render')
-    const component=new Function('Vue','sync','cloudApi','useAccountStore',`const {computed,onMounted,onBeforeUnmount,ref,watch}=Vue;${code}\n${render}\ncomponent.render=render;return component`)(Vue,sync,cloudApi,()=>account)
-    const app=Vue.createApp(component,{user:{id:'user-a'},serviceUrl:'https://fixture.example.test'}).use(ElementPlus)
+    const component=loadCloudUi('pages/OnlineAccountPage/CloudProfilesPanel.vue',{
+        '@/store/pinia/account':{useAccountStore:()=>account},
+        '@/cloud/profile-sync':{profileSync:sync},
+        '@/platform/cloud.mjs':{cloudApi},
+    })
+    const app=Vue.createApp(component,{user:{id:'user-a'},serviceUrl:'https://fixture.example.test'})
     const settle=async()=>{for(let i=0;i<5;i++){await new Promise(r=>setImmediate(r));await Vue.nextTick()}}
     const click=async label=>{const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()===label);assert.ok(b,label);assert.equal(b.disabled,false);b.click();await settle()}
     try{
@@ -34,8 +31,12 @@ test('cloud profile controls enable automatic sync, resolve conflicts and downlo
         assert.equal(document.querySelectorAll('.cloud-profile').length,1)
         await click('关联当前账号并自动同步');assert.equal(state.bindings[0].enabled,true)
         assert.doesNotMatch(document.querySelector('.sync-categories').textContent, /Cookie/)
-        const box=[...document.querySelectorAll('.sync-categories .el-checkbox')].find(x=>x.textContent.includes('圣遗物'));assert.ok(box);box.querySelector('input').click();await settle()
+        const box=[...document.querySelectorAll('.sync-categories label')].find(x=>x.textContent.includes('圣遗物'));assert.ok(box);box.querySelector('[role="checkbox"]').click();await settle()
         assert.equal(calls.find(x=>x[0]==='categories')[1].artifacts,false)
+        const autoSync=document.querySelector('[role="switch"]')
+        assert.equal(autoSync.getAttribute('aria-checked'),'true')
+        autoSync.click();await settle()
+        assert.deepEqual(calls.at(-1),['enabled',7,false])
         await click('立即同步');assert.ok(calls.some(x=>x[0]==='sync'))
         state.bindings[0].status='conflict';state.bindings[0].conflictRevision=3;await settle()
         await click('另存为新云档案');assert.deepEqual(calls.at(-1),['resolve','copy'])

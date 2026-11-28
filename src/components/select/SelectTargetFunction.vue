@@ -1,6 +1,7 @@
 <template>
     <SelectRoot
         :model-value="modelValue"
+        @update:open="open = $event"
         @update:model-value="$emit('update:modelValue', $event)"
     >
         <SelectTrigger class="tf-trigger" :aria-label="t('misc.tf')">
@@ -11,6 +12,7 @@
             <SelectContent
                 class="tf-menu"
                 data-slot="ui-select-menu"
+                :style="{ zIndex }"
                 position="popper"
                 :side-offset="5"
                 :collision-padding="8"
@@ -58,6 +60,7 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 import {
     SelectRoot,
     SelectTrigger,
@@ -73,6 +76,7 @@ import {
     SelectItemIndicator
 } from "radix-vue"
 import { targetFunctionByCharacterName } from "@targetFunction"
+import { useOverlayZIndex } from '@/composables/overlay-z-index'
 import {useI18n} from "@/i18n/i18n";
 
 export default {
@@ -113,11 +117,9 @@ export default {
     },
     setup() {
         const { t, ta } = useI18n()
-
-        return {
-            t,
-            ta
-        }
+        const open = ref(false)
+        const zIndex = useOverlayZIndex(open)
+        return { t, ta, open, zIndex }
     }
 }
 </script>

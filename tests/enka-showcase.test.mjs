@@ -42,16 +42,23 @@ test('UID import refreshes the chosen local account, can create a separate copy,
     const store = { data: vue.ref(profiles[0]) }
     const inventory = () => ({ artifacts: vue.ref(new Map()), artifactsByPosition: vue.ref({}), init() {} })
     const preset = () => ({ presets: vue.ref({}), init() {} })
+    const UiSelect = { name: 'UiSelect' }
+    const dialogs = {
+        confirm(message, title) {
+            calls.push(title)
+            if (action === 'new') throw 'cancel'
+            if (action === 'close') throw 'close'
+            const selector = message.children[1].type()
+            assert.equal(selector.type, UiSelect)
+            assert.deepEqual(selector.props.options.map(option => option.value), ['2', '3'])
+            selector.props['onUpdate:modelValue']('3')
+        },
+        prompt() { calls.push('命名'); return { value: '副本' } },
+    }
     const { uidImportSession } = loadWith(readFileSync(new URL('../src/import/uid-import-session.js', import.meta.url), 'utf8'), {
-        vue, 'element-plus': { ElMessageBox: {
-            confirm(message, title) {
-                calls.push(title)
-                if (action === 'new') throw 'cancel'
-                if (action === 'close') throw 'close'
-                message.children[1].props.onChange({ target: { value: '3' } })
-            },
-            prompt() { calls.push('命名'); return { value: '副本' } }
-        } },
+        vue, 'element-plus': { ElMessageBox: {} },
+        '@/components/ui/UiCheckbox.vue': { default: { name: 'UiCheckbox' } },
+        '@/components/ui/UiSelect.vue': { default: UiSelect },
         '@/store/backend': { default: { allReady() {}, getItem(key) {
             const match = key.match(/^mona_account_miyoushe_(\d+)$/)
             return match ? structuredClone(profiles[Number(match[1]) - 1]) : null
@@ -71,7 +78,7 @@ test('UID import refreshes the chosen local account, can create a separate copy,
         './import-history.mjs': importHistory, './uid-import-review.mjs': uidReview,
         '@/assets/_gen_weapon': {}, '@/assets/_gen_artifact': {}, '@/i18n/generated/zh-cn.json': {}
     })
-    const run = () => uidImportSession(accounts.currentAccountId.value).run('100000002', '合成导入', draft => {
+    const run = () => uidImportSession(accounts.currentAccountId.value, undefined, dialogs).run('100000002', '合成导入', draft => {
         draft.roster.data.value.nickname = '已更新'
         return {}
     })
@@ -168,6 +175,7 @@ test('login controls render, Miyoushe QR login opens, and the gold form saves to
     const requests = [], writes = [], prompts = []
     const stub = { render: () => null }
     const active = vue.ref('local-test')
+    const importSession = { uidImportSession: (account, check) => ({ account, check: () => check(account) }) }
     let finishSave
     function loadComponent(path, id) {
         const source = readFileSync(new URL(path, import.meta.url), 'utf8')
@@ -184,7 +192,12 @@ test('login controls render, Miyoushe QR login opens, and the gold form saves to
             () => vue.h('button', { onClick: () => emit('select') }, slots.default?.()) } },
         './CharacterImportResult.vue': loadComponent('../src/components/import/CharacterImportResult.vue', 'import-result'),
         vue, './MiyousheCharacterPicker.vue': { default: { inheritAttrs: false, render() { return this.$slots.actions?.({ openManual() {} }) } } }, './MiyousheVerification.vue': { default: stub },
-        'element-plus': { ElMessageBox: { prompt: async label => { prompts.push(label); return { value: uid } } } },
+        'vue-router': { useRoute: () => ({ path: '/uid-data' }), useRouter: () => ({}) },
+        'element-plus': { ElMessageBox: {} },
+        '@/pages/ArtifactsPage/ArtifactPromptDialog.vue': { default: { setup: (_, { expose }) => {
+            expose({ prompt: async label => { prompts.push(label); return { value: uid } } })
+            return () => null
+        } } },
         qrcode: { default: { toDataURL: async () => 'data:image/png;base64,fixture' } },
         '@/import/good': {}, '@/assets/_gen_artifact': {default: catalog.artifacts}, '@/assets/_gen_tf': {default: catalog.targets},
         '@/import/good-roster.mjs': goodRoster,
@@ -192,7 +205,7 @@ test('login controls render, Miyoushe QR login opens, and the gold form saves to
         '@/store/pinia/artifact': { useArtifactStore: () => ({ artifacts: vue.ref(new Map()) }) },
         '@/usage-stats/index.mjs': { recordUsage() {} },
         '@/store/pinia/miyoushe': { useMiyousheStore: () => ({ data: vue.ref({ entries: [], snapshots: {} }), uidGroups: vue.ref([]), selectedUid: vue.ref('') }) },
-        '@/store/pinia/account': { useAccountStore: () => ({ currentAccountId: active }) },
+        '@/store/pinia/account': { useAccountStore: () => ({ currentAccountId: active, reloadGeneration: vue.ref(0) }) },
         '@/platform/mys-api.mjs': { mysApi: async (path, method, body) => {
             if (path === 'login') {
                 assert.equal(method, 'POST')
@@ -206,7 +219,7 @@ test('login controls render, Miyoushe QR login opens, and the gold form saves to
         '@/platform/enka.mjs': { fetchEnkaShowcase: async value => { requests.push(value); return showcase() } },
         '@/import/enka-showcase.mjs': { enkaSnapshot }, '@/assets/_gen_character': { default: catalog.characters },
         '@/assets/_gen_weapon': { default: catalog.weapons }, '@/i18n/generated/zh-cn.json': { default: catalog.locale },
-        './uid-import-session': { uidImportSession: (account, check) => ({ account, check: () => check(account) }) },
+        './uid-import-session': importSession, '@/import/uid-import-session': importSession,
         './uid-import-review.mjs': {}, './role-presets.js': { isRolePresetFile: () => false },
         '@/import/save-game-snapshot.mjs': { savePreparedSnapshot: async (uid, build, source, session) => {
             session.check()
@@ -222,9 +235,11 @@ test('login controls render, Miyoushe QR login opens, and the gold form saves to
         } },
     })
     const restoreFile = readFileSync(new URL('../src/import/restore-character-file.mjs', import.meta.url), 'utf8')
-    modules['@/import/restore-character-file.mjs'] = loadWith(restoreFile, { ...modules, '@/import/uid-package.mjs': {} })
+    modules['@/import/restore-character-file.mjs'] = loadWith(restoreFile, {
+        ...modules, '@/import/uid-package.mjs': {}, './warehouse-file.js': { isWarehouseFile: () => false },
+    })
     const app = vue.createApp(loadWith(compiled.content, modules).default)
-    for (const icon of ['key', 'plus', 'arrow-down', 'user', 'connection', 'folder-opened', 'iphone', 'clock']) app.component('i-ep-' + icon, stub)
+    for (const icon of ['key', 'plus', 'arrow-down', 'user', 'connection', 'folder-opened', 'iphone', 'clock', 'picture', 'download']) app.component('i-ep-' + icon, stub)
     const click = label => [...document.querySelectorAll('button')].find(button => button.textContent.trim() === label)
     const settle = () => new Promise(resolve => setImmediate(resolve))
     try {

@@ -6,7 +6,7 @@
                 <li v-for="(talent, index) in talents?.slice(0, kinds.length) || kinds" :key="index">
                     <UiHoverDetails v-if="talents" enabled :tap-label="talent.name">
                         <template #trigger>
-                            <button type="button" class="talent-card">
+                            <UiButton class="talent-card">
                                 <span class="talent-symbol">
                                     <img :src="iconUrl(talent.icon)" alt="" />
                                 </span>
@@ -14,7 +14,7 @@
                                     <strong>{{ talent.name }}</strong>
                                     <span>{{ kinds[index] }} <b>Lv. {{ entry.talentLevels[index] }}</b></span>
                                 </span>
-                            </button>
+                            </UiButton>
                         </template>
                         <GameEffectText :title="talent.name" :effect="talent.effect" />
                     </UiHoverDetails>
@@ -26,28 +26,28 @@
                     <li v-for="talent in passives" :key="talent.name">
                         <UiHoverDetails enabled :tap-label="talent.name">
                             <template #trigger>
-                                <button type="button" class="passive-icon talent-symbol" :aria-label="talent.name">
+                                <UiButton class="passive-icon talent-symbol" :aria-label="talent.name">
                                     <img :src="iconUrl(talent.icon)" alt="" />
-                                </button>
+                                </UiButton>
                             </template>
                             <GameEffectText :title="talent.name" :effect="talent.effect" />
                         </UiHoverDetails>
                     </li>
                 </ul>
-                <UiButton v-if="$slots.editor" class="edit-talents" size="small" :aria-expanded="editing"
+                <UiButton v-if="$slots.editor" class="edit-talents" size="small" :aria-expanded="editing" :disabled="disabled"
                     @click="editing = !editing">修改天赋等级</UiButton>
-                <UiButton v-else class="edit-talents" size="small" aria-haspopup="dialog" :disabled="!entry.preset" @click="openEditor">修改天赋等级</UiButton>
+                <UiButton v-else class="edit-talents" size="small" aria-haspopup="dialog" :disabled="disabled || (!effectiveLevels && !entry.preset)" @click="openEditor">修改天赋等级</UiButton>
             </div>
             <slot v-if="$slots.editor && editing" name="editor" />
         </div>
         <UiDialog v-if="!$slots.editor" v-model="editing" title="修改天赋等级" width="370px">
             <div v-for="(kind, i) in kinds" :key="kind" class="level-row">
                 <div><strong>{{ talents?.[i]?.name || kind }}</strong><small v-if="talents?.[i]?.name">{{ kind }}</small></div>
-                <UiSelect v-model="draft[i]" :label="kind" :options="options[i]" />
+                <UiSelect v-model="draft[i]" :label="kind" :options="options[i]" :disabled="disabled" />
             </div>
             <template #footer>
                 <UiButton @click="editing = false">取消</UiButton>
-                <UiButton variant="primary" :disabled="!changed" @click="saveLevels">保存</UiButton>
+                <UiButton variant="primary" :disabled="disabled || !changed" @click="saveLevels">保存</UiButton>
             </template>
         </UiDialog>
     </section>
@@ -63,9 +63,10 @@ import UiDialog from '@/components/ui/UiDialog.vue'
 import UiSelect from '@/components/ui/UiSelect.vue'
 import { constellationTalentBonuses } from '@/import/constellation-talents.mjs'
 
-const props = defineProps({ entry: { type: Object, required: true } })
+const props = defineProps({ entry: { type: Object, required: true }, effectiveLevels: Boolean, disabled: Boolean })
 const emit = defineEmits(['change-levels'])
 const kinds = ['普通攻击', '元素战技', '元素爆发']
+const effectiveOptions = Array.from({ length: 15 }, (_, index) => ({ value: String(index + 1), label: 'Lv. ' + (index + 1) }))
 const talents = computed(() => catalog[props.entry.characterName?.replace(/^(Aether|Lumine)/, 'Traveler')])
 const passives = computed(() => talents.value?.slice(kinds.length) || [])
 const editing = ref(false), draft = ref([]), options = ref([])
@@ -76,7 +77,7 @@ function bonuses() {
 }
 function openEditor() {
     draft.value = props.entry.talentLevels.map(String)
-    options.value = bonuses().map((bonus, i) => {
+    options.value = props.effectiveLevels ? kinds.map(() => effectiveOptions) : bonuses().map((bonus, i) => {
         const levels = new Set(Array.from({ length: 10 }, (_, index) => index + 1 + bonus))
         levels.add(Number(draft.value[i]))
         return [...levels].sort((a, b) => a - b).map(n => ({ value: String(n), label: 'Lv. ' + n }))
@@ -85,7 +86,8 @@ function openEditor() {
 }
 function saveLevels() {
     editing.value = false
-    emit('change-levels', bonuses().map((bonus, i) => Number(draft.value[i]) - bonus))
+    const levels = draft.value.map(Number)
+    emit('change-levels', props.effectiveLevels ? levels : bonuses().map((bonus, i) => levels[i] - bonus))
 }
 function iconUrl(icon) { return process.env.BASE_URL + 'talent-icons/' + icon + '.webp' }
 </script>

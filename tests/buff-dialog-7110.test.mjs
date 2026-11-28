@@ -58,63 +58,117 @@ const renderer = vue.createRenderer({
 })
 const nodes = root => [root, ...((root.children || []).flatMap(nodes))]
 
-test('all BUFF genres stay open through consecutive additions in both calculator consumers', async () => {
-    for (const page of ['NewArtifactPlanPage', 'MonaPlaygroundPage']) {
-        const useBuff = evaluate(read('src/composables/buff.ts'), {
-            '@buff': { buffData }, '@/utils/idProvider': { RandomIDProvider: class { next = 1; generateId() { return this.next++ } } },
-            '@/algorithms/polestar-field.mjs': polestar,
-        }).useBuff
-        const state = useBuff(), showSelectBuffDialog = vue.ref(true)
-        const { descriptor } = parse(read(`src/pages/${page}/${page}.vue`))
-        const source = ts.createSourceFile(page + '.ts', descriptor.scriptSetup.content, ts.ScriptTarget.Latest, true)
-        const handler = source.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'handleSelectBuff')
-        assert.ok(handler)
-        const handlerJs = ts.transpileModule(handler.getText(source), { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText
-        const handleSelectBuff = vm.runInNewContext(handlerJs + '\nhandleSelectBuff', { ...state, showSelectBuffDialog })
-        let childState, pickerState
-        const character = component('src/components/select/CharacterBuffGroups.vue', {
-            vue, '@/assets/buff': { buffData }, '@/assets/_gen_character': { default: { Mona: { element: 'Hydro', nameLocale: 'Mona' } } },
-            '@/assets/character': { characterByElement: { Hydro: [] } },
-            '@/assets/element-icons': { default: { Hydro: 'hydro.png' } },
-            '@/i18n/i18n': { useI18n: () => ({ t: x => x, ta: x => x }) },
-            '@/store/pinia/miyoushe': { useMiyousheStore: () => ({ uidGroups: vue.ref([]), selectedUid: vue.ref(''), data: vue.ref({ entries: [] }) }) },
-            '@/store/pinia/preset': { usePresetStore: () => ({ presets: vue.ref({}) }) },
-            '@/components/config/ItemConfig': { default: { render: () => null } },
-            '@/algorithms/buff-groups/ownership.json': { default: { CharacterSample: { character: 'Mona', minConstellation: 0 } } },
-            '@/algorithms/buff-groups/index.mjs': groups,
-        }, value => { childState = value })
-        const picker = component('src/components/select/SelectBuff.vue', {
-            vue, '@buff': { buffFlat: Object.values(buffData) }, 'fuse.js': Fuse,
-            '@/i18n/i18n': { useI18n: () => ({ t: x => x, ta: x => x }) }, './CharacterBuffGroups.vue': { default: character },
-        }, value => { pickerState = value })
-        const app = renderer.createApp({ render: () => vue.h(picker, { selectedNames: state.buffs.value.map(b => b.name), onSelect: handleSelectBuff }) })
-        const wrapper = { setup(_props, { attrs, slots }) { return () => vue.h('section', attrs, [slots.title?.(), slots.default?.()]) } }
-        for (const name of ['el-input', 'el-tabs', 'el-tab-pane', 'el-select', 'el-option', 'el-collapse', 'el-collapse-item', 'el-tag', 'el-input-number', 'el-button', 'el-empty']) app.component(name, wrapper)
-        const root = { children: [] }
-        app.mount(root)
-        pickerState.searchString.value = 'Sample'
-        childState.expanded.value = 'Mona'
-        await vue.nextTick()
-        const addCharacter = nodes(root).find(node => node.props?.['aria-label'] === '添加CharacterSample')
-        assert.ok(addCharacter)
-        addCharacter.props.onClick()
-        assert.equal(showSelectBuffDialog.value, true, page)
-        assert.deepEqual(plain(state.buffs.value[0].config), { CharacterSample: { skill1: 10 } })
-        for (const genre of ['Weapon', 'Artifact', 'Resonance', 'Common']) {
-            pickerState.activeTab.value = genre
-            await vue.nextTick()
-            const row = nodes(root).find(node => node.props?.class === 'buff-item' && nodes(node).some(n => n.text === genre + 'Sample'))
-            assert.ok(row, genre)
-            row.props.onClick()
-            row.props.onClick()
-            assert.equal(showSelectBuffDialog.value, true, page + ': ' + genre)
-            assert.equal(pickerState.activeTab.value, genre)
-            assert.equal(pickerState.searchString.value, 'Sample')
-            const entries = state.buffs.value.filter(b => b.name === genre + 'Sample')
-            assert.equal(entries.length, 1, 'repeated selection does not duplicate ' + genre)
-            assert.deepEqual(plain(entries[0].config), genre === 'Artifact' ? 'NoConfig' : { [genre + 'Sample']: { value: 7 } })
-        }
-        assert.equal(state.buffs.value.length, 5)
-        app.unmount()
+const wrapper = { setup(_props, { attrs, slots }) { return () => vue.h('section', attrs, [slots.title?.(), slots.default?.()]) } }
+const button = { setup(_props, { attrs, slots }) { return () => vue.h('button', attrs, slots.default?.()) } }
+const searchInput = { setup(_props, { attrs }) {
+    return () => vue.h('input', { value: attrs.modelValue, onInput: event => attrs['onUpdate:modelValue'](event.target.value) })
+} }
+const setTab = Symbol('setTab')
+const radix = {
+    AccordionContent: wrapper, AccordionHeader: wrapper, AccordionItem: wrapper, AccordionRoot: wrapper, AccordionTrigger: button,
+    TabsContent: wrapper, TabsList: wrapper,
+    TabsRoot: { setup(_props, { attrs, slots }) {
+        vue.provide(setTab, value => attrs['onUpdate:modelValue'](value))
+        return () => vue.h('section', slots.default?.())
+    } },
+    TabsTrigger: { props: ['value'], setup(props, { slots }) {
+        const select = vue.inject(setTab)
+        return () => vue.h('button', { role: 'tab', onClick: () => select(props.value) }, slots.default?.())
+    } },
+}
+
+test('the calculator BUFF picker stays open through consecutive additions in every genre', async () => {
+    const useBuff = evaluate(read('src/composables/buff.ts'), {
+        '@buff': { buffData }, '@/utils/idProvider': { RandomIDProvider: class { next = 1; generateId() { return this.next++ } } },
+        '@/algorithms/polestar-field.mjs': polestar,
+    }).useBuff
+    const state = useBuff(), showSelectBuffDialog = vue.ref(true)
+    const page = 'NewArtifactPlanPage'
+    const { descriptor } = parse(read(`src/pages/${page}/${page}.vue`))
+    assert.match(descriptor.template.content, /<select-buff\b[^>]*\bshadcn(?:\s|>)/)
+    const source = ts.createSourceFile(page + '.ts', descriptor.scriptSetup.content, ts.ScriptTarget.Latest, true)
+    const handler = source.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'handleSelectBuff')
+    assert.ok(handler)
+    const handlerJs = ts.transpileModule(handler.getText(source), { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText
+    const confirmations = []
+    let confirmDuplicate = false
+    const calculationPrompt = {
+        request: vue.ref(null),
+        async confirm(message) {
+            confirmations.push(message)
+            if (!confirmDuplicate) throw 'cancel'
+        },
     }
+    const handleSelectBuff = vm.runInNewContext(handlerJs + '\nhandleSelectBuff', {
+        ...state, showSelectBuffDialog, buffData, ta: value => value, calculationPrompt, showCalculationNotice() {},
+    })
+    let childState, pickerState
+    const character = component('src/components/select/CharacterBuffGroups.vue', {
+        vue, 'radix-vue': radix,
+        'element-plus': { ElButton: button, ElCollapse: wrapper, ElCollapseItem: wrapper, ElInputNumber: wrapper },
+        '@/assets/buff': { buffData }, '@/assets/_gen_character': { default: { Mona: { element: 'Hydro', nameLocale: 'Mona' } } },
+        '@/assets/character': { characterByElement: { Hydro: [] } },
+        '@/assets/element-icons': { default: { Hydro: 'hydro.png' } },
+        '@/i18n/i18n': { useI18n: () => ({ t: x => x, ta: x => x }) },
+        '@/store/pinia/miyoushe': { useMiyousheStore: () => ({ uidGroups: vue.ref([]), selectedUid: vue.ref(''), data: vue.ref({ entries: [] }) }) },
+        '@/store/pinia/preset': { usePresetStore: () => ({ presets: vue.ref({}) }) },
+        '@/components/config/ItemConfig': { default: { render: () => null } },
+        '@/components/ui/UiButton.vue': { default: button }, '@/components/ui/UiNumberInput.vue': { default: wrapper },
+        '@/components/ui/UiSelect.vue': { default: wrapper },
+        '@/algorithms/buff-groups/ownership.json': { default: { CharacterSample: { character: 'Mona', minConstellation: 0 } } },
+        '@/algorithms/buff-groups/index.mjs': groups,
+    }, value => { childState = value })
+    const picker = component('src/components/select/SelectBuff.vue', {
+        vue, 'radix-vue': radix, '@buff': { buffFlat: Object.values(buffData) }, 'fuse.js': Fuse,
+        '@/components/ui/UiButton.vue': { default: button }, '@/components/ui/UiSearchInput.vue': { default: searchInput },
+        '@/i18n/i18n': { useI18n: () => ({ t: (key, name) => name || key, ta: x => x }) }, './CharacterBuffGroups.vue': { default: character },
+    }, value => { pickerState = value })
+    let pendingSelection
+    const app = renderer.createApp({ render: () => vue.h(picker, {
+        shadcn: true,
+        selectedNames: state.buffs.value.map(buff => buff.name),
+        onSelect: (...args) => { pendingSelection = handleSelectBuff(...args) },
+    }) })
+    app.component('el-input', searchInput)
+    for (const name of ['el-tabs', 'el-tab-pane', 'el-select', 'el-option', 'el-tag', 'el-empty', 'i-ep-arrow-down']) app.component(name, wrapper)
+    const root = { children: [] }
+    app.mount(root)
+    nodes(root).find(node => node.type === 'input').props.onInput({ target: { value: 'Sample' } })
+    childState.expanded.value = 'Mona'
+    await vue.nextTick()
+    const addCharacter = nodes(root).find(node => node.props?.['aria-label'] === '添加CharacterSample')
+    assert.ok(addCharacter)
+    addCharacter.props.onClick()
+    await pendingSelection
+    assert.equal(showSelectBuffDialog.value, true, page)
+    assert.deepEqual(plain(state.buffs.value[0].config), { CharacterSample: { skill1: 10 } })
+    for (const genre of ['Weapon', 'Artifact', 'Resonance', 'Common']) {
+        const tab = nodes(root).find(node => node.props?.role === 'tab' && nodes(node).some(n => n.text === genre))
+        assert.ok(tab, genre)
+        tab.props.onClick()
+        await vue.nextTick()
+        const row = nodes(root).find(node => node.props?.class === 'buff-item buff-choice'
+            && nodes(node).some(n => n.text === genre + 'Sample'))
+        assert.ok(row, genre)
+        assert.equal(row.type, 'button')
+        row.props.onClick()
+        row.props.onClick()
+        await pendingSelection
+        assert.equal(showSelectBuffDialog.value, true, page + ': ' + genre)
+        assert.equal(pickerState.activeTab.value, genre)
+        assert.equal(pickerState.searchString.value, 'Sample')
+        const entries = state.buffs.value.filter(b => b.name === genre + 'Sample')
+        assert.equal(entries.length, 1, 'repeated selection does not duplicate ' + genre)
+        assert.deepEqual(plain(entries[0].config), genre === 'Artifact' ? 'NoConfig' : { [genre + 'Sample']: { value: 7 } })
+    }
+    assert.equal(state.buffs.value.length, 5)
+    assert.equal(confirmations.length, 4)
+    confirmDuplicate = true
+    const row = nodes(root).find(node => node.props?.class === 'buff-item buff-choice'
+        && nodes(node).some(n => n.text === 'CommonSample'))
+    row.props.onClick()
+    await pendingSelection
+    assert.equal(state.buffs.value.filter(buff => buff.name === 'CommonSample').length, 2)
+    assert.equal(showSelectBuffDialog.value, true)
+    app.unmount()
 })

@@ -116,6 +116,7 @@ async function fixture(t, platform = 'windows') {
         '@/platform/cloud.mjs':{ cloudApi:gateway.cloudApi }, '@/components/share/content-share.mjs':{},
         '@/store/dsl-library':{ listDslEntries, saveDslEntry }, '@/algorithms/dsl-generator.mjs':{},
         '@/algorithms/dsl-library.mjs':{ dslShareId, validateDslDocument },
+        './default-target-preview':{ defaultTargetPreview:() => ({ hits:[], source:'', language:'Rust' }) },
         '../../../beta-data/dsl-skill-names.json':{ Amber:[] },
     }, { window:events, Error })
     const scope = effectScope()

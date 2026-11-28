@@ -70,29 +70,29 @@
                     class="account-name"
                 ></click-edit-label>
                 <icon-ep-circle-check-filled v-if="id === accountStore.currentAccountId.value" class="account-check" aria-hidden="true" />
-                <!-- 确认气泡渲染在卡片里（:teleported="false" 才能取到配色），点击不能冒泡到卡片去切换账号 -->
+                <!-- 删除控件的点击不能冒泡到卡片去切换账号 -->
                 <span v-else class="account-delete-wrap" @click.stop>
-                <el-popconfirm
-                    :title="t('accountPage.confirmDelete')"
-                    :confirm-button-text="t('accountPage.delete')"
-                    :cancel-button-text="t('misc.cancel')"
-                    :teleported="false"
-                    @confirm="handleDeleteAccount(id)"
-                >
-                    <template #reference>
-                        <button type="button" class="account-delete" :title="t('accountPage.delete')" :aria-label="t('accountPage.delete') + ' ' + name" @click.stop="">
+                    <UiConfirmPopover
+                        :title="t('accountPage.confirmDelete')"
+                        :confirm-text="t('accountPage.delete')"
+                        :cancel-text="t('misc.cancel')"
+                        @confirm="handleDeleteAccount(id)"
+                    >
+                        <button type="button" class="account-delete" :title="t('accountPage.delete')" :aria-label="t('accountPage.delete') + ' ' + name">
                             <icon-ep-delete aria-hidden="true" />
                         </button>
-                    </template>
-                </el-popconfirm>
+                    </UiConfirmPopover>
                 </span>
             </div>
         </div>
+        <UiLoadingOverlay v-if="loadingMessage" :message="loadingMessage" />
     </div>
 </template>
 
 <script setup lang="ts">
 import PageGuideButton from "@/onboarding/PageGuideButton.vue"
+import UiConfirmPopover from "@/components/ui/UiConfirmPopover.vue"
+import UiLoadingOverlay from "@/components/ui/UiLoadingOverlay.vue"
 import { ElMessage } from "element-plus"
 import ClickEditLabel from "@c/misc/ClickEditLabel"
 import IconEpSort from "~icons/ep/sort"
@@ -112,38 +112,31 @@ const { t } = useI18n()
 
 const accountStore = useAccountStore()
 const router = useRouter()
+const loadingMessage = ref('')
 
 function addAccount() {
     accountStore.addAccount(t('accountPage.newAccountName'))
 }
 
 async function handleDeleteAccount(id: number) {
-    const loading = ElLoading.service({
-        lock: true,
-        text: t('accountPage.deletingAccount')
-    })
-    await deleteAccount(id)
-    loading.close()
+    loadingMessage.value = t('accountPage.deletingAccount')
+    try {
+        await deleteAccount(id)
+    } finally {
+        loadingMessage.value = ''
+    }
 }
 
 async function handleChangeAccount(id: number) {
     if (id === accountStore.currentAccountId.value) {
         return
     }
-    const loading = ElLoading.service({
-        lock: true,
-        text: t('accountPage.switchingAccount')
-    })
-
-    // ElLoading存在bug，导致滚动条会被拿掉，如果changeAccount太快会导致滚动条突然消失又突然出现，因此这里设置至少切换1s
-    let change = changeAccount(id)
-    // let timer = new Promise((resolve, reject) => {
-    //     setTimeout(() => { resolve(null) }, 1000)
-    // })
-    // await Promise.all([change, timer])
-    await change
-
-    loading.close()
+    loadingMessage.value = t('accountPage.switchingAccount')
+    try {
+        await changeAccount(id)
+    } finally {
+        loadingMessage.value = ''
+    }
 }
 
 function handleChangeName(id: number, oldName: string, newName: string) {

@@ -14,7 +14,8 @@ test('cached UID page picks up a cloud Cookie import and retains the selected ga
     const source = readFileSync(new URL('../src/components/import/MiyousheImport.vue', import.meta.url), 'utf8')
     const body = parse(source).descriptor.scriptSetup.content.replace(/^import .*$/gm, '')
     const setup = new Function('Vue', 'mysApi', 'useMiyousheStore', 'useAccountStore', 'defineEmits',
-        `const {ref,computed,onMounted,onBeforeUnmount} = Vue;
+        `const {ref,shallowRef,computed,onMounted,onDeactivated,onBeforeUnmount} = Vue;
+         const useRoute = () => ({ path: '/uid-data' }), useRouter = () => ({});
          ${body}
          return {savedAccounts,activeId,roles,selectedUid,loggedIn}`)
     const calls = []

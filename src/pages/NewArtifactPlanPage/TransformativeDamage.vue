@@ -1,41 +1,15 @@
 <template>
-<!--    <div v-for="row in tableDataForElementUI">-->
-<!--        <span v-if="row.chs === '感电'"-->
-<!--              style="color: #c250ff"-->
-<!--        >{{ row.value.toFixed(1) }}</span>-->
-<!--        <span v-if="row.chs === '超载'"-->
-<!--              style="color: #ff335a"-->
-<!--        >{{ row.value.toFixed(1) }}</span>-->
-<!--        <span v-if="row.chs !== '感电' && row.chs !== '超载'">{{ row.value.toFixed(1) }}</span>-->
-<!--    </div>-->
-
-    <el-table
-        :data="tableDataForElementUI"
-    >
-        <el-table-column
-            :label="t('misc.type1')"
-        >
-            <template #default="{ row }">
-                {{ row.title || t("dmg", row.key) }}
-            </template>
-        </el-table-column>
-        <el-table-column
-            :label="t('misc.dmg')"
-        >
-            <template #default="{ row }">
-                <template v-if="row && row.key && Number.isFinite(row.value)">
-                    <span v-if="row.key === 'electroCharged'"
-                          style="color: #c250ff"
-                    >{{ row.value.toFixed(1) }}</span>
-                    <span v-else-if="row.key === 'overload'"
-                          style="color: #ff335a"
-                    >{{ row.value.toFixed(1) }}</span>
-                    <span v-else>{{ row.value.toFixed(1) }}</span>
-                </template>
-                <span v-else>暂无结果</span>
-            </template>
-        </el-table-column>
-    </el-table>
+    <div class="reaction-table-wrap">
+        <table class="reaction-table">
+            <thead><tr><th scope="col">{{ t('misc.type1') }}</th><th scope="col">{{ t('misc.dmg') }}</th></tr></thead>
+            <tbody>
+                <tr v-for="row in reactionRows" :key="row.key">
+                    <th scope="row">{{ row.title || t('dmg', row.key) }}</th>
+                    <td>{{ row.value.toFixed(1) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </template>
 
 <script>
@@ -45,8 +19,7 @@ export default defineComponent({
     name: "TransformativeDamage",
     props: ["data"],
     computed: {
-        tableDataForElementUI() {
-            // console.log(this.data)
+        reactionRows() {
             let results = []
             results.push({ value: this.data.hyperbloom, key: "hyperbloom" })
             results.push({ value: this.data.burgeon, key: "burgeon" })
@@ -65,12 +38,6 @@ export default defineComponent({
             return results.filter(row => Number.isFinite(row.value))
         }
     },
-    methods: {
-        f(row) {
-            console.log(row)
-            return row.value.toFixed(1)
-        }
-    },
     setup() {
         const { t } = useI18n()
 
@@ -78,14 +45,15 @@ export default defineComponent({
             t
         }
     }
-    // data() {
-    //     return {
-    //
-    //     }
-    // }
 })
 </script>
 
 <style scoped>
-
+.reaction-table-wrap { overflow: auto; border: 1px solid var(--cx-step-2); border-radius: 10px; }
+.reaction-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.reaction-table th, .reaction-table td { padding: 9px 12px; border-bottom: 1px solid var(--cx-step-2); text-align: left; }
+.reaction-table tr > :last-child { text-align: right; }
+.reaction-table thead { background: var(--cx-step); }
+.reaction-table tbody th { font-weight: 500; }
+.reaction-table tbody tr:last-child > * { border-bottom: 0; }
 </style>

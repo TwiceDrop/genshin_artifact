@@ -43,7 +43,18 @@
                 </template>
             </miyoushe-character-picker>
         </section>
+        <ArtifactPromptDialog ref="importPrompt" width="min(420px, calc(100vw - 32px))" />
         <input ref="fileInput" type="file" accept=".json,application/json" hidden @change="restore" />
+        <UiDialog v-if="artifactImport" :model-value="true" title="导入圣遗物" :return-focus="focusAddTrigger"
+            width="min(420px, 94vw)" @update:model-value="!$event && (artifactImport = null)">
+            <p>当前导入的文件为圣遗物，是否导入到圣遗物页面？</p>
+            <template #footer>
+                <div class="warehouse-import-actions">
+                    <UiButton @click="artifactImport = null">取消</UiButton>
+                    <UiButton variant="primary" @click="confirmWarehouseImport">确认</UiButton>
+                </div>
+            </template>
+        </UiDialog>
         <input ref="screenshotInput" type="file" multiple accept="image/*" hidden @change="reviewScreenshots" />
         <RosterScreenshotDialog v-if="screenshotFiles.length" :files="screenshotFiles" :save="saveScreenshot"
             :return-focus="focusAddTrigger" @close="screenshotFiles=[]" />
@@ -120,13 +131,16 @@
 </template>
 <script setup>
 import PageGuideButton from "@/onboarding/PageGuideButton.vue"
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, shallowRef, computed, nextTick, onMounted, onDeactivated, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiDialog from '@/components/ui/UiDialog.vue'
 import UiDropdownMenu from '@/components/ui/UiDropdownMenu.vue'
 import UiDropdownMenuItem from '@/components/ui/UiDropdownMenuItem.vue'
+import ArtifactPromptDialog from '@/pages/ArtifactsPage/ArtifactPromptDialog.vue'
 import QRCode from 'qrcode'
 import { restoreCharacterFile } from '@/import/restore-character-file.mjs'
+import { pendingWarehouseImport } from '@/import/warehouse-file'
 import { exportAllPresets } from '@/utils/export-presets'
 import CharacterImportResult from './CharacterImportResult.vue'
 import MiyousheVerification from './MiyousheVerification.vue'
@@ -155,22 +169,24 @@ import { undoImportRecord } from '@/import/import-history.mjs'
 import { useKumiStore } from '@/store/pinia/kumi'
 import { useArtifactStore } from '@/store/pinia/artifact'
 import { usePresetStore } from '@/store/pinia/preset'
-const store = useMiyousheStore(), accounts = useAccountStore()
+const store = useMiyousheStore(), accounts = useAccountStore(), route = useRoute(), router = useRouter()
 const error = ref(''), busy = ref(false), loggedIn = ref(false), qrImage = ref(''), qrStatus = ref('等待扫码'), secondsLeft = ref(120)
 const roles = ref([]), selectedUid = ref(''), result = ref(null), progress = ref({ completed: 0, total: 0 }), fileInput = ref(null)
+const artifactImport = shallowRef(null)
 const savedAccounts = ref([]), activeId = ref(''), manualCookie = ref('')
 const loginPlatform = ref('miyoushe'), webLoginPending = ref(false)
 const platformName = platform => platform === 'hoyolab' ? 'HoYoLAB' : '米游社'
 const panels = { cookie: 'Cookie 导入', account: 'Cookie 账号管理', enka: 'UID 导入（Enka 展柜）', records: '导入记录' }
 const panel = ref(''), panelOpen = ref(false), addTrigger = ref(null)
 const bindingCookie = ref(false)
+const importPrompt = ref(null)
 function focusAddTrigger() { addTrigger.value?.$el.focus() }
 const screenshotInput=ref(null), screenshotFiles=ref([])
 let screenshotSession
 function openScreenshot() {
     screenshotSession=uidImportSession(accounts.currentAccountId.value, () => {
         if (disposed) throw new Error('角色页已关闭')
-    })
+    }, importPrompt.value)
     screenshotInput.value.click()
 }
 function reviewScreenshots(event) {
@@ -347,15 +363,17 @@ async function login(platform = 'miyoushe') {
 async function save(snapshot, accountId, source = snapshot.source === 'hoyolab' ? 'HoYoLAB 同步' : '米游社同步', preserveEquipped = false) {
     const run = generation
     if (panel.value === panels.enka || panel.value === panels.account) panelOpen.value = false
-    result.value = await saveGameSnapshot(snapshot, accountId, source, () => {
+    const checkActive = () => {
         if (disposed || run !== generation || accounts.currentAccountId.value !== accountId) throw new Error('同步已取消或莫娜账号已切换，数据未写入')
-    }, preserveEquipped)
+    }
+    const session = uidImportSession(accountId, checkActive, importPrompt.value)
+    result.value = await saveGameSnapshot(snapshot, accountId, source, checkActive, preserveEquipped, session)
 }
 async function bindCookieUid(accountId, run) {
     try {
         const uid = await bindCookieRole(roles.value, accountId, () => {
             if (disposed || run !== generation) throw new Error('登录已取消')
-        }, () => { bindingCookie.value = true })
+        }, () => { bindingCookie.value = true }, importPrompt.value)
         if (uid) selectedUid.value = uid
     } catch (e) { if (!cancelledImport(e)) throw e }
     finally { bindingCookie.value = false }
@@ -421,15 +439,38 @@ async function finishVerification(result) {
 }
 async function restore(event) {
     const file = event.target.files?.[0], accountId = accounts.currentAccountId.value, run = generation
-    if (!file) return
+    event.target.value = ''
+    if (!file || busy.value) return
+    const reloadGeneration = accounts.reloadGeneration.value
     busy.value = true; error.value = ''; result.value = null
     try {
         const imported = await restoreCharacterFile(file, accountId, expected => {
             if (disposed || run !== generation || accounts.currentAccountId.value !== expected) throw new Error('账号已切换，请重新导入')
-        })
-        if (imported) result.value = imported
+        }, importPrompt.value)
+        if (imported?.warehouseFile) {
+            if (route.path === '/uid-data') artifactImport.value = { file: imported.warehouseFile, accountId, reloadGeneration }
+        } else if (imported) result.value = imported
     } catch (e) { error.value = e.message }
-    finally { busy.value = false; event.target.value = '' }
+    finally { busy.value = false }
+}
+async function confirmWarehouseImport() {
+    const request = artifactImport.value
+    artifactImport.value = null
+    if (!request) return
+    try {
+        await nextTick()
+        if (request.accountId !== accounts.currentAccountId.value || request.reloadGeneration !== accounts.reloadGeneration.value) {
+            throw new Error('账号已切换，请重新导入')
+        }
+        pendingWarehouseImport.value = request
+        const failure = await router.push('/artifacts')
+        if (failure) throw failure
+        await nextTick()
+    } catch (e) {
+        error.value = e.message
+    } finally {
+        if (pendingWarehouseImport.value === request) pendingWarehouseImport.value = null
+    }
 }
 function onCloudCookieImported({ detail: { accounts, account, uid } }) {
     generation++
@@ -454,6 +495,7 @@ onMounted(async () => {
     } catch (e) { if (!disposed) error.value = e.message }
     finally { if (!disposed) busy.value = false }
 })
+onDeactivated(() => { artifactImport.value = null })
 onBeforeUnmount(() => {
     window.removeEventListener('mona-cloud-cookie-imported', onCloudCookieImported)
     disposed = true; generation++; stopTimers(); manualCookie.value = ''; verification.value = null
@@ -462,6 +504,7 @@ onBeforeUnmount(() => {
 </script>
 <style scoped>
 .mys-import { display: grid; gap: 14px; color: var(--cx-letter); }
+.warehouse-import-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .mys-add svg { width: 14px; height: 14px; }
 .mys-account, .mys-records { display: grid; gap: 12px; }
 .mys-characters { min-width: 0; }

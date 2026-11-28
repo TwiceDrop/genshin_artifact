@@ -36,7 +36,7 @@ export function assertDirectReactionDsl(source){
   }
  }
 }
-const ineffaSource='dmg discharge = Ineffa.VilkitaDischarge\ndmg talent = Ineffa.TalentOverclocking\nresult = discharge.normal.e + talent.direct_moonelectro.e';
+export const INEFFA_DEFAULT_SOURCE='dmg discharge = Ineffa.VilkitaDischarge\ndmg talent = Ineffa.TalentOverclocking\nresult = discharge.normal.e + talent.direct_moonelectro.e';
 function prepare(input){
  if(!input||typeof input!=='object'||ArrayBuffer.isView(input)||input instanceof ArrayBuffer)return input;
  if(Array.isArray(input))return input.map(prepare);
@@ -47,7 +47,7 @@ function prepare(input){
  if(input.name==='YumemizukiMizukiStellarSwirl'&&!input.use_dsl&&[2,3].includes(input.params?.YumemizukiMizukiStellarSwirl?.mode))throw removedError('瑞希反应星扩散配装目标');
  const out={};
  for(const [key,value]of Object.entries(input))out[key]=['artifacts','sub_stats','main_stat'].includes(key)?value:prepare(value);
- if(input.name==='IneffaDefault'&&!input.use_dsl)return {...out,params:'NoConfig',use_dsl:true,dsl_source:ineffaSource};
+ if(input.name==='IneffaDefault'&&!input.use_dsl)return {...out,params:'NoConfig',use_dsl:true,dsl_source:INEFFA_DEFAULT_SOURCE};
  return out;
 }
 export function stripRemovedReactions(result){

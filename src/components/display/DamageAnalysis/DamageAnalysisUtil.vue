@@ -1,5 +1,5 @@
 <template>
-    <div style="min-width: 100px">
+    <div :class="{ 'themed-composition': shadcnDamageAnalysis }" style="min-width: 100px">
         <div class="header" :title="result">{{ title }}</div>
         <div>
             <div
@@ -8,11 +8,14 @@
                 class="item"
             >
                 <div class="item-top">
-                    <el-checkbox v-model="item.checked">{{ sourceName(item.name) }}</el-checkbox>
+                    <UiCheckbox v-if="shadcnDamageAnalysis" v-model="item.checked">{{ sourceName(item.name) }}</UiCheckbox>
+                    <el-checkbox v-else v-model="item.checked">{{ sourceName(item.name) }}</el-checkbox>
 <!--                    <span class="name">{{ sourceName(item.name) }}</span>-->
                 </div>
                 <div class="item-bottom">
-                    <input type="text" :value="formatValue(item.value)" @change="updateValue(item,$event)" class="input" />
+                    <UiNumberInput v-if="shadcnDamageAnalysis" :model-value="Number(formatValue(item.value))" step="any"
+                        :aria-label="sourceName(item.name)" @update:model-value="item.value = $event" />
+                    <input v-else type="text" :value="formatValue(item.value)" @change="updateValue(item,$event)" class="input" />
                 </div>
             </div>
         </div>
@@ -20,14 +23,18 @@
 </template>
 
 <script>
+import { computed, inject } from 'vue'
 import artifacts from '@/assets/_gen_artifact'
 import {useI18n} from '@/i18n/i18n'
+import UiCheckbox from '@/components/ui/UiCheckbox.vue'
+import UiNumberInput from '@/components/ui/UiNumberInput.vue'
 const artifactSources = Object.fromEntries(Object.values(artifacts).flatMap(set =>
     [2, 4].map(count => [set.name2 + count, {index: set.nameLocale, count}])
 ))
 
 export default {
     name: "DamageAnalysisUtil",
+    components: { UiCheckbox, UiNumberInput },
     props: {
         arr: {},
         precision: {type: Number, default: 2},
@@ -37,7 +44,8 @@ export default {
     },
     setup() {
         const {ta} = useI18n()
-        return {sourceName(name) {
+        const shadcnDamageAnalysis = computed(inject('isShadcnDamageAnalysis', () => false))
+        return {shadcnDamageAnalysis, sourceName(name) {
             const source = artifactSources[name]
             return source ? `${ta(source.index)}${source.count}件套` : name
         }}
@@ -65,6 +73,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.themed-composition {
+    flex: 0 0 142px;
+    width: 142px;
+    .header { height: auto; min-height: 32px; padding-inline: 4px; text-align: center; }
+    .item { padding: 6px; }
+    .item-top { align-items: flex-start; overflow-wrap: anywhere; }
+    .item-bottom > input { width: 100%; }
+}
 .header {
     display: flex;
     height: 32px;

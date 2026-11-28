@@ -12,5 +12,6 @@ export const teamEditorEnvironment = {
     useAxisSharing: () => ({ open:ref(false), close() {}, entryStatus: () => '' }),
     shareLoginReturn: { draft: null },
     useMiyousheStore: () => ({ selectedUid:ref('') }),
+    showCalculationNotice() {},
     onActivated() {}, setInterval: () => 1, clearInterval() {},
 }

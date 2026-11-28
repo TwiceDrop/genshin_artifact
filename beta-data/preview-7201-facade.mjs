@@ -43,6 +43,11 @@ export function compilePreviewBuff(b,input){
  if(name==='HeartOfTheFurnace4')for(const b of compiled)b.config.ExtensionEffect.values.HeartOfTheFurnaceTeamBonus=b.config.ExtensionEffect.values.StellarSwirlBonus||0;
  return compiled;
 }
+export function mityaDefaultSource(coreMode) {
+ const skill=['Charged','OverflowStellar','GradientStellar'][coreMode];
+ const reaction=coreMode===0?'normal':'direct_stellarconduct';
+ return `dmg hit = Mitya.${skill}\nresult = hit.${reaction}.e`;
+}
 export function preparePreviewInput(input){
  const name=input.character.name,p={...previewDefaults[name],...input.character.params?.[name]};
  const x={...input,character:{...input.character,params:{[name]:p}},buffs:[]};
@@ -51,9 +56,7 @@ export function preparePreviewInput(input){
  if(name==='Mitya')for(const key of ['target_function','tf']){
   const target=input[key];
   if(target?.name==='MityaDefault'&&!target.use_dsl){
-   const skill=['Charged','OverflowStellar','GradientStellar'][p.core_mode];
-   const reaction=p.core_mode===0?'normal':'direct_stellarconduct';
-   x[key]={...target,use_dsl:true,dsl_source:`dmg hit = Mitya.${skill}\nresult = hit.${reaction}.e`};
+   x[key]={...target,use_dsl:true,dsl_source:mityaDefaultSource(p.core_mode)};
   }
  }
  if(isLimitedWeapon(input.weapon))x.weapon=normalizeLimitedWeapon(input.weapon);

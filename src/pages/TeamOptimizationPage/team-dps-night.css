@@ -81,29 +81,6 @@ html[data-color-mode] .team-configurations .panel-identity > img {
     border-color: var(--cx-gold);
 }
 
-/* 命座按钮 */
-html[data-color-mode] .team-configurations .constellation-line > span {
-    color: var(--cx-dim);
-}
-
-html[data-color-mode] .team-configurations .constellation-line button {
-    border-color: transparent;
-    background: var(--cx-step);
-    color: var(--cx-dim);
-}
-
-html[data-color-mode] .team-configurations .constellation-line button.active {
-    border-color: var(--cx-gold);
-    background: var(--cx-gold);
-    color: var(--cx-gold-on);
-    box-shadow: none;
-}
-
-/* 武器、面板 */
-html[data-color-mode] .team-configurations .weapon-choice > img {
-    background: var(--cx-step);
-}
-
 html[data-color-mode] .team-configurations .panel-badges span {
     border-color: transparent;
     background: var(--cx-step);

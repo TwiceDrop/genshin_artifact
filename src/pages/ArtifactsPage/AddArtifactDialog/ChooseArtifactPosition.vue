@@ -1,24 +1,26 @@
 <template>
     <div class="choose-artifact-position">
-        <div
+        <UiButton
             v-for="position in availablePositions"
             :key="position"
+            :aria-pressed="position === props.modelValue"
             :class="{active: position === props.modelValue}"
             class="item"
             @click="emits('update:modelValue', position)"
         >
             <img
                 :src="selectedArtData[position].url"
-                class="image"
+                class="image" alt=""
             >
             <p class="text">
                 {{ ta(selectedArtData[position].text) }}
             </p>
-        </div>
+        </UiButton>
     </div>
 </template>
 
 <script setup lang="ts">
+import UiButton from '@/components/ui/UiButton.vue'
 import { computed, watch } from "vue"
 
 import { artifactsData } from "../../../assets/artifacts"
@@ -71,7 +73,11 @@ watch(() => props.setName, () => {
     flex-wrap: wrap;
 }
 
-.item {
+.choose-artifact-position .item {
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
+    border-color: transparent;
     padding: 8px;
     color: #777777;
     margin-right: 4px;

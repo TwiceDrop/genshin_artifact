@@ -1,0 +1,305 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/58",
+  "id": "skirk-mona-source-22s",
+  "title": "丝柯克队2（莫娜·默认22秒）",
+  "description": "丝柯克／芙宁娜／爱可菲／莫娜四人输出轴。莫娜按此前确认在8秒施放元素爆发，泡影附加后延迟2秒破裂。参考轴长22秒。",
+  "endHit": "include",
+  "initialActiveSlot": "member2",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Skirk",
+      "角色名称": "丝柯克"
+    },
+    {
+      "slot": "member2",
+      "character": "Furina",
+      "角色名称": "芙宁娜"
+    },
+    {
+      "slot": "member3",
+      "character": "Escoffier",
+      "角色名称": "爱可菲"
+    },
+    {
+      "slot": "member4",
+      "character": "Mona",
+      "角色名称": "莫娜"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "furina-e",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 0,
+      "动作说明": "0秒，芙宁娜施放孤心沙龙。"
+    },
+    {
+      "id": "furina-q",
+      "kind": "action",
+      "actor": "member2",
+      "action": "burst",
+      "timeMs": 500,
+      "动作说明": "0.5秒，芙宁娜施放万众狂欢。"
+    },
+    {
+      "id": "escoffier-e",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 3000,
+      "动作说明": "3秒，爱可菲施放冻霜芭菲。"
+    },
+    {
+      "id": "escoffier-q",
+      "kind": "action",
+      "actor": "member3",
+      "action": "burst",
+      "timeMs": 5500,
+      "动作说明": "5.5秒，爱可菲施放花刀技法。"
+    },
+    {
+      "id": "mona-q",
+      "kind": "action",
+      "actor": "member4",
+      "action": "burst",
+      "timeMs": 8000,
+      "params": {
+        "bubbleDelayMs": 2000
+      },
+      "动作说明": "8秒，莫娜施放星命定轨，泡影附加后延迟2秒破裂。"
+    },
+    {
+      "id": "skirk-e",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 9000,
+      "动作说明": "9秒，丝柯克施放元素战技·点按。"
+    },
+    {
+      "id": "skirk-opening-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 9250,
+      "动作说明": "9.25秒，丝柯克施放普通攻击·第1式。"
+    },
+    {
+      "id": "skirk-opening-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 9500,
+      "动作说明": "9.5秒，丝柯克施放普通攻击·第2式。"
+    },
+    {
+      "id": "skirk-q",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 9500,
+      "params": {
+        "absorbedRifts": 3
+      },
+      "动作说明": "9.5秒，丝柯克施放元素爆发，吸收3个裂隙。"
+    },
+    {
+      "id": "skirk-r1-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 10000,
+      "动作说明": "10秒，丝柯克施放普通攻击·第1式。"
+    },
+    {
+      "id": "skirk-r1-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 10500,
+      "动作说明": "10.5秒，丝柯克施放普通攻击·第2式。"
+    },
+    {
+      "id": "skirk-r1-n3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 11000,
+      "动作说明": "11秒，丝柯克施放普通攻击·第3式。"
+    },
+    {
+      "id": "skirk-r1-n4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 11500,
+      "动作说明": "11.5秒，丝柯克施放普通攻击·第4式。"
+    },
+    {
+      "id": "skirk-r1-n5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 12000,
+      "动作说明": "12秒，丝柯克施放普通攻击·第5式。"
+    },
+    {
+      "id": "skirk-r2-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 13000,
+      "动作说明": "13秒，丝柯克施放普通攻击·第1式。"
+    },
+    {
+      "id": "skirk-r2-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 13500,
+      "动作说明": "13.5秒，丝柯克施放普通攻击·第2式。"
+    },
+    {
+      "id": "skirk-r2-n3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 14000,
+      "动作说明": "14秒，丝柯克施放普通攻击·第3式。"
+    },
+    {
+      "id": "skirk-r2-n4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 14500,
+      "动作说明": "14.5秒，丝柯克施放普通攻击·第4式。"
+    },
+    {
+      "id": "skirk-r2-n5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 15000,
+      "动作说明": "15秒，丝柯克施放普通攻击·第5式。"
+    },
+    {
+      "id": "skirk-r3-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 16000,
+      "动作说明": "16秒，丝柯克施放普通攻击·第1式。"
+    },
+    {
+      "id": "skirk-r3-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 16500,
+      "动作说明": "16.5秒，丝柯克施放普通攻击·第2式。"
+    },
+    {
+      "id": "skirk-r3-n3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 17000,
+      "动作说明": "17秒，丝柯克施放普通攻击·第3式。"
+    },
+    {
+      "id": "skirk-r3-n4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 17500,
+      "动作说明": "17.5秒，丝柯克施放普通攻击·第4式。"
+    },
+    {
+      "id": "skirk-r3-n5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 18000,
+      "动作说明": "18秒，丝柯克施放普通攻击·第5式。"
+    },
+    {
+      "id": "skirk-c",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 19000,
+      "params": {
+        "absorbedRifts": 2
+      },
+      "动作说明": "19秒，丝柯克施放重击，吸收2个裂隙。"
+    },
+    {
+      "id": "skirk-r4-n1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 20000,
+      "动作说明": "20秒，丝柯克施放普通攻击·第1式。"
+    },
+    {
+      "id": "skirk-r4-n2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 20500,
+      "动作说明": "20.5秒，丝柯克施放普通攻击·第2式。"
+    },
+    {
+      "id": "skirk-r4-n3",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 21000,
+      "动作说明": "21秒，丝柯克施放普通攻击·第3式。"
+    },
+    {
+      "id": "skirk-r4-n4",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.4",
+      "timeMs": 21500,
+      "动作说明": "21.5秒，丝柯克施放普通攻击·第4式。"
+    },
+    {
+      "id": "skirk-r4-n5",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.5",
+      "timeMs": 22000,
+      "动作说明": "22秒，丝柯克施放普通攻击·第5式。"
+    }
+  ],
+  "说明": {
+    "原始资料": "cs.gensri.wiki现有输出轴md.rar／丝柯克／莫娜队.md",
+    "队伍成员": [
+      "丝柯克",
+      "芙宁娜",
+      "爱可菲",
+      "莫娜"
+    ],
+    "默认方案": "莫娜按此前确认在8秒施放元素爆发，泡影附加后延迟2秒破裂。",
+    "参考轴长（秒）": 22,
+    "命座说明": "文件只保存操作轴，导入不会改动你的角色命座、武器或圣遗物；请在计算面板使用对应配置。",
+    "时间说明": "时间字段以毫秒保存，中文动作说明以秒显示。施放与命中分开；自动追加、召唤、资源与增益由软件计算。",
+    "转换注意": [
+      "按用户附件的操作轴转换。命座追加、召唤物、治疗与增益由当前引擎派生；不包含配装、库存或固定伤害。",
+      "原文只有一条动作轴，明确说明丝柯克C1/C6不改变操作时间，因此不重复交付命座轴。",
+      "原表将施放与命中混写。芙宁娜Q的2.5秒按命中时点转换为0.5秒施放（当前Q延迟2秒），沿此前沃雅动作样例口径。其余明确施放时点保留；芙宁娜E在0秒施放，泡沫实际0.3秒命中；爱可菲E在3秒施放，初段由23/60秒延迟派生。持续伤害依当前角色时钟，不写成额外动作。",
+      "普攻沿原文0.5秒均分时刻（开场两式0.25秒）；同刻按原文先第二式、再Q。Q吸收3裂隙、重击吸收2裂隙，来自原文C1追加数量及既有动作样例；裂隙自动生成未接入。C1/C6追加由角色规则派生。七相资源到期由引擎决定，不强制维持到轴尾。",
+      "不抄录原文固定增益覆盖、命座伤害段、召唤物命中表或固定气氛。满能起步，未验证循环充能。",
+      "原文8秒写元素战技却注明星异。按2026-10-28用户已确认的纠正，仅在8秒施放Q，不补E；保留用户已给的破泡延迟2000毫秒。当前延迟从泡影附加起算，泡影附加为Q后107/60秒，命中约11.8秒，10级星异结束约16.783秒，不能复现原参考表固定8～15秒。",
+      "芙宁娜元素爆发原表同时写施放与命中，本文件按2.5秒命中倒推至0.5秒施放；其余召唤物、天赋、命座和增益由软件实际规则生成。"
+    ]
+  }
+}

@@ -19,22 +19,24 @@ test('the login page opens Home for online and offline entry even with an old re
     const source = fs.readFileSync(new URL('../src/pages/LoginPage/LoginPage.vue', import.meta.url), 'utf8')
     const script = compileScript(parse(source).descriptor, { id: 'login-routes' }).content
         .replace(/^import .*\r?\n/gm, '').replace('export default', 'module.exports =')
-    function openPage({ configUser = null, loginUser = user, offlineChosen = false, sharePath = '' } = {}) {
+    function openPage({ configUser = null, loginUser = user, sharePath = '' } = {}) {
         const events = []
         let mount
         const module = {}
+        const returnPath = ref(sharePath)
         vm.runInNewContext(script, {
             module, computed, ref, watch, process, isNative: false, setInterval: () => 0,
             IconEpRight: null, StarField: null, AstrolabeDial: null, MonaPortrait: null,
+            UiAlert: null, UiButton: null, UiInput: null, UiPasswordInput: null,
             onMounted: fn => { mount = fn }, onBeforeUnmount() {},
-            useRoute: () => ({ query: { redirect: '/team-optimization?share=resume' } }),
+            useRoute: () => ({ name: 'login', query: { redirect: '/team-optimization?share=resume' } }),
             useRouter: () => ({ replace: destination => events.push(destination.name ?? destination) }),
             cloudApi: async path => ({ user: path === 'config' ? configUser : loginUser }),
-            isOfflineChosen: () => offlineChosen, contentShareReturnPath: ref(sharePath),
+            contentShareReturnPath: returnPath,
             chooseOffline: () => events.push('offline'), clearOfflineChoice: () => events.push('online'),
         })
         const page = module.exports.setup({}, { expose() {} })
-        return { events, mount, page }
+        return { events, mount, page, returnPath }
     }
     const offline = openPage()
     offline.page.continueOffline()
@@ -59,11 +61,12 @@ test('the login page opens Home for online and offline entry even with an old re
     assert.deepEqual(activeSession.events, ['home'])
 
     const sharePath = '/calculate?mode=synthetic'
-    const shareLogin = openPage({ offlineChosen: true, sharePath })
-    shareLogin.page.account.value = 'synthetic'
-    shareLogin.page.password.value = 'synthetic-password'
-    await shareLogin.page.submit()
-    assert.deepEqual(shareLogin.events, ['online', sharePath])
+    // Keep the same LoginPage instance across ordinary and share login.
+    online.returnPath.value = sharePath
+    await online.page.submit()
+    online.returnPath.value = ''
+    online.page.continueOffline()
+    assert.deepEqual(online.events, ['online', 'home', 'online', sharePath, 'offline', 'home'])
 
     const shareOffline = openPage({ sharePath })
     shareOffline.page.continueOffline()
@@ -78,6 +81,7 @@ test('preset and DSL share forms keep their draft until navigation returns to th
         const route = reactive({ name: 'calculate', fullPath: '/calculate?mode=synthetic' })
         const sourcePath = route.fullPath
         const draft = ref(null)
+        const returnPath = ref('')
         const module = {}
         const events = new EventTarget()
         const destinations = []
@@ -85,8 +89,9 @@ test('preset and DSL share forms keep their draft until navigation returns to th
         let published
         function navigate(name, fullPath) { Object.assign(route, { name, fullPath }) }
         vm.runInNewContext(script, {
-            module, computed, ref, watch, draft, returnPath: ref(''),
+            module, computed, ref, watch, draft, returnPath,
             CharacterPortrait: null, characterData: {}, locale: {},
+            UiAlert: null, UiButton: null, UiCheckbox: null, UiDialog: null, UiInput: null, UiSegmentedControl: null,
             useRoute: () => route,
             useRouter: () => ({ push: destination => { destinations.push(destination); navigate('login', '/login') } }),
             useAccountStore: () => ({ currentAccountId: ref(1) }),
@@ -101,7 +106,7 @@ test('preset and DSL share forms keep their draft until navigation returns to th
             },
         })
         const page = module.exports.setup({}, { expose() {} })
-        draft.value = { kind, content: { title: 'Initial title' }, equipment: [{ slot: 'Flower' }], requestId: 'synthetic' }
+        draft.value = { kind, content: { title: 'Initial title' }, equipment: [{ slot: 'Flower' }], requestId: 'synthetic', shadcn: true }
         page.title.value = 'Edited title'
         page.term.value = '7'
         page.withGear.value = kind === 'preset'
@@ -110,12 +115,10 @@ test('preset and DSL share forms keep their draft until navigation returns to th
 
         signedIn = true
         events.dispatchEvent(new Event('mona-cloud-context-change'))
-        navigate('home', '/')
-        await nextTick()
-        assert.equal(page.visible.value, false)
         navigate('calculate', sourcePath)
         await nextTick()
         assert.equal(page.visible.value, true)
+        assert.equal(returnPath.value, '')
         assert.deepEqual(JSON.parse(JSON.stringify(destinations)), [{ name: 'login' }])
         assert.equal(page.title.value, 'Edited title')
         assert.equal(page.term.value, '7')
@@ -124,6 +127,15 @@ test('preset and DSL share forms keep their draft until navigation returns to th
         assert.equal(published.content.title, 'Edited title')
         assert.equal(published.days, 7)
         if (kind === 'preset') assert.deepEqual(published.content.equipment, draft.value.equipment)
+
+        signedIn = false
+        draft.value = { kind, content: { title: 'Abandoned' }, requestId: 'abandoned' }
+        await page.publish()
+        assert.equal(returnPath.value, sourcePath)
+        navigate('home', '/')
+        await nextTick()
+        assert.equal(returnPath.value, '')
+        assert.equal(draft.value, null)
     }
 })
 

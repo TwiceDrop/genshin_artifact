@@ -1,6 +1,10 @@
 <template>
-    <div class="attribute-item">
-        <el-tooltip>
+    <div class="attribute-item" :class="{ 'calculator-attribute': shadcn }">
+        <UiHoverDetails v-if="shadcn" enabled :tap-label="title">
+            <template #trigger><button class="title stat-details-trigger" type="button">{{ title }}</button></template>
+            <attribute-composition :composition="composition" :percentage="percentage" />
+        </UiHoverDetails>
+        <el-tooltip v-else>
             <span class="title">{{ title }}</span>
             <template #content>
 <!--                <div slot="content">-->
@@ -17,14 +21,17 @@
 
 <script>
 import AttributeComposition from "./AttributeComposition"
+import UiHoverDetails from '@/components/ui/UiHoverDetails.vue'
 import { attributeComparison } from '@/algorithms/attribute-comparison.mjs'
 
 export default {
     name: "AttributeItem",
     components: {
-        AttributeComposition
+        AttributeComposition,
+        UiHoverDetails,
     },
     props: {
+        shadcn: Boolean,
         composition: {},
         baseline: {},
         title: {},
@@ -74,5 +81,32 @@ export default {
         color: #909399;
         font-weight: bold;
     }
+}
+.calculator-attribute {
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--cx-step-2);
+    background: transparent;
+    .stat-details-trigger {
+        min-width: 0;
+        padding: 2px 4px;
+        max-width: 55%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        flex-shrink: 1;
+        text-align: start;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--cx-dim);
+        font: inherit;
+        font-weight: 600;
+        cursor: help;
+    }
+    .stat-details-trigger:hover { color: var(--cx-gold); }
+    .stat-details-trigger:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+    .value { font-variant-numeric: tabular-nums; }
+    .before-value { color: var(--cx-dim); }
+    .increase { color: var(--cx-up); }
+    .decrease { color: var(--cx-down); }
 }
 </style>

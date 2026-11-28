@@ -1,4 +1,5 @@
 import {PANEL_SLOTS, PANEL_STATS, readPanel} from './panel-search.mjs'
+import {createDamagePanelPruner, hasContradictoryDamageBounds} from './damage-panel-bounds.mjs'
 
 const RESULT_LIMIT = 100
 const resultSlots = PANEL_SLOTS.map(slot => slot.toLowerCase())
@@ -7,44 +8,19 @@ export function hasPanelMaximums(input) {
     return PANEL_STATS.some(({key}) => input?.constraint?.panel_max?.[key] != null)
 }
 
-export function withDamagePanelRangeOptimization(api) {
+export function withDamagePanelRangeOptimization(api, validateCandidates) {
     return {...api, OptimizeSingleWasm: new Proxy(api.OptimizeSingleWasm, {
         get(target, method) {
             const fn = Reflect.get(target, method)
             if (method !== 'optimize') return fn
             return (input, artifacts, onProgress) => hasPanelMaximums(input)
-                ? optimizeWithPanelMaximums(api, input, artifacts, onProgress)
+                ? optimizeWithPanelMaximums(api, input, artifacts, validateCandidates, onProgress)
                 : fn(input, artifacts)
         },
     })}
 }
 
-function createHealthPruner(api, input, pools, maximum) {
-    if (maximum == null || input.buffs?.length !== 0 || input.target_function?.use_dsl ||
-        pools.some(pool => !pool.length)) return null
-
-    // With no configured buffs, equipping gear keeps the no-artifact HP and
-    // adds flat HP and nonnegative HP percentage/set bonuses. A flower's flat
-    // main stat alone can raise the floor without modelling any conversions.
-    const hasNegativeHealth = pools.some(pool => pool.some(artifact =>
-        [artifact.main_stat, ...artifact.sub_stats].some(([stat, value]) =>
-            (stat === 'HPFixed' || stat === 'HPPercentage') && value < 0)))
-    if (hasNegativeHealth) return null
-
-    const {hp: unequippedHp} = readPanel(api, input, [])
-    const flowerMinimums = new WeakMap()
-    return ([flowers]) => {
-        if (!flowerMinimums.has(flowers)) {
-            flowerMinimums.set(flowers, flowers.reduce((minimum, {main_stat: [stat, value]}) =>
-                Math.min(minimum, stat === 'HPFixed' ? value : 0), Infinity))
-        }
-        const floor = unequippedHp + flowerMinimums.get(flowers)
-        // A different native addition order can round panel totals at a tie.
-        return floor - Math.abs(floor) * 16 * Number.EPSILON > maximum
-    }
-}
-
-function optimizeWithPanelMaximums(api, input, artifacts, onProgress) {
+function optimizeWithPanelMaximums(api, input, artifacts, validateCandidates, onProgress) {
     const maximums = PANEL_STATS.filter(({key}) => input.constraint.panel_max[key] != null)
     const {panel_max, ...constraint} = input.constraint
     const nativeInput = {...input, constraint}
@@ -62,7 +38,14 @@ function optimizeWithPanelMaximums(api, input, artifacts, onProgress) {
     const artifactsById = new Map(artifacts.map(a => [a.id, a]))
     const combinations = domains => domains.reduce((count, pool) => count * Math.max(1, pool.length), 1)
     const candidateSpace = combinations(pools)
-    const exceedsHealthCap = createHealthPruner(api, nativeInput, pools, panel_max.hp)
+    const contradictory = hasContradictoryDamageBounds(input.constraint)
+    // Heuristic can discard whole slots before the native search. Bounds over
+    // complete five-piece builds cannot exclude those partial results.
+    const canPrune = !input.target_function?.use_dsl &&
+        (input.algorithm === undefined || input.algorithm === 'AStar' || input.algorithm === 'Naive')
+    const prune = canPrune && !contradictory
+        ? createDamagePanelPruner(api, nativeInput, pools, input.constraint)
+        : null
     const fitsByBuild = new Map()
     let best = [], covered = 0, evaluated = 0, lastReport = -Infinity
     function report(force = false) {
@@ -76,7 +59,9 @@ function optimizeWithPanelMaximums(api, input, artifacts, onProgress) {
 
     function visit(domains) {
         const remaining = combinations(domains)
-        if (exceedsHealthCap?.(domains)) {
+        if (contradictory || prune?.(domains)) {
+            // A root prune bypasses the native inventory check.
+            if (domains === pools) validateCandidates(nativeInput, artifacts)
             covered += remaining
             report()
             return

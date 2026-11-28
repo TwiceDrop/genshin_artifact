@@ -32,10 +32,8 @@
 
             <div class="setup-row">
                 <label class="setup-row-label" for="setup-locale">{{ t("misc.lang") }}</label>
-                <el-select id="setup-locale" class="setup-locale" :model-value="locale" @update:modelValue="handleSetLocale($event)">
-                    <el-option label="简体中文" value="zh-cn"></el-option>
-                    <el-option label="English" value="en"></el-option>
-                </el-select>
+                <UiSelect id="setup-locale" :label="t('misc.lang')" :model-value="locale" :options="localeOptions"
+                    @update:model-value="handleSetLocale" />
             </div>
 
             <!-- 内容补丁：显示正在生效的补丁号（没有补丁显示「无」），并可关闭自动获取；构建没有配置补丁通道时不显示 -->
@@ -44,7 +42,7 @@
                 <div class="setup-patch">
                     <span class="setup-patch-value">{{ activePatch || '无' }}</span>
                     <span id="setup-patch-auto" class="setup-patch-auto">自动获取内容补丁</span>
-                    <el-switch :model-value="automaticPatches" aria-label="自动获取内容补丁" @update:model-value="changeAutomaticPatches"></el-switch>
+                    <UiSwitch :model-value="automaticPatches" aria-label="自动获取内容补丁" @update:model-value="changeAutomaticPatches" />
                 </div>
             </div>
 
@@ -53,57 +51,63 @@
                     <span>{{ t('usageStats.title') }}</span>
                     <p>{{ t('usageStats.notice') }}</p>
                 </div>
-                <el-switch :model-value="usageStatsConsent === 'on'" :aria-label="t('usageStats.title')"
-                    @update:model-value="setUsageStatsConsent($event ? 'on' : 'off')"></el-switch>
+                <UiSwitch :model-value="usageStatsConsent === 'on'" :aria-label="t('usageStats.title')"
+                    @update:model-value="setUsageStatsConsent($event ? 'on' : 'off')" />
             </div>
 
             <div class="setup-row">
                 <span class="setup-row-label">{{ t("setupPage.storage") }}</span>
-                <el-popconfirm @confirm="handleClearLocalStorage" :title="t('setupPage.confirmClear')"
-                               :confirm-button-text="t('misc.clear')" :cancel-button-text="t('misc.cancel')" :teleported="false">
-                    <template #reference>
-                        <button type="button" class="setup-danger"><icon-ep-delete aria-hidden="true" />{{ t("setupPage.clear") }}</button>
-                    </template>
-                </el-popconfirm>
+                <UiConfirmPopover :title="t('setupPage.confirmClear')" :confirm-text="t('misc.clear')" :cancel-text="t('misc.cancel')"
+                    @confirm="handleClearLocalStorage">
+                    <button type="button" class="setup-danger"><icon-ep-delete aria-hidden="true" />{{ t("setupPage.clear") }}</button>
+                </UiConfirmPopover>
             </div>
         </section>
 
         <section class="setup-card migration-actions" data-tour="setup.migration" aria-label="数据迁移">
             <button id="export-data" type="button" class="setup-plain" :disabled="transferring" @click="exportAccounts">导出数据</button>
-            <button type="button" class="setup-plain" :disabled="transferring" @click="backupFile?.click()">导入数据</button>
+            <button ref="backupTrigger" type="button" class="setup-plain" :disabled="transferring" @click="backupFile?.click()">导入数据</button>
             <input ref="backupFile" type="file" accept=".json,application/json" hidden @change="previewFile">
         </section>
         <section class="setup-card" data-tour="setup.phone-transfer" aria-labelledby="phone-transfer-title">
             <h3 id="phone-transfer-title">手机互传</h3>
             <phone-transfer />
         </section>
-        <el-dialog v-model="previewOpen" title="导入数据" width="min(480px, 92vw)" append-to-body
-                   :close-on-click-modal="!transferring" :close-on-press-escape="!transferring" :show-close="!transferring" @closed="pendingBackup = null">
+        <UiDialog v-model="previewOpen" title="导入数据" width="min(480px, 92vw)" top="15vh" focus-container :return-focus="restoreBackupFocus"
+            :prevent-outside="transferring" :hide-close="transferring"
+            @escape-key-down="transferring && $event.preventDefault()" @closed="pendingBackup = null">
             <ul class="backup-preview">
                 <li v-for="account in previewAccounts" :key="account.id">
                     <strong>{{ account.name }}</strong>
                     <div>{{ account.uids }} 个 UID · {{ account.artifacts }} 件圣遗物 · {{ account.axes }} 条四人轴 · {{ account.history }} 条计算记录</div>
                 </li>
             </ul>
-            <el-checkbox v-if="pendingBackup?.preferences" v-model="usePreferences">同时导入语言和外观设置</el-checkbox>
+            <UiCheckbox v-if="pendingBackup?.preferences" v-model="usePreferences">同时导入语言和外观设置</UiCheckbox>
             <template #footer>
-                <el-button :disabled="transferring" @click="previewOpen = false">取消</el-button>
-                <el-button type="primary" :loading="transferring" @click="importAccounts">导入为新账号</el-button>
+                <UiButton :disabled="transferring" @click="previewOpen = false">取消</UiButton>
+                <UiButton class="backup-import-button" variant="primary" :loading="transferring" @click="importAccounts">导入为新账号</UiButton>
             </template>
-        </el-dialog>
+        </UiDialog>
+        <UiLoadingOverlay v-if="localeLoading" :message="t('setupPage.loading')" />
     </div>
 </template>
 
 <script setup lang="ts">
 import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import {controller, openHub, resetProgress} from "@/onboarding/controller.mjs"
+import UiButton from '@/components/ui/UiButton.vue'
+import UiCheckbox from '@/components/ui/UiCheckbox.vue'
+import UiConfirmPopover from '@/components/ui/UiConfirmPopover.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
+import UiLoadingOverlay from '@/components/ui/UiLoadingOverlay.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
+import UiSwitch from '@/components/ui/UiSwitch.vue'
 import PhoneTransfer from './PhoneTransfer.vue'
 import localforage from "localforage"
 import { computed, nextTick, ref, shallowRef } from 'vue'
-import { ElMessage } from 'element-plus'
 import backend from '@/store/backend'
 import { accountReady, useAccountStore, reload } from '@/store/pinia/account'
-import { calculationState, calculationHistory } from '@/store/calculation-history'
+import { calculationState, calculationHistory, showCalculationNotice } from '@/store/calculation-history'
 import { flushTeamDpsWrites } from '../../../beta-data/team-dps-library.mjs'
 import { backupCounts, validateBackup } from '@/store/account-backup.mjs'
 import { downloadString } from '@/utils/common'
@@ -125,11 +129,18 @@ const modes = [
 
 const { t, setLocale, locale } = useI18n()
 const router = useRouter()
+const localeOptions = [{ value: 'zh-cn', label: '简体中文' }, { value: 'en', label: 'English' }]
+const localeLoading = ref(false)
 
 const transferring = ref(false), previewOpen = ref(false), usePreferences = ref(false)
+const backupTrigger = ref<HTMLButtonElement | null>(null)
 const backupFile = ref<HTMLInputElement | null>(null), pendingBackup = shallowRef<any>(null)
 const previewAccounts = computed(() => (pendingBackup.value?.accounts || []).map((account: any) =>
     ({ id: account.id, name: account.name, ...backupCounts(account) })))
+
+function restoreBackupFocus() {
+    backupTrigger.value?.focus({ preventScroll: true })
+}
 
 async function settlePlayerData() {
     await accountReady
@@ -149,7 +160,7 @@ async function exportAccounts() {
         await settlePlayerData()
         const pack = await backend.exportBackup(process.env.MONA_VERSION, { locale: locale.value, colorMode: colorMode.value })
         await downloadString(JSON.stringify(pack), 'application/json', 'mona-backup-' + pack.exportedAt.slice(0, 10) + '.json')
-    } catch (error) { ElMessage.error('导出失败：' + String(error)) }
+    } catch (error) { showCalculationNotice('error', '导出失败：' + String(error)) }
     finally { transferring.value = false }
 }
 
@@ -163,7 +174,7 @@ async function previewFile(event: Event) {
         pendingBackup.value = validateBackup(JSON.parse(await file.text()))
         usePreferences.value = false
         previewOpen.value = true
-    } catch (error) { ElMessage.error('无法读取备份：' + String(error)) }
+    } catch (error) { showCalculationNotice('error', '无法读取备份：' + String(error)) }
     finally { transferring.value = false }
 }
 
@@ -180,8 +191,8 @@ async function importAccounts() {
             if (['light', 'dark', 'auto'].includes(prefs.colorMode)) setColorMode(prefs.colorMode)
         }
         previewOpen.value = false
-        ElMessage.success('已导入 ' + pack.accounts.length + ' 个新账号')
-    } catch (error) { ElMessage.error(String(error)) }
+        showCalculationNotice('success', '已导入 ' + pack.accounts.length + ' 个新账号')
+    } catch (error) { showCalculationNotice('error', String(error)) }
     finally { transferring.value = false }
 }
 
@@ -202,16 +213,12 @@ function handleClearLocalStorage() {
 }
 
 async function handleSetLocale(lang: string) {
-    const loading = ElLoading.service({
-        fullscreen: true,
-        lock: true,
-        text: t("setupPage.loading"),
-    })
+    localeLoading.value = true
 
     await nextTick()
 
     await setLocale(lang).finally(() => {
-        loading.close()
+        localeLoading.value = false
     })
     recordUsage('action.locale-change')
 }
@@ -427,8 +434,12 @@ async function handleSetLocale(lang: string) {
     }
 }
 
-.setup-locale {
+.setup-row :deep(#setup-locale) {
     width: 180px;
+}
+
+.backup-import-button {
+    margin-inline-start: 12px;
 }
 
 // 内容补丁一行：补丁号、开关名和开关排成一组，窄屏上换行
@@ -492,7 +503,7 @@ async function handleSetLocale(lang: string) {
         height: 60px;
     }
 
-    .setup-locale {
+    .setup-row :deep(#setup-locale) {
         width: 140px;
     }
 }

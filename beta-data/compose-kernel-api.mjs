@@ -4,7 +4,7 @@
 import {withLegacyEnemyBridge} from './enemy-interface.mjs';
 import {withLegacyEffectBridge} from './legacy-effect-bridge.mjs';
 import {createFacade} from './facade.mjs';
-import {createBeta2} from './vesna-facade.mjs';
+import {createBeta2,createVesnaCandidateValidator} from './vesna-facade.mjs';
 import {createLimitedWeaponFacade} from './limited-weapon-facade.mjs';
 import {createStellarSupportFacade} from './stellar-support-facade.mjs';
 import {createStrengthenedFacade} from './strengthened-facade.mjs';
@@ -33,11 +33,12 @@ export function composeKernelApi({rawOriginal, core, extension, SegmentExpressio
     const data = applyDataOverlay(packaged, overlay);
     const original = withLegacyEffectBridge(withLegacyEnemyBridge(rawOriginal, core), core);
     const base = createFacade(original, extension, data.vodyanitsa, data.support, data.characters);
-    const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(base, extension, data.support), original, data.weapons, data.signatureWeapons), original);
+    const validateCandidates = createVesnaCandidateValidator(data.support);
+    const stellar = createStellarSupportFacade(createLimitedWeaponFacade(createBeta2(base, extension, data.support, validateCandidates), original, data.weapons, data.signatureWeapons), original);
     const strengthened = createStrengthenedFacade(stellar.facade, stellar.transformStellarTarget);
     const api = withInterfaceContracts(withDirectReactionScope(withLunarDamageContexts(withLumineTraveler(withHybridTeamOptimization(
         createExpandedWeaponsFacade(createPreview7201Facade(strengthened, extension), original, extension))))));
-    const panelApi = withDamagePanelRangeOptimization(api);
+    const panelApi = withDamagePanelRangeOptimization(api, validateCandidates);
     return {api: SegmentExpression ? withDslSegmentTargets(panelApi, SegmentExpression, {
         characters: data.characters, weapons, skillNames: data.skillNames,
     }) : panelApi, original};

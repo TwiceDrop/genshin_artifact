@@ -1,5 +1,28 @@
 <template>
     <div class="select-buff-root">
+        <template v-if="shadcn">
+            <UiSearchInput v-model="searchString" class="buff-search-input" :placeholder="t('misc.search')" />
+            <TabsRoot v-model="activeTab" class="buff-selection">
+                <TabsList class="buff-tab-list" aria-label="BUFF">
+                    <TabsTrigger v-for="genre in genres" :key="genre" :value="genre" class="buff-tab">{{ t('buffGenre', genre) }}</TabsTrigger>
+                </TabsList>
+                <TabsContent v-for="genre in genres" :key="genre" :value="genre" force-mount
+                    class="tab-pane buff-tab-pane mona-scroll" :hidden="activeTab !== genre">
+                    <CharacterBuffGroups v-if="genre === 'Character'" shadcn :buffs="buffsFlatWithLocale" :search="searchString"
+                        :preferred-uid="preferredUid" :selected-names="selectedNames" @select="(name, options) => emits('select', name, options)" />
+                    <template v-else>
+                        <UiButton v-for="buff in buffByGenre[genre]" :key="buff.name" class="buff-item buff-choice" @click="handleClick(buff.name)">
+                            <img :src="buff.badge" alt="" class="buff-image" loading="lazy" />
+                            <span class="detail-right">
+                                <span class="buff-name">{{ buff.title }}</span>
+                                <span v-if="buff.description" class="buff-description" v-html="buff.description" />
+                            </span>
+                        </UiButton>
+                    </template>
+                </TabsContent>
+            </TabsRoot>
+        </template>
+        <template v-else>
         <el-input
             v-model="searchString"
             class="buff-search-input"
@@ -40,6 +63,7 @@
                 </el-tab-pane>
             </template>
         </el-tabs>
+        </template>
     </div>
 </template>
 
@@ -47,8 +71,11 @@
 import { buffFlat } from "@buff"
 import Fuse from "fuse.js"
 import {useI18n} from "@/i18n/i18n";
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'radix-vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiSearchInput from '@/components/ui/UiSearchInput.vue'
 import CharacterBuffGroups from './CharacterBuffGroups.vue'
-defineProps<{ preferredUid?: string, selectedNames?: string[] }>()
+defineProps<{ preferredUid?: string, selectedNames?: string[], shadcn?: boolean }>()
 
 const genres = [
     "Character",
@@ -135,6 +162,22 @@ function handleClick(name: string) {
 </script>
 
 <style lang="scss" scoped>
+.buff-tab-list { display: flex; overflow-x: auto; margin-bottom: 15px; border-bottom: 1px solid var(--cx-step-2); }
+.buff-tab { flex: none; height: 39px; padding: 0 20px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--cx-dim); font: inherit; cursor: pointer; }
+.buff-tab:first-child { padding-inline-start: 0; }
+.buff-tab:last-child { padding-inline-end: 0; }
+.buff-tab:hover { color: var(--cx-letter); }
+.buff-tab[data-state="active"] { border-bottom-color: var(--cx-gold); color: var(--cx-gold); font-weight: 600; }
+@media (max-width: 767px) {
+    .buff-tab-list { flex-wrap: wrap; gap: 2px 4px; overflow: visible; }
+    .buff-tab, .buff-tab:is(:first-child, :last-child) { height: 34px; padding-inline: 7px; font-size: 13px; white-space: nowrap; }
+}
+.buff-tab:focus-visible, .buff-tab-pane:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: -2px; }
+.buff-tab-pane { overflow: auto; }
+.buff-tab-pane[hidden] { display: none; }
+.buff-choice { width: 100%; justify-content: flex-start; background: var(--cx-card); text-align: start; font-weight: 400; }
+.buff-choice .buff-name, .buff-choice .buff-description { display: block; }
+
 .buff-search-input {
     margin-bottom: 12px;
 }

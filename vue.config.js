@@ -5,7 +5,6 @@ const { readFileSync, existsSync } = require("fs")
 // const webpack = require("webpack")
 const { execSync } = require("child_process")
 const yaml = require("js-yaml")
-const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin")
 const AutoImport = require("unplugin-auto-import/webpack")
 const Components = require("unplugin-vue-components/webpack")
 const { ElementPlusResolver } = require("unplugin-vue-components/resolvers")
@@ -167,6 +166,10 @@ module.exports = {
         // Let the browser parse the newer release WASM (the old webpack parser
         // cannot read its data-count section). Keep ordinary Rust builds intact.
         config.module.rule('release-wasm-asset').resourceQuery(/raw-wasm/).type('asset/resource')
+        config.module.rule('target-rust-source')
+            .test(/\.rs$/)
+            .include.add(path.resolve(__dirname, 'mona_core/src/target_functions/target_functions')).end()
+            .type('asset/source')
         // use custom i18n loader
         config.module.rule("i18n-js")
             .test(/\.i18n$/)
@@ -184,8 +187,6 @@ module.exports = {
             })
             return definitions
         })
-
-        config.plugin("monaco").use(new MonacoWebpackPlugin())
     },
     productionSourceMap: false,
 }

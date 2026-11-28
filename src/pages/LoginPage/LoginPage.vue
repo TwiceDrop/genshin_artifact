@@ -10,11 +10,11 @@
             <!-- 还没有用户名的老账号登录后，先提示设置用户名，可以稍后在设置页再设 -->
             <form v-if="mode === 'naming'" class="login-form" @submit.prevent="saveUsername">
                 <h2 class="login-step">设置用户名</h2>
-                <el-input v-model="username" size="large" maxlength="16" placeholder="2–16 个字" aria-label="用户名" :disabled="busy" />
-                <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
-                <el-button class="login-submit" type="primary" size="large" round native-type="submit" :loading="busy"
-                           :disabled="!username.trim()">保存</el-button>
-                <el-button class="login-link login-center" link :disabled="busy" @click="leave">稍后设置</el-button>
+                <UiInput v-model="username" class="login-input" maxlength="16" placeholder="2–16 个字" aria-label="用户名" :disabled="busy" />
+                <UiAlert v-if="error" tone="error">{{ error }}</UiAlert>
+                <UiButton class="login-submit" variant="primary" type="submit" :loading="busy"
+                           :disabled="!username.trim()">保存</UiButton>
+                <UiButton class="login-link login-center" :disabled="busy" @click="leave">稍后设置</UiButton>
             </form>
 
             <template v-else>
@@ -27,37 +27,37 @@
 
                 <form class="login-form" @submit.prevent="submit">
                     <template v-if="mode === 'password'">
-                        <el-input v-model="account" size="large" autocomplete="username" placeholder="邮箱或用户名"
+                        <UiInput v-model="account" class="login-input" autocomplete="username" placeholder="邮箱或用户名"
                                   aria-label="邮箱或用户名" :disabled="busy" />
-                        <el-input v-model="password" type="password" show-password size="large" autocomplete="current-password"
+                        <UiPasswordInput v-model="password" class="login-input" autocomplete="current-password"
                                   placeholder="密码" aria-label="密码" :disabled="busy" />
                     </template>
 
                     <template v-else>
-                        <el-input v-model="email" type="email" size="large" autocomplete="email" placeholder="邮箱" aria-label="邮箱"
+                        <UiInput v-model="email" type="email" class="login-input" autocomplete="email" placeholder="邮箱" aria-label="邮箱"
                                   :disabled="busy" />
                         <div class="login-code">
-                            <el-input v-model="code" size="large" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+                            <UiInput v-model="code" class="login-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
                                       placeholder="验证码" aria-label="邮箱验证码" :disabled="busy" />
-                            <el-button size="large" round :disabled="busy || !email.trim() || cooldown > 0" @click="requestCode">
+                            <UiButton class="login-code-send" :disabled="busy || !email.trim() || cooldown > 0" @click="requestCode">
                                 {{ cooldown ? `${cooldown} 秒后重发` : '发送验证码' }}
-                            </el-button>
+                            </UiButton>
                         </div>
-                        <el-input v-if="mode === 'register'" v-model="username" size="large" maxlength="16" autocomplete="username"
+                        <UiInput v-if="mode === 'register'" v-model="username" class="login-input" maxlength="16" autocomplete="username"
                                   placeholder="用户名（2–16 个字）" aria-label="用户名" :disabled="busy" />
                         <template v-if="mode === 'register' || mode === 'reset'">
-                            <el-input v-model="password" type="password" show-password size="large" autocomplete="new-password"
+                            <UiPasswordInput v-model="password" class="login-input" autocomplete="new-password"
                                       :placeholder="mode === 'reset' ? '新密码（8–64 个字符）' : '密码（8–64 个字符）'"
                                       :aria-label="mode === 'reset' ? '新密码' : '密码'" :disabled="busy" />
-                            <el-input v-model="confirmPassword" type="password" show-password size="large" autocomplete="new-password"
+                            <UiPasswordInput v-model="confirmPassword" class="login-input" autocomplete="new-password"
                                       placeholder="再次输入密码" aria-label="再次输入密码" :disabled="busy" />
                         </template>
                     </template>
 
-                    <el-alert v-if="notice" :title="notice" type="success" :closable="false" show-icon />
-                    <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
-                    <el-button class="login-submit" type="primary" size="large" round native-type="submit" :loading="busy"
-                               :disabled="!ready">{{ submitLabel }}</el-button>
+                    <UiAlert v-if="notice" tone="success">{{ notice }}</UiAlert>
+                    <UiAlert v-if="error" tone="error">{{ error }}</UiAlert>
+                    <UiButton class="login-submit" variant="primary" type="submit" :loading="busy"
+                               :disabled="!ready">{{ submitLabel }}</UiButton>
 
                     <p v-if="mode !== 'reset'" class="login-terms">
                         登录或注册即表示同意<a :href="legal('terms')" target="_blank" rel="noopener">《用户协议》</a>和<a
@@ -66,13 +66,13 @@
 
                     <div class="login-links">
                         <template v-if="mode === 'password' || mode === 'code'">
-                            <el-button v-if="mode === 'password'" class="login-link" link :disabled="busy"
-                                       @click="switchMode('reset')">忘记密码</el-button>
-                            <el-button class="login-link" link :disabled="busy" @click="switchMode('register')">注册账号</el-button>
+                            <UiButton v-if="mode === 'password'" class="login-link" :disabled="busy"
+                                       @click="switchMode('reset')">忘记密码</UiButton>
+                            <UiButton class="login-link" :disabled="busy" @click="switchMode('register')">注册账号</UiButton>
                         </template>
-                        <el-button v-else class="login-link" link :disabled="busy" @click="switchMode('password')">
+                        <UiButton v-else class="login-link" :disabled="busy" @click="switchMode('password')">
                             {{ mode === 'register' ? '已有账号，去登录' : '返回登录' }}
-                        </el-button>
+                        </UiButton>
                     </div>
                 </form>
             </template>
@@ -90,14 +90,18 @@
 // 验证码登录遇到未注册的邮箱时直接转到注册，沿用同一个验证码（服务端不会消耗它）。
 // 服务地址和设备名称不在这里填写；服务端的错误原样显示，只在本机核对两次密码是否一致。
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import IconEpRight from '~icons/ep/right'
 import StarField from '@/pages/about/IntroPage/StarField.vue'
 import AstrolabeDial from '@/pages/about/IntroPage/AstrolabeDial.vue'
 import MonaPortrait from '@/components/misc/MonaPortrait.vue'
+import UiAlert from '@/components/ui/UiAlert.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiInput from '@/components/ui/UiInput.vue'
+import UiPasswordInput from '@/components/ui/UiPasswordInput.vue'
 import { cloudApi } from '@/platform/cloud.mjs'
 import { isNative } from '@/platform/native.mjs'
-import { chooseOffline, clearOfflineChoice, isOfflineChosen } from '@/platform/login-gate.mjs'
+import { chooseOffline, clearOfflineChoice } from '@/platform/login-gate.mjs'
 import { contentShareReturnPath } from '@/components/share/content-share.mjs'
 
 const webTitle = process.env.MONA_TITLE
@@ -105,7 +109,7 @@ const deviceName = isNative ? 'Android' : 'Windows'
 const legal = name => `${process.env.BASE_URL}legal/${name}.html`
 const tabs = [{ mode: 'password', label: '密码登录' }, { mode: 'code', label: '验证码登录' }]
 const router = useRouter()
-let returnToShare = isOfflineChosen()
+const route = useRoute()
 
 // mode：password 密码登录 / code 验证码登录 / register 注册 / reset 重设密码 / naming 登录后设置用户名
 const mode = ref('password')
@@ -131,8 +135,7 @@ function switchMode(next) {
     error.value = ''; notice.value = ''; password.value = ''; confirmPassword.value = ''
 }
 function leave() {
-    const path = returnToShare && contentShareReturnPath.value
-    return router.replace(path || { name: 'home' })
+    if (route.name === 'login') return router.replace(contentShareReturnPath.value || { name: 'home' })
 }
 async function run(action) {
     busy.value = true; error.value = ''; notice.value = ''
@@ -194,7 +197,6 @@ function saveUsername() {
 }
 function continueOffline() {
     chooseOffline()
-    returnToShare = true
     leave()
 }
 
@@ -279,16 +281,30 @@ onBeforeUnmount(() => clearInterval(timer))
     width: 100%;
 }
 
+.login-input,
+.login-input :deep(input) {
+    min-height: 40px;
+    font-size: 14px;
+}
+
+.login-submit[data-slot="button"],
+.login-code-send[data-slot="button"] {
+    min-height: 40px;
+    padding-inline: 19px;
+    border-radius: 999px;
+    font-size: 14px;
+}
+
 .login-code {
     display: flex;
     gap: 8px;
 
-    .el-input {
+    .login-input {
         flex: 1;
         min-width: 0;
     }
 
-    .el-button {
+    .login-code-send {
         flex: none;
         margin: 0;
     }
@@ -301,11 +317,18 @@ onBeforeUnmount(() => clearInterval(timer))
     text-align: center;
 }
 
-.login-link {
+.login-link[data-slot="button"] {
     margin: 0;
+    min-height: auto;
+    padding: 2px;
+    border: 0;
+    background: transparent;
     color: var(--wl-dim);
+    font-size: 14px;
+    font-weight: 500;
 
-    &:hover:not(:disabled) {
+    &:hover:enabled {
+        background: transparent;
         color: var(--wl-gold);
     }
 }
@@ -374,7 +397,7 @@ onBeforeUnmount(() => clearInterval(timer))
     }
 }
 
-.login-submit {
+.login-submit[data-slot="button"] {
     width: 100%;
     margin-top: 4px;
     font-weight: 700;

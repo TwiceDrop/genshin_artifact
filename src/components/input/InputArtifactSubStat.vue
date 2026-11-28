@@ -1,23 +1,12 @@
 <template>
-    <el-input
-        :model-value="modelValue.value"
-        @update:modelValue="handleChangeValue"
-    >
-        <template #prepend>
-            <select-artifact-sub-stat
-                :model-value="modelValue.name"
-                @update:modelValue="handleChangeName"
-                style="width: 100px"
-            ></select-artifact-sub-stat>
-        </template>
-
-        <template v-if="isPercent" #append>
-            <span>%</span>
-        </template>
-    </el-input>
+    <ArtifactStatField :model-value="modelValue.value" :label="label" :percentage="isPercent" @update:model-value="handleChangeValue">
+        <SelectArtifactSubStat :model-value="modelValue.name" @update:model-value="handleChangeName" />
+    </ArtifactStatField>
 </template>
 
 <script>
+import ArtifactStatField from './ArtifactStatField.vue'
+import { useI18n } from '@/i18n/i18n'
 import { artifactTags } from "@const/artifact"
 
 import SelectArtifactSubStat from "@c/select/SelectArtifactSubStat"
@@ -27,7 +16,12 @@ export default {
     props: ["modelValue"],
     emits: ["update:modelValue"],
     components: {
+        ArtifactStatField,
         SelectArtifactSubStat
+    },
+    setup() {
+        const { t } = useI18n()
+        return { label: t('misc.subStat') }
     },
     methods: {
         handleChangeName(name) {

@@ -51,8 +51,7 @@
 <!--            <router-view v-if="!$route.meta.keepAlive" class="router-view"></router-view>-->
 <!--            <router-view class="router-view"></router-view>-->
 
-        <!-- 欢迎页自己显示版本号，且要铺满一屏；页脚放在它下面只会多出一截滚动和底色条 -->
-        <mona-footer v-if="$route.name !== 'home' && !bare" style="margin-top: 24px"></mona-footer>
+        <mona-footer v-if="$route.name !== 'home' && !bare" class="main-footer" />
     </div>
     <nav v-if="!geSmall && !bare" class="mobile-bottom-nav" data-tour="nav.mobile-bottom" aria-label="手机主导航">
         <button :class="{ active: $route.path === '/calculate' }" @click="router.push('/calculate')"><i-ep-cpu /><span>计算</span></button>
@@ -202,6 +201,10 @@ $header-height: 48px;
 .main {
     padding: $contentPadding;
 
+    .main-footer {
+        margin-block-start: 6px;
+    }
+
     &.bare {
         padding: 0;
     }
@@ -215,10 +218,19 @@ $header-height: 48px;
     }
 
     &.notMobile {
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        min-height: 100vh;
+        min-height: 100dvh;
         margin-left: $side-bar-width;
 
         .main-view {
-            min-height: calc(100vh - 2 * #{$contentPadding});
+            flex: 1;
+        }
+
+        &:has(> .main-footer) {
+            padding-bottom: 4px;
         }
     }
 }

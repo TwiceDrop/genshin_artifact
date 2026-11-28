@@ -1,43 +1,16 @@
-<template>
-    <el-select
-        :model-value="modelValue"
-        @update:modelValue="$emit('update:modelValue', $event)"
-    >
-        <el-option
-            v-for="item in list"
-            :key="item.name"
-            :label="item.title"
-            :value="item.name"
-        ></el-option>
-    </el-select>
-</template>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { subStats } from '@/constants/artifact'
+import { useI18n } from '@/i18n/i18n'
+import UiSelect from '@/components/ui/UiSelect.vue'
 
-<script>
-import { subStats, artifactTags } from "@const/artifact"
-import {useI18n} from "../../i18n/i18n"
-
-
-export default {
-    name: "SelectArtifactSubStat",
-    props: ["modelValue"],
-    emits: ["update:modelValue"],
-    computed: {
-        list() {
-            const { t } = useI18n()
-            let result = []
-            for (let name of subStats) {
-                result.push({
-                    name,
-                    // title: artifactTags[name].chs
-                    title: t("stat", name)
-                })
-            }
-            return result
-        }
-    }
-}
+defineProps<{ modelValue?: string | null }>()
+const emit = defineEmits<{ (event: 'update:modelValue', value: string): void }>()
+const { t } = useI18n()
+const options = computed(() => subStats.map(value => ({ value, label: t('stat', value) })))
 </script>
 
-<style scoped>
-
-</style>
+<template>
+    <UiSelect :model-value="modelValue ?? undefined" :label="t('misc.subStat')" :options="options"
+        @update:model-value="emit('update:modelValue', $event)" />
+</template>

@@ -1,32 +1,22 @@
 <template>
     <div>
-        <el-input
-            v-model="searchString"
-            style="margin-bottom: 16px"
-            :placeholder="t('misc.search')"
-            clearable
-        >
-            <template #append>
-                <i-ep-search></i-ep-search>
-            </template>
-        </el-input>
-
-        <div class="config-items mona-scroll">
-            <div
+        <UiSearchInput v-if="search === undefined" v-model="searchString" class="standalone-search" :placeholder="t('misc.search')" />
+        <div class="config-items" :class="{ 'standalone-list mona-scroll': search === undefined }">
+            <article
                 v-for="item in dataSearched"
                 :key="item.name"
                 class="item"
             >
                 <div class="top">
-                    <img :src="item.thumbnail" class="image" >
+                    <img :src="item.thumbnail" class="image" alt="" >
                     <div>
                         <h3 class="artifact-title">{{ item.title }}</h3>
                         <div>
-                            <p v-if="hasConfig2(item)" style="font-size: 12px;">
+                            <p v-if="hasConfig2(item)">
                                 <span class="effect-title">{{ t("misc.art2") }}</span>
                                 <span class="effect-body">{{ item.effect2 }}</span>
                             </p>
-                            <p v-if="hasConfig4(item)" style="font-size: 12px;">
+                            <p v-if="hasConfig4(item)">
                                 <span class="effect-title">{{ t("misc.art4") }}</span>
                                 <span class="effect-body">{{ item.effect4 }}</span>
                             </p>
@@ -34,22 +24,21 @@
                     </div>
                 </div>
 
-                <item-config
+                <DslParamFields
                     v-if="hasConfig2(item)"
                     :model-value="modelValue[item.snake]"
                     :configs="item.config2"
-                    :need-item-name="false"
+                    stacked class="artifact-effect-fields"
                     @update:modelValue="handleChangeValue(item.snake, $event)"
-                    style="margin-bottom: 8px"
-                ></item-config>
-                <item-config
+                />
+                <DslParamFields
                     v-if="hasConfig4(item)"
                     :model-value="modelValue[item.snake]"
                     :configs="item.config4"
-                    :need-item-name="false"
+                    stacked class="artifact-effect-fields"
                     @update:modelValue="handleChangeValue(item.snake, $event)"
-                ></item-config>
-            </div>
+                />
+            </article>
         </div>
     </div>
 </template>
@@ -62,13 +51,14 @@ import { artifactsData } from "@artifact"
 import { toSnakeCase, deepCopy } from "@util/common"
 import { getArtifactThumbnail } from "@util/artifacts"
 
-import ItemConfig from "@/components/config/ItemConfig"
+import UiSearchInput from '@/components/ui/UiSearchInput.vue'
+import DslParamFields from './DslParamFields.vue'
 import {useI18n} from "@/i18n/i18n";
 
 export default {
     name: "ArtifactConfig",
-    components: {ItemConfig},
-    props: ["modelValue", "excludeSets"],
+    components: {DslParamFields, UiSearchInput},
+    props: ["modelValue", "excludeSets", "search"],
     emits: ["update:modelValue"],
     data() {
         return {
@@ -103,13 +93,14 @@ export default {
         },
 
         dataSearched() {
-            if (this.searchString === "") {
+            const query = this.search === undefined ? this.searchString : this.search
+            if (query === "") {
                 return this.data
             } else {
                 const fuse = new Fuse(this.data, {
                     keys: ["title", "effect4", "effect2"]
                 })
-                const results = fuse.search(this.searchString)
+                const results = fuse.search(query)
                 return results.map(x => x.item)
             }
         },
@@ -140,41 +131,15 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.config-items {
-    max-height: 60vh;
-
-    .item {
-        margin-bottom: 24px;
-
-        &:last-of-type {
-            margin-bottom: 0;
-        }
-
-        .top {
-            display: flex;
-        }
-
-        .image {
-            width: 64px;
-            height: 64px;
-            margin-right: 12px;
-            //right: 0;
-            //bottom: 0;
-        }
-
-        .effect-title {
-            color: var(--cx-gold);
-        }
-
-        .effect-body {
-            word-break: normal;
-        }
-
-        .artifact-title {
-            font-size: 12px;
-            margin: 8px 0 0;
-        }
-    }
-}
+<style scoped>
+.standalone-search { margin-bottom: 12px; }
+.config-items { display: grid; gap: 10px; padding-bottom: 12px; }
+.standalone-list { max-height: 60vh; overflow: auto; }
+.item { display: grid; gap: 10px; min-width: 0; padding: 12px; border: 1px solid var(--cx-step-2); border-radius: 12px; background: var(--cx-step); }
+.top { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.image { flex: none; width: 40px; height: 40px; object-fit: contain; }
+.artifact-title { margin: 0 0 4px; font-size: 14px; }
+.top p { margin: 3px 0 0; color: var(--cx-dim); font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+.effect-title { color: var(--cx-gold); }
+.artifact-effect-fields { padding-top: 10px; border-top: 1px solid var(--cx-step-2); }
 </style>

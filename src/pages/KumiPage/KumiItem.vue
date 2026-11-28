@@ -5,53 +5,54 @@
                 <h3 class="cx-panel-title">{{ props.data.title }}</h3>
                 <p>{{ summary || '还没有圣遗物' }}</p>
             </div>
-            <el-dropdown trigger="click" @command="handleCommand">
-                <button type="button" class="kumi-menu" :aria-label="`${props.data.title} 的操作`"><icon-ep-more-filled aria-hidden="true" /></button>
-                <template #dropdown><el-dropdown-menu>
-                    <el-dropdown-item command="edit">重命名</el-dropdown-item>
-                    <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-                </el-dropdown-menu></template>
-            </el-dropdown>
+            <UiDropdownMenu>
+                <template #trigger>
+                    <button type="button" class="kumi-menu" :aria-label="`${props.data.title} 的操作`"><icon-ep-more-filled aria-hidden="true" /></button>
+                </template>
+                <UiDropdownMenuItem @select="nextTick(() => emits('edit'))">重命名</UiDropdownMenuItem>
+                <UiDropdownMenuItem divided @select="nextTick(() => emits('delete'))">删除</UiDropdownMenuItem>
+            </UiDropdownMenu>
         </header>
         <div class="kumi-slots cx-panel-body">
             <div v-for="(artifact, index) in artifacts" :key="positions[index]" class="kumi-slot" :class="{ empty: !artifact }">
-                <button type="button" class="kumi-slot-main"
-                        :aria-label="artifact ? `更换${slotLabel(index)}` : `选择${slotLabel(index)}`"
-                        @pointerenter="showPreview($event, index)" @pointerleave="hidePreview"
-                        @focus="showPreview($event, index)" @blur="hidePreview" @keydown.esc="hidePreview"
-                        @click="hidePreview(); emits('click', positions[index])">
-                    <template v-if="artifact">
-                        <artifact-icon :item="artifact" :size="52" />
-                        <span class="kumi-slot-stat" :class="{ recommended: highlightedMainStat(artifact, highlightTags) }">{{ mainValue(artifact) }}</span>
+                <UiHoverDetails :enabled="!!artifact && previewEnabled" side="bottom">
+                    <template #trigger>
+                        <button type="button" class="kumi-slot-main"
+                                :aria-label="artifact ? `更换${slotLabel(index)}` : `选择${slotLabel(index)}`"
+                                @click="emits('click', positions[index])">
+                            <template v-if="artifact">
+                                <artifact-icon :item="artifact" :size="52" />
+                                <span class="kumi-slot-stat" :class="{ recommended: highlightedMainStat(artifact, highlightTags) }">{{ mainValue(artifact) }}</span>
+                            </template>
+                            <template v-else>
+                                <span class="kumi-slot-empty"><img :src="slotIcons[positions[index]]" alt="" /><b>+</b></span>
+                                <span class="kumi-slot-stat">{{ slotLabel(index) }}</span>
+                            </template>
+                        </button>
                     </template>
-                    <template v-else>
-                        <span class="kumi-slot-empty"><img :src="slotIcons[positions[index]]" alt="" /><b>+</b></span>
-                        <span class="kumi-slot-stat">{{ slotLabel(index) }}</span>
-                    </template>
-                </button>
+                    <ArtifactPiecePreview v-if="artifact" class="kumi-piece-preview" :position="positions[index]" :item="artifact"
+                        :highlight-tags="highlightTags" />
+                </UiHoverDetails>
                 <button v-if="artifact" type="button" class="kumi-slot-remove" :aria-label="`从这组移除${slotLabel(index)}`"
                         @click="emits('deleteArtifact', artifact.id)">×</button>
             </div>
         </div>
-        <el-popover v-if="preview && artifacts[preview.index]" :key="preview.index"
-                    virtual-triggering :virtual-ref="preview.anchor" :visible="true" :enterable="false"
-                    placement="bottom-start" :width="220" popper-class="cx-scope kumi-piece-popover">
-            <ArtifactPiecePreview :position="positions[preview.index]" :item="artifacts[preview.index]"
-                :highlight-tags="highlightTags" />
-        </el-popover>
     </section>
 </template>
 
 <script setup lang="ts">
 // 圣遗物套装卡片：组名、套装汇总、五个部位格。事件接口与改版前一致。
 import IconEpMoreFilled from "~icons/ep/more-filled"
-import {computed, onDeactivated, shallowRef} from "vue"
+import {computed, nextTick, onActivated, onDeactivated, ref} from "vue"
 import {positions} from "@/constants/artifact"
 import slotIcons from "@/assets/artifacts/icons"
 import {artifactsData} from "@/assets/artifacts"
 import {displayedTagParts} from "@/utils/artifacts"
 import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
 import ArtifactPiecePreview from "@/components/display/ArtifactPiecePreview.vue"
+import UiDropdownMenu from '@/components/ui/UiDropdownMenu.vue'
+import UiDropdownMenuItem from '@/components/ui/UiDropdownMenuItem.vue'
+import UiHoverDetails from '@/components/ui/UiHoverDetails.vue'
 import {highlightedMainStat} from "@/utils/character-artifact-highlights"
 import {useI18n} from "@/i18n/i18n"
 import type {KumiItem} from "@/types/kumi"
@@ -68,15 +69,9 @@ const emits = defineEmits<Emits>()
 const props = defineProps<{ data: KumiItem, highlightTags?: string[] }>()
 const { t, ta } = useI18n()
 const artifactStore = useArtifactStore()
-const preview = shallowRef<{ index: number, anchor: HTMLElement } | null>(null)
-function showPreview(event: FocusEvent | PointerEvent, index: number) {
-    if (!artifacts.value[index] || ('pointerType' in event && event.pointerType === 'touch')) return
-    preview.value = { index, anchor: event.currentTarget as HTMLElement }
-}
-function hidePreview() {
-    preview.value = null
-}
-onDeactivated(hidePreview)
+const previewEnabled = ref(true)
+onActivated(() => { previewEnabled.value = true })
+onDeactivated(() => { previewEnabled.value = false })
 
 // 按部位排好的五件；缺的部位为 null
 const artifacts = computed(() => {
@@ -102,13 +97,14 @@ function slotLabel(index: number) {
 function mainValue(artifact: IArtifact) {
     return displayedTagParts(artifact.mainTag.name, artifact.mainTag.value)[1]
 }
-function handleCommand(command: string) {
-    if (command === "edit") emits("edit")
-    else emits("delete")
-}
 </script>
 
 <style lang="scss" scoped>
+:global(.mona-hover-details:has(.kumi-piece-preview)) {
+    width: 220px;
+    padding: 12px 14px;
+}
+
 .kumi-slot-stat.recommended { color: var(--cx-gold); }
 .kumi-head {
     align-items: flex-start;

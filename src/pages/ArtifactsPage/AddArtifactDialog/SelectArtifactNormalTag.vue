@@ -1,48 +1,22 @@
 <template>
     <div>
-        <div
-            v-for="index in 4"
-            :key="index"
-            class="item"
-        >
-            <el-input
-                :model-value="displayedValue[index - 1]"
-                @update:modelValue="handleValueChange(index - 1, $event)"
-                class="input"
-            >
-                <template #prepend>
-                    <el-select
-                        :model-value="names[index - 1]"
-                        @update:modelValue="handleTagChange(index - 1, $event)"
-                        class="prepend"
-                    >
-                        <el-option
-                            v-for="tagData in secondaryTagData"
-                            :key="tagData.name"
-                            :label="t('stat', tagData.name)"
-                            :value="tagData.name"
-                        >
-                        </el-option>
-                    </el-select>
-                </template>
-
-                <template v-if="isPercentage[index - 1]" #append>
-                    <span>%</span>
-                </template>
-            </el-input>
-
-            <el-button
-                :icon="IconEpDelete"
-                circle
-                text
-                class="del-button"
-                @click="deleteItem(index - 1)"
-            ></el-button>
+        <div v-for="index in 4" :key="index" class="item">
+            <ArtifactStatField :model-value="displayedValue[index - 1]" :label="t('misc.subStat')"
+                :percentage="isPercentage[index - 1]" @update:model-value="handleValueChange(index - 1, $event)">
+                <UiSelect :model-value="names[index - 1]" :label="t('misc.subStat')" :options="tagOptions"
+                    @update:model-value="handleTagChange(index - 1, $event as ArtifactSubStatName)" />
+            </ArtifactStatField>
+            <UiButton size="small" class="del-button" :aria-label="t('misc.del')" @click="deleteItem(index - 1)">
+                <IconEpDelete aria-hidden="true" />
+            </UiButton>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import ArtifactStatField from '@/components/input/ArtifactStatField.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
 import { deepCopy } from "@/utils/common"
 import { subStats, artifactTags } from "@/constants/artifact"
 import type {ArtifactSubStatName} from "@/types/artifact"
@@ -51,8 +25,7 @@ import {useI18n} from "@/i18n/i18n"
 
 const { t } = useI18n()
 
-const secondaryTagData = subStats.map(item => artifactTags[item])
-Object.freeze(secondaryTagData)
+const tagOptions = computed(() => subStats.map(value => ({ value, label: t('stat', value) })))
 
 interface StringStat {
     name: ArtifactSubStatName | null,
@@ -155,11 +128,6 @@ const names = computed(() => {
 </script>
 
 <style scoped>
-.prepend {
-    width: 100px;
-    text-overflow: ellipsis;
-}
-
 .item {
     display: flex;
     align-items: center;
@@ -167,6 +135,7 @@ const names = computed(() => {
 }
 
 .del-button {
+    min-width: 30px;
     padding: 0;
     margin-left: 8px;
 }

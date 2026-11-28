@@ -1,15 +1,16 @@
 <template>
     <div class="preset-list">
-        <article v-for="option in options" :key="option.key" class="preset-option">
+        <article v-for="option in options" :key="option.key" class="preset-option" :class="{ 'is-previewed': openGear === option.key }">
             <button type="button" class="select-preset" @click="emit('select', option.choice)">
                 <strong>{{ option.choice.name }}</strong><span class="apply">使用 ›</span>
                 <span>{{ entry.label }} · Lv. {{ option.summary.level }} · {{ option.summary.constellation }}命</span>
                 <span>{{ option.summary.weapon }}</span>
                 <span>{{ option.summary.talents }}</span>
             </button>
-            <el-popover placement="bottom-start" :trigger="['hover', 'focus', 'click']" :persistent="false"
-                :width="'min(640px, 92vw)'" :show-after="100" popper-class="cx-scope preset-gear-popover">
-                <template #reference>
+            <component :is="shadcn ? UiPopover : ElPopover"
+                v-bind="shadcn ? { open: openGear === option.key, label: option.choice.name + ' · 圣遗物' } : legacyPreview"
+                @update:open="openGear = $event ? option.key : null">
+                <template #[previewSlot]>
                     <button type="button" class="gear-preview"><span>圣遗物</span> · {{ option.sets }}</button>
                 </template>
                 <strong>{{ option.choice.name }} · 圣遗物</strong>
@@ -17,12 +18,14 @@
                     <ArtifactPiecePreview v-for="position in POSITIONS" :key="position" :position="position"
                         :item="option.pieces[position]" :highlight-tags="highlightedTags" />
                 </div>
-            </el-popover>
+            </component>
         </article>
     </div>
 </template>
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { ElPopover } from 'element-plus'
+import UiPopover from '@/components/ui/UiPopover.vue'
 import { useArtifactStore } from '@/store/pinia/artifact'
 import { presetForRosterLoadout } from '@/import/roster-equipment.mjs'
 import { POSITIONS } from '@/import/miyoushe.mjs'
@@ -35,8 +38,14 @@ import weapons from '@/assets/_gen_weapon'
 import artifacts from '@/assets/_gen_artifact'
 import locale from '@/i18n/generated/zh-cn.json'
 
-const props = defineProps({ entry: { type: Object, required: true } })
+const props = defineProps({ entry: { type: Object, required: true }, shadcn: Boolean })
+const previewSlot = computed(() => props.shadcn ? 'trigger' : 'reference')
 const emit = defineEmits(['select'])
+const openGear = ref(null)
+const legacyPreview = {
+    placement: 'bottom-start', trigger: ['hover', 'focus', 'click'], persistent: false,
+    width: 'min(640px, 92vw)', showAfter: 100, popperClass: 'cx-scope preset-gear-popover',
+}
 const { ta } = useI18n()
 const inventory = useArtifactStore()
 const highlightedTags = computed(() => characterArtifactHighlights(props.entry.characterName))
@@ -51,7 +60,9 @@ const options = computed(() => props.entry.choices.map(choice => {
 <style scoped>
 .preset-list { display: grid; gap: 10px; }
 .preset-option { padding: 12px 16px; border-radius: 12px; background: var(--cx-step); color: var(--cx-letter); }
+.preset-option.is-previewed { box-shadow: inset 0 0 0 1px var(--cx-gold); background: color-mix(in srgb, var(--cx-gold) 9%, var(--cx-step)); }
 .select-preset, .gear-preview { border: 0; background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.select-preset:focus-visible, .gear-preview:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; border-radius: 5px; }
 .select-preset { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; width: 100%; padding: 0; }
 .select-preset strong { font-size: 16px; overflow-wrap: anywhere; }
 .select-preset span:not(.apply) { grid-column: 1 / -1; font-size: 13px; }

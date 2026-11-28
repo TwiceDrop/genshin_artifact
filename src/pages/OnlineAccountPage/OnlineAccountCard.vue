@@ -1,56 +1,61 @@
 <template>
-    <!-- 在线账号：邮箱、用户名、头像、改邮箱、改密码、注销账号、退出登录。只在已登录时由账户管理与同步页显示 -->
-    <section v-if="onlineUser" class="oa-card" aria-labelledby="oa-account">
-        <div class="oa-head">
-            <h3 id="oa-account">在线账号</h3>
-            <button type="button" class="oa-plain" :disabled="onlineBusy" @click="logout">退出登录</button>
+    <section v-if="onlineUser" class="oa-panel oa-account" aria-labelledby="oa-account">
+        <header class="oa-panel-head">
+            <h3 id="oa-account" class="oa-panel-title">在线账号</h3>
+            <UiButton :disabled="onlineBusy" @click="logout">退出登录</UiButton>
+        </header>
+        <div class="oa-identity">
+            <UiAvatar :src="avatarUrl(onlineUser.avatar)" class="oa-avatar" aria-hidden="true">
+                <i-ep-user />
+            </UiAvatar>
+            <div class="oa-identity-text">
+                <strong v-if="onlineUser.username">{{ onlineUser.username }}</strong>
+                <div class="oa-meta" :title="onlineUser.email">{{ onlineUser.email }}</div>
+            </div>
+            <UiButton ref="avatarTrigger" size="small" :disabled="onlineBusy" @click="avatarOpen = true">更换头像</UiButton>
         </div>
-        <div class="oa-line">
-            <span class="oa-line-label">邮箱</span>
-            <span class="oa-value">{{ onlineUser.email }}</span>
-        </div>
-        <form class="oa-line" @submit.prevent="saveUsername">
-            <label class="oa-line-label" for="oa-username">用户名</label>
-            <span class="oa-edit">
-                <el-input id="oa-username" v-model="usernameDraft" class="oa-username" maxlength="16"
-                          placeholder="2–16 个字" :disabled="onlineBusy" />
-                <button type="submit" class="oa-plain"
-                        :disabled="onlineBusy || !usernameDraft.trim() || usernameDraft.trim() === (onlineUser.username || '')">保存</button>
-            </span>
+        <form class="oa-username-form" @submit.prevent="saveUsername">
+            <label for="oa-username">用户名</label>
+            <div class="oa-username-controls">
+                <UiInput id="oa-username" v-model="usernameDraft" maxlength="16" placeholder="2–16 个字" :disabled="onlineBusy" />
+                <UiButton type="submit" :disabled="onlineBusy || !usernameDraft.trim() || usernameDraft.trim() === (onlineUser.username || '')">保存</UiButton>
+            </div>
         </form>
-        <div class="oa-line">
-            <span class="oa-line-label">头像</span>
-            <span class="oa-edit">
-                <img v-if="avatarUrl(onlineUser.avatar)" :src="avatarUrl(onlineUser.avatar)" alt="" class="oa-avatar" />
-                <button type="button" class="oa-plain" :disabled="onlineBusy" @click="avatarOpen = true">更换头像</button>
-            </span>
+        <div class="oa-security">
+            <div class="oa-line">
+                <strong>修改邮箱</strong>
+                <UiButton size="small" :disabled="onlineBusy" :aria-expanded="emailOpen" @click="emailOpen = !emailOpen">{{ emailOpen ? '收起' : '修改' }}</UiButton>
+            </div>
+            <form v-if="emailOpen" class="oa-form" @submit.prevent="changeEmail">
+                <UiInput v-model="emailDraft" type="email" autocomplete="email" placeholder="新邮箱" aria-label="新邮箱" :disabled="onlineBusy" />
+                <div class="oa-actions oa-actions-end">
+                    <UiButton :disabled="onlineBusy || !emailDraft.trim() || emailCooldown > 0" @click="sendEmailCode">{{ emailCooldown ? emailCooldown + ' 秒后重发' : '发送验证码' }}</UiButton>
+                </div>
+                <UiInput v-model="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="验证码" aria-label="验证码" :disabled="onlineBusy" />
+                <div class="oa-actions oa-actions-end">
+                    <UiButton type="submit" :disabled="onlineBusy || !emailChallenge || emailCode.length !== 6">确认修改</UiButton>
+                </div>
+            </form>
+            <div class="oa-line">
+                <strong>修改密码</strong>
+                <UiButton size="small" :disabled="onlineBusy" :aria-expanded="passwordOpen" @click="passwordOpen = !passwordOpen">{{ passwordOpen ? '收起' : '修改' }}</UiButton>
+            </div>
+            <form v-if="passwordOpen" class="oa-form" @submit.prevent="changePassword">
+                <UiPasswordInput v-model="currentPassword" autocomplete="current-password" placeholder="当前密码" aria-label="当前密码" :disabled="onlineBusy" />
+                <UiPasswordInput v-model="newPassword" autocomplete="new-password" placeholder="新密码（8–64 位）" aria-label="新密码（8–64 位）" :disabled="onlineBusy" />
+                <UiPasswordInput v-model="newPasswordConfirm" autocomplete="new-password" placeholder="再次输入新密码" aria-label="再次输入新密码" :disabled="onlineBusy" />
+                <div class="oa-actions oa-actions-end">
+                    <UiButton type="submit" :disabled="onlineBusy || !currentPassword || !newPassword || newPassword !== newPasswordConfirm">保存</UiButton>
+                </div>
+            </form>
         </div>
-        <div class="oa-line">
-            <span class="oa-line-label">修改邮箱</span>
-            <button type="button" class="oa-plain" :disabled="onlineBusy" @click="emailOpen = !emailOpen">{{ emailOpen ? '收起' : '修改' }}</button>
+        <div class="oa-delete-row">
+            <span class="oa-meta">永久删除在线账号、云端档案和云端 Cookie，本机数据保留</span>
+            <UiButton ref="deletionTrigger" class="oa-quiet-danger" variant="danger" :disabled="onlineBusy" @click="deletionOpen = true">注销账号</UiButton>
         </div>
-        <form v-if="emailOpen" class="oa-form" @submit.prevent="changeEmail">
-            <el-input v-model="emailDraft" type="email" autocomplete="email" placeholder="新邮箱" aria-label="新邮箱" :disabled="onlineBusy" />
-            <button type="button" class="oa-plain" :disabled="onlineBusy || !emailDraft.trim() || emailCooldown > 0" @click="sendEmailCode">
-                {{ emailCooldown ? `${emailCooldown} 秒后重发` : '发送验证码' }}</button>
-            <el-input v-model="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="验证码" aria-label="验证码" :disabled="onlineBusy" />
-            <button type="submit" class="oa-plain" :disabled="onlineBusy || !emailChallenge || emailCode.length !== 6">确认修改</button>
-        </form>
-        <div class="oa-line">
-            <span class="oa-line-label">修改密码</span>
-            <button type="button" class="oa-plain" :disabled="onlineBusy" @click="passwordOpen = !passwordOpen">{{ passwordOpen ? '收起' : '修改' }}</button>
-        </div>
-        <form v-if="passwordOpen" class="oa-form" @submit.prevent="changePassword">
-            <el-input v-model="currentPassword" type="password" show-password autocomplete="current-password" placeholder="当前密码" aria-label="当前密码" :disabled="onlineBusy" />
-            <el-input v-model="newPassword" type="password" show-password autocomplete="new-password" placeholder="新密码（8–64 位）" aria-label="新密码" :disabled="onlineBusy" />
-            <el-input v-model="newPasswordConfirm" type="password" show-password autocomplete="new-password" placeholder="再次输入新密码" aria-label="再次输入新密码" :disabled="onlineBusy" />
-            <button type="submit" class="oa-plain" :disabled="onlineBusy || !currentPassword || !newPassword || newPassword !== newPasswordConfirm">保存</button>
-        </form>
-        <div class="oa-line">
-            <span class="oa-line-label">注销账号<p>永久删除在线账号、云端档案和云端 Cookie，本机数据保留</p></span>
-            <button type="button" class="oa-danger" :disabled="onlineBusy" @click="deleteAccount">注销账号</button>
-        </div>
-        <el-dialog v-model="avatarOpen" title="选择头像" width="min(640px, 92vw)" append-to-body>
+        <UiDialog v-model="avatarOpen" title="选择头像" width="var(--app-dialog-width, min(640px, 92vw))"
+                  top="var(--app-dialog-top)" content-class="app-dialog" focus-container
+                  :return-focus="() => avatarTrigger?.$el.focus({ preventScroll: true })">
             <div class="avatar-grid">
                 <button v-for="choice in avatarList" :key="choice.key" type="button" class="avatar-choice"
                         :class="{ active: onlineUser.avatar === choice.key }" :title="ta(choice.nameLocale)" :aria-label="ta(choice.nameLocale)"
@@ -59,16 +64,36 @@
                 </button>
             </div>
             <template #footer>
-                <button type="button" class="oa-plain" :disabled="onlineBusy || !onlineUser.avatar" @click="saveAvatar(null)">不使用头像</button>
+                <UiButton :disabled="onlineBusy || !onlineUser.avatar" @click="saveAvatar(null)">不使用头像</UiButton>
             </template>
-        </el-dialog>
+        </UiDialog>
+        <UiDialog v-model="deletionOpen" title="注销账号" width="min(420px, calc(100vw - 32px))"
+                  :initial-focus="focusDeletionPassword"
+                  :return-focus="() => deletionTrigger?.$el.focus({ preventScroll: true })">
+            <form id="oa-delete-account" class="oa-delete-form" @submit.prevent="deleteAccount">
+                <p>注销后在线账号、云端档案和云端 Cookie 会被永久删除，无法恢复；本机数据保留。请输入当前密码确认。</p>
+                <UiInput id="oa-delete-password" :model-value="deletionPassword ?? ''" type="password"
+                         placeholder="当前密码" aria-label="当前密码" @update:model-value="deletionPassword = $event" />
+            </form>
+            <template #footer>
+                <div class="oa-delete-actions">
+                    <UiButton @click="deletionOpen = false">取消</UiButton>
+                    <UiButton type="submit" form="oa-delete-account" variant="danger">注销账号</UiButton>
+                </div>
+            </template>
+        </UiDialog>
         <p v-if="onlineError" class="oa-error" role="alert">{{ onlineError }}</p>
     </section>
 </template>
 
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, ref, watch} from "vue"
-import {ElMessage, ElMessageBox} from "element-plus"
+import {computed, onBeforeUnmount, onDeactivated, onMounted, ref, watch} from "vue"
+import UiAvatar from "@/components/ui/UiAvatar.vue"
+import UiButton from "@/components/ui/UiButton.vue"
+import UiDialog from "@/components/ui/UiDialog.vue"
+import UiInput from "@/components/ui/UiInput.vue"
+import UiPasswordInput from "@/components/ui/UiPasswordInput.vue"
+import {showCalculationNotice} from "@/store/calculation-history"
 import {useI18n} from "@/i18n/i18n"
 import {cloudApi} from "@/platform/cloud.mjs"
 import {onlineUser as onlineState, setOnlineUser, avatarUrl, avatarChoices} from "@/cloud/online-user.mjs"
@@ -85,6 +110,7 @@ async function onlineRun(action: () => Promise<void>) {
 }
 // 头像：从角色头像里选，存角色英文键名
 const avatarOpen = ref(false), avatarList = avatarChoices()
+const avatarTrigger = ref<InstanceType<typeof UiButton> | null>(null)
 function saveAvatar(key: string | null) {
     return onlineRun(async () => {
         showUser((await cloudApi('v1/me', 'PATCH', { avatar: key })).user)
@@ -106,7 +132,7 @@ function changeEmail() {
     return onlineRun(async () => {
         showUser((await cloudApi('v1/me/email', 'POST', { challengeId: emailChallenge.value, code: emailCode.value })).user)
         emailOpen.value = false; emailDraft.value = ''
-        ElMessage.success('邮箱已更换')
+        showCalculationNotice('success', '邮箱已更换')
     })
 }
 // 修改密码：成功后其他设备退出登录，本设备保持登录
@@ -115,26 +141,32 @@ function changePassword() {
     return onlineRun(async () => {
         await cloudApi('v1/me/password', 'POST', { currentPassword: currentPassword.value, newPassword: newPassword.value })
         passwordOpen.value = false; currentPassword.value = newPassword.value = newPasswordConfirm.value = ''
-        ElMessage.success('密码已修改，其他设备已退出登录')
+        showCalculationNotice('success', '密码已修改，其他设备已退出登录')
     })
 }
 // 注销账号：输入当前密码确认；删除在线账号和云端数据，本机数据不动
-async function deleteAccount() {
-    let password: string
-    try {
-        ({ value: password } = await ElMessageBox.prompt('注销后在线账号、云端档案和云端 Cookie 会被永久删除，无法恢复；本机数据保留。请输入当前密码确认。', '注销账号',
-            { inputType: 'password', inputPlaceholder: '当前密码', confirmButtonText: '注销账号', cancelButtonText: '取消', confirmButtonClass: 'el-button--danger' }) as any)
-    } catch { return }
+const deletionOpen = ref(false), deletionPassword = ref<string | null>(null)
+const deletionTrigger = ref<InstanceType<typeof UiButton> | null>(null)
+watch(deletionOpen, open => {
+    if (!open) deletionPassword.value = null
+})
+onDeactivated(() => { deletionOpen.value = false })
+function focusDeletionPassword() {
+    document.getElementById('oa-delete-password')?.focus({ preventScroll: true })
+}
+function deleteAccount() {
+    const password = deletionPassword.value
+    deletionOpen.value = false
     return onlineRun(async () => {
         await cloudApi('v1/me', 'DELETE', { password })
         showUser(null)
-        ElMessage.success('在线账号已注销')
+        showCalculationNotice('success', '在线账号已注销')
     })
 }
 function saveUsername() {
     return onlineRun(async () => {
         showUser((await cloudApi('v1/me', 'PATCH', { username: usernameDraft.value.trim() })).user)
-        ElMessage.success('用户名已保存')
+        showCalculationNotice('success', '用户名已保存')
     })
 }
 function logout() {
@@ -145,96 +177,67 @@ onBeforeUnmount(() => window.clearInterval(clockTimer))
 </script>
 
 <style scoped lang="scss">
-// 夜空风格卡片：颜色读外层 .cx-scope 的 --cx-*
-.oa-card {
-    max-width: 760px;
-    margin-bottom: 12px;
-    padding: 16px 18px 6px;
-    border-radius: 16px;
-    background: var(--cx-card);
-    color: var(--cx-letter);
-}
-
-.oa-head {
+.oa-identity, .oa-username-controls, .oa-line, .oa-delete-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-
-    h3 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 700;
-    }
+    gap: 10px;
 }
 
-.oa-line {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    min-height: 56px;
-    padding: 10px 0;
-
-    & + & {
-        box-shadow: 0 -1px 0 var(--cx-step-2);
-    }
-}
-
-.oa-line-label {
-    min-width: 0;
-    font-size: 15px;
-    font-weight: 600;
-
-    p {
-        max-width: 44rem;
-        margin: 4px 0 0;
-        color: var(--cx-dim);
-        font-size: 12px;
-        font-weight: 400;
-        line-height: 1.6;
-    }
-}
-
-.oa-value {
-    min-width: 0;
+.oa-identity { gap: 12px; }
+.oa-identity-text { flex: 1; min-width: 0; }
+.oa-identity-text > strong, .oa-identity-text > .oa-meta {
+    display: block;
     overflow: hidden;
-    color: var(--cx-dim);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
-.oa-edit {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.oa-username {
-    width: 180px;
-}
+.oa-identity-text > strong { font-size: 17px; }
 
 .oa-avatar {
-    width: 34px;
-    height: 34px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    flex: 0 0 48px;
+    height: 48px;
+    border: 1px solid var(--oa-line);
     border-radius: 50%;
-    object-fit: cover;
     background: var(--cx-step);
+    color: var(--cx-dim);
+
+    svg { width: 22px; height: 22px; }
 }
 
-// 改邮箱、改密码的展开表单：宽屏两列，手机一列
+.oa-username-form {
+    display: grid;
+    gap: 6px;
+    margin-top: 16px;
+    font-size: 13px;
+}
+.oa-username-controls > input { flex: 1; min-width: 0; }
+
+.oa-security, .oa-delete-row {
+    margin-top: 12px;
+    border-top: 1px solid var(--oa-line);
+    padding-top: 8px;
+}
+
+.oa-line, .oa-delete-row { justify-content: space-between; }
+.oa-line { padding: 5px 0; font-size: 13px; }
+.oa-delete-row { padding-top: 12px; }
+.oa-delete-row > .oa-meta { flex: 1 1 8rem; }
+
 .oa-form {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-    padding: 0 0 14px;
+    gap: 8px;
+    margin: 5px 0 8px;
 }
 
 .oa-error {
-    margin: 0 0 10px;
+    margin: 10px 0 0;
     color: var(--cx-up);
     font-size: 13px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 .avatar-grid {
@@ -270,65 +273,24 @@ onBeforeUnmount(() => window.clearInterval(clockTimer))
     }
 }
 
-// 普通胶囊按钮
-.oa-plain {
-    flex: none;
-    height: 34px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--cx-step);
-    color: var(--cx-letter);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
+.oa-delete-form {
+    display: grid;
+    gap: 15px;
+    font-size: 14px;
 
-    &:hover:not(:disabled) {
-        background: var(--cx-step-2);
+    p {
+        margin: 0;
     }
 
-    &:disabled {
-        opacity: .5;
-        cursor: default;
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--cx-gold);
-        outline-offset: 2px;
+    input {
+        min-height: 32px;
     }
 }
 
-.oa-danger {
-    flex: none;
-    height: 36px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--cx-step);
-    color: var(--cx-up);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-        background: var(--cx-step-2);
-    }
-
-    &:disabled {
-        opacity: .5;
-        cursor: default;
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--cx-gold);
-        outline-offset: 2px;
-    }
+.oa-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
-@media (max-width: 640px) {
-    .oa-form {
-        grid-template-columns: 1fr;
-    }
-}
 </style>

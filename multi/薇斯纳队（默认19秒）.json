@@ -1,0 +1,239 @@
+{
+  "format": "mona-action-axis",
+  "formatVersion": 1,
+  "rulesVersion": "mona-team-engine/58",
+  "id": "vesna-source-default-19s",
+  "title": "薇斯纳队（默认19秒）",
+  "description": "薇斯纳／沃雅妮莎／奥黛塔／珐露珊四人输出轴。采用原文默认不开奥黛塔元素爆发的19秒轴，珐露珊六命。原文资源时点冲突见下方说明。参考轴长19秒。",
+  "endHit": "include",
+  "initialActiveSlot": "member3",
+  "members": [
+    {
+      "slot": "member1",
+      "character": "Vesna",
+      "角色名称": "薇斯纳"
+    },
+    {
+      "slot": "member2",
+      "character": "Vodyanitsa",
+      "角色名称": "沃雅妮莎"
+    },
+    {
+      "slot": "member3",
+      "character": "Odette",
+      "角色名称": "奥黛塔"
+    },
+    {
+      "slot": "member4",
+      "character": "Faruzan",
+      "角色名称": "珐露珊"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "odette-e",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 116.666666667,
+      "动作说明": "0.117秒，奥黛塔施放夜中独舞／破晓终奏。"
+    },
+    {
+      "id": "odette-e-recast",
+      "kind": "action",
+      "actor": "member3",
+      "action": "skill",
+      "timeMs": 616.666666667,
+      "动作说明": "0.617秒，奥黛塔施放夜中独舞／破晓终奏。"
+    },
+    {
+      "id": "switch-faruzan",
+      "kind": "switch",
+      "actor": "member4",
+      "timeMs": 2300,
+      "动作说明": "2.3秒，切换至珐露珊。"
+    },
+    {
+      "id": "faruzan-e",
+      "kind": "action",
+      "actor": "member4",
+      "action": "skill",
+      "timeMs": 2466.666666667,
+      "动作说明": "2.467秒，珐露珊施放非想风天。"
+    },
+    {
+      "id": "faruzan-q",
+      "kind": "action",
+      "actor": "member4",
+      "action": "burst",
+      "timeMs": 3000,
+      "动作说明": "3秒，珐露珊施放抟风秘道。"
+    },
+    {
+      "id": "switch-vodyanitsa",
+      "kind": "switch",
+      "actor": "member2",
+      "timeMs": 4600,
+      "动作说明": "4.6秒，切换至沃雅妮莎。"
+    },
+    {
+      "id": "vodyanitsa-e",
+      "kind": "action",
+      "actor": "member2",
+      "action": "skill",
+      "timeMs": 5300,
+      "动作说明": "5.3秒，沃雅妮莎施放晨声纷流。"
+    },
+    {
+      "id": "switch-vesna",
+      "kind": "switch",
+      "actor": "member1",
+      "timeMs": 6300,
+      "动作说明": "6.3秒，切换至薇斯纳。"
+    },
+    {
+      "id": "vesna-e-initial",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 6400,
+      "动作说明": "6.4秒，薇斯纳施放操典·制胜有道／翔风剑。"
+    },
+    {
+      "id": "vesna-e-stage1",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 7100,
+      "动作说明": "7.1秒，薇斯纳施放操典·制胜有道／翔风剑。"
+    },
+    {
+      "id": "vesna-e-stage2",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 7350,
+      "动作说明": "7.35秒，薇斯纳施放操典·制胜有道／翔风剑。"
+    },
+    {
+      "id": "vesna-q",
+      "kind": "action",
+      "actor": "member1",
+      "action": "burst",
+      "timeMs": 8500,
+      "动作说明": "8.5秒，薇斯纳施放致礼·献予女皇陛下。"
+    },
+    {
+      "id": "vesna-e-stage3-a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 10400,
+      "动作说明": "10.4秒，薇斯纳施放操典·制胜有道／翔风剑。"
+    },
+    {
+      "id": "vesna-n1-a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 11700,
+      "动作说明": "11.7秒，薇斯纳施放普通攻击·第1段。"
+    },
+    {
+      "id": "vesna-n2-a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 12100,
+      "动作说明": "12.1秒，薇斯纳施放普通攻击·第2段。"
+    },
+    {
+      "id": "vesna-n3-a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 12450,
+      "动作说明": "12.45秒，薇斯纳施放普通攻击·第3段。"
+    },
+    {
+      "id": "vesna-charged-a",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 12650,
+      "动作说明": "12.65秒，薇斯纳施放重击。"
+    },
+    {
+      "id": "vesna-e-stage3-b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 13400,
+      "动作说明": "13.4秒，薇斯纳施放操典·制胜有道／翔风剑。"
+    },
+    {
+      "id": "vesna-n1-b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.1",
+      "timeMs": 14700,
+      "动作说明": "14.7秒，薇斯纳施放普通攻击·第1段。"
+    },
+    {
+      "id": "vesna-n2-b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.2",
+      "timeMs": 15100,
+      "动作说明": "15.1秒，薇斯纳施放普通攻击·第2段。"
+    },
+    {
+      "id": "vesna-n3-b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "normal.3",
+      "timeMs": 15450,
+      "动作说明": "15.45秒，薇斯纳施放普通攻击·第3段。"
+    },
+    {
+      "id": "vesna-charged-b",
+      "kind": "action",
+      "actor": "member1",
+      "action": "charged",
+      "timeMs": 15650,
+      "动作说明": "15.65秒，薇斯纳施放重击。"
+    },
+    {
+      "id": "vesna-e-stage3-c",
+      "kind": "action",
+      "actor": "member1",
+      "action": "skill",
+      "timeMs": 16400,
+      "动作说明": "16.4秒，薇斯纳施放操典·制胜有道／翔风剑。"
+    },
+    {
+      "id": "source-axis-end",
+      "kind": "switch",
+      "actor": "member1",
+      "timeMs": 19000,
+      "动作说明": "19秒，结束本轮，保持薇斯纳在场。"
+    }
+  ],
+  "说明": {
+    "原始资料": "cs.gensri.wiki现有输出轴md.rar／薇斯纳／薇斯纳队.md",
+    "队伍成员": [
+      "薇斯纳",
+      "沃雅妮莎",
+      "奥黛塔",
+      "珐露珊"
+    ],
+    "默认方案": "采用原文默认不开奥黛塔元素爆发的19秒轴，珐露珊六命。原文资源时点冲突见下方说明。",
+    "参考轴长（秒）": 19,
+    "命座说明": "文件只保存操作轴，导入不会改动你的角色命座、武器或圣遗物；请在计算面板使用对应配置。",
+    "时间说明": "时间字段以毫秒保存，中文动作说明以秒显示。施放与命中分开；自动追加、召唤、资源与增益由软件计算。",
+    "转换注意": [
+      "原文部分时点按命中记录，已扣除当前角色动作前摇转换为施放。原表第二组三阶灵剑在剑气恢复前施放，当前零命预览只出现两组三阶灵剑，不能据此声称完整复现原文三组；保留原表操作时点，不自动改成另一条参考轴。",
+      "原文奥黛塔终奏、首舞及灵剑均分段不能与当前引擎每段时点同时对齐；资源、附着、增益和实际命中由软件计算。"
+    ]
+  }
+}

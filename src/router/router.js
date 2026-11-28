@@ -1,16 +1,15 @@
 import NewArtifactPlanPage from "@page/NewArtifactPlanPage"
 import TeamOptimizationPage from "@page/TeamOptimizationPage"
-import MonaPlaygroundPage from "@page/MonaPlaygroundPage"
 import ArtifactsPage from "@page/ArtifactsPage"
 import AccountPage from "@page/AccountPage"
 import SetupPage from "@page/SetupPage"
 
 import { createRouter, createWebHashHistory, createWebHistory } from "vue-router"
 import {getRepo} from "@/api/repo"
-import {ElMessageBox} from "element-plus"
-import "element-plus/es/components/message-box/style/css"
 import {importWarehouseFile} from "@/import/warehouse-file"
+import {legacyArtifactShareDialogs} from "@/import/legacy-artifact-share-dialogs"
 import {useArtifactStore} from "@/store/pinia/artifact"
+import {accountReady} from "@/store/pinia/account"
 import {followCloudSession, needsLogin} from "@/platform/login-gate.mjs"
 import {profileSync} from "@/cloud/profile-sync"
 
@@ -38,14 +37,6 @@ const routes = [
         name: "setup",
         meta: {
             title: "设置"
-        }
-    },
-    {
-        path: "/playground",
-        component: MonaPlaygroundPage,
-        name: "playground",
-        meta: {
-            title: "Playground",
         }
     },
     {
@@ -176,20 +167,21 @@ router.beforeEach(async (to, from, next) => {
                     const contentStr = response.data.content
                     const content = JSON.parse(contentStr)
 
+                    await accountReady
                     if (artifactStore.artifactsCount.value > 0) {
-                        await ElMessageBox.confirm("检测到本地存在圣遗物，是否继续导入", "注意", {
+                        await legacyArtifactShareDialogs.confirm("检测到本地存在圣遗物，是否继续导入", "注意", {
                             confirmButtonText: "是",
                             cancelButtonText: "否",
                             type: "warning"
-                        }).then(() => {
-                            return importWarehouseFile(content, true)
-                        }).catch(() => {})
-                    } else {
-                        await importWarehouseFile(content, true)
+                        })
+                    }
+                    const result = await importWarehouseFile(content, true, undefined, undefined, legacyArtifactShareDialogs)
+                    if (result.warning) {
+                        await legacyArtifactShareDialogs.alert(result.warning)
                     }
                 }
             } catch (e) {
-                console.log(e)
+                if (e !== 'cancel' && e !== 'close') console.error('圣遗物分享链接导入失败', e)
             }
 
             // console.log("123")

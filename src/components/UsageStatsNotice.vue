@@ -1,17 +1,20 @@
 <template>
     <!-- Shown once until the player answers; nothing is sent before that. -->
-    <el-dialog :model-value="visible" :title="t('usageStats.title')" width="480px"
-        :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
+    <UiDialog :model-value="visible" :title="t('usageStats.title')" width="var(--app-dialog-width, 480px)"
+        top="var(--app-dialog-top)" content-class="app-dialog" focus-container hide-close prevent-outside
+        @escape-key-down="$event.preventDefault()">
         <p class="usage-stats-notice">{{ t('usageStats.notice') }}</p>
         <template #footer>
-            <el-button @click="setUsageStatsConsent('off')">{{ t('usageStats.turnOff') }}</el-button>
-            <el-button type="primary" @click="setUsageStatsConsent('on')">{{ t('usageStats.gotIt') }}</el-button>
+            <UiButton @click="setUsageStatsConsent('off')">{{ t('usageStats.turnOff') }}</UiButton>
+            <UiButton variant="primary" @click="setUsageStatsConsent('on')">{{ t('usageStats.gotIt') }}</UiButton>
         </template>
-    </el-dialog>
+    </UiDialog>
 </template>
 
 <script setup>
 import {computed} from 'vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
 import {useI18n} from '@/i18n/i18n'
 import {usageStatsAvailable, usageStatsConsent, setUsageStatsConsent} from '@/usage-stats/index.mjs'
 

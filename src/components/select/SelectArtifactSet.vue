@@ -1,5 +1,11 @@
 <template>
-    <el-select
+    <UiMultiSelect v-if="shadcn && props.multiple" :model-value="props.modelValue as string[]" :options="uiOptions"
+        :label="props.placeholder" :disabled="props.disabled" :limit="props.multipleLimit"
+        @update:model-value="emits('update:modelValue', $event)" />
+    <UiSelect v-else-if="shadcn" :model-value="props.modelValue as string" :options="uiOptions"
+        :label="props.placeholder" :placeholder="props.placeholder" :disabled="props.disabled"
+        @update:model-value="emits('update:modelValue', $event)" />
+    <el-select v-else
         @update:modelValue="emits('update:modelValue', $event)"
         :model-value="props.modelValue"
         :disabled="props.disabled"
@@ -28,6 +34,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import UiMultiSelect from '@/components/ui/UiMultiSelect.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
 import { artifactsData } from "@asset/artifacts"
 import { getArtifactThumbnailURL } from "@util/utils"
 import {useI18n} from "@/i18n/i18n"
@@ -56,6 +65,7 @@ const emits = defineEmits<Emits>()
 interface Props {
     modelValue: string | string[],
     disabled?: boolean,
+    shadcn?: boolean,
     anyOption?: boolean,
     multiple?: boolean,
     multipleLimit?: number,
@@ -72,6 +82,10 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { t, ta } = useI18n()
+const uiOptions = computed(() => [
+    ...(props.anyOption ? [{ value: 'any', label: t('misc.any') }] : []),
+    ...allArtifactsName.map(item => ({ value: item.name, label: ta(item.nameLocale), icon: item.url })),
+])
 </script>
 
 <style scoped>

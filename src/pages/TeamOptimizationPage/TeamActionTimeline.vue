@@ -2,7 +2,7 @@
  <div class="block-editor">
   <div class="skill-shelf">
    <div v-for="(member,r) in axis.members" :key="member.slot" class="shelf-row">
-    <div class="shelf-person"><div class="person"><img :src="characterData[member.character].avatar" alt=""/>{{ label(member) }}</div><label class="preview-constellation">命座<select :value="buffConstellations[r]" :aria-label="label(member)+'命座'" :disabled="disabled" @change="constellationOverrides[member.slot]=Number($event.target.value)"><option v-for="n in 7" :key="n-1" :value="n-1">{{ n-1 }}命</option></select></label></div>
+    <div class="shelf-person"><div class="person"><img :src="characterData[member.character].avatar" alt=""/>{{ label(member) }}</div><div class="preview-constellation">命座<UiSelect :model-value="String(buffConstellations[r])" :label="label(member)+'命座'" :disabled="disabled" :options="constellationOptions" @update:model-value="constellationOverrides[member.slot]=Number($event)"/></div></div>
     <div class="skills"><button v-for="action in catalog[member.character]" :key="action.id" type="button" :disabled="disabled" @pointerdown="beginNew($event,member,action)">{{ action.label }}</button><button type="button" :disabled="disabled" @pointerdown="beginNew($event,member,null)">切换至</button></div>
    </div>
   </div>
@@ -22,18 +22,22 @@
    <strong>技能倍率预览</strong>
    <div v-for="(hit,i) in selectedHits" :key="i" class="skill-hit"><span>{{ seconds(hit.time) }}s</span><span>{{ hit.label }}</span><span>{{ hit.damageModel==='reaction.superconduct'?'—':ratios(hit.effective) }}</span></div>
   </div>
-  <el-alert v-if="previewError" :title="previewError" type="error" :closable="false"/>
-  <el-progress v-if="previewBusy" :percentage="50" :indeterminate="true" :show-text="false"/>
+  <p v-if="previewError" class="team-inline-error" role="alert">{{ previewError }}</p>
+  <TeamProgress v-if="previewBusy" :model-value="null" label="技能倍率预览"/>
   <div v-if="selected" class="block-properties">
    <strong>{{ actionLabel(selected) }}</strong>
-   <label>时间（秒） <el-input-number :model-value="selected.timeMs/1000" :min="0" :step="0.1" :disabled="disabled" @update:model-value="updateTime"/></label>
-   <label v-for="field in parameters" :key="field.key">{{ field.label }}<el-input-number :model-value="selected.params?.[field.key]===undefined?undefined:selected.params[field.key]/(field.scale||1)" :min="field.min/(field.scale||1)" :max="field.max/(field.scale||1)" :step="field.step" :disabled="disabled" @update:model-value="setParameter(field,$event)"/></label>
-   <el-button :disabled="disabled||selectedIndex===0" @click="reorder(-1)">↑</el-button><el-button :disabled="disabled||selectedIndex===axis.timeline.length-1" @click="reorder(1)">↓</el-button><el-button type="danger" :disabled="disabled" @click="remove(selected.id)">删除</el-button>
+   <label>时间（秒） <TeamNumberInput :model-value="selected.timeMs/1000" :min="0" :step="0.1" :disabled="disabled" aria-label="时间（秒）" @update:model-value="updateTime"/></label>
+   <label v-for="field in parameters" :key="field.key">{{ field.label }}<TeamNumberInput :model-value="selected.params?.[field.key]===undefined?undefined:selected.params[field.key]/(field.scale||1)" :min="field.min/(field.scale||1)" :max="field.max/(field.scale||1)" :step="field.step" :disabled="disabled" :aria-label="field.label" @update:model-value="setParameter(field,$event)"/></label>
+   <UiButton :disabled="disabled||selectedIndex===0" @click="reorder(-1)">↑</UiButton><UiButton :disabled="disabled||selectedIndex===axis.timeline.length-1" @click="reorder(1)">↓</UiButton><UiButton variant="danger" :disabled="disabled" @click="remove(selected.id)">删除</UiButton>
   </div>
  </div>
 </template>
 <script setup>
 import {computed,ref,shallowRef,watch,onBeforeUnmount,nextTick} from 'vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
+import TeamNumberInput from './TeamNumberInput.vue'
+import TeamProgress from './TeamProgress.vue'
 import {characterData} from '@/assets/character'
 import locale from '@/i18n/generated/zh-cn.json'
 import {defaultTeamCharacter} from '../../../beta-data/team-dps-character-rules.mjs'
@@ -48,6 +52,7 @@ const viewport=ref(null),selectedId=ref(''),drag=ref(null),preview=shallowRef(nu
 const hoverBuff=shallowRef(null)
 const buffTooltip=ref(null)
 const constellationOverrides=ref({})
+const constellationOptions=Array.from({length:7},(_,n)=>({value:String(n),label:n+'命'}))
 const timelineProfiles=computed(()=>props.axis.members.map((member,r)=>({character:props.characters?.[r]??defaultTeamCharacter(member.character)})))
 const buffConstellations=computed(()=>props.axis.members.map((member,r)=>constellationOverrides.value[member.slot]??timelineProfiles.value[r].character.constellation))
 watch(()=>JSON.stringify([props.axis.id,props.axis.members]),()=>{constellationOverrides.value={}},{immediate:true})
@@ -154,17 +159,19 @@ onBeforeUnmount(()=>{cancel();previewSession.dispose()})
 .person{display:flex;align-items:center;gap:8px;min-width:128px;font-size:13px;font-weight:600}
 .person img{width:30px;height:30px;border-radius:50%;background:var(--cx-step-2)}
 .preview-constellation{display:flex;align-items:center;gap:8px;padding-left:38px;color:var(--cx-dim);font-size:12px}
-.preview-constellation select{padding:3px 6px;border:0;border-radius:8px;background:var(--cx-card);color:var(--cx-letter);font:inherit}
+.preview-constellation :deep(.select-trigger){padding:3px 6px;border:0;border-radius:8px;background:var(--cx-card);color:var(--cx-letter);font:inherit}
 .skills{display:flex;flex-wrap:wrap;gap:6px}
 .skills button{padding:7px 12px;border:0;border-radius:999px;background:var(--cx-card);color:var(--cx-letter);font:inherit;font-size:12px;cursor:grab;touch-action:none}
 .skills button:hover{background:var(--cx-step-2);color:var(--cx-gold)}
 .skills button:disabled{opacity:.5;cursor:default}
 
 /* 时间轴画布 */
-.timeline-scroll{overflow-x:scroll;overflow-y:auto;max-height:650px;border-radius:14px;background:var(--cx-step);overscroll-behavior-x:contain;scrollbar-width:auto;scrollbar-color:var(--cx-step-2) transparent}
-.timeline-scroll::-webkit-scrollbar{height:15px;width:12px}
-.timeline-scroll::-webkit-scrollbar-thumb{background:var(--cx-step-2);border:3px solid var(--cx-step);border-radius:8px}
-.timeline-scroll::-webkit-scrollbar-track{background:var(--cx-step)}
+.timeline-scroll{overflow-x:scroll;overflow-y:auto;max-height:650px;border-radius:14px;background:var(--cx-step);overscroll-behavior-x:contain}
+@media(pointer:fine) and (forced-colors:none){
+    .timeline-scroll::-webkit-scrollbar{height:15px;width:12px}
+    .timeline-scroll::-webkit-scrollbar-thumb{border-width:3px}
+    @supports not selector(::-webkit-scrollbar){.timeline-scroll{scrollbar-width:auto}}
+}
 .timeline-canvas{position:relative;background:repeating-linear-gradient(to right,transparent 0,transparent 63px,var(--grid) 63px,var(--grid) 64px);background-position:150px 0}
 .ruler{position:sticky;top:0;z-index:4;height:36px;background:var(--cx-card);box-shadow:0 1px 0 var(--cx-step-2)}
 .tick{position:absolute;top:8px;padding-left:4px;border-left:1px solid var(--cx-step-2);color:var(--cx-dim);font-size:11px;font-variant-numeric:tabular-nums}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import UiHoverPreview from '../UiHoverPreview.vue'
 import './sidebar.css'
 
 const props = defineProps<{ collapsible?: boolean }>()
@@ -18,7 +19,8 @@ function collapse() {
 </script>
 
 <template>
-    <nav data-slot="sidebar" :data-state="expanded ? 'expanded' : 'collapsed'"
+    <UiHoverPreview as="nav" target='[data-sidebar="menu-button"]'
+         data-slot="sidebar" :data-state="expanded ? 'expanded' : 'collapsed'"
          :data-collapsible="collapsible ? 'icon' : undefined"
          @pointerenter="hovered = $event.pointerType === 'mouse'"
          @pointerleave="hovered = false" @focusin="onFocus" @focusout="onBlur"
@@ -28,5 +30,5 @@ function collapse() {
             <i-ep-menu aria-hidden="true" />
         </button>
         <slot />
-    </nav>
+    </UiHoverPreview>
 </template>

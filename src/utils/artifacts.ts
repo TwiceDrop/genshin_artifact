@@ -18,7 +18,7 @@ import { hash, hashExceptValue } from "@/utils/artifactHash"
 import { positions } from "@/constants/artifact"
 import {useI18n} from "@/i18n/i18n";
 import {useKumiStore} from "@/store/pinia/kumi";
-import { convertGoodArtifacts } from '@/import/good'
+import { convertGoodWarehouse } from '@/import/good'
 import { isPreviewLevelFour, levelZeroMatches, confirmedZeroDuplicates } from '@/import/level-zero-match.cjs'
 
 
@@ -105,10 +105,15 @@ interface ImportJsonResult {
     upgrade: number,
     remove: number,
     add: number,
+    artifactFailures?: string[],
 }
 
 export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupImportDir: boolean, cleanupContext?: any): ImportJsonResult {
-    if (rawObj?.format === 'GOOD') rawObj = convertGoodArtifacts(rawObj)
+    const good = rawObj?.format === 'GOOD' ? convertGoodWarehouse(rawObj) : undefined
+    if (good) rawObj = good.artifacts
+    const artifactFailures = good?.failures ?? []
+    // A partial scan cannot determine which saved artifacts or equipment are absent.
+    const complete = artifactFailures.length === 0
     for (const position of positions) {
         if (rawObj?.[position] !== undefined && !Array.isArray(rawObj[position])) throw new Error(`圣遗物部位 ${position} 必须是数组`)
     }
@@ -205,7 +210,7 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
     }
 
     let removeCount = 0
-    if (removeNonExisting) {
+    if (complete && removeNonExisting) {
         for (let originalArtifacts of Object.values(hashAll)) {
             const id = originalArtifacts.id
             if (!existingIds.has(id)) {
@@ -216,7 +221,7 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
         }
     }
 
-    if (cleanupContext) {
+    if (complete && cleanupContext) {
         for (const ids of equips.values()) for (const id of ids) if (id !== null) cleanupContext.protectedIds.add(id)
         for (const pair of confirmedZeroDuplicates([...artifactStore.artifacts.value.values()], cleanupContext)) {
             removeArtifact(pair.removedId)
@@ -228,7 +233,7 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
 
     // add new artifacts groups to store
     const kumiStore = useKumiStore()
-    if(kumiStore.itemById(1)?.dir)
+    if(complete && kumiStore.itemById(1)?.dir)
     {
         if(backupImportDir) kumiStore.backupImportDir()
         else kumiStore.clearDir(1)
@@ -244,7 +249,8 @@ export function importMonaJson(rawObj: any, removeNonExisting: boolean, backupIm
         skip: skipCount,
         upgrade: upgradeCount,
         add: newCount,
-        remove: removeCount
+        remove: removeCount,
+        ...(!complete && { artifactFailures })
     }
 }
 

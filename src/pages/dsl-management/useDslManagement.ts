@@ -17,6 +17,7 @@ import { openContentShare } from '@/components/share/content-share.mjs'
 import { listDslEntries, removeDslEntry, saveDslEntry, updateDistributedDslEntries } from '@/store/dsl-library'
 import { generateDsl } from '@/algorithms/dsl-generator.mjs'
 import { dslShareId, exportDslDocument, importDslDocument, validateDslDocument } from '@/algorithms/dsl-library.mjs'
+import { defaultTargetPreview } from './default-target-preview'
 import type { DslLibraryDocument, DslLibraryEntry, DslNamedBuff } from '@/types/dsl-library'
 import type { IDslGeneratorState } from '@/types/preset'
 import type { IWeapon, WeaponType } from '@/types/weapon'
@@ -53,6 +54,7 @@ const roles = characterData as Record<string, CharacterCatalogEntry>
 const weaponsByType = weaponByType as Record<WeaponType, WeaponCatalogEntry[]>
 const buffsByName = buffData as Record<string, BuffCatalogEntry>
 const targetFunctions = targetFunctionByCharacterName as Record<string, TargetCatalogEntry[]>
+const skillTokensByRole = skillNames as Record<string, Record<string, string>>
 
 const defaultWeapon = (name: string): IWeapon => ({
     name, level: 90, ascend: false, refine: 1, params: getWeaponDefaultConfigWasmInterface(name),
@@ -87,8 +89,10 @@ export function useDslManagement() {
             .map(role => ({ value: role.name, label: ta(role.nameLocale), avatar: role.avatar, element: role.element, star: role.star }))
             .sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'))),
         defaultFunction: computed(() => {
-            const target = targetFunctions[selectedRole()]?.[0] ?? targetFunctions.common[0]
-            return { title: ta(target.nameLocale), description: target.description == null ? '' : ta(target.description) }
+            const name = selectedRole()
+            const target = targetFunctions[name]?.[0] ?? targetFunctions.common[0]
+            return { name: target.name, title: ta(target.nameLocale), description: ta(target.description),
+                ...defaultTargetPreview(target, roles[name], skillTokensByRole[name]) }
         }),
         entries: computed(() => list.value.filter(entry => entry.character === selectedRole())),
         draft: null as Editor | null,

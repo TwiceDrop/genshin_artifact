@@ -47,27 +47,27 @@
 
         <div class="hero-stats" :class="{ 'is-comparing': stats.some(stat => stat.before !== null) }">
             <h3>面板</h3>
-            <el-tooltip v-for="stat in stats" :key="stat.key" placement="left">
-                <div class="hero-stat" :class="{ hl: stat.highlight }" tabindex="0">
-                    <span>{{ stat.label }}</span>
-                    <b>
-                        <template v-if="stat.before !== null"><s>{{ stat.before }}</s> → </template>
-                        <em :class="stat.direction">{{ stat.current }}</em>
-                    </b>
-                </div>
-                <template #content>
-                    <div class="hero-stat-sources">
-                        <div v-if="stat.before !== null">
-                            <strong>{{ stat.before }} →</strong>
-                            <attribute-composition :composition="stat.baseline" :percentage="stat.percentage" />
-                        </div>
-                        <div>
-                            <strong v-if="stat.before !== null">{{ stat.current }}</strong>
-                            <attribute-composition :composition="stat.composition" :percentage="stat.percentage" />
-                        </div>
-                    </div>
+            <UiHoverDetails v-for="stat in stats" :key="stat.key" enabled side="left" :tap-label="stat.label">
+                <template #trigger>
+                    <button type="button" class="hero-stat" :class="{ hl: stat.highlight }">
+                        <span>{{ stat.label }}</span>
+                        <b>
+                            <template v-if="stat.before !== null"><s>{{ stat.before }}</s> → </template>
+                            <em :class="stat.direction">{{ stat.current }}</em>
+                        </b>
+                    </button>
                 </template>
-            </el-tooltip>
+                <div class="hero-stat-sources">
+                    <div v-if="stat.before !== null">
+                        <strong>{{ stat.before }} →</strong>
+                        <attribute-composition :composition="stat.baseline" :percentage="stat.percentage" />
+                    </div>
+                    <div>
+                        <strong v-if="stat.before !== null">{{ stat.current }}</strong>
+                        <attribute-composition :composition="stat.composition" :percentage="stat.percentage" />
+                    </div>
+                </div>
+            </UiHoverDetails>
             <button type="button" class="hero-stats-more" @click="emit('open', 'attributes')">全部属性 · 收益曲线 ›</button>
         </div>
         <div class="hero-equipment-area"><slot name="artifacts" /></div>
@@ -79,6 +79,7 @@ import CharacterPortrait from "@/components/display/CharacterPortrait.vue"
 import WeaponBaseStats from "@/components/display/WeaponBaseStats.vue"
 import {onMounted, onActivated, onDeactivated, onBeforeUnmount} from "vue"
 import AttributeComposition from "@/components/display/AttributePanel/AttributeComposition.vue"
+import UiHoverDetails from '@/components/ui/UiHoverDetails.vue'
 
 interface Stat {
     key: string, label: string, current: string, before: string | null, direction: string, highlight: boolean,
@@ -392,12 +393,19 @@ onBeforeUnmount(unbindResultKeyboard)
     display: flex;
     justify-content: space-between;
     gap: 12px;
+    min-width: 0;
     padding: 6px 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
     font-variant-numeric: tabular-nums;
 
     span {
         min-width: 0;
         color: var(--sh-dim);
+        overflow-wrap: anywhere;
     }
 
     b {

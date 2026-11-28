@@ -20,22 +20,16 @@
                 <span v-for="column in damageColumns" :key="column.key"><small>{{ t(column.label) }}</small><b :class="row[column.key].direction"><template v-if="row[column.key].before !== null"><s>{{ row[column.key].before }}</s> → </template>{{ row[column.key].current }}</b></span>
             </div>
         </div>
-        <el-table
-            v-else
-            :data="tableData"
-        >
-            <el-table-column
-                prop="name"
-                min-width="72"
-                :label="t('misc.type1')"
-            >
-                <template #default="{ row }">
-                    <span>{{ row.name }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column v-for="column in damageColumns" :key="column.key" :label="t(column.label)" :min-width="baseline ? 142 : 80">
-                <template #default="{ row }">
-                    <span class="damage-values" :class="{ expected: column.key === 'expectation' && row[column.key].before === null }">
+        <div v-else class="damage-table-wrap" tabindex="0" role="region" :aria-label="t('misc.dmg')">
+            <table class="damage-table">
+                <thead><tr>
+                    <th scope="col">{{ t('misc.type1') }}</th>
+                    <th v-for="column in damageColumns" :key="column.key" scope="col">{{ t(column.label) }}</th>
+                </tr></thead>
+                <tbody><tr v-for="row in tableData" :key="row.key">
+                    <th scope="row">{{ row.name }}</th>
+                    <td v-for="column in damageColumns" :key="column.key">
+                        <span class="damage-values" :class="{ expected: column.key === 'expectation' && row[column.key].before === null }">
                         <span class="value-line">
                             <span v-if="row[column.key].before !== null" class="before-value">{{ row[column.key].before }} →</span>
                             <span class="damage-number" :class="row[column.key].direction">{{ row[column.key].current }}</span>
@@ -44,10 +38,11 @@
                             <span class="damage-number">{{ row[column.key].delta }}</span>
                             <span class="damage-number">（{{ row[column.key].percent }}）</span>
                         </span>
-                    </span>
-                </template>
-            </el-table-column>
-        </el-table>
+                        </span>
+                    </td>
+                </tr></tbody>
+            </table>
+        </div>
     </div>
 </template>
 
@@ -142,13 +137,20 @@ export default {
 .feature-row small { margin-right: 6px; color: var(--cx-dim); }
 .damage-feature .increase { color: var(--cx-up); }
 .damage-feature .decrease { color: var(--cx-down); }
+.damage-table-wrap { overflow: auto; border: 1px solid var(--cx-step-2); border-radius: 8px; }
+.damage-table-wrap:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
+.damage-table { width: 100%; border-collapse: collapse; }
+.damage-table th, .damage-table td { padding: 8px 10px; border-bottom: 1px solid var(--cx-step-2); text-align: right; }
+.damage-table th:first-child { text-align: left; }
+.damage-table thead { background: var(--cx-step); white-space: nowrap; }
+.damage-table tbody tr:last-child > * { border-bottom: 0; }
 .damage-values { display: inline-flex; flex-direction: column; max-width: 100%; color: var(--cx-letter); font-variant-numeric: tabular-nums; }
 .damage-values.expected { font-weight: 650; color: var(--cx-gold); }
 .value-line, .change-line { display: flex; flex-wrap: wrap; gap: 0 4px; align-items: baseline; }
 .damage-number { white-space: nowrap; word-break: normal; }
 .before-value { color: var(--cx-letter); white-space: nowrap; }
-.increase { color: #d93025; }
-.decrease { color: #188038; }
+.increase { color: var(--cx-up); }
+.decrease { color: var(--cx-down); }
 .item {
     height: 32px;
     display: flex;

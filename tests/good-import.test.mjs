@@ -20,13 +20,14 @@ const meta = name => {
 const artifacts = meta('artifact'), characters = meta('character')
 const locale = JSON.parse(read('src/i18n/generated/zh-cn.json'))
 const cache = new Map()
-function load(file) {
+function load(file, dependencies = {}) {
     const absolute = path.resolve(root, file)
     if (cache.has(absolute)) return cache.get(absolute).exports
     const m = new Module(absolute)
     cache.set(absolute, m)
     m.filename = absolute
     m.require = spec => {
+        if (Object.hasOwn(dependencies, spec)) return dependencies[spec]
         if (spec === '@/utils/preset') return { upgradePresetItem: () => { throw new Error('Unexpected legacy preset') } }
         if (spec === '@/assets/artifacts') return { artifactsData: artifacts }
         if (spec === '@/assets/character') return { characterData: characters }
@@ -45,11 +46,26 @@ function load(file) {
     m._compile(output, absolute)
     return m.exports
 }
-const { convertGoodArtifacts } = load('src/import/good.ts')
+const { convertGoodArtifacts, exportGoodWarehouse } = load('src/import/good.ts')
 const { importMonaJson } = load('src/utils/artifacts.ts')
 const { convertArtifact } = load('src/utils/converter.ts')
 const store = load('src/store/pinia/artifact.ts').useArtifactStore()
 const kumi = load('src/store/pinia/kumi.ts').useKumiStore()
+const uid = '999999999'
+const { importWarehouseFile, isWarehouseFile } = load('src/import/warehouse-file.js', {
+    '@/store/pinia/account': { useAccountStore: () => ({ currentAccountId: { value: 1 } }) },
+    './uid-import-session': { uidImportSession: () => ({
+        async run(target, _source, stage) {
+            assert.equal(target, uid)
+            return stage({})
+        }
+    }) },
+    './save-game-snapshot.mjs': { mergeUidWarehouse(target, pieces) {
+        assert.equal(target, uid)
+        for (const piece of pieces) store.addArtifact(piece)
+        return pieces.length
+    } }
+})
 function reset() { store.init(null); kumi.init(null) }
 const artifact = (slotKey, mainStatKey, extra = {}) => ({
     setKey: 'GladiatorsFinale', slotKey, mainStatKey, rarity: 5, level: 20,
@@ -64,6 +80,41 @@ const fixture = () => good([
     artifact('goblet', 'cryo_dmg_', { setKey: 'SilkenMoonsSerenade' }),
     artifact('circlet', 'critDMG_', { setKey: 'CelestialGift' })
 ])
+
+test('the character file picker forwards warehouse exports and keeps GOOD character scans on the roster path', () => {
+    const scan = fixture()
+    assert.equal(isWarehouseFile({ version: '1', flower: [] }), true)
+    assert.equal(isWarehouseFile({ feather: [] }), true)
+    assert.equal(isWarehouseFile(scan), true)
+    assert.equal(isWarehouseFile({ ...scan, version: 1, characters: [] }), true)
+    assert.equal(isWarehouseFile({ ...scan, characters: [{ key: 'Amber' }] }), false)
+    assert.equal(isWarehouseFile({ ...scan, artifacts: undefined }), false)
+    assert.equal(isWarehouseFile({ format: 'mona-uid', artifacts: [] }), false)
+    assert.equal(isWarehouseFile({ role: { uid }, characters: [] }), false)
+})
+
+test('GOOD v3 warehouse export keeps set aliases, stat units, and a pending fourth substat', () => {
+    const scan = fixture()
+    scan.artifacts[0] = artifact('flower', 'hp', { level: 0, substats: [{ key: 'critRate_', value: 3.9 },
+        { key: 'eleMas', value: 23 }, { key: 'def', value: 19 }], unactivatedSubstats: [{ key: 'enerRech_', value: 5.8 }] })
+    const imported = convertGoodArtifacts(scan)
+    const inventory = Object.values(imported).flat().map((item, id) => ({ ...item, id, contentHash: 'synthetic', omit: id === 0 }))
+    const output = JSON.parse(JSON.stringify(exportGoodWarehouse(inventory)))
+    assert.deepEqual({ format: output.format, version: output.version, source: output.source }, { format: 'GOOD', version: 3, source: 'MonaArtifact' })
+    assert.deepEqual(output.artifacts.map(item => [item.setKey, item.slotKey, item.mainStatKey]), scan.artifacts.map(item => [item.setKey, item.slotKey, item.mainStatKey]))
+    assert.deepEqual(output.artifacts.map(item => item.lock), [true, false, false, false, false])
+    assert.equal(output.artifacts[0].substats[1].value, 23)
+    assert.equal(output.artifacts[0].unactivatedSubstats[0].key, 'enerRech_')
+    assert.ok(Math.abs(output.artifacts[0].unactivatedSubstats[0].value - 5.8) < 1e-10)
+    assert.ok(output.artifacts.every(item => item.location === '' && !Object.hasOwn(item, 'id')))
+    const decoded = convertGoodArtifacts(output)
+    const normalize = inventory => Object.values(inventory).flat().map(({ equip, normalTags, unactivatedTags, ...item }) => ({
+        ...item, normalTags: normalTags.map(stat => [stat.name, stat.value.toFixed(10)]),
+        unactivatedTags: unactivatedTags.map(stat => [stat.name, stat.value.toFixed(10)]),
+    }))
+    assert.deepEqual(normalize(decoded), normalize(imported))
+    assert.deepEqual(exportGoodWarehouse([]).artifacts, [])
+})
 
 test('GGScanner roster imports linked equipment, preserves partial scans and archives a new character without a weapon', () => {
     const uid = '999999999'
@@ -177,7 +228,7 @@ test('actual inventory merges, upgrades, preserves omit, and equips partial sets
 test('omitted, empty, unrelated and unknown GOOD input cannot clear inventory or equipment', () => {
     reset(); importMonaJson(fixture(), false, false)
     const before = contents(), saved = groups()
-    const unsupported = fixture(); unsupported.artifacts[4].setKey = 'UnknownFutureSet'
+    const unsupported = good([artifact('circlet', 'critDMG_', { setKey: 'GlacierAndSnowfield', rarity: 4, level: 0 })])
     const invalid = [
         { format: 'GOOD', version: 3, characters: [{ key: 'Mona' }] },
         { format: 'GOOD', version: 3, weapons: [{ key: 'DullBlade' }] },
@@ -188,6 +239,56 @@ test('omitted, empty, unrelated and unknown GOOD input cannot clear inventory or
         assert.throws(() => importMonaJson(input, true, false), /artifacts|没有可导入|未知套装/)
         assert.equal(contents(), before); assert.equal(groups(), saved)
     }
+})
+
+test('mixed GOOD input imports past an unrecognized piece and preserves existing inventory and equipment', () => {
+    reset()
+    importMonaJson(good([artifact('flower', 'hp')]), false, false)
+    const previousId = [...store.artifacts.value.keys()][0]
+    const saved = groups()
+    const raw = good([
+        artifact('plume', 'atk'),
+        artifact('circlet', 'critDMG_', { setKey: 'GlacierAndSnowfield', rarity: 4, level: 0 }),
+        artifact('flower', 'critDMG_'),
+        artifact('sands', 'atk_', { level: 21 }),
+        artifact('circlet', 'critRate_', { substats: [{ key: 'cryo_dmg_', value: 5 }] }),
+        artifact('goblet', 'cryo_dmg_')
+    ])
+    const result = importMonaJson(raw, true, false)
+    assert.equal(result.add, 2)
+    assert.equal(result.remove, 0)
+    assert.deepEqual(result.artifactFailures, [
+        'GOOD 第 2 件圣遗物：未知套装 GlacierAndSnowfield',
+        'GOOD 第 3 件圣遗物：部位或主词条无法识别 flower / critDMG_',
+        'GOOD 第 4 件圣遗物：不支持的星级或等级 5 / 21',
+        'GOOD 第 5 件圣遗物：副词条无法识别 cryo_dmg_'
+    ])
+    assert.deepEqual([...store.artifacts.value.values()].map(a => a.position), ['flower', 'feather', 'cup'])
+    assert.ok(store.getArtifact(previousId))
+    assert.equal(groups(), saved)
+})
+
+test('GOOD warehouse import passes 105 recognized artifacts to the UID save and reports three skipped pieces', async ({ mock }) => {
+    reset()
+    const warnings = mock.method(console, 'warn', () => {})
+    const invalid = artifact('circlet', 'critDMG_', { setKey: 'GlacierAndSnowfield', rarity: 4, level: 0 })
+    const raw = { ...good([
+        ...Array.from({ length: 64 }, () => artifact('plume', 'atk')),
+        invalid, invalid, invalid,
+        ...Array.from({ length: 41 }, () => artifact('goblet', 'cryo_dmg_'))
+    ]), metadata: { uid } }
+    const before = structuredClone(raw)
+    const result = await importWarehouseFile(raw, true, false)
+    assert.equal(result.added, 105)
+    assert.equal(store.artifactsByPosition.value.feather.length, 64)
+    assert.equal(store.artifactsByPosition.value.cup.length, 41)
+    assert.deepEqual(raw, before)
+    assert.equal(result.warning, '已导入 105 件圣遗物，跳过 3 件无法识别的圣遗物。')
+    assert.deepEqual(warnings.mock.calls[0].arguments[1],
+        [65, 66, 67].map(index => `GOOD 第 ${index} 件圣遗物：未知套装 GlacierAndSnowfield`))
+    await assert.rejects(() => importWarehouseFile({ ...raw, artifacts: [invalid] }, true, false), /第 1 件圣遗物.*GlacierAndSnowfield/)
+    await assert.rejects(() => importWarehouseFile({ ...raw, artifacts: [] }, true, false), /没有可导入的圣遗物/)
+    assert.equal(store.artifactsCount.value, 105)
 })
 
 test('imported equipment crosses the actual public WASM calculator and scoring boundary', async () => {
@@ -232,22 +333,19 @@ test('actual file reader and page save callback reach shared import and wait for
     assert.ok(toolsSource.includes('https://github.com/Anyrainel/GOODScanner'))
     reset()
     const upload = compiler.parse(read('src/components/misc/ImportBlock.vue')).descriptor
-    const uploadCode = ts.transpileModule(upload.scriptSetup.content.replace(/import[^;]+;/, ''), { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText
+    const uploadCode = ts.transpileModule(upload.scriptSetup.content.replace(/^import .*$/gm, ''), { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText
     const pageScript = descriptor.scriptSetup.content
     const start = pageScript.indexOf('const showImportDialog')
     const end = pageScript.indexOf('function getArtifactString()', start)
     const pageCode = ts.transpileModule(pageScript.slice(start, end), { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText
     const { chromium } = require('C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')
-    const assets = {
-        '/vue.js': fs.readFileSync(require.resolve('vue/dist/vue.global.js')),
-        '/element.js': fs.readFileSync(require.resolve('element-plus/dist/index.full.js'))
-    }
-    const html = '<!doctype html><html><body><div id="app"></div><script src="/vue.js"></script><script src="/element.js"></script><script>' +
-        'const {ref,computed,watch}=Vue; const useRoute=()=>({path:"/artifacts",query:{}}),useRouter=()=>({}); const ImportBlock={template:' + JSON.stringify(upload.template.content) + ',setup(props,{expose}){' +
-        'return (new Function("ref","defineProps","defineExpose",' + JSON.stringify(uploadCode + '\nreturn {isDragover,file,hasFile,fileName,fileInput,handleDragEnter,handleDragLeave,handleDragover,handleClick,handleSelectFile,handleDrop,props};') + '))(ref,()=>props,expose);}};' +
-        'Vue.createApp({components:{ImportBlock},setup(){const t=x=>x;const ElLoading={service:()=>({close(){window.events.push("close")}})};const ElMessage=e=>window.messages.push(e.message);window.events=[];window.messages=[];' +
-        'const presetStore={presets:{value:{}}},useKumiStore=()=>({kumi:{value:[]}}),useMiyousheStore=()=>({data:{value:{}}}),artifactImportContext=()=>null,recordUsage=id=>window.events.push("usage:"+id);' +
-        pageCode + ';return {fileUploader,handleImportJson};},template:\'<import-block ref="fileUploader"/><button @click="handleImportJson">导入</button>\'}).use(ElementPlus).mount("#app");</script></body></html>'
+    const assets = { '/vue.js': fs.readFileSync(require.resolve('vue/dist/vue.global.js')) }
+    const html = '<!doctype html><html><body><div id="app"></div><script src="/vue.js"></script><script>' +
+        'const {computed,onActivated,onMounted,ref,shallowRef,watch}=Vue; const useRoute=()=>({path:"/artifacts",query:{}}),useRouter=()=>({}); const UiButton={template:"<button><slot/></button>"}; const ImportBlock={components:{UiButton},props:["file"],emits:["update:file"],template:' + JSON.stringify(upload.template.content) + ',setup(props,{emit,expose}){' +
+        'return (new Function("computed","ref","defineProps","defineEmits","defineExpose",' + JSON.stringify(uploadCode + '\nreturn {isDragover,file,fileInput,handleDragEnter,handleDragLeave,handleDragover,handleClick,handleSelectFile,handleDrop,props};') + '))(computed,ref,()=>props,()=>emit,expose);}};' +
+        'Vue.createApp({components:{ImportBlock},setup(){window.events=[];window.messages=[];const showError=e=>window.messages.push(String(e));const showNotice=message=>window.events.push(message);const artifactPrompt=ref(undefined);' +
+        'const presetStore={presets:{value:{}}},useKumiStore=()=>({kumi:{value:[]}}),useMiyousheStore=()=>({data:{value:{}}}),useAccountStore=()=>({currentAccountId:ref(1),reloadGeneration:ref(0)}),pendingWarehouseImport=shallowRef(null),artifactImportContext=()=>null,recordUsage=id=>window.events.push("usage:"+id);' +
+        pageCode + ';showImportDialog.value=true;watch(showImportDialog,open=>{if(!open)window.events.push("close")});return {fileUploader,selectedImportFile,handleImportJson};},template:\'<import-block ref="fileUploader" v-model:file="selectedImportFile"/><button @click="handleImportJson">导入</button>\'}).mount("#app");</script></body></html>'
     const server = http.createServer((req, res) => {
         res.setHeader('Content-Type', req.url === '/' ? 'text/html; charset=utf-8' : 'text/javascript')
         res.end(req.url === '/' ? html : assets[req.url] || '')
@@ -259,16 +357,20 @@ test('actual file reader and page save callback reach shared import and wait for
         const errors = []; page.on('pageerror', e => errors.push(e.message))
         await page.exposeFunction('importWarehouseFile', async (raw, remove, backup) => {
             await new Promise(resolve => setTimeout(resolve, 50))
-            const result = importMonaJson(raw, remove, backup)
+            const result = await importWarehouseFile(raw, remove, backup)
             await page.evaluate(() => window.events.push('import-complete'))
             return result
         })
         await page.goto('http://127.0.0.1:' + server.address().port)
         assert.deepEqual(errors, [])
-        await page.locator('input[type=file]').setInputFiles({ name: '任意文件名.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(fixture())) })
+        const raw = { ...fixture(), metadata: { uid } }
+        raw.artifacts.splice(1, 0, { ...raw.artifacts[0], setKey: 'GlacierAndSnowfield' })
+        await page.locator('input[type=file]').setInputFiles({ name: '任意文件名.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(raw)) })
         await page.getByRole('button', { name: '导入', exact: true }).click()
         await page.waitForFunction(() => window.events.includes('close'))
-        assert.deepEqual(await page.evaluate(() => window.events), ['import-complete', 'usage:action.artifact-file-import', 'close'])
+        assert.deepEqual(await page.evaluate(() => window.events), [
+            'import-complete', '已导入 5 件圣遗物，跳过 1 件无法识别的圣遗物。', 'usage:action.artifact-file-import', 'close'
+        ])
         assert.deepEqual(await page.evaluate(() => window.messages), [])
         assert.deepEqual(errors, [])
         assert.equal(store.artifactsCount.value, 5)

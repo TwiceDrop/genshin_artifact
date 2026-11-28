@@ -15,7 +15,7 @@ test('manager imports, edits, exports, deletes, persists and isolates account ch
  const backend={getItem:async key=>structuredClone(data.get(key)??null),setItem:async(key,value)=>data.set(key,structuredClone(value))};
  const route=reactive({path:'/team-optimization',fullPath:'/team-optimization',query:{}});
  const shareLoginReturn={draft:null},returned=[];
- const env={...teamEditorEnvironment,...libraryApi,ref,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),useAccountStore:()=>account,backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:[],ElMessage:Object.assign(()=>{}, {success(){}}),console,
+ const env={...teamEditorEnvironment,...libraryApi,ref,computed,watch,onBeforeUnmount:fn=>unmount.push(fn),useAccountStore:()=>account,backend,downloadString:async(text,type,name)=>downloads.push({text,type,name}),characterData:chars,locale:[],console,
   useRoute:()=>route,shareLoginReturn,useAxisSharing:()=>({...teamEditorEnvironment.useAxisSharing(),show:({returning})=>returned.push(returning)})};
  vm.createContext(env);scope.run(()=>vm.runInContext(ts.transpileModule(script,{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,env));
  const ui=env.ui;await nextTick();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.library.value.entries.length,0);

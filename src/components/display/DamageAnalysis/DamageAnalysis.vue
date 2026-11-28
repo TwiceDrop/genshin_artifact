@@ -1,6 +1,8 @@
 <template>
     <div style="margin-bottom: 16px;" class="flex-row damage-reaction-controls">
-        <el-radio-group v-model="damageType" style="margin-right: 24px;">
+        <UiSegmentedControl v-if="shadcn" v-model="damageType" class="damage-type-control"
+            label="伤害类型" :options="compositionOptions" />
+        <el-radio-group v-else v-model="damageType" style="margin-right: 24px;">
             <el-radio-button v-for="option in reactionOptions" :key="option.key" :label="option.key">{{ option.key === 'normal' ? normalDamageName : option.label }}</el-radio-button>
         </el-radio-group>
 
@@ -17,7 +19,8 @@
     <lunar-damage-detail v-if="selectedLunar" :state="selectedLunar" :calculation="lunarPreview" />
     <stellar-damage-detail v-else-if="selectedStellarDetail" :state="selectedStellarDetail" :kind="damageType" />
     <section v-else-if="selectedStellarResult" class="stellar-detail">
-        <el-descriptions :column="3" border>
+        <DamageMetrics v-if="shadcn" :result="selectedStellarResult" :format="formatStellarDamage" />
+        <el-descriptions v-else :column="3" border>
             <el-descriptions-item label="期望伤害">{{ formatStellarDamage(selectedStellarResult.expectation) }}</el-descriptions-item>
             <el-descriptions-item label="暴击伤害">{{ formatStellarDamage(selectedStellarResult.critical) }}</el-descriptions-item>
             <el-descriptions-item label="非暴击伤害">{{ formatStellarDamage(selectedStellarResult.non_critical) }}</el-descriptions-item>
@@ -25,7 +28,8 @@
     </section>
 
 
-    <div v-if="!selectedStellarResult && !selectedLunar" class="header-row" style="overflow: auto; margin-bottom: 16px;">
+    <div v-if="!selectedStellarResult && !selectedLunar" class="header-row" :class="{ 'composition-scroll': shadcn }"
+        :tabindex="shadcn ? 0 : undefined" :aria-label="shadcn ? baseRegionName : undefined" style="overflow: auto; margin-bottom: 16px;">
         <div>
             <div class="big-title base-damage-region" :title="Math.round(baseDamageSpread*100)/100" v-if="damageType === 'spread'">{{ baseRegionName }}</div>
             <div class="big-title base-damage-region" :title="Math.round(baseDamageAggravate*100)/100" v-else-if="damageType === 'aggravate'">{{ baseRegionName }}</div>
@@ -151,7 +155,8 @@
         </div>
     </div>
 
-    <div v-if="isDamage && !selectedStellarResult && !selectedLunar" class="header-row" style="overflow: auto">
+    <div v-if="isDamage && !selectedStellarResult && !selectedLunar" class="header-row" :class="{ 'composition-scroll': shadcn }"
+        :tabindex="shadcn ? 0 : undefined" :aria-label="shadcn ? '防御乘区 · 抗性乘区' : undefined" style="overflow: auto">
         <div>
             <div class="big-title def-minus">防御乘区</div>
             <div class="header-row">
@@ -180,7 +185,10 @@
 
 <script>
 import DamageAnalysisUtil from "./DamageAnalysisUtil"
+import DamageMetrics from './DamageMetrics.vue'
 import StellarDamageDetail from './StellarDamageDetail.vue'
+import LunarDamageDetail from './LunarDamageDetail.vue'
+import UiSegmentedControl from '@/components/ui/UiSegmentedControl.vue'
 import {STELLAR_DETAIL_KEYS,stellarDetail,stellarDetailState,stellarDetailResult} from '@/algorithms/stellar-detail.mjs'
 import {lunarDetailState, lunarCalculation} from '@/algorithms/lunar-detail.mjs'
 import { LEVEL_MULTIPLIER } from "@/constants/levelMultiplier"
@@ -199,9 +207,12 @@ function sum(arr) {
 export default {
     name: "DamageAnalysis",
     components: {
-        DamageAnalysisUtil, StellarDamageDetail
+        DamageAnalysisUtil, DamageMetrics, StellarDamageDetail, LunarDamageDetail, UiSegmentedControl
     },
-    props: ["enemyConfig", "characterLevel", "characterName"],
+    props: { enemyConfig: {}, characterLevel: {}, characterName: {}, shadcn: Boolean },
+    provide() {
+        return { isShadcnDamageAnalysis: () => this.shadcn }
+    },
     data() {
         return {
             damageType: "normal",
@@ -310,6 +321,12 @@ export default {
         }
     },
     computed: {
+        compositionOptions() {
+            return this.reactionOptions.map(option => ({
+                value: option.key,
+                label: option.key === 'normal' ? this.normalDamageName : option.label,
+            }))
+        },
         selectedLunar() { return this.lunarStates[this.damageType] },
         lunarPreview() { return this.selectedLunar && lunarCalculation(this.selectedLunar) },
         selectedStellarDetail() { return this.stellarDetailStates[this.damageType] },
@@ -583,6 +600,10 @@ export default {
 <style scoped lang="scss">
 .damage-reaction-controls { flex-wrap: wrap; gap: 12px; }
 .damage-reaction-controls :deep(.el-radio-group) { display: flex; flex-wrap: wrap; row-gap: 8px; }
+.damage-type-control { max-width: 100%; }
+.composition-scroll { border: 1px solid var(--cx-step-2); border-radius: 10px; }
+.composition-scroll > div { flex: none; }
+.composition-scroll:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 2px; }
 .stellar-detail { overflow-x: auto; }
 .stellar-detail p { color: #7a8797; font-size: 12px; line-height: 1.7; }
 

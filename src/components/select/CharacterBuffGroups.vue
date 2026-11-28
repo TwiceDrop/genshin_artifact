@@ -1,5 +1,5 @@
 <template>
-    <section class="character-buff-groups">
+    <section class="character-buff-groups" :class="{ 'character-buffs-migrated': shadcn }">
         <div class="group-filters">
             <div class="character-element-tabs" role="group" aria-label="筛选 BUFF 元素">
                 <button type="button" :aria-pressed="buffElement === ''" @click="selectElement('')">全部</button>
@@ -7,13 +7,16 @@
                     <img v-if="elementIcons[element]" :src="elementIcons[element]" alt="" />{{ t('ele', element) }}
                 </button>
             </div>
-            <el-select v-if="store.uidGroups.value.length" v-model="uid" class="uid-select" size="small" aria-label="BUFF 来源 UID" placeholder="选择 UID">
+            <UiSelect v-if="shadcn && uidOptions.length" v-model="uid" class="uid-select" label="BUFF 来源 UID" placeholder="选择 UID" :options="uidOptions" />
+            <el-select v-else-if="store.uidGroups.value.length" v-model="uid" class="uid-select" size="small" aria-label="BUFF 来源 UID" placeholder="选择 UID">
                 <el-option v-for="g in store.uidGroups.value" :key="g.uid" :value="g.uid" :label="`${g.nickname} · UID ${g.uid}`" />
             </el-select>
         </div>
-        <el-collapse v-model="expanded" accordion>
-            <el-collapse-item v-for="g in visibleGroups" :key="g.character" :name="g.character">
-                <template #title>
+        <component :is="shadcn ? AccordionRoot : ElCollapse" v-model="expanded"
+            v-bind="shadcn ? { type: 'single', collapsible: true } : { accordion: true }">
+            <component :is="shadcn ? AccordionItem : ElCollapseItem" v-for="g in visibleGroups" :key="g.character"
+                v-bind="shadcn ? { value: g.character, class: 'character-accordion-item' } : { name: g.character }">
+                <template v-if="!shadcn" #title>
                     <div class="character-group-title" :data-element="g.element || 'None'">
                         <span class="element-accent" aria-hidden="true" />
                         <span class="character-avatar"><img :src="g.badge" alt="" loading="lazy" /></span>
@@ -27,32 +30,69 @@
                         </span>
                     </div>
                 </template>
-                <template v-if="expanded === g.character">
+                <div v-if="shadcn" class="character-accordion-heading">
+                    <AccordionHeader as="div" class="character-accordion-header">
+                        <AccordionTrigger class="character-accordion-trigger">
+                            <span class="character-group-title" :data-element="g.element || 'None'">
+                                <span class="element-accent" aria-hidden="true" />
+                                <span class="character-avatar"><img :src="g.badge" alt="" loading="lazy" /></span>
+                                <span class="character-heading-text">
+                                    <span class="character-heading-name">
+                                        <img v-if="g.element && elementIcons[g.element]" class="character-element-icon" :src="elementIcons[g.element]" :alt="`${t('ele', g.element)}元素`" />
+                                        <strong>{{ g.label }}</strong>
+                                    </span>
+                                    <span class="character-heading-meta">
+                                        <span class="buff-count">{{ g.buffs.length }}项 BUFF</span>
+                                        <span v-if="profile(g.character).imported" class="saved-badge">{{ profile(g.character).constellation }}命 · 已保存</span>
+                                        <span v-if="selectedCount(g)" class="selected-badge">已添加 {{ selectedCount(g) }}</span>
+                                    </span>
+                                </span>
+                            </span>
+                            <i-ep-arrow-down class="character-accordion-chevron" aria-hidden="true" />
+                        </AccordionTrigger>
+                    </AccordionHeader>
+                    <UiButton v-if="available(g).length" size="small" :aria-label="`一键添加${g.label}全部可用 BUFF`" @click="addAll(g)">一键全加</UiButton>
+                </div>
+                <component v-if="expanded === g.character" :is="shadcn ? AccordionContent : 'div'" :class="{ 'character-accordion-content': shadcn }">
                     <div class="character-buff-profile">
                         <template v-if="g.character !== 'Traveler' && g.character !== 'Unmapped'">
-                        <label>命座<el-input-number size="small" :model-value="profile(g.character).constellation" :min="0" :max="6" :aria-label="`${g.label}命座`" @update:modelValue="v => setProfile(g.character, 'constellation', v)" /></label>
-                        <label v-for="(label,key) in skills" :key="key">{{ label }}<el-input-number size="small" :model-value="profile(g.character)[key]" :min="1" :max="15" :aria-label="`${g.label}${label}`" @update:modelValue="v => setProfile(g.character, key, v)" /></label>
-                        <el-button size="small" @click="reset(g.character)">{{ profile(g.character).imported ? '恢复已保存数据' : '恢复默认值' }}</el-button>
+                        <label v-for="field in profileFields" :key="field.key">
+                            {{ field.label }}
+                            <component :is="shadcn ? UiNumberInput : ElInputNumber"
+                                v-bind="shadcn ? { step: 1 } : { size: 'small' }"
+                                :model-value="profile(g.character)[field.key]" :min="field.min" :max="field.max"
+                                :aria-label="g.label + field.label" @update:model-value="value => setProfile(g.character, field.key, value)" />
+                        </label>
+                        <component :is="shadcn ? UiButton : ElButton" size="small" @click="reset(g.character)">{{ profile(g.character).imported ? '恢复已保存数据' : '恢复默认值' }}</component>
                         </template>
-                        <el-button class="add-all-buffs" size="small" type="primary" :disabled="!available(g).length" :aria-label="`添加${g.label}全部可用 BUFF`" @click="addAll(g)">{{ available(g).length ? `添加全部可用 BUFF（${available(g).length}）` : '无待添加的可用 BUFF' }}</el-button>
+                        <component :is="shadcn ? UiButton : ElButton" class="add-all-buffs" size="small"
+                            v-bind="shadcn ? { variant: 'primary' } : { type: 'primary' }"
+                            :disabled="!available(g).length" :aria-label="`添加${g.label}全部可用 BUFF`" @click="addAll(g)">{{ available(g).length ? `添加全部可用 BUFF（${available(g).length}）` : '无待添加的可用 BUFF' }}</component>
                     </div>
                     <article v-for="buff in orderedBuffs(g)" :key="buff.name" class="group-buff-row" :class="{ unavailable: !availability(buff,g).allowed, selected: selectedNames.includes(buff.name) }">
-                        <div class="group-buff-heading"><strong>{{ buff.title }}</strong><el-tag :type="availability(buff,g).allowed ? 'info' : 'warning'" size="small">{{ availability(buff,g).label }}</el-tag>
-                            <el-button size="small" type="primary" :disabled="!availability(buff,g).allowed" :aria-label="`${selectedNames.includes(buff.name) ? '再次添加' : '添加'}${buff.title}`" @click="add(buff,g)">{{ selectedNames.includes(buff.name) ? '再次添加' : '添加此 BUFF' }}</el-button>
+                        <div class="group-buff-heading"><strong>{{ buff.title }}</strong>
+                            <span v-if="shadcn" class="group-buff-status" :class="{ unavailable: !availability(buff,g).allowed }">{{ availability(buff,g).label }}</span>
+                            <el-tag v-else :type="availability(buff,g).allowed ? 'info' : 'warning'" size="small">{{ availability(buff,g).label }}</el-tag>
+                            <component :is="shadcn ? UiButton : ElButton" size="small"
+                                v-bind="shadcn ? { variant: 'primary' } : { type: 'primary' }"
+                                :disabled="!availability(buff,g).allowed" :aria-label="`${selectedNames.includes(buff.name) ? '再次添加' : '添加'}${buff.title}`" @click="add(buff,g)">{{ selectedNames.includes(buff.name) ? '再次添加' : '添加此 BUFF' }}</component>
                         </div>
                         <p v-if="buff.description" v-html="buff.description" />
                         <details v-if="manualFields(buff,g).length && availability(buff,g).allowed" class="group-buff-params"><summary>调整 BUFF 参数</summary>
-                            <item-config :model-value="config(buff,g)" :item-name="buff.name" :configs="manualFields(buff,g)" @update:modelValue="v => setConfig(buff,g,v)" />
+                            <item-config :model-value="config(buff,g)" :item-name="buff.name" :configs="manualFields(buff,g)" :shadcn="shadcn" @update:modelValue="v => setConfig(buff,g,v)" />
                         </details>
                     </article>
-                </template>
-            </el-collapse-item>
-        </el-collapse>
-        <el-empty v-if="!visibleGroups.length" description="没有匹配的角色或 BUFF" />
+                </component>
+            </component>
+        </component>
+        <p v-if="shadcn && !visibleGroups.length" class="buff-groups-empty">没有匹配的角色或 BUFF</p>
+        <el-empty v-else-if="!visibleGroups.length" description="没有匹配的角色或 BUFF" />
     </section>
 </template>
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { AccordionContent, AccordionHeader, AccordionItem, AccordionRoot, AccordionTrigger } from 'radix-vue'
+import { ElButton, ElCollapse, ElCollapseItem, ElInputNumber } from 'element-plus'
 import { buffData } from '@/assets/buff'
 import characters from '@/assets/_gen_character'
 import {characterByElement} from '@/assets/character'
@@ -61,15 +101,24 @@ import { useI18n } from '@/i18n/i18n'
 import { useMiyousheStore } from '@/store/pinia/miyoushe'
 import { usePresetStore } from '@/store/pinia/preset'
 import ItemConfig from '@/components/config/ItemConfig'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiNumberInput from '@/components/ui/UiNumberInput.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
 import rules from '@/algorithms/buff-groups/ownership.json'
 import { groupCharacterBuffs, characterBuffProfile, buffAvailability, bindBuffConfig, isBoundBuffField, availableCharacterBuffs } from '@/algorithms/buff-groups/index.mjs'
-const props = defineProps({ buffs: { type: Array, default: () => [] }, search: { type: String, default: '' }, preferredUid: String, selectedNames: { type: Array, default: () => [] } })
+const props = defineProps({ buffs: { type: Array, default: () => [] }, search: { type: String, default: '' }, preferredUid: String, selectedNames: { type: Array, default: () => [] }, shadcn: Boolean })
 const emit = defineEmits(['select'])
 const store = useMiyousheStore(), presets = usePresetStore(), { t, ta } = useI18n()
 const uid = ref(''), expanded = ref(''), overrides = ref({}), configs = ref({})
 const buffElement = ref('')
 const elements = Object.keys(characterByElement)
-const skills = { skill1: '普攻天赋', skill2: '战技天赋', skill3: '爆发天赋' }
+const profileFields = [
+    { key: 'constellation', label: '命座', min: 0, max: 6 },
+    { key: 'skill1', label: '普攻天赋', min: 1, max: 15 },
+    { key: 'skill2', label: '战技天赋', min: 1, max: 15 },
+    { key: 'skill3', label: '爆发天赋', min: 1, max: 15 },
+]
+const uidOptions = computed(() => store.uidGroups.value.map(g => ({ value: g.uid, label: `${g.nickname} · UID ${g.uid}` })))
 watch(() => [props.preferredUid, store.selectedUid.value, store.uidGroups.value.map(g => g.uid).join(',')], () => {
     uid.value = props.preferredUid || store.selectedUid.value || ''
 }, { immediate: true })
@@ -103,8 +152,29 @@ function available(g) { return availableCharacterBuffs(g.buffs,rules,profile(g.c
 function addAll(g) { for (const buff of available(g)) add(buff,g) }
 </script>
 <style scoped>
+.character-accordion-item { border-bottom: 1px solid var(--cx-step-2); }
+.character-accordion-heading { display: flex; align-items: center; gap: 6px; }
+.character-accordion-header { flex: 1; min-width: 0; }
+.character-accordion-trigger { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 56px; padding: 0 6px; border: 0; border-radius: 8px; background: transparent; color: var(--cx-letter); font: inherit; cursor: pointer; }
+.character-accordion-trigger:is(:hover, [data-state="open"]) { background: var(--cx-step); }
+.character-accordion-trigger:focus-visible, .group-buff-params summary:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: -2px; }
+.character-accordion-chevron { flex: none; color: var(--cx-dim); }
+.character-accordion-trigger[data-state="open"] .character-accordion-chevron { transform: rotate(180deg); }
+.character-accordion-trigger .character-group-title { flex: 1; flex-wrap: nowrap; }
+.character-heading-text, .character-heading-name, .character-heading-meta { display: flex; align-items: center; min-width: 0; }
+.character-heading-text, .character-heading-meta { flex-wrap: wrap; gap: 4px 8px; }
+.character-heading-name { gap: 5px; }
+.character-heading-name strong { overflow-wrap: anywhere; }
+.character-heading-meta > span { white-space: nowrap; }
+.character-accordion-content { padding: 8px 6px 14px; }
+.group-buff-status { padding: 2px 7px; border-radius: 6px; background: var(--cx-card); color: var(--cx-dim); font-size: 12px; }
+.group-buff-status.unavailable { color: var(--cx-gold); }
+.group-buff-heading [data-slot="button"] { margin-left: auto; }
+.buff-groups-empty { margin: 0; padding: 24px 8px; text-align: center; color: var(--cx-dim); }
+.character-buffs-migrated .uid-select { max-width: 100%; }
 .group-filters { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 4px 0 12px; margin-bottom: 4px; background: var(--cx-card); border-bottom: 1px solid var(--cx-step-2); }
 .character-element-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.character-buffs-migrated .character-element-tabs { flex-wrap: wrap; overflow: visible; }
 .character-element-tabs button { display: inline-flex; align-items: center; gap: 5px; flex: none; height: 32px; padding: 0 13px; border: 0; border-radius: 999px; background: var(--cx-step); color: var(--cx-dim); font: inherit; font-size: 13px; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; }
 .character-element-tabs button:hover { background: var(--cx-step-2); color: var(--cx-letter); }
 .character-element-tabs button[aria-pressed=true] { background: var(--cx-gold); color: var(--cx-gold-on); font-weight: 600; }
@@ -152,6 +222,15 @@ function addAll(g) { for (const buff of available(g)) add(buff,g) }
 .group-buff-params summary { cursor: pointer; color: var(--cx-gold); font-size: 13px; padding: 4px 0; }
 .group-buff-params :deep(.config-root) { margin-top: 8px; }
 @media (max-width: 600px) {
+    .character-buffs-migrated .character-element-tabs { gap: 4px; }
+    .character-buffs-migrated .character-element-tabs button { gap: 4px; padding-inline: 8px; }
+    .character-buffs-migrated .character-element-tabs img { width: 15px; height: 15px; }
+    .character-accordion-trigger .character-group-title { gap: 6px; padding-inline-end: 0; }
+    .character-accordion-trigger .character-avatar { width: 32px; height: 32px; }
+    .character-heading-text { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .character-heading-meta { gap: 3px; }
+    .character-heading-meta > span { font-size: 11px; }
+    .character-accordion-heading > [data-slot="button"] { flex: none; min-height: 34px; }
     .uid-select { width: 100%; }
     .quick-add-btn { opacity: 1; }
     .character-buff-profile label { flex: 1 1 42%; }

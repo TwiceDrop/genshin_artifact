@@ -1,31 +1,13 @@
 <template>
-    <el-input
-        :model-value="modelValue.value"
-        @update:modelValue="handleValueChange"
-    >
-        <template #prepend>
-            <el-select
-                :model-value="modelValue.name"
-                @update:modelValue="handleTagChange"
-                class="prepend"
-            >
-                <el-option
-                    v-for="tagData in validTags"
-                    :key="tagData.name"
-                    :label="t('stat', tagData.name)"
-                    :value="tagData.name"
-                >
-                </el-option>
-            </el-select>
-        </template>
-
-        <template v-if="isPercentage" #append>
-            <span>%</span>
-        </template>
-    </el-input>
+    <ArtifactStatField :model-value="modelValue.value" :label="t('misc.mainStat')"
+        :percentage="isPercentage" @update:model-value="handleValueChange">
+        <UiSelect :model-value="modelValue.name" :label="t('misc.mainStat')" :options="tagOptions" @update:model-value="handleTagChange" />
+    </ArtifactStatField>
 </template>
 
 <script>
+import ArtifactStatField from '@/components/input/ArtifactStatField.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
 import { artifactsTagMap } from "@asset/artifacts";
 import { artifactTags } from "@const/artifact";
 import {useI18n} from "@/i18n/i18n";
@@ -50,6 +32,7 @@ export default {
             type: String,
         },
     },
+    components: { ArtifactStatField, UiSelect },
     emits: ["update:modelValue"],
     methods: {
         handleTagChange(event) {
@@ -74,6 +57,10 @@ export default {
             }
 
             return tagData[this.position];
+        },
+
+        tagOptions() {
+            return this.validTags.map(tag => ({ value: tag.name, label: this.t('stat', tag.name) }))
         },
 
         isPercentage() {
@@ -103,10 +90,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-.prepend {
-    /*width: 100px;*/
-    text-overflow: ellipsis;
-}
-</style>

@@ -76,8 +76,9 @@
 .artifact-toolbar { display: flex; align-items: center; gap: 8px; flex: 1 1 420px; min-width: 0; overflow-x: auto; padding: 2px; }
 .artifact-toolbar :deep(.artifact-score-mode) { flex: none; flex-wrap: nowrap; }
 .artifact-toolbar .artifact-tool { display: flex; align-items: center; flex-wrap: nowrap; flex: none; gap: 8px; margin: 0; }
-.artifact-toolbar :deep(.artifact-score-mode > .el-button),
-.artifact-toolbar .artifact-tool :deep(> .el-button) { flex: none; margin-left: 0; height: 24px; padding: 5px 8px; font-size: 12px; }
+.artifact-toolbar :deep(.artifact-score-mode > [data-slot="button"]),
+.artifact-toolbar .artifact-tool :deep(> [data-slot="button"]) { flex: none; min-height: 28px; margin-left: 0; padding: 3px 8px; font-size: 12px; }
+.artifact-toolbar .export-artifact-loadout[data-size="small"] { flex: none; min-height: 24px; height: 24px; padding: 0 8px; white-space: nowrap; }
 .artifact-toolbar .score-status, .artifact-toolbar .score-error { white-space: nowrap; }
 .artifact-bottom-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; overflow-x: auto; padding: 2px; }
 .artifact-bottom-actions .el-button { flex: none; margin-left: 0; }
@@ -133,10 +134,7 @@
 .config-weapon :deep(.detail-body) { padding-left: 0; }
 .config-weapon :deep(.detail .description) { font-size: 12px; line-height: 1.7; }
 @container single-weapon (min-width: 420px) {
-    .weapon-extra-config :deep(.config-root) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
-    .weapon-extra-config :deep(.config) { min-width: 0; margin-bottom: 0; }
-    .weapon-extra-config :deep(.el-slider__input) { width: 64px; }
-    .weapon-extra-config :deep(.el-slider__runway.show-input) { margin-right: 80px; }
+    .weapon-extra-config { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .buffs .team-context-control { padding: 10px; margin-bottom: 12px; }
 .buffs .common-title2 { margin-top: 0; }

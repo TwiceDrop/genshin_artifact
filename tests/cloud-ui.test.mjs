@@ -1,21 +1,20 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase } from '../src/cloud/cookie-crypto.mjs'
 import { communityAccount } from '../server/cookie.mjs'
+import { loadCloudUi } from './helpers/cloud-ui-fixture.mjs'
 const require = createRequire(import.meta.url)
 const { JSDOM } = require('jsdom')
-const { parse, compileScript, compileTemplate } = require('@vue/compiler-sfc')
 
 // 合成数据。云端和本机网关用内存模拟；加解密用真实的 WebCrypto，验证页面只把密文和派生密钥交出去。
 test('cookie vault panel encrypts Cookies before upload, unlocks with the passphrase on a new device and re-encrypts on passphrase change', async () => {
     const dom = new JSDOM('<html><body><div id="app"></div></body></html>', { url: 'http://127.0.0.1/online-account', pretendToBeVisual: true })
-    for (const key of ['window', 'document', 'HTMLElement', 'SVGElement', 'Element', 'Node', 'MutationObserver', 'getComputedStyle', 'Event', 'MouseEvent']) globalThis[key] = typeof dom.window[key] === 'function' && key === 'getComputedStyle' ? dom.window[key].bind(dom.window) : dom.window[key]
+    for (const key of ['window', 'document', 'DocumentFragment', 'HTMLElement', 'SVGElement', 'Element', 'Node', 'MutationObserver', 'getComputedStyle', 'Event', 'MouseEvent']) globalThis[key] = typeof dom.window[key] === 'function' && key === 'getComputedStyle' ? dom.window[key].bind(dom.window) : dom.window[key]
     globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
     globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window)
     globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(dom.window)
-    const Vue = require('vue'), ElementPlus = require('element-plus')
+    const Vue = require('vue')
     const localCookie = 'ltuid_v2=123456;ltoken_v2=synthetic-read-token;ltmid_v2=synthetic-mid;'
     const passphrase = '合成测试解密密码', nextPassphrase = '新的合成解密密码'
     const calls = [], vaults = new Map(), mysCalls = []
@@ -48,23 +47,32 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
     }
     const mysApi = async (path, method, body) => { mysCalls.push({ path, method, body }); return { account: { id: '123456', accountUid: '123456', platform: 'miyoushe', roles: [{ nickname: '合成角色' }] } } }
     const setOnlineUserCalls = [], setOnlineUser = value => setOnlineUserCalls.push(value)
-    const filename = 'src/pages/OnlineAccountPage/CookieVaultPanel.vue'
-    const { descriptor } = parse(fs.readFileSync(new URL('../' + filename, import.meta.url), 'utf8'), { filename })
-    const script = compileScript(descriptor, { id: 'online-component' })
-    const template = compileTemplate({ source: descriptor.template.content, filename, id: 'online-component', compilerOptions: { bindingMetadata: script.bindings } })
-    assert.deepEqual(template.errors, [])
-    const scriptCode = script.content.replace(/^import .*\r?\n/gm, '').replace('export default', 'const component =')
-    const renderCode = template.code.replace(/import \{([^}]+)\} from "vue"/g, (_, names) => `const {${names.replace(/\s+as\s+/g, ':')}} = Vue`).replace('export function render', 'function render')
-    const component = new Function('Vue', 'cloudApi', 'mysApi', 'setOnlineUser', 'deriveCookieKey', 'encryptCookie', 'decryptCookie', 'checkNewPassphrase', 'communityAccount',
-        `const {ref,onMounted,onBeforeUnmount}=Vue;\n${scriptCode}\n${renderCode}\ncomponent.render=render; return component`)(Vue, cloudApi, mysApi, setOnlineUser, deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase, communityAccount)
-    const app = Vue.createApp(component).use(ElementPlus)
+    const currentAccountId = Vue.ref(7)
+    const component = loadCloudUi('pages/OnlineAccountPage/CookieVaultPanel.vue', {
+        '@/platform/cloud.mjs': { cloudApi },
+        '@/platform/mys-api.mjs': { mysApi },
+        '@/import/uid-import-session': {
+            bindCookieRole: async (roles, accountId, assertCurrent) => {
+                assert.equal(roles[0].nickname, '合成角色')
+                assert.equal(accountId, currentAccountId.value)
+                assertCurrent()
+                return '123456789'
+            },
+            cancelledImport: () => false,
+        },
+        '@/store/pinia/account': { useAccountStore: () => ({ currentAccountId }) },
+        '@/cloud/online-user.mjs': { setOnlineUser },
+        '@/cloud/cookie-crypto.mjs': { deriveCookieKey, encryptCookie, decryptCookie, checkNewPassphrase },
+        '../../../server/cookie.mjs': { communityAccount },
+    })
+    const app = Vue.createApp(component)
     const button = label => [...document.querySelectorAll('button')].find(item => item.textContent.trim() === label)
     const idle = () => [...document.querySelectorAll('button')].some(item => item.textContent.trim() === '刷新' && !item.disabled) || !button('刷新')
     // PBKDF2 在线程池里跑，等页面回到空闲（刷新按钮可用）再继续
     const settle = async () => { for (let i = 0; i < 400; i++) { await new Promise(resolve => setTimeout(resolve, 5)); await Vue.nextTick(); if (i > 3 && idle()) return } }
     const click = async label => { const item = button(label); assert.ok(item, `button ${label}`); assert.equal(item.disabled, false, `${label} enabled`); item.click(); await settle() }
     const fill = async (label, text) => { const input = document.querySelector(`input[aria-label="${label}"], [aria-label="${label}"] input`); assert.ok(input, label); input.value = text; input.dispatchEvent(new dom.window.Event('input', { bubbles: true })); await settle() }
-    const alert = () => document.querySelector('.el-alert')?.textContent || ''
+    const alert = () => document.querySelector('[role="alert"]')?.textContent || ''
     const sentSecrets = () => calls.some(call => JSON.stringify(call.body ?? '').includes('synthetic-read-token') || JSON.stringify(call.body ?? '').includes('合成解密密码'))
     try {
         app.mount('#app'); await settle()
@@ -98,6 +106,7 @@ test('cookie vault panel encrypts Cookies before upload, unlocks with the passph
         await click('导入本机')
         assert.equal(imported.length, 1)
         assert.equal(imported[0].account.id, imported[0].accounts[0].id)
+        assert.equal(imported[0].uid, '123456789')
         assert.equal(JSON.stringify(imported).includes('synthetic-read-token'), false)
         assert.deepEqual(mysCalls, [{ path: 'accounts', method: 'POST', body: { cookie: localCookie, platform: 'miyoushe', source: 'cloud-vault' } }])
 

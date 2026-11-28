@@ -1,69 +1,97 @@
 <template>
     <div class="cookie-panel">
-        <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon />
+        <UiAlert v-if="error" tone="error" class="cookie-alert">{{ error }}</UiAlert>
 
         <!-- 本区块的文案均为占位，待开发者确认（docs/specs/online-accounts/issues/08-cookie-client-encryption.md 的 Comments） -->
-        <section class="oa-card">
-            <div class="oa-heading"><h3>云端 Cookie</h3><el-button :disabled="busy" @click="refreshAll">刷新</el-button></div>
+        <section class="oa-panel oa-vault" aria-labelledby="oa-vault">
+            <header class="oa-panel-head">
+                <h3 id="oa-vault" class="oa-panel-title">云端 Cookie</h3>
+                <UiButton :disabled="busy" @click="refreshAll">刷新</UiButton>
+            </header>
             <div v-if="!cookieKey && !vaults.length" class="oa-passphrase">
-                <el-input v-model="passphrase" type="password" autocomplete="new-password" label="解密密码" placeholder="设置解密密码" :disabled="busy" />
-                <el-input v-model="passphraseConfirm" type="password" autocomplete="new-password" label="确认解密密码" placeholder="再次输入解密密码" :disabled="busy" />
-                <el-button type="primary" :disabled="busy || !passphrase || passphrase !== passphraseConfirm" @click="setPassphrase">设置解密密码</el-button>
+                <UiInput v-model="passphrase" type="password" autocomplete="new-password" aria-label="解密密码" placeholder="设置解密密码" :disabled="busy" />
+                <UiInput v-model="passphraseConfirm" type="password" autocomplete="new-password" aria-label="确认解密密码" placeholder="再次输入解密密码" :disabled="busy" />
+                <div class="oa-actions oa-actions-end">
+                    <UiButton variant="primary" :disabled="busy || !passphrase || passphrase !== passphraseConfirm" @click="setPassphrase">设置解密密码</UiButton>
+                </div>
             </div>
             <div v-else-if="!cookieKey" class="oa-passphrase">
-                <el-input v-model="passphrase" type="password" autocomplete="current-password" label="解密密码" placeholder="输入解密密码" :disabled="busy" @keyup.enter="unlock" />
-                <el-button type="primary" :disabled="busy || !passphrase" @click="unlock">解锁</el-button>
-                <el-popconfirm :teleported="false" title="删除云端全部 Cookie，之后重新上传并设置新的解密密码？" confirm-button-text="删除" cancel-button-text="取消" @confirm="forgetPassphrase">
-                    <template #reference><el-button :disabled="busy">忘记解密密码</el-button></template>
-                </el-popconfirm>
+                <UiInput v-model="passphrase" type="password" autocomplete="current-password" aria-label="解密密码" placeholder="输入解密密码" :disabled="busy" @keyup.enter="unlock" />
+                <div class="oa-actions oa-actions-end">
+                    <UiConfirmPopover title="删除云端全部 Cookie，之后重新上传并设置新的解密密码？" confirm-text="删除" cancel-text="取消" @confirm="forgetPassphrase">
+                        <UiButton :disabled="busy">忘记解密密码</UiButton>
+                    </UiConfirmPopover>
+                    <UiButton variant="primary" :disabled="busy || !passphrase" @click="unlock">解锁</UiButton>
+                </div>
             </div>
             <template v-else>
                 <div class="oa-row">
-                    <el-select v-model="localAccountId" aria-label="本机游戏账号" placeholder="选择本机已保存账号" :disabled="busy" style="width:100%">
-                        <el-option v-for="account in localAccounts" :key="account.id" :value="account.id" :label="accountLabel(account)" />
-                    </el-select>
-                    <el-button type="primary" :disabled="busy || !localAccountId" @click="uploadLocal">加密上传所选 Cookie</el-button>
+                    <UiSelect v-model="localAccountId" label="本机游戏账号" placeholder="选择本机已保存账号" :disabled="busy" :options="localAccountOptions" />
+                    <UiButton variant="primary" :disabled="busy || !localAccountId" @click="uploadLocal">加密上传所选 Cookie</UiButton>
                 </div>
-                <div class="oa-actions oa-manual-toggle">
-                    <el-button :disabled="busy" @click="manualOpen = !manualOpen">手动输入 Cookie</el-button>
-                    <el-button :disabled="busy" @click="changeOpen = !changeOpen">修改解密密码</el-button>
+                <div class="oa-actions oa-actions-end oa-manual-toggle">
+                    <UiButton :disabled="busy" @click="manualOpen = !manualOpen">手动输入 Cookie</UiButton>
+                    <UiButton :disabled="busy" @click="changeOpen = !changeOpen">修改解密密码</UiButton>
                 </div>
                 <div v-if="manualOpen" class="oa-manual">
-                    <el-select v-model="platform" aria-label="Cookie 平台" :disabled="busy"><el-option value="miyoushe" label="米游社" /><el-option value="hoyolab" label="HoYoLAB" /></el-select>
-                    <el-input v-model="cookie" type="password" autocomplete="off" label="Cookie" placeholder="Cookie" :disabled="busy" />
-                    <el-button :disabled="busy || !cookie.trim()" @click="uploadCookie">加密上传 Cookie</el-button>
+                    <UiSelect v-model="platform" label="Cookie 平台" :disabled="busy" :options="platformOptions" />
+                    <UiInput v-model="cookie" type="password" autocomplete="off" aria-label="Cookie" placeholder="Cookie" :disabled="busy" />
+                    <div class="oa-actions oa-actions-end">
+                        <UiButton :disabled="busy || !cookie.trim()" @click="uploadCookie">加密上传 Cookie</UiButton>
+                    </div>
                 </div>
                 <div v-if="changeOpen" class="oa-passphrase">
-                    <el-input v-model="passphrase" type="password" autocomplete="new-password" label="新解密密码" placeholder="新解密密码" :disabled="busy" />
-                    <el-input v-model="passphraseConfirm" type="password" autocomplete="new-password" label="确认新解密密码" placeholder="再次输入新解密密码" :disabled="busy" />
-                    <el-button type="primary" :disabled="busy || !passphrase || passphrase !== passphraseConfirm" @click="changePassphrase">确认修改</el-button>
+                    <UiInput v-model="passphrase" type="password" autocomplete="new-password" aria-label="新解密密码" placeholder="新解密密码" :disabled="busy" />
+                    <UiInput v-model="passphraseConfirm" type="password" autocomplete="new-password" aria-label="确认新解密密码" placeholder="再次输入新解密密码" :disabled="busy" />
+                    <div class="oa-actions oa-actions-end">
+                        <UiButton variant="primary" :disabled="busy || !passphrase || passphrase !== passphraseConfirm" @click="changePassphrase">确认修改</UiButton>
+                    </div>
                 </div>
             </template>
-            <el-empty v-if="!vaults.length" description="云端暂无 Cookie" />
-            <div v-for="vault in vaults" :key="vaultKey(vault)" class="oa-session">
-                <div><strong>{{ platformName(vault.platform) }} · {{ vault.accountUid }}</strong><div>上传于 {{ dateText(vault.updatedAt) }}</div></div>
-                <div class="oa-actions">
-                    <el-button type="primary" :disabled="busy || !cookieKey" @click="importVault(vault)">导入本机</el-button>
-                    <el-popconfirm :teleported="false" title="删除这条云端 Cookie？" confirm-button-text="删除" cancel-button-text="取消" @confirm="deleteVault(vault)">
-                        <template #reference><el-button type="danger" plain :disabled="busy">删除</el-button></template>
-                    </el-popconfirm>
+            <UiEmpty v-if="!vaults.length" description="云端暂无 Cookie" />
+            <div v-else class="oa-list oa-vault-list">
+                <div v-for="vault in vaults" :key="vaultKey(vault)" class="oa-list-row oa-list-summary">
+                    <div class="oa-list-main">
+                        <strong>{{ platformName(vault.platform) }} · {{ vault.accountUid }}</strong>
+                        <div class="oa-meta">上传于 {{ dateText(vault.updatedAt) }}</div>
+                    </div>
+                    <div class="oa-actions oa-actions-end">
+                        <UiButton size="small" variant="primary" :disabled="busy || !cookieKey" @click="importVault(vault)">导入本机</UiButton>
+                        <UiConfirmPopover title="删除这条云端 Cookie？" confirm-text="删除" cancel-text="取消" @confirm="deleteVault(vault)">
+                            <UiButton size="small" class="oa-quiet-danger" variant="danger" :disabled="busy">删除</UiButton>
+                        </UiConfirmPopover>
+                    </div>
                 </div>
             </div>
             <div v-if="notice" class="oa-result" role="status">{{ notice }}</div>
         </section>
 
-        <section class="oa-card">
-            <h3>登录设备</h3>
-            <div v-for="session in sessions" :key="session.id" class="oa-session">
-                <div><strong>{{ session.deviceName || '未命名设备' }}{{ session.current ? ' · 当前设备' : '' }}</strong><div>最近使用 {{ dateText(session.lastUsedAt) }}</div></div>
-                <el-button :disabled="busy" @click="revokeSession(session)">退出此设备</el-button>
+        <section class="oa-panel oa-devices" aria-labelledby="oa-devices">
+            <header class="oa-panel-head"><h3 id="oa-devices" class="oa-panel-title">登录设备</h3></header>
+            <div v-if="sessions.length" class="oa-list">
+                <div v-for="session in sessions" :key="session.id" class="oa-list-row oa-list-summary">
+                    <div class="oa-list-main">
+                        <div class="device-name">
+                            <strong>{{ session.deviceName || '未命名设备' }}</strong>
+                            <span v-if="session.current" class="current-device">当前设备</span>
+                        </div>
+                        <div class="oa-meta">最近使用 {{ dateText(session.lastUsedAt) }}</div>
+                    </div>
+                    <UiButton size="small" :disabled="busy" @click="revokeSession(session)">退出此设备</UiButton>
+                </div>
             </div>
         </section>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import UiAlert from '@/components/ui/UiAlert.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiConfirmPopover from '@/components/ui/UiConfirmPopover.vue'
+import UiEmpty from '@/components/ui/UiEmpty.vue'
+import UiInput from '@/components/ui/UiInput.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
 import { cloudApi } from '@/platform/cloud.mjs'
 
 import { mysApi } from '@/platform/mys-api.mjs'
@@ -80,6 +108,8 @@ const manualOpen = ref(false), changeOpen = ref(false), cookie = ref(''), platfo
 let disposed = false, generation = 0
 const platformName = value => value === 'hoyolab' ? 'HoYoLAB' : '米游社'
 const accountLabel = account => `${platformName(account.platform)} · ${account.accountUid}${account.roles?.[0]?.nickname ? ` · ${account.roles[0].nickname}` : ''}`
+const localAccountOptions = computed(() => localAccounts.value.map(account => ({ value: account.id, label: accountLabel(account) })))
+const platformOptions = [{ value: 'miyoushe', label: '米游社' }, { value: 'hoyolab', label: 'HoYoLAB' }]
 const vaultKey = vault => `${vault.platform}/${vault.accountUid}`
 const vaultPath = vault => `v1/cookie-vaults/${vault.platform}/${vault.accountUid}`
 const dateText = value => value ? new Date(value).toLocaleString() : '—'
@@ -186,137 +216,34 @@ onMounted(() => run(loadAll))
 onBeforeUnmount(() => { disposed = true; generation++; clearSecrets() })
 </script>
 
-<style scoped lang="scss">
-// 夜空风格卡片：颜色读外层 .cx-scope 的 --cx-*
-.oa-card {
-    max-width: 760px;
-    margin-bottom: 12px;
-    padding: 16px 18px;
-    border-radius: 16px;
-    background: var(--cx-card);
-    color: var(--cx-letter);
-
-    h3 {
-        margin: 0 0 12px;
-        font-size: 16px;
-        font-weight: 700;
-    }
+<style scoped>
+.oa-row, .oa-manual, .oa-passphrase {
+    display: grid;
+    gap: 8px;
 }
 
-.cookie-panel :deep(.el-alert) {
-    max-width: 760px;
-    margin-bottom: 12px;
+.oa-row :deep([data-slot="select-trigger"]), .oa-manual :deep([data-slot="select-trigger"]) {
+    width: 100%;
+    min-width: 0;
 }
 
-.oa-heading {
+.oa-row > [data-slot="button"] { justify-self: end; }
+.oa-manual-toggle, .oa-manual, .oa-vault-list, .oa-result { margin-top: 12px; }
+.oa-manual-toggle ~ .oa-passphrase { margin-top: 12px; }
+
+.device-name {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 12px;
-
-    h3 {
-        margin: 0;
-    }
-}
-
-.oa-row {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-
-    > :first-child {
-        flex: 1;
-        min-width: 0;
-    }
-}
-
-.oa-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
     flex-wrap: wrap;
-
-    .el-button {
-        margin-left: 0;
-    }
+    gap: 6px;
 }
 
-.oa-manual-toggle {
-    margin-top: 14px;
-}
-
-.oa-manual {
-    display: grid;
-    grid-template-columns: 130px 1fr auto;
-    gap: 12px;
-    margin-top: 14px;
-
-    .el-button {
-        margin-left: 0;
-    }
-}
-
-.oa-passphrase {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 12px;
-    margin-top: 14px;
-
-    .el-button {
-        margin-left: 0;
-    }
-}
-
-.oa-session {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 12px 0;
-    box-shadow: 0 -1px 0 var(--cx-step-2);
-
-    > div {
-        min-width: 0;
-        overflow-wrap: anywhere;
-        line-height: 1.8;
-    }
-
-    .el-button {
-        margin-left: 0;
-    }
-}
-
-.oa-result {
-    margin-top: 14px;
-}
-
-@media (max-width: 640px) {
-    .oa-row {
-        flex-direction: column;
-        align-items: stretch;
-
-        > * {
-            width: 100%;
-        }
-    }
-
-    .oa-manual,
-    .oa-passphrase {
-        grid-template-columns: 1fr;
-    }
-
-    .oa-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-
-        .el-button {
-            width: 100%;
-        }
-    }
-
-    .oa-session {
-        align-items: flex-start;
-    }
+.current-device {
+    padding: 2px 6px;
+    border: 1px solid var(--oa-line);
+    border-radius: 6px;
+    color: var(--cx-dim);
+    background: var(--cx-step);
+    font-size: 12px;
 }
 </style>

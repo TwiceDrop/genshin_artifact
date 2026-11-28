@@ -1,0 +1,95 @@
+.calculation-settings { display: grid; gap: 12px; padding-bottom: 12px; }
+.calculation-settings-debug, .calculation-settings-section { display: grid; gap: 8px; min-width: 0; }
+.calculation-settings-debug {
+    padding: 10px;
+    border: 1px solid var(--cx-step-2);
+    border-radius: 10px;
+    background: var(--cx-step);
+}
+.calculation-debug-toolbar, .calculation-debug-toggle, .calculation-settings-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.calculation-debug-toolbar { justify-content: space-between; flex-wrap: wrap; }
+.calculation-debug-toggle, .calculation-settings-debug summary { cursor: pointer; }
+.calculation-debug-toggle, .calculation-settings-debug details { font-size: 13px; }
+.calculation-debug-summary { color: var(--cx-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.calculation-settings-debug pre {
+    max-height: 160px;
+    overflow: auto;
+    margin: 6px 0 0;
+    padding: 8px;
+    border: 1px solid var(--cx-step-2);
+    border-radius: 6px;
+    background: var(--cx-card);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+}
+.calculation-settings-section { padding-top: 10px; border-top: 1px solid var(--cx-step-2); }
+.calculation-settings-section h3, .artifact-settings-mode h3 { margin: 0; font-size: 13px; }
+.calculation-settings-section :deep(.ui-segmented) > button { flex: 1; }
+.calculation-algorithm-help[data-slot="button"] { width: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 50%; color: var(--cx-dim); }
+.calculation-settings-alert {
+    --alert-tone: var(--cx-gold);
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, var(--alert-tone) 35%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--alert-tone) 10%, var(--cx-card));
+    color: var(--alert-tone);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.calculation-settings-alert[data-tone="error"] { --alert-tone: var(--cx-up); }
+.calculation-settings-alert p {
+    max-height: min(144px, 20dvh);
+    overflow: auto;
+    margin: 3px 0 0;
+    white-space: pre-wrap;
+}
+.calculation-settings-alert p:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: -2px; }
+.calculation-stat-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: start; gap: 6px; }
+.calculation-stat-row > span { padding-top: 9px; color: var(--cx-dim); font-size: 12px; }
+.artifact-settings-toolbar { display: grid; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--cx-step-2); }
+.artifact-settings-actions { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.artifact-settings-mode { display: grid; gap: 6px; }
+
+.optimization-status-dot, .optimization-progress-meter { --progress-tone: var(--cx-gold); }
+[data-tone="success"].optimization-status-dot, [data-tone="success"].optimization-progress-meter { --progress-tone: var(--cx-down); }
+.optimization-status-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--progress-tone); }
+.optimization-progress-meter { display: flex; align-items: center; gap: 10px; color: var(--progress-tone); font-size: 16px; font-variant-numeric: tabular-nums; }
+.optimization-progress-track { flex: 1; height: 9px; overflow: hidden; border-radius: 999px; background: var(--cx-step-2); }
+.optimization-progress-fill { height: 100%; border-radius: inherit; background: var(--progress-tone); }
+.optimization-progress-fill[data-state="indeterminate"] { position: relative; width: 35%; }
+[data-tone="cancelled"] .optimization-progress-fill[data-state="indeterminate"] { display: none; }
+.optimization-progress-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    margin: 14px 0 10px;
+    padding: 12px;
+    border: 1px solid var(--cx-step-2);
+    border-radius: 10px;
+    background: var(--cx-step);
+}
+.optimization-progress-stats dt { color: var(--cx-dim); font-size: 12px; }
+.optimization-progress-stats dd { margin: 4px 0 0; font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.optimization-score-status p { margin: 8px 0 0; font-size: 13px; }
+.optimization-score-status .score-error { color: var(--cx-up); }
+.optimization-progress-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 8px; }
+.optimization-progress-actions.in-progress { justify-content: space-between; }
+@media (max-width: 480px) {
+    .optimization-progress-actions.in-progress > button { flex: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .optimization-progress-fill { transition: width 160ms ease-out; }
+    [data-tone="running"] .optimization-progress-fill[data-state="indeterminate"] {
+        animation: optimization-indeterminate 1.5s ease-in-out infinite;
+    }
+}
+@keyframes optimization-indeterminate {
+    from { left: -35%; }
+    to { left: 100%; }
+}

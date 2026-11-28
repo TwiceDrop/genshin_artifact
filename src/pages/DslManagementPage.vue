@@ -53,11 +53,16 @@
     <p v-if="vm.error && !vm.draft && !vm.deleteTarget && !vm.linkImportOpen" class="dsl-error" role="alert">
       {{ vm.error }}
     </p>
-    <section class="cx-panel dsl-default" aria-label="角色默认函数">
+    <section :key="vm.defaultFunction.name" class="cx-panel dsl-default" aria-label="默认">
       <header class="cx-panel-heading">
         <h2 class="cx-panel-title">{{ vm.defaultFunction.title }}</h2>
+        <span class="dsl-default-badge">默认</span>
       </header>
-      <div v-if="vm.defaultFunction.description" class="cx-panel-body dsl-item-desc" v-html="vm.defaultFunction.description"></div>
+      <div class="cx-panel-body dsl-item-main">
+        <div v-if="vm.defaultFunction.description" class="dsl-item-desc" v-html="vm.defaultFunction.description"></div>
+        <DslEntryPreview :title="vm.defaultFunction.title" :hits="vm.defaultFunction.hits"
+          :source="vm.defaultFunction.source" :language="vm.defaultFunction.language" />
+      </div>
     </section>
 
     <ul v-if="vm.entries.length" class="dsl-list">
@@ -68,20 +73,7 @@
         </header>
         <div class="cx-panel-body dsl-item-main">
           <p v-if="entry.description?.trim()" class="dsl-item-desc dsl-item-desc--multiline">{{ entry.description }}</p>
-          <ul v-if="entry.generator?.entries?.length" class="dsl-item-hits">
-            <li v-for="(hit, idx) in entry.generator.entries" :key="idx" class="dsl-item-hit">
-              <span class="dsl-item-hit-text">{{ ta(hit.text) }}</span>
-              <span v-if="hit.reaction !== 'normal'" class="dsl-item-hit-reaction" :data-reaction="hit.reaction">
-                {{ damageReactionLabel(hit.reaction).replace(/^直接/, '') }}
-              </span>
-              <span class="dsl-item-hit-count">×{{ hit.count }}</span>
-              <span v-if="hit.state" class="dsl-item-hit-state">{{ hit.state }}</span>
-            </li>
-          </ul>
-          <details class="dsl-item-source-wrap">
-            <summary class="dsl-item-source-toggle">查看源码</summary>
-            <pre class="dsl-item-source" tabindex="0" :aria-label="'MONA-DSL ' + entry.name">{{ entry.source }}</pre>
-          </details>
+          <DslEntryPreview :title="entry.name" :hits="entry.generator?.entries" :source="entry.source" />
           <div class="dsl-item-actions">
             <UiButton variant="outline" size="small" :disabled="vm.busy" :aria-label="'分享 ' + entry.name" @click="vm.shareEntry(entry)">
               在线分享
@@ -296,15 +288,15 @@
 <script setup lang="ts">
 import { computed, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useI18n } from '@/i18n/i18n'
-import { damageReactionLabel } from '@/algorithms/reaction-labels.mjs'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiDialog from '@/components/ui/UiDialog.vue'
 import DslGenerator from './NewArtifactPlanPage/DslGenerator.vue'
 import CharacterAvatarPicker from '@/components/select/CharacterAvatarPicker.vue'
 import DslInputs from './dsl-management/DslInputs.vue'
+import DslEntryPreview from './dsl-management/DslEntryPreview.vue'
 import { useDslManagement } from './dsl-management/useDslManagement'
 
-const { t, ta } = useI18n()
+const { t } = useI18n()
 const vm = useDslManagement()
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const pageRoot = ref<HTMLElement | null>(null)
@@ -454,9 +446,13 @@ function onDeleteToggle(open: boolean) {
   box-shadow: inset 3px 0 var(--cx-gold);
 }
 
-.dsl-default .cx-panel-heading:last-child {
-  border-bottom: 0;
-  border-radius: 15px;
+.dsl-default-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--cx-gold);
+  color: var(--cx-gold-on);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .dsl-item-desc {
@@ -475,22 +471,6 @@ function onDeleteToggle(open: boolean) {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.dsl-item-source {
-  margin: 0;
-  padding: 8px 10px;
-  max-height: 7.5em;
-  overflow: auto;
-  background: var(--cx-step);
-  border: 1px solid var(--cx-step-2);
-  border-radius: 6px;
-  color: var(--cx-dim);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 .dsl-item-actions {
@@ -548,7 +528,6 @@ function onDeleteToggle(open: boolean) {
 
 .dsl-input:focus-visible,
 .dsl-textarea:focus-visible,
-.dsl-item-source:focus-visible,
 .dsl-summary:focus-visible,
 .dsl-radio input:focus-visible {
   outline: 2px solid var(--cx-gold);
@@ -606,99 +585,6 @@ function onDeleteToggle(open: boolean) {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-}
-
-.dsl-item-hits {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.dsl-item-hit {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-  padding: 2px 8px;
-  background: var(--cx-step);
-  border: 1px solid var(--cx-step-2);
-  border-radius: 6px;
-  font-size: 12px;
-  color: var(--cx-letter);
-  overflow-wrap: anywhere;
-}
-
-.dsl-item-hit-reaction {
-  color: var(--dsl-reaction-day);
-}
-
-html[data-color-mode="dark"] .dsl-item-hit-reaction {
-  color: var(--dsl-reaction-night);
-}
-
-/* 按游戏战斗中的反应文字取色，浅色背景上降低明度以保持可读。 */
-.dsl-item-hit-reaction:is([data-reaction="melt"], [data-reaction="vaporize"]) {
-  --dsl-reaction-day: #8b570c;
-  --dsl-reaction-night: #ffcd73;
-}
-
-.dsl-item-hit-reaction[data-reaction="spread"] {
-  --dsl-reaction-day: #09733f;
-  --dsl-reaction-night: #31d868;
-}
-
-.dsl-item-hit-reaction[data-reaction="aggravate"] {
-  --dsl-reaction-day: #7941a3;
-  --dsl-reaction-night: #d28cf6;
-}
-
-.dsl-item-hit-reaction[data-reaction="direct_moonelectro"] {
-  --dsl-reaction-day: #7552a2;
-  --dsl-reaction-night: #e8ccff;
-}
-
-.dsl-item-hit-reaction[data-reaction="direct_moonbloom"] {
-  --dsl-reaction-day: #41722d;
-  --dsl-reaction-night: #d6fab7;
-}
-
-.dsl-item-hit-reaction[data-reaction="direct_mooncrystallize"] {
-  --dsl-reaction-day: #826020;
-  --dsl-reaction-night: #ffe2a3;
-}
-
-.dsl-item-hit-reaction[data-reaction="direct_stellarconduct"] {
-  --dsl-reaction-day: #69528c;
-  --dsl-reaction-night: #decfff;
-}
-
-.dsl-item-hit-reaction[data-reaction="direct_stellarswirl"] {
-  --dsl-reaction-day: #1c6b60;
-  --dsl-reaction-night: #b4f9eb;
-}
-
-.dsl-item-hit-count,
-.dsl-item-hit-state {
-  color: var(--cx-dim);
-}
-
-.dsl-item-source-wrap {
-  min-width: 0;
-}
-
-.dsl-item-source-toggle {
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--cx-dim);
-  user-select: none;
-}
-
-.dsl-item-source-wrap[open] .dsl-item-source-toggle {
-  margin-bottom: 6px;
 }
 
 @media (max-width: 640px) {

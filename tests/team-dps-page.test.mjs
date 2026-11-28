@@ -26,7 +26,7 @@ const sourceText=relative=>fs.readFileSync(new URL(import.meta.resolve(relative)
 test('repair 4: real page state, UID refresh, result snapshots, cancellation and late responses',async()=>{
  const source=sourceText('../src/pages/TeamOptimizationPage/TeamDpsPage.vue');
  let script=source.match(/<script setup lang="ts">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'');
- script+='\nglobalThis.ui={names,members,editingRole,editingMember,panelProfile,searchAlgorithm,initialHp,selectedHealth,healthBranch,weaponConfigs,availableWeapons,availableSets,availableArtifactSet,rolePresets,weaponConditions,widsithMode,enemyIsSlime,enemyCount,damageScope,narzissenkreuzEnabled,hitBranch,showHitBranch,output,selectedIndex,selected,selectedItems,sortedResults,sortMetric,selectResult,run,minLevel,busy,error,resultContext,resultHasFurina,showMemberSettings,settingsRole,settingsTab,openMemberSettings,showHitAnalysis,activeHit,hitAnalysisComponent,openHitAnalysis,number,progress,progressPercent,saveTask,restoreTask,clearResults,budget,abort:()=>controller.abort()};';
+ script+='\nglobalThis.ui={names,members,editingRole,editingMember,editingCharacterEntry,changeTalentLevels,changeWeapon,weaponPickerOpen,panelProfile,searchAlgorithm,initialHp,selectedHealth,healthBranch,weaponConfigs,availableWeapons,availableSets,artifactSetChoices,availableArtifactSet,rolePresets,weaponConditions,widsithMode,enemyIsSlime,enemyCount,damageScope,narzissenkreuzEnabled,hitBranch,showHitBranch,output,selectedIndex,selected,selectedItems,sortedResults,sortMetric,selectResult,run,minLevel,busy,error,resultContext,resultHasFurina,showMemberSettings,settingsRole,settingsTab,openMemberSettings,showHitAnalysis,activeHit,hitAnalysisComponent,openHitAnalysis,number,progress,progressPercent,saveTask,restoreTask,clearResults,budget,abort:()=>controller.abort()};';
  const profiles=TEAM_DPS_ROLES.map(fixture),builds=profiles.map((p,r)=>p.artifacts.map(a=>({...a,id:a.id+100*r}))),records={};
  for(const group of ['first','second'])for(let r=0;r<4;r++){
   const item={...structuredClone(profiles[r]),artifactIds:builds[r].map(a=>a.id),artifactConfig:{},constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}};
@@ -36,7 +36,7 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
  const artifactStore={artifacts:ref(new Map(builds.flat().map(a=>[a.id,{...a}])))};
  const mys={selectedUid:ref('first'),data:ref({entries:Object.keys(records).map(name=>({uid:name.startsWith('first')?'first':'second',presetName:name}))})};
  const notices=[],accountStore={currentAccountId:ref(1),applyingCloud:ref(false)},pending=[],unmount=[],scope=effectScope(),taskRecords={},savedTasks=[];
- const env={ref,shallowRef,computed,watch,nextTick,defineEmits:()=>(_event,data)=>savedTasks.push(data),changeTeamConstellation,defaultTeamCharacter,defineProps:()=>({configuration:importedAxis(),tasks:taskRecords,taskKey:1}),onBeforeUnmount:f=>unmount.push(f),onDeactivated:f=>unmount.push(f),onActivated:()=>{},...teamDpsHistoryStandIns(),recordUsage:()=>{},recordCharacterUsage:()=>{},usageStatsDebugInfo:()=>({}),patchDebugInfo:()=>({}),usePresetStore:()=>presetStore,useArtifactStore:()=>artifactStore,useAccountStore:()=>accountStore,useMiyousheStore:()=>mys,useEnemy:()=>({enemyConfig:ref({level:100})}),characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],upgradeArtifactConfig:x=>x,convertArtifact:x=>x,convertPresetToWasmInterface:x=>({character:x.character,weapon:x.weapon}),teamDps:(input,artifacts,options)=>new Promise((resolve,reject)=>{const request={input,artifacts,options,resolve,reject};pending.push(request);options.signal.addEventListener('abort',()=>{if(!request.ignoreAbort)reject(new DOMException('cancel','AbortError'));});}),ElMessage:{success(){},info:message=>notices.push(message)},AbortController,DOMException,performance,setInterval,clearInterval,console};
+ const env={ref,shallowRef,computed,watch,nextTick,defineEmits:()=>(_event,data)=>savedTasks.push(data),changeTeamConstellation,defaultTeamCharacter,defineProps:()=>({configuration:importedAxis(),tasks:taskRecords,taskKey:1}),onBeforeUnmount:f=>unmount.push(f),onDeactivated:f=>unmount.push(f),onActivated:()=>{},...teamDpsHistoryStandIns(),recordUsage:()=>{},recordCharacterUsage:()=>{},usageStatsDebugInfo:()=>({}),patchDebugInfo:()=>({}),usePresetStore:()=>presetStore,useArtifactStore:()=>artifactStore,useAccountStore:()=>accountStore,useMiyousheStore:()=>mys,useEnemy:()=>({enemyConfig:ref({level:100})}),characterData:chars,weaponData:weapons,artifactsData:sets,locale:[],upgradeArtifactConfig:x=>x,convertArtifact:x=>x,convertPresetToWasmInterface:x=>({character:x.character,weapon:x.weapon}),teamDps:(input,artifacts,options)=>new Promise((resolve,reject)=>{const request={input,artifacts,options,resolve,reject};pending.push(request);options.signal.addEventListener('abort',()=>{if(!request.ignoreAbort)reject(new DOMException('cancel','AbortError'));});}),showCalculationNotice:(_,message)=>notices.push(message),AbortController,DOMException,performance,setInterval,clearInterval,console};
  Object.assign(env,{teamDpsObjectiveValue,TEAM_DPS_RESULT_VERSION,canRestoreTeamDpsResult,createTeamDpsResultPacker,unpackTeamDpsResult,teamDamageAnalysis,teamProbabilityText,normalizeEnemy,actionAxisDurationMs,TEAM_ACTION_RULES_VERSION,characterPackages});
  const converterSource=sourceText('../src/utils/converter.ts').replace(/import type \{[\s\S]*?from "@\/types\/artifact"/,'').replace(/^import .*$/mg,'').replace(/^export /mg,'');
  const converterEnv={artifactsData:sets};vm.createContext(converterEnv);vm.runInContext(ts.transpileModule(converterSource+'\nglobalThis.convertName=convertArtifactName;',{compilerOptions:{target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.None}}).outputText,converterEnv);
@@ -51,6 +51,25 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
   assert.deepEqual(Array.from(u.initialHp.value),[100,100,100,100]);u.initialHp.value[0]=65;
   assert.ok(source.includes('title="血量变动"'));assert.equal(source.includes('v-model="fanfare"'),false);
   const presetsBeforeSettings=JSON.stringify(presetStore.presets.value);
+  const firstCharacter=JSON.stringify(u.members.value[0].character);
+  const secondMember=structuredClone(records.first1.item);
+  u.weaponPickerOpen.value=true;u.editingRole.value=1;await nextTick();
+  assert.equal(u.weaponPickerOpen.value,false);
+  assert.equal(u.editingCharacterEntry.value.characterName,secondMember.character.name);
+  u.changeTalentLevels([7,13,15]);
+  assert.deepEqual(Array.from(u.editingCharacterEntry.value.talentLevels),[7,13,15]);
+  assert.deepEqual(['skill1','skill2','skill3'].map(key=>u.members.value[1].character[key]),[6,12,14]);
+  assert.equal(JSON.stringify(u.members.value[0].character),firstCharacter);
+  const oldWeapon=JSON.stringify(u.members.value[1].weapon);
+  u.changeWeapon(1,u.members.value[1].weapon.name);
+  assert.equal(JSON.stringify(u.members.value[1].weapon),oldWeapon);
+  const picked=u.availableWeapons(secondMember.character.name).find(weapon=>weapon.name!==secondMember.weapon.name);
+  u.changeWeapon(1,picked.name);
+  for(const key of ['level','ascend','refine'])assert.equal(u.members.value[1].weapon[key],secondMember.weapon[key]);
+  assert.equal(u.members.value[1].weapon.name,picked.name);
+  u.members.value[1]=secondMember;
+  assert.equal(JSON.stringify(presetStore.presets.value),presetsBeforeSettings);
+
   for(let r=0;r<4;r++){
    u.editingRole.value=r;assert.equal(u.editingMember.value,u.members.value[r]);
    u.openMemberSettings(r);assert.equal(u.settingsRole.value,r);assert.equal(u.showMemberSettings.value,true);assert.equal(u.settingsTab.value,'constraints');
@@ -64,13 +83,15 @@ test('repair 4: real page state, UID refresh, result snapshots, cancellation and
   for(const [role,definition]of Object.entries(characterPackages)){const available=u.availableWeapons(role);assert.ok(available.length);assert.ok(available.every(w=>w.type===chars[role].weapon));assert.ok(available.some(w=>w.name===definition.defaultWeapon));}
   assert.ok(u.availableWeapons('Skirk').some(w=>w.name==='MoonweaverDawn'));assert.equal(u.availableWeapons('Skirk').some(w=>w.name==='FinaleOfTheDeep'),true);
   assert.equal(u.availableSets.some(s=>s.name2==='EchoesOfAnOffering'),true);assert.ok(u.availableSets.some(s=>s.name2==='ScrollOfTheHeroOfCinderCity'));
-  assert.ok(source.includes(':value="s.eng"'));for(const set of u.availableSets)assert.equal(converterEnv.convertName(set.eng),set.name2);
+  assert.ok(source.includes(':options="artifactSetChoices"'));
+  assert.deepEqual(Array.from(u.artifactSetChoices,option=>option.value),Array.from(u.availableSets,set=>set.eng));
+  for(const option of u.artifactSetChoices)assert.equal(converterEnv.convertName(option.value),u.availableSets.find(set=>set.eng===option.value).name2);
   assert.equal(u.availableArtifactSet('berserker'),true);assert.equal(u.availableArtifactSet('ScrollOfTheHeroOfCinderCity'),true);
   assert.ok(AUTO_ARTIFACT_SETS.includes('Berserker'));
   for(const name of ['BraveHeart','BloodstainedChivalry'])assert.equal(AUTO_ARTIFACT_SETS.includes(name),false);
   for(const name of ['EchoesOfAnOffering','ShimenawasReminiscence','UnfinishedReverie'])assert.ok(AUTO_ARTIFACT_SETS.includes(name));
   const configCode=sourceText('../src/pages/NewArtifactPlanPage/ArtifactConfig.vue').match(/<script>([\s\S]*?)<\/script>/)[1].replace(/^import .*$/mg,'').replace('export default','globalThis.component =');
-  const configEnv={artifactsData:sets,Fuse:{},ItemConfig:{},toSnakeCase:s=>s.replace(/([A-Z])/g,'_$1').slice(1).toLowerCase(),getArtifactThumbnail:()=>''};vm.runInNewContext(configCode,configEnv);
+  const configEnv={artifactsData:sets,Fuse:{},DslParamFields:{},UiSearchInput:{},toSnakeCase:s=>s.replace(/([A-Z])/g,'_$1').slice(1).toLowerCase(),getArtifactThumbnail:()=>''};vm.runInNewContext(configCode,configEnv);
   const fields=configEnv.component.computed.data.call({excludeSets:[...AUTO_ARTIFACT_SETS,...Object.keys(INCOMPLETE_ARTIFACT_SETS)],ta:k=>k});
   assert.equal(fields.some(f=>f.name==='Berserker'),false);
   for(const name of ['BraveHeart','BloodstainedChivalry'])assert.ok(fields.find(f=>f.name===name).config4.some(c=>c.name==='rate'));

@@ -1,97 +1,62 @@
 <template>
-    <el-dialog custom-class="cx-scope"
-        :title="t('artPage.newArt')"
-        :model-value="props.modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
-        :width="deviceIsPC ? '80%' : '90%'"
-    >
-        <h3 class="item-title">{{ t("misc.artSet") }}</h3>
-        <choose-artifact-set
-            :model-value="setName"
-            @update:modelValue="handleSetNameChange"
-            class="hidden-sm-and-down"
-        ></choose-artifact-set>
-        <select-artifact-set
-            :model-value="setName"
-            @update:modelValue="handleSetNameChange"
-            class="hidden-md-and-up"
-        ></select-artifact-set>
+    <ArtifactPromptDialog ref="prompt" />
+    <UiDialog :title="t('artPage.newArt')" :model-value="props.modelValue" :return-focus="returnFocus" top="15vh"
+        @update:model-value="emits('update:modelValue', $event)" :width="deviceIsPC ? '80%' : '90%'">
+        <h3 class="item-title">{{ t('misc.artSet') }}</h3>
+        <div class="wide-picker"><ChooseArtifactSet :model-value="setName" @update:model-value="handleSetNameChange" /></div>
+        <div class="narrow-picker">
+            <SelectArtifactSet shadcn :model-value="setName" :placeholder="t('misc.artifactSet')"
+                @update:model-value="handleSetNameChange($event as ArtifactSetName)" />
+        </div>
 
-        <h3 class="item-title">{{ t("misc.artSlot") }}</h3>
-        <choose-artifact-position
-            v-model="position"
-            :setName="setName"
-            class="hidden-sm-and-down"
-        ></choose-artifact-position>
-        <select-artifact-slot v-model="position" class="hidden-md-and-up"></select-artifact-slot>
+        <h3 class="item-title">{{ t('misc.artSlot') }}</h3>
+        <div class="wide-picker"><ChooseArtifactPosition v-model="position" :set-name="setName" /></div>
+        <div class="narrow-picker"><SelectArtifactSlot v-model="position" /></div>
 
-        <el-row :gutter="16">
-            <el-col :sm="24" :md="12">
-                <h3 class="item-title">{{ t("misc.quality") }}</h3>
-                <el-rate
-                    @update:modelValue="handleStarChange"
-                    :model-value="star"
-                    :max="artifactData.maxStar"
-                ></el-rate>
-            </el-col>
-            <el-col :sm="24" :md="12">
-                <h3 style="margin-right: 8px" class="item-title">{{ t("misc.lvl") }}</h3>
+        <div class="add-columns">
+            <div>
+                <h3 class="item-title">{{ t('misc.quality') }}</h3>
+                <ArtifactStarField :model-value="star" :min="artifactData.minStar" :max="artifactData.maxStar"
+                    @update:model-value="handleStarChange" />
+            </div>
+            <div>
+                <h3 class="item-title">{{ t('misc.lvl') }}</h3>
+                <ArtifactLevelField v-model="level" :max="star * 4" slider />
+            </div>
+        </div>
 
-                <el-slider
-                    v-model="level"
-                    :max="star * 4"
-                    :min="0"
-                    :step="1"
-                    show-input
-                ></el-slider>
-                
-            </el-col>
-        </el-row>
-
-        <el-row :gutter="16">
-            <el-col :sm="24" :md="12">
-                <h3 class="item-title">{{ t("misc.mainStat") }}</h3>
-                <!-- <choose-main-tag v-model="mainTag" :position="position"></choose-main-tag> -->
-                <select-artifact-main-tag
-                    :model-value="mainTag"
-                    :position="position"
-                    @update:modelValue="handleMainTagChange"
-                ></select-artifact-main-tag>
-            </el-col>
-            <el-col :sm="24" :md="12">
-                <div class="flex-row">
-                    <h3 style="margin-right: 8px" class="item-title">{{ t("misc.subStat") }}</h3>
-                    <el-button
-                        :icon="IconEpRefresh"
-                        circle
-                        size="small"
-                        @click="shuffleNormalTags"
-                        :title="t('misc.random')"
-                        text
-                    ></el-button>
-<!--                    <el-button-->
-<!--                        icon="el-icon-question"-->
-<!--                        circle-->
-<!--                        style="padding: 0"-->
-<!--                        title="帮助"-->
-<!--                        type="text"-->
-<!--                        @click="openHelp"-->
-<!--                    ></el-button>-->
+        <div class="add-columns">
+            <div>
+                <h3 class="item-title">{{ t('misc.mainStat') }}</h3>
+                <SelectArtifactMainTag :model-value="mainTag" :position="position" @update:model-value="handleMainTagChange" />
+            </div>
+            <div>
+                <div class="sub-stat-heading">
+                    <h3 class="item-title">{{ t('misc.subStat') }}</h3>
+                    <UiButton size="small" :title="t('misc.random')" :aria-label="t('misc.random')" @click="shuffleNormalTags">
+                        <IconEpRefresh aria-hidden="true" />
+                    </UiButton>
                 </div>
-                
-                <select-artifact-normal-tag v-model="normalTags"></select-artifact-normal-tag>
-            </el-col>
-        </el-row>
+                <SelectArtifactNormalTag v-model="normalTags" />
+            </div>
+        </div>
 
         <template #footer>
-            <el-button @click="emits('update:modelValue', false)">{{ t("misc.cancel") }}</el-button>
-            <el-button type="primary" @click="onConfirm">{{ t("misc.confirm") }}</el-button>
+            <div class="add-actions">
+                <UiButton @click="emits('update:modelValue', false)">{{ t('misc.cancel') }}</UiButton>
+                <UiButton variant="primary" @click="onConfirm">{{ t('misc.confirm') }}</UiButton>
+            </div>
         </template>
-    </el-dialog>
+    </UiDialog>
 </template>
 
 <script setup lang="ts">
-import { type Ref } from "vue"
+import { ref, type Ref } from 'vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
+import ArtifactStarField from '../ArtifactStarField.vue'
+import ArtifactLevelField from '../ArtifactLevelField.vue'
+import ArtifactPromptDialog from '../ArtifactPromptDialog.vue'
 
 import ChooseArtifactSet from "./ChooseArtifactSet"
 import ChooseArtifactPosition from "./ChooseArtifactPosition"
@@ -112,13 +77,14 @@ import {deviceIsPC} from "@/utils/device"
 import IconEpRefresh from "~icons/ep/refresh"
 import {useI18n} from "@/i18n/i18n";
 
-// import {ElMessageBox} from "element-plus"
+const prompt = ref<InstanceType<typeof ArtifactPromptDialog> | null>(null)
 
 const { t } = useI18n()
 
 
 interface Props {
     modelValue: boolean
+    returnFocus?: () => void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -240,51 +206,28 @@ function onConfirm() {
     let result = getArtifact()
 
     if (isArtifactExists(result)) {
-        ElMessageBox.confirm(
-            t("artPage.dup"),
-            t("misc.hint"),
-            {
-                confirmButtonText: t("misc.cont"),
-                cancelButtonText: t("misc.cancel"),
-                type: "warning",
-            }
-        ).then(() => {
-            emits("confirm", result)
-        }).catch(() => {})
+        prompt.value?.confirm(t('artPage.dup'), t('misc.hint'), {
+            confirmButtonText: t('misc.cont'),
+            cancelButtonText: t('misc.cancel'),
+        }).then(() => emits('confirm', result), () => {})
     } else {
         emits("confirm", result)
     }
 }
 
 
-// export default {
-//     provide() {
-//         return {
-//             star: this.star,
-//         }
-//     },
-//     methods: {
-//
-//
-//         openHelp() {
-//             let text = "使用随机副词条，可以快速构建大量合理的圣遗物，可以方便地确定某个角色适合什么圣遗物。例如，快速构建角斗士、乐团、魔女4件套，从而计算胡桃适合什么样的圣遗物组合";
-//             this.$alert(text, "帮助");
-//         }
-//     },
-//     computed: {
-//
-//     }
-// }
 </script>
 
-<style scoped lang="scss">
-@media only screen and (max-width: 992px) {
-    .el-select {
-        width: 100%!important;
-    }
-}
-
-.item-title {
-    font-size: 14px;
+<style scoped>
+.item-title { font-size: 14px; }
+.add-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sub-stat-heading { display: flex; align-items: center; gap: 8px; }
+.add-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.narrow-picker { display: none; }
+.narrow-picker :deep([role="combobox"]) { width: 100%; }
+@media (max-width: 991px) {
+    .add-columns { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .wide-picker { display: none; }
+    .narrow-picker { display: block; }
 }
 </style>

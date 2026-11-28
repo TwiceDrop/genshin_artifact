@@ -77,7 +77,11 @@
                 </div>
             </div>
         </component>
-        <el-dialog v-if="!roster" :model-value="!!choosingFor" @update:model-value="open => { if (!open) choosingFor = null }"
+        <UiDialog v-if="!roster && shadcn" :model-value="!!choosingFor" @update:model-value="open => { if (!open) choosingFor = null }"
+            title="使用哪一套预设计算？" width="min(720px, 94vw)">
+            <CharacterPresetOptions v-if="choosingFor" shadcn :entry="choosingFor" @select="applyChoice" />
+        </UiDialog>
+        <el-dialog v-else-if="!roster" :model-value="!!choosingFor" @update:model-value="open => { if (!open) choosingFor = null }"
             title="使用哪一套预设计算？" width="min(720px, 94vw)" custom-class="cx-scope viewport-dialog" append-to-body destroy-on-close>
             <CharacterPresetOptions v-if="choosingFor" :entry="choosingFor" @select="applyChoice" />
         </el-dialog>
@@ -112,7 +116,7 @@ import locale from '@/i18n/generated/zh-cn.json'
 import { characterSummary, isPickerCharacter } from '@/import/character-summary.mjs'
 import elementIcons from "@/assets/element-icons"
 import CharacterPortrait from '@/components/display/CharacterPortrait.vue'
-const props = defineProps({ disabled: Boolean, roster: Boolean })
+const props = defineProps({ disabled: Boolean, roster: Boolean, shadcn: Boolean })
 const emit = defineEmits(['apply'])
 const { t } = useI18n()
 const element = ref('all')

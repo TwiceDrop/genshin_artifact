@@ -34,6 +34,14 @@ function lineOptions(tiers, key, shown, maxRolls) {
     return options.map(([count, values]) => [count, values.filter(same)]).filter(([, values]) => values.length)
 }
 
+export function uniqueArtifactSubstatValue(star, level, stat, shown) {
+    const tiers = tiersByStar[star]?.[stat]
+    if (!tiers) return shown
+    const options = lineOptions(tiers, stat, shown, Math.floor(level / 4) + 1)
+    const values = new Set(options.flatMap(([, values]) => values))
+    return values.size === 1 ? [...values][0] : shown
+}
+
 function pieceHistories({star, level, sub_stats}, panel) {
     const steps = Math.floor(level / 4)
     const budgets = [star - 2, star - 1].filter(initial => initial >= 0)

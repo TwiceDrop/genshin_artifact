@@ -1,5 +1,6 @@
 <template>
-    <el-dialog v-model="visible" title="版本迁移通知" :width="deviceIsPC ? '480px' : '92%'" :show-close="false" append-to-body @closed="onClosed">
+    <UiDialog v-model="visible" title="版本迁移通知" :width="deviceIsPC ? 'var(--app-dialog-width, 480px)' : 'var(--app-dialog-width, 92%)'"
+        top="var(--app-dialog-top)" content-class="app-dialog" focus-container hide-close @closed="onClosed">
         <p class="web-version-notice">莫娜占卜铺正逐步迁移至本地程序版。请及时备份网页版中的全部数据，并将备份导入本地程序版。</p>
         <p class="web-version-notice">您可以通过登录莫娜占卜铺同步数据，或在设置页选择「导出数据」进行迁移。</p>
         <p class="web-version-notice">您可以点击下方按钮加入 QQ 群下载本地程序版，也可以前往 CNB 或 GitHub 下载。</p>
@@ -9,24 +10,21 @@
             <a class="github-link" href="https://github.com/TwiceDrop/genshin_artifact/releases" target="_blank" rel="noopener noreferrer">前往 GitHub 下载</a>
         </div>
         <template #footer>
-            <el-button @click="openExportSettings">导出数据</el-button>
-            <el-button type="primary" @click="visible = false">继续使用网页版</el-button>
+            <UiButton @click="openExportSettings">导出数据</UiButton>
+            <UiButton variant="primary" @click="visible = false">继续使用网页版</UiButton>
         </template>
-    </el-dialog>
+    </UiDialog>
 </template>
 
 <script setup>
 import {nextTick, ref} from 'vue'
 import {useRouter} from 'vue-router'
-import {isNative} from '@/platform/native.mjs'
-import {shouldShowWebVersionNotice} from '@/platform/web-version.mjs'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
 import {deviceIsPC} from '@/utils/device'
 
-const visible = ref(shouldShowWebVersionNotice({
-    development: process.env.NODE_ENV === 'development',
-    native: isNative,
-    tauri: window.__MONA_TAURI__ === true,
-}))
+const emit = defineEmits(['closed'])
+const visible = ref(true)
 const router = useRouter()
 let exportRequested = false
 
@@ -36,11 +34,15 @@ function openExportSettings() {
 }
 
 async function onClosed() {
-    if (!exportRequested) return
-    exportRequested = false
-    await router.push({ name: 'setup', hash: '#export-data' })
-    await nextTick()
-    document.getElementById('export-data')?.focus()
+    try {
+        if (!exportRequested) return
+        exportRequested = false
+        await router.push({ name: 'setup', hash: '#export-data' })
+        await nextTick()
+        document.getElementById('export-data')?.focus()
+    } finally {
+        emit('closed')
+    }
 }
 </script>
 
@@ -67,7 +69,7 @@ async function onClosed() {
     text-decoration: none;
 }
 .web-version-links a:focus-visible {
-    outline: 2px solid var(--el-color-primary);
+    outline: 2px solid var(--cx-gold);
     outline-offset: 2px;
 }
 .web-version-links a:hover {

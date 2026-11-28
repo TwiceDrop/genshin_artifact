@@ -96,7 +96,7 @@ public static class TrayLauncherProbe
                         menu.Items[1].Text == "关闭莫娜占卜铺", "菜单名称或数量错误。");
                     Require(FileVersionInfo.GetVersionInfo(exe).ProductVersion == "7.1.08beta", "EXE 版本错误。");
                     var output = (TextBox)form.Controls[0];
-                    Require(Array.IndexOf(output.Lines, "莫娜已启动：http://127.0.0.1:4184/#/") >= 0, "真实服务日志未接入。");
+                    Require(Array.Exists(output.Lines, line => line.EndsWith("莫娜已启动：http://127.0.0.1:4184/#/", StringComparison.Ordinal)), "真实服务日志未接入。");
                     Require(!output.Text.Contains("MONA_LAUNCHER_READY"), "内部就绪信号进入了显示日志。");
                     string served = ReadIndex();
                     File.WriteAllText(Path.Combine(evidence, "served-index.html"), served);

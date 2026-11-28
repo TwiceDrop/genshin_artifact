@@ -1,20 +1,7 @@
 <template>
     <div class="root">
-        <el-row :gutter="deviceIsPC ? 16 : 0">
-            <el-col :md="16" :sm="24" class="line-chart">
-                <v-chart
-                    :option="optionsForECharts"
-                    :autoresize="true"
-                ></v-chart>
-            </el-col>
-            <el-col :md="8" :sm="24" class="pie-chart">
-                <v-chart
-                    :option="optionsForPieChart"
-                    :autoresize="true"
-                ></v-chart>
-            </el-col>
-        </el-row>
-
+        <div class="line-chart"><v-chart :option="optionsForECharts" autoresize /></div>
+        <div class="pie-chart"><v-chart :option="optionsForPieChart" autoresize /></div>
     </div>
 </template>
 
@@ -51,11 +38,6 @@ export default {
     name: "ArtifactPerStatBonus",
     props: ["data"],
     components: {VChart},
-    data() {
-        return {
-            deviceIsPC
-        }
-    },
     computed: {
         seriesAndLegend() {
             const keysMap = {
@@ -179,11 +161,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.root { display: grid; grid-template-columns: minmax(0, 1fr); }
 canvas {
     overflow: visible;
 }
 @media (min-width: 992px) {
     .root {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        gap: 16px;
         height: 400px;
         overflow: visible;
     }

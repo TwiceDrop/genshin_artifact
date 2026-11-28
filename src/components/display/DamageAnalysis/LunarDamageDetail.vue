@@ -1,6 +1,7 @@
 <template>
     <div class="lunar-detail">
-        <el-descriptions :column="3" border>
+        <DamageMetrics v-if="shadcn" :result="calculation.result" :format="format" />
+        <el-descriptions v-else :column="3" border>
             <el-descriptions-item v-for="[key, label] in metrics" :key="key" :label="label">
                 {{ format(calculation.result[key]) }}
             </el-descriptions-item>
@@ -48,9 +49,11 @@
 </template>
 
 <script setup>
-import {computed} from 'vue'
+import {computed, inject} from 'vue'
 import DamageAnalysisUtil from './DamageAnalysisUtil.vue'
+import DamageMetrics from './DamageMetrics.vue'
 const props = defineProps({state: Object, calculation: Object})
+const shadcn = computed(inject('isShadcnDamageAnalysis', () => false))
 const metrics = [['expectation', '期望伤害'], ['critical', '暴击伤害'], ['non_critical', '非暴击伤害']]
 const stages = [['base', '基础伤害'], ['mastery', '元素精通增伤'], ['amplified', '加成后本体'], ['flat', '固定伤害合计'], ['res', '抗性乘区'], ['elevation', '擢升乘区']]
 const layout = [

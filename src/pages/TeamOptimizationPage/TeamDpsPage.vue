@@ -1,12 +1,11 @@
 <template>
  <div class="team-dps">
   <section class="dps-card general-card">
-   <header class="card-heading"><h3><i-ep-setting/>通用设置</h3><el-button :disabled="busy" @click="showEnemy=true">敌人设置</el-button></header>
+   <header class="card-heading"><h3><i-ep-setting/>通用设置</h3><UiButton ref="enemySettingsTrigger" :disabled="busy" @click="showEnemy=true">敌人设置</UiButton></header>
    <div class="general-grid">
-    <div class="setting-field"><label>角色等级 <span class="role-chip">{{ labels[editingRole] }}</span></label><select-character-level popper-class="team-dps-popper" :model-value="levelString(editingMember.character)" :disabled="busy" @update:model-value="setLevel(editingMember.character,$event)"/></div>
-    <div class="setting-field"><label>敌人等级</label><el-input-number v-model="enemyConfig.level" :min="60" :max="120" :disabled="busy"/><el-slider v-model="enemyConfig.level" :min="60" :max="120" :disabled="busy"/></div>
-    <div class="setting-field"><label>初始生命值 % <span class="role-chip">{{ labels[editingRole] }}</span></label><el-input-number v-model="initialHp[editingRole]" :min="0" :max="100" :precision="2" :disabled="busy"/><el-slider v-model="initialHp[editingRole]" :min="0" :max="100" :step="0.01" :disabled="busy"/></div>
-    <div v-for="(title,k) in ['普通攻击等级','元素战技等级','元素爆发等级']" :key="k" class="setting-field"><label>{{ title }} <span class="role-chip">{{ labels[editingRole] }}</span></label><el-input-number :model-value="editingMember.character['skill'+(k+1)]+1" :min="1" :max="15" :disabled="busy" @update:model-value="editingMember.character['skill'+(k+1)]=$event-1"/><el-slider :model-value="editingMember.character['skill'+(k+1)]+1" :min="1" :max="15" :disabled="busy" @update:model-value="editingMember.character['skill'+(k+1)]=$event-1"/></div>
+    <div class="setting-field"><label>角色等级 <span class="role-chip">{{ labels[editingRole] }}</span></label><select-character-level use-ui-select :model-value="characterLevelLabel(editingMember.character.level,editingMember.character.ascend)" :disabled="busy" @update:model-value="setLevel(editingMember.character,$event)"/></div>
+    <div class="setting-field"><label>敌人等级</label><TeamNumberInput v-model="enemyConfig.level" :min="60" :max="120" :disabled="busy" aria-label="敌人等级"/><TeamSlider v-model="enemyConfig.level" :min="60" :max="120" :disabled="busy" label="敌人等级"/></div>
+    <div class="setting-field"><label>初始生命值 % <span class="role-chip">{{ labels[editingRole] }}</span></label><TeamNumberInput v-model="initialHp[editingRole]" :min="0" :max="100" :precision="2" :disabled="busy" aria-label="初始生命值 %"/><TeamSlider v-model="initialHp[editingRole]" :min="0" :max="100" :step="0.01" :disabled="busy" label="初始生命值 %"/></div>
    </div>
   </section>
   <div class="team-workspace">
@@ -18,19 +17,39 @@
      </div>
     </section>
     <section class="dps-card member">
-     <header class="card-heading"><h3><i-ep-edit/>{{ labels[editingRole] }} · 装备配置</h3><el-button :disabled="busy" @click="openMemberSettings(editingRole)">配装设置</el-button></header>
-     <div class="constellation-line"><span>命座</span><button v-for="n in 7" :key="n" :class="{active:editingMember.character.constellation===n-1}" :disabled="busy" :aria-pressed="editingMember.character.constellation===n-1" @click="changeTeamConstellation(editingMember.character,n-1)">C{{ n-1 }}</button></div>
-     <el-form label-position="top" :disabled="busy">
-      <el-form-item label="角色预设"><el-select popper-class="team-dps-popper" v-model="names[editingRole]" filterable placeholder="选择角色预设"><el-option v-for="p in rolePresets(roles[editingRole])" :key="p.name" :value="p.name" :label="presetStore.displayName(p.name)"/></el-select></el-form-item>
-      <div class="equipment-grid">
-       <el-form-item label="武器" class="weapon-field"><div class="weapon-choice"><img :src="weaponData[editingMember.weapon.name].url" alt=""/><el-select popper-class="team-dps-popper" :model-value="editingMember.weapon.name" @update:model-value="changeWeapon(editingRole,$event)" filterable><el-option v-for="w in availableWeapons(roles[editingRole])" :key="w.name" :value="w.name" :label="locale[w.nameLocale]"/></el-select></div></el-form-item>
-       <el-form-item label="精炼"><el-select popper-class="team-dps-popper" v-model="editingMember.weapon.refine"><el-option v-for="n in 5" :key="n" :value="n" :label="'R'+n"/></el-select></el-form-item>
-       <el-form-item label="武器等级"><select-weapon-level popper-class="team-dps-popper" :model-value="levelString(editingMember.weapon)" @update:model-value="setLevel(editingMember.weapon,$event)"/></el-form-item>
+     <header class="card-heading"><h3><i-ep-edit/>{{ labels[editingRole] }} · 装备配置</h3><UiButton ref="memberSettingsTrigger" :disabled="busy" @click="openMemberSettings(editingRole)">配装设置</UiButton></header>
+     <fieldset class="team-fieldset member-form" :disabled="busy">
+      <div class="team-form-item"><span class="team-field-label">角色预设</span><TeamSearchChoice v-model="names[editingRole]" label="角色预设" placeholder="选择角色预设" :disabled="busy"
+       :options="rolePresets(roles[editingRole]).map(p=>({value:p.name,label:presetStore.displayName(p.name)}))"/></div>
+      <div :key="editingRole" class="member-character-cards">
+       <CharacterConstellation :entry="editingCharacterEntry" direct-selection :disabled="busy"
+        @change-rank="changeTeamConstellation(editingMember.character, $event)"/>
+       <CharacterTalentCards :entry="editingCharacterEntry" effective-levels :disabled="busy" @change-levels="changeTalentLevels"/>
       </div>
-      <item-config v-if="weaponConfigs(editingRole).length" v-model="editingMember.weapon.params" :item-name="editingMember.weapon.name" :configs="weaponConfigs(editingRole)"/>
-      <el-form-item v-for="f in manualWeaponConfigs(editingRole)" :key="f.key" :label="f.label"><el-input-number :model-value="weaponConditions[editingRole][editingMember.weapon.name][f.key]*f.scale" :min="f.min" :max="f.max" :precision="2" @update:model-value="weaponConditions[editingRole][editingMember.weapon.name][f.key]=$event/f.scale"/></el-form-item>
-      <el-form-item v-if="editingMember.weapon.name==='TheWidsith'" label="流浪乐章曲目"><el-select popper-class="team-dps-popper" v-model="widsithMode[editingRole]"><el-option v-for="[value,label] in WIDSITH_THEMES" :key="value" :value="value" :label="label"/></el-select></el-form-item>
-     </el-form>
+      <div class="member-weapon">
+       <div class="member-weapon-fields">
+        <div class="team-form-item"><span class="team-field-label">武器等级</span><SelectWeaponLevel use-ui-select :model-value="characterLevelLabel(editingMember.weapon.level,editingMember.weapon.ascend)" :disabled="busy" @update:model-value="setLevel(editingMember.weapon,$event)"/></div>
+        <div class="team-form-item"><span class="team-field-label">精炼</span><UiSelect :model-value="String(editingMember.weapon.refine)" label="精炼" :options="refineOptions" :disabled="busy"
+         @update:model-value="editingMember.weapon.refine=Number($event)"/></div>
+       </div>
+       <WeaponDisplay :weapon="editingMember.weapon">
+        <template #image="{ src }">
+         <UiButton ref="weaponPickerTrigger" class="member-weapon-trigger" :disabled="busy" aria-label="选择武器" aria-haspopup="dialog" @click="weaponPickerOpen=true">
+          <img :src="src" alt=""/>
+         </UiButton>
+        </template>
+       </WeaponDisplay>
+      </div>
+      <item-config shadcn v-if="weaponConfigs(editingRole).length" v-model="editingMember.weapon.params" :item-name="editingMember.weapon.name" :configs="weaponConfigs(editingRole)"/>
+      <div v-for="f in manualWeaponConfigs(editingRole)" :key="f.key" class="team-form-item"><span class="team-field-label">{{ f.label }}</span><TeamNumberInput
+       :model-value="weaponConditions[editingRole][editingMember.weapon.name][f.key]*f.scale" :min="f.min" :max="f.max" :precision="2" :aria-label="f.label"
+       @update:model-value="weaponConditions[editingRole][editingMember.weapon.name][f.key]=$event/f.scale"/></div>
+      <div v-if="editingMember.weapon.name==='TheWidsith'" class="team-form-item"><span class="team-field-label">流浪乐章曲目</span><UiSelect v-model="widsithMode[editingRole]" label="流浪乐章曲目" :disabled="busy" :options="WIDSITH_THEMES.map(([value,label])=>({value,label}))"/></div>
+     </fieldset>
+     <CharacterWeaponPicker :key="editingRole" v-model="weaponPickerOpen" pick-only :character-label="labels[editingRole]"
+      :weapon-key="editingMember.weapon.name" :weapon="editingMember.weapon" :available-weapons="availableWeapons(roles[editingRole])"
+      :signatures="characterSignatureWeapons(roles[editingRole])" :return-focus="() => weaponPickerTrigger?.$el.focus({preventScroll:true})"
+      @choose="changeWeapon(editingRole,$event)"/>
     </section>
    </div>
    <aside class="dps-card character-panel">
@@ -43,29 +62,29 @@
   <section class="dps-card optimization-card">
   <header class="card-heading"><h3><i-ep-operation/>联合优化</h3></header>
   <div class="controls optimization-fields">
-   <label>优化目标 <el-select popper-class="team-dps-popper" v-model="objective" :disabled="busy"><el-option label="总伤最高" value="damage"/><el-option label="总DPS最高" value="dps"/></el-select></label>
-   <label>伤害 <el-select popper-class="team-dps-popper" v-model="metric" :disabled="busy"><el-option v-for="[key,title] in damageModes" :key="key" :label="title" :value="key"/></el-select></label>
-   <label>搜索算法 <el-select popper-class="team-dps-popper" v-model="searchAlgorithm" :disabled="busy"><el-option label="自动搜索" value="auto"/><el-option label="分支搜索·属性剪枝" value="branch_bound"/></el-select></label>
-   <label>计算方式 <el-select popper-class="team-dps-popper" v-model="computeBackend" :disabled="busy"><el-option label="CPU＋GPU" value="gpu"/><el-option label="CPU 多线程" value="cpu"/></el-select></label>
-   <label>结果套数 <el-input-number v-model="count" :min="1" :disabled="busy"/></label>
-   <label>联合评估预算 <el-input-number v-model="budget" :min="1" :step="100" :disabled="busy"/></label>
-   <label>最低圣遗物等级 <el-input-number v-model="minLevel" :min="0" :max="20" :disabled="busy"/></label>
-   <el-checkbox v-if="members.some(p=>p.weapon.name==='BlackTassel')" v-model="enemyIsSlime" :disabled="busy">敌人为史莱姆</el-checkbox>
-   <el-checkbox v-if="members.some(p=>p.weapon.name==='SwordOfNarzissenkreuz')" v-model="narzissenkreuzEnabled" :disabled="busy">计算水仙十字追加</el-checkbox>
+   <label>优化目标 <UiSelect v-model="objective" label="优化目标" :disabled="busy" :options="[{value:'damage',label:'总伤最高'},{value:'dps',label:'总DPS最高'}]"/></label>
+   <label>伤害 <UiSelect v-model="metric" label="伤害" :disabled="busy" :options="damageOptions"/></label>
+   <label>搜索算法 <UiSelect v-model="searchAlgorithm" label="搜索算法" :disabled="busy" :options="[{value:'auto',label:'自动搜索'},{value:'branch_bound',label:'分支搜索·属性剪枝'}]"/></label>
+   <label>计算方式 <UiSelect v-model="computeBackend" label="计算方式" :disabled="busy" :options="[{value:'gpu',label:'CPU＋GPU'},{value:'cpu',label:'CPU 多线程'}]"/></label>
+   <label>结果套数 <TeamNumberInput v-model="count" :min="1" :disabled="busy" aria-label="结果套数"/></label>
+   <label>联合评估预算 <TeamNumberInput v-model="budget" :min="1" :step="100" :disabled="busy" aria-label="联合评估预算"/></label>
+   <label>最低圣遗物等级 <TeamNumberInput v-model="minLevel" :min="0" :max="20" :disabled="busy" aria-label="最低圣遗物等级"/></label>
+   <UiCheckbox v-if="members.some(p=>p.weapon.name==='BlackTassel')" v-model="enemyIsSlime" :disabled="busy">敌人为史莱姆</UiCheckbox>
+   <UiCheckbox v-if="members.some(p=>p.weapon.name==='SwordOfNarzissenkreuz')" v-model="narzissenkreuzEnabled" :disabled="busy">计算水仙十字追加</UiCheckbox>
   </div>
   <div class="actions">
-   <el-button type="primary" @click="run('optimize')">开始计算</el-button>
-   <el-button :disabled="!canEvaluate" @click="run('evaluate')">计算当前配装</el-button>
-   <el-checkbox v-model="debug">Debug</el-checkbox><el-button v-if="debug&&lastInput" @click="exportDebug">导出Debug</el-button>
+   <UiButton variant="primary" @click="run('optimize')">开始计算</UiButton>
+   <UiButton :disabled="!canEvaluate" @click="run('evaluate')">计算当前配装</UiButton>
+   <UiCheckbox v-model="debug">Debug</UiCheckbox><UiButton v-if="debug&&lastInput" @click="exportDebug">导出Debug</UiButton>
   </div>
   </section>
-  <el-alert v-if="error" :title="error" type="error" :closable="false" show-icon/>
+  <UiAlert v-if="error" tone="error">{{ error }}</UiAlert>
   <CalcErrorDialog v-model="errorDialog" :message="error" @export="exportDebug"/>
   <template v-if="output">
    <section class="dps-card result-card">
-   <header class="card-heading"><h3><i-ep-data-analysis/>计算结果</h3><el-button @click="showResults=true">查看搭配结果</el-button></header>
+   <header class="card-heading"><h3><i-ep-data-analysis/>计算结果</h3><UiButton @click="showResults=true">查看搭配结果</UiButton></header>
    <div class="summary"><div class="metric-total"><span>总伤害</span><strong>{{ number(selected[sortMetric]) }}</strong></div><div class="metric-dps"><span>DPS</span><strong>{{ number(selected[sortMetric]/selected.duration) }}</strong></div><div class="metric-time"><span>轴长</span><strong>{{ number(selected.duration) }}<small>s</small></strong></div></div>
-   <div class="result-toolbar"><div class="metric-switch"><button v-for="[key,title] in damageModes" :key="key" :class="{active:sortMetric===key}" :aria-pressed="sortMetric===key" @click="sortMetric=key">{{ title }}</button></div><label class="selection">当前搭配 <el-input-number :model-value="selectedIndex" :min="1" :max="output.results.length" @update:model-value="selectResult($event-1)"/></label></div>
+   <div class="result-toolbar"><div class="metric-switch"><button v-for="[key,title] in damageModes" :key="key" :class="{active:sortMetric===key}" :aria-pressed="sortMetric===key" @click="sortMetric=key">{{ title }}</button></div><label class="selection">当前搭配 <TeamNumberInput :model-value="selectedIndex" :min="1" :max="output.results.length" aria-label="当前搭配" @update:model-value="selectResult($event-1)"/></label></div>
    <div class="result-meta"><span>已评估 {{ output.evaluated_teams }} 组</span><span v-if="output.legal_teams!=null">合法组合 {{ output.legal_teams }} 组</span><span v-else-if="output.feasible_teams!=null">已找到合法组合 {{ output.feasible_teams }} 组</span><span>保留 {{ output.results.length }} 套</span><span v-if="output.search_stats">剪枝 {{ output.search_stats.pruned_nodes }} 个分支 · {{ output.search_complete?'搜索完成':'有限预算结果' }}</span><span v-if="resultHasFurina">最高气氛 {{ number(selected.fanfare) }}</span></div>
    <div class="contribution-list"><div v-for="(role,r) in roles" :key="role" class="contribution-row"><button class="contribution-person" @click="editingRole=r"><img :src="characterData[role].avatar" alt=""/><span>{{ labels[r] }}</span></button><div class="contribution-damage"><div class="contribution-track"><span :style="{width:selected.character_damage[r][sortMetric]/selected[sortMetric]*100+'%',background:elementColors[characterData[role].element]}"/></div><strong>{{ number(selected.character_damage[r][sortMetric]) }} <small>（{{ number(selected.character_damage[r][sortMetric]/selected[sortMetric]*100) }}%）</small></strong></div><div class="contribution-equipment"><span>C{{ selected.profiles[r].character.constellation }} · R{{ selected.profiles[r].weapon.refine }} {{ locale[weaponData[selected.profiles[r].weapon.name].nameLocale] }}</span><span>{{ resultSetLabel(r) }}</span></div></div></div>
    </section>
@@ -79,70 +98,110 @@
    <p v-if="detailBusy" role="status">正在计算明细…</p>
    <team-dps-events v-if="selected.eventTrace" :trace="selected.eventTrace" :labels="labels" @hit-selected="openEventHit"/>
    <template v-else>
-   <el-collapse class="dps-card detail-card"><el-collapse-item title="逐段伤害" name="hits"><el-table :data="selected.hits||[]" max-height="500" class="hit-table" @row-click="openHitAnalysis"><el-table-column label="时间"><template #default="{row}">{{ number(row.time) }}</template></el-table-column><el-table-column label="角色"><template #default="{row}">{{ labels[row.role] }}</template></el-table-column><el-table-column prop="label" label="技能"/><el-table-column v-for="[key,title] in damageModes" :key="key" :label="title"><template #default="{row}"><el-button type="text" @click.stop="openHitAnalysis(row)">{{ number(row[key]) }}</el-button></template></el-table-column></el-table></el-collapse-item></el-collapse>
-   <el-collapse class="dps-card detail-card"><el-collapse-item title="血量变动" name="health">
-    <el-select popper-class="team-dps-popper" v-if="selected.health_branches" v-model="healthBranch"><el-option v-for="(b,i) in selected.health_branches" :key="i" :value="i" :label="`${b.label}（${number(b.probability*100)}%）`"/></el-select>
-    <el-table :data="selectedHealth" max-height="500">
-     <el-table-column label="时间" width="75"><template #default="{row}">{{ number(row.time) }}</template></el-table-column><el-table-column prop="label" label="事件" min-width="180"/>
-     <el-table-column v-for="(label,r) in labels" :key="r" :label="label" min-width="190"><template #default="{row}"><span class="health-values">{{ number(row.hp[r]) }} / {{ number(row.maxHP[r]) }}</span><small class="health-ratio">{{ number(row.ratios[r]*100) }}%</small></template></el-table-column>
-     <el-table-column v-if="resultHasFurina" label="气氛" width="80"><template #default="{row}">{{ number(row.fanfare) }}</template></el-table-column><el-table-column v-if="resultHasFurina" label="二命溢出" width="95"><template #default="{row}">{{ number(row.overflow) }}</template></el-table-column>
-     <el-table-column label="实际回血" min-width="110"><template #default="{row}"><span v-if="row.healing">{{ number(row.healing.amount) }}</span></template></el-table-column><el-table-column label="溢出治疗" min-width="110"><template #default="{row}"><span v-if="row.healing">{{ number(panelSum(row.healing.overheals)) }}</span></template></el-table-column><el-table-column label="清除生命之契" min-width="120"><template #default="{row}"><span v-if="row.healing">{{ number(panelSum(row.healing.absorbedAmounts)) }}</span></template></el-table-column>
-    </el-table>
-   </el-collapse-item></el-collapse>
+   <TeamDisclosure class="dps-card detail-card" title="逐段伤害">
+    <div class="team-table-scroll detail-table-scroll">
+     <table class="team-data-table hit-table" aria-label="逐段伤害">
+      <thead><tr><th>时间</th><th>角色</th><th>技能</th><th v-for="[key,title] in damageModes" :key="key">{{ title }}</th></tr></thead>
+      <tbody>
+       <tr v-for="(row,i) in selected.hits" :key="i" class="team-table-action" @click="openHitAnalysis(row)">
+        <td>{{ number(row.time) }}</td><td>{{ labels[row.role] }}</td><td>{{ row.label }}</td>
+        <td v-for="[key] in damageModes" :key="key"><UiButton class="team-table-link" @click.stop="openHitAnalysis(row)">{{ number(row[key]) }}</UiButton></td>
+       </tr>
+       <tr v-if="!selected.hits?.length"><td colspan="6" class="team-data-empty">暂无数据</td></tr>
+      </tbody>
+     </table>
+    </div>
+   </TeamDisclosure>
+   <TeamDisclosure class="dps-card detail-card" title="血量变动">
+    <UiSelect v-if="selected.health_branches" :model-value="String(healthBranch)" label="血量变动"
+     :options="selected.health_branches.map((b,i)=>({value:String(i),label:b.label+'（'+number(b.probability*100)+'%）'}))" @update:model-value="healthBranch=Number($event)"/>
+    <div class="team-table-scroll detail-table-scroll">
+     <table class="team-data-table health-table" aria-label="血量变动">
+      <colgroup><col style="width:75px"/><col style="width:180px"/><col v-for="label in labels" :key="label" style="width:190px"/><col v-if="resultHasFurina" style="width:80px"/><col v-if="resultHasFurina" style="width:95px"/><col style="width:110px"/><col style="width:110px"/><col style="width:120px"/></colgroup>
+      <thead><tr><th>时间</th><th>事件</th><th v-for="label in labels" :key="label">{{ label }}</th><th v-if="resultHasFurina">气氛</th><th v-if="resultHasFurina">二命溢出</th><th>实际回血</th><th>溢出治疗</th><th>清除生命之契</th></tr></thead>
+      <tbody>
+       <tr v-for="(row,i) in selectedHealth" :key="i">
+        <td>{{ number(row.time) }}</td><td>{{ row.label }}</td>
+        <td v-for="(label,r) in labels" :key="label"><span class="health-values">{{ number(row.hp[r]) }} / {{ number(row.maxHP[r]) }}</span><small class="health-ratio">{{ number(row.ratios[r]*100) }}%</small></td>
+        <td v-if="resultHasFurina">{{ number(row.fanfare) }}</td><td v-if="resultHasFurina">{{ number(row.overflow) }}</td>
+        <td><span v-if="row.healing">{{ number(row.healing.amount) }}</span></td><td><span v-if="row.healing">{{ number(panelSum(row.healing.overheals)) }}</span></td><td><span v-if="row.healing">{{ number(panelSum(row.healing.absorbedAmounts)) }}</span></td>
+       </tr>
+       <tr v-if="!selectedHealth.length"><td :colspan="resultHasFurina?11:9" class="team-data-empty">暂无数据</td></tr>
+      </tbody>
+     </table>
+    </div>
+   </TeamDisclosure>
    </template>
   </template>
-  <el-dialog custom-class="team-dps-dialog cx-scope" v-model="showHitAnalysis" title="伤害构成" width="94%" destroy-on-close>
+  <TeamDialog v-model="showHitAnalysis" title="伤害构成" width="94%">
    <template v-if="activeHit">
     <p>{{ labels[activeHit.hit.role] }} · {{ number(activeHit.hit.time) }}秒 · {{ activeHit.hit.label }} · 第{{ activeHit.hit.part+1 }}段</p>
     <p v-if="activeHit.probability!==undefined">该事件状态概率 {{ teamProbabilityText(activeHit.probability) }}</p>
     <p v-if="resultHasFurina&&activeHitState.fanfare!==undefined">气氛 {{ number(activeHitState.fanfare) }} · 二命溢出 {{ number(activeHitState.furina_overflow) }}</p>
-    <el-select popper-class="team-dps-popper" v-if="activeHit.hit.branches" v-model="hitBranch" @change="showHitBranch"><el-option v-for="(b,i) in activeHit.hit.branches" :key="i" :value="i" :label="`${b.label}（${number(b.probability*100)}%）`"/></el-select>
-    <damage-analysis ref="hitAnalysisComponent" :enemy-config="activeHit.enemy" :character-level="activeHit.character.level" :character-name="activeHit.character.name"/>
+    <UiSelect v-if="activeHit.hit.branches" :model-value="String(hitBranch)" label="伤害构成" :options="activeHit.hit.branches.map((b,i)=>({value:String(i),label:b.label+'（'+number(b.probability*100)+'%）'}))"
+     @update:model-value="hitBranch=Number($event);showHitBranch()"/>
+    <damage-analysis shadcn ref="hitAnalysisComponent" :enemy-config="activeHit.enemy" :character-level="activeHit.character.level" :character-name="activeHit.character.name"/>
    </template>
-  </el-dialog>
-  <el-dialog custom-class="team-dps-dialog cx-scope" v-model="showMemberSettings" :title="labels[settingsRole]+' · 配装设置'" width="min(720px, 94vw)">
-   <el-form label-position="top" :disabled="busy" class="member-settings">
-    <el-tabs v-model="settingsTab">
-     <el-tab-pane label="配装限制" name="constraints">
-      <el-form-item label="套装"><el-select popper-class="team-dps-popper" v-model="members[settingsRole].constraint.setNames" multiple :multiple-limit="2" placeholder="任意套装" filterable><el-option v-for="s in availableSets" :key="s.name2" :value="s.eng" :label="locale[s.nameLocale]"/></el-select></el-form-item>
-      <el-form-item v-for="[field,pos,title] in mainFilters" :key="field" :label="title"><select-artifact-main-stat popper-class="team-dps-popper" v-model="members[settingsRole].filter[field]" :position="pos" :multiple="true" :include-any="false" placeholder="任意主词条"/></el-form-item>
-      <el-form-item v-for="[field,title,factor] in statFilters" :key="field" :label="title"><el-input-number :model-value="members[settingsRole].constraint[field]*factor" :min="0" @update:model-value="members[settingsRole].constraint[field]=$event/factor"/></el-form-item>
-     </el-tab-pane>
-     <el-tab-pane label="圣遗物效果参数" name="effects"><artifact-config :key="settingsRole" v-model="members[settingsRole].artifactConfig" :exclude-sets="excludedArtifactConfigs"/></el-tab-pane>
-    </el-tabs>
-   </el-form>
-  </el-dialog>
-  <el-dialog custom-class="team-dps-dialog cx-scope" v-model="showEnemy" title="敌人设置" width="650px">
-   <enemy-config v-model="enemyConfig"/>
-   <div class="controls">
-    <el-checkbox v-model="frozen" :disabled="busy">敌人可冻结</el-checkbox>
-    <label>敌人数 <el-input-number v-model="enemyCount" :min="1" :precision="0" :disabled="busy"/></label>
-    <label>统计目标 <el-select popper-class="team-dps-popper" v-model="damageScope" :disabled="busy"><el-option value="single" label="单个敌人"/><el-option value="all" label="全部敌人"/></el-select></label>
+  </TeamDialog>
+  <TeamDialog v-model="showMemberSettings" :title="labels[settingsRole]+' · 配装设置'" width="min(720px, 94vw)"
+   :return-focus="() => memberSettingsTrigger?.$el.focus({preventScroll:true})">
+   <fieldset class="team-fieldset member-settings team-dialog-content" :disabled="busy">
+    <TabsRoot v-model="settingsTab" class="team-tabs">
+     <TabsList class="team-tabs-list" aria-label="配装设置"><TabsTrigger class="team-tab" value="constraints">配装限制</TabsTrigger><TabsTrigger class="team-tab" value="effects">圣遗物效果参数</TabsTrigger></TabsList>
+     <TabsContent value="constraints" class="team-constraint-fields">
+      <div class="team-form-item"><span class="team-field-label">套装</span><TeamSearchChoice v-model="members[settingsRole].constraint.setNames" label="套装" placeholder="任意套装"
+       :options="artifactSetChoices" :limit="2" :disabled="busy"/></div>
+      <div v-for="[field,pos,title] in mainFilters" :key="field" class="team-form-item"><span class="team-field-label">{{ title }}</span><select-artifact-main-stat shadcn v-model="members[settingsRole].filter[field]" :position="pos" :multiple="true" :include-any="false" placeholder="任意主词条"/></div>
+      <div v-for="[field,title,factor] in statFilters" :key="field" class="team-form-item"><span class="team-field-label">{{ title }}</span><TeamNumberInput :model-value="members[settingsRole].constraint[field]*factor" :min="0" :aria-label="title" @update:model-value="members[settingsRole].constraint[field]=$event/factor"/></div>
+     </TabsContent>
+     <TabsContent value="effects"><artifact-config :key="settingsRole" v-model="members[settingsRole].artifactConfig" :exclude-sets="excludedArtifactConfigs"/></TabsContent>
+    </TabsRoot>
+   </fieldset>
+  </TeamDialog>
+  <TeamDialog v-model="showEnemy" title="敌人设置" width="650px"
+   :return-focus="() => enemySettingsTrigger?.$el.focus({preventScroll:true})">
+   <div class="team-dialog-content">
+    <enemy-config v-model="enemyConfig" shadcn row-layout/>
+    <div class="controls enemy-extra-controls">
+     <UiCheckbox v-model="frozen" :disabled="busy">敌人可冻结</UiCheckbox>
+     <label>敌人数 <TeamNumberInput v-model="enemyCount" :min="1" :precision="0" :disabled="busy" aria-label="敌人数"/></label>
+     <label>统计目标 <UiSelect v-model="damageScope" label="统计目标" :disabled="busy" :options="[{value:'single',label:'单个敌人'},{value:'all',label:'全部敌人'}]"/></label>
+    </div>
    </div>
-  </el-dialog>
-  <el-dialog custom-class="team-dps-dialog cx-scope" :model-value="busy&&showProgress" title="计算进度" width="560px" :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
-   <el-progress :percentage="progressPercent" :indeterminate="teamDpsProgressIndeterminate(progress)" :show-text="!teamDpsProgressIndeterminate(progress)"/>
+  </TeamDialog>
+  <TeamDialog :model-value="busy&&showProgress" title="计算进度" width="560px" prevent-outside hide-close @escape-key-down="$event.preventDefault()">
+   <TeamProgress :model-value="teamDpsProgressIndeterminate(progress) ? null : progressPercent" label="计算进度"/>
    <p class="team-progress-phase">{{ teamDpsProgressText(progress) }} · {{ progress.total_teams }}组评估预算</p><p>已评估 {{ progress.evaluated_teams }} 组　剩余预算 {{ progress.remaining_teams }} 组</p>
    <p v-if="progress.visited_nodes">已访问 {{ progress.visited_nodes }} 个节点 · 剪枝 {{ progress.pruned_nodes }} 个分支</p>
    <p>已用时间 {{ duration(elapsed) }}　{{ progress.eta_scope==='compile'?'构图预计剩余':'预计剩余' }} {{ formatComputeTime(progress.eta_ms) }}</p>
-   <template #footer><el-button @click="backgroundCalculation">后台计算</el-button><el-button @click="controller?.abort()">取消计算</el-button></template>
-  </el-dialog>
-  <el-dialog v-model="showResults" title="四人圣遗物搭配结果" width="94%" custom-class="team-dps-dialog team-dps-results cx-scope viewport-dialog">
-   <div class="sort-bar"><label>排序 <el-select popper-class="team-dps-popper" v-model="sortMetric"><el-option v-for="[key,title] in damageModes" :key="key" :value="key" :label="title"/></el-select></label><span>共{{ output?.results.length||0 }}套</span></div>
+   <template #footer><div class="team-dialog-actions"><UiButton @click="backgroundCalculation">后台计算</UiButton><UiButton @click="controller?.abort()">取消计算</UiButton></div></template>
+  </TeamDialog>
+  <TeamDialog v-model="showResults" title="四人圣遗物搭配结果" width="94%" viewport>
+   <div class="sort-bar"><label>排序 <UiSelect v-model="sortMetric" label="排序" :options="damageOptions"/></label><span>共{{ output?.results.length||0 }}套</span></div>
    <div class="result-list">
     <div v-for="row in sortedResults" :key="row.index" class="team-row" :class="{chosen:selectedIndex===row.index+1}" role="button" tabindex="0" @click="selectResult(row.index)" @keydown.enter="selectResult(row.index)">
      <strong>第{{ row.rank }}套</strong><span v-for="[key,title] in damageModes" :key="key">{{ title }} {{ number(row.result[key]) }}</span><span>DPS {{ number(row.result[sortMetric]/row.result.duration) }}</span>
-     <el-button @click.stop="selectResult(row.index)">查看详情</el-button>
+     <UiButton @click.stop="selectResult(row.index)">查看详情</UiButton>
      <div v-for="(role,r) in roles" :key="role" class="row-member"><b>{{ labels[r] }}</b><span>{{ number(row.result.character_damage[r][sortMetric]) }}</span><span v-for="id in Object.values(row.result.artifacts[r])" :key="id">{{ artifactTitle(Number(id)) }}</span></div>
     </div>
    </div>
-  </el-dialog>
+  </TeamDialog>
  </div>
 </template>
 <script setup lang="ts">
 import './team-dps-theme.css'
+import {TabsRoot,TabsList,TabsContent,TabsTrigger} from 'radix-vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
+import UiCheckbox from '@/components/ui/UiCheckbox.vue'
+import UiAlert from '@/components/ui/UiAlert.vue'
+import TeamDialog from './TeamDialog.vue'
+import TeamDisclosure from './TeamDisclosure.vue'
+import TeamNumberInput from './TeamNumberInput.vue'
+import TeamSlider from './TeamSlider.vue'
+import TeamSearchChoice from './TeamSearchChoice.vue'
+import TeamProgress from './TeamProgress.vue'
 import {ref,shallowRef,computed,watch,nextTick,onBeforeUnmount,onDeactivated,onActivated} from 'vue'
-import {ElMessage} from 'element-plus'
 import {usePresetStore} from '@/store/pinia/preset'
 import {useArtifactStore} from '@/store/pinia/artifact'
 import {useAccountStore} from '@/store/pinia/account'
@@ -169,6 +228,12 @@ import CalcErrorDialog from '@/components/CalcErrorDialog.vue'
 import ArtifactDisplay from '@/components/display/ArtifactDisplay.vue'
 import DamageAnalysis from '@/components/display/DamageAnalysis'
 import SelectWeaponLevel from '@/components/select/SelectWeaponLevel.vue'
+import CharacterWeaponPicker from '@/components/select/CharacterWeaponPicker.vue'
+import CharacterConstellation from '@/components/import/CharacterConstellation.vue'
+import CharacterTalentCards from '@/components/import/CharacterTalentCards.vue'
+import WeaponDisplay from '@/components/display/WeaponDisplay.vue'
+import {characterSignatureWeapons} from '@/utils/weapon'
+import {characterLevelLabel} from '@/utils/character-level.mjs'
 import SelectCharacterLevel from '@/components/select/SelectCharacterLevel.vue'
 import SelectArtifactMainStat from '@/components/select/SelectArtifactMainStat.vue'
 import ItemConfig from '@/components/config/ItemConfig.vue'
@@ -178,7 +243,7 @@ import {artifactsData} from '@/assets/artifacts'
 import locale from '@/i18n/generated/zh-cn.json'
 import {actionAxisDurationMs,TEAM_ACTION_RULES_VERSION} from '../../../beta-data/team-engine/action-config.mjs'
 import {characterPackages} from '../../../beta-data/team-engine/character-packages.mjs'
-import {calculationHistory,calculationState} from '@/store/calculation-history'
+import {calculationHistory,calculationState,showCalculationNotice} from '@/store/calculation-history'
 import {historyMembers,buildIds} from '@/algorithms/calculation-history.mjs'
 import {formatComputeTime} from '@/algorithms/optimization-results.mjs'
 import {teamDpsProgressText,teamDpsProgressIndeterminate} from '../../../beta-data/team-dps-progress.mjs'
@@ -188,15 +253,20 @@ const engineRulesVersion=TEAM_ACTION_RULES_VERSION
 const emit=defineEmits(['save-task'])
 const roles=props.configuration.members.map((m:any)=>m.character),labels=roles.map((role:string)=>locale[characterData[role].nameLocale])
 const damageModes=[['expectation','期望伤害'],['critical','暴击伤害'],['non_critical','非暴击伤害']]
+const damageOptions=damageModes.map(([value,label])=>({value,label}))
+const refineOptions=Array.from({length:5},(_,i)=>({value:String(i+1),label:String(i+1)}))
 const statFilters:[string,string,number][]=[['minRecharge','最低充能效率 %',100],['minCritical','最低暴击率 %',100],['minCriticalDamage','最低暴击伤害 %',100],['minElementalMastery','最低元素精通',1]]
 const mainFilters=[['sandMainStats','sand','时之沙'],['gobletMainStats','cup','空之杯'],['headMainStats','head','理之冠']]
 const elementColors:Record<string,string>={Hydro:'#7eb8ff',Cryo:'#87e4df',Pyro:'#ff9a81',Electro:'#c0a2ff',Anemo:'#77d8bd',Geo:'#e8c77d',Dendro:'#b3d975'}
 const panelFields:[string,string,number][]=[['hp','生命值上限',1],['atk','攻击力',1],['def','防御力',1],['elemental_mastery','元素精通',1],['critical','暴击率',100],['critical_damage','暴击伤害',100],['recharge','元素充能效率',100],['healing_bonus','治疗加成',100]]
 const presetStore=usePresetStore(),artifactStore=useArtifactStore(),accountStore=useAccountStore(),mys=useMiyousheStore()
 const {enemyConfig}=useEnemy(),showEnemy=ref(false),frozen=ref(true),enemyIsSlime=ref(false)
+const enemySettingsTrigger=ref<InstanceType<typeof UiButton>|null>(null)
+const memberSettingsTrigger=ref<InstanceType<typeof UiButton>|null>(null)
 const enemyCount=ref(1),damageScope=ref('single'),narzissenkreuzEnabled=ref(true)
 const availableWeapons=(role:string)=>weaponByType[characterData[role].weapon].filter((w:any)=>teamDpsWeaponAvailable(w.name))
 const availableSets=Object.values(artifactsData).filter((s:any)=>teamDpsArtifactAvailable(s.name2)).sort((a:any,b:any)=>b.maxStar-a.maxStar)
+const artifactSetChoices=availableSets.map((s:any)=>({value:s.eng,label:locale[s.nameLocale]}))
 const availableArtifactSet=(name:string)=>teamDpsArtifactAvailable(convertArtifactName(name))
 const excludedArtifactConfigs=[...AUTO_ARTIFACT_SETS,...Object.keys(INCOMPLETE_ARTIFACT_SETS)]
 const weaponConditions=ref(roles.map(()=>defaultWeaponOptions())),widsithMode=ref(roles.map(()=>'average'))
@@ -205,6 +275,20 @@ const params=(name:string,configs:any[])=>configs?.length?{[name]:Object.fromEnt
 function fresh(role:string){const name=characterPackages[role].defaultWeapon;return {character:{...defaultTeamCharacter(role),params:params(role,characterData[role].config)},weapon:{name,level:90,ascend:false,refine:1,params:params(name,weaponData[name].configs)},artifactIds:[],artifactEffectMode:'custom',artifactConfig:upgradeArtifactConfig({}),buffs:[],constraint:{setNames:[],minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0},filter:{sandMainStats:[],gobletMainStats:[],headMainStats:[]}}}
 const names=ref(['','','','']),members=ref<any[]>(roles.map(fresh))
 const editingRole=ref(0),editingMember=computed(()=>members.value[editingRole.value])
+const editingCharacterEntry = computed(() => {
+ const {name, constellation, skill1, skill2, skill3} = editingMember.value.character
+ return {characterName:name, element:characterData[name].element, constellation, talentLevels:[skill1+1, skill2+1, skill3+1]}
+})
+const weaponPickerOpen = ref(false)
+const weaponPickerTrigger = ref<InstanceType<typeof UiButton>|null>(null)
+watch(editingRole, () => { weaponPickerOpen.value = false })
+function changeTalentLevels([normal, skill, burst]: number[]) {
+ const character = editingMember.value.character
+ // The team input stores effective talent levels with zero-based indices.
+ character.skill1 = normal - 1
+ character.skill2 = skill - 1
+ character.skill3 = burst - 1
+}
 const weaponConfigs=(r:number)=>{const name=members.value[r].weapon.name;return (weaponData[name].configs||[]).filter((c:any)=>!AUTO_WEAPON_FIELDS[name]?.includes(c.name))}
 const objective=ref('damage'),metric=ref('expectation'),sortMetric=ref('expectation'),count=ref(100),budget=ref(2000),minLevel=ref(0),initialHp=ref([100,100,100,100]),healthBranch=ref(0)
 const searchAlgorithm=ref('auto')
@@ -253,8 +337,12 @@ function restoreTask(uid:string){
 const rolePresets=(role:string)=>presetStore.allFlat.value.filter(p=>p.item.character.name===role&&teamDpsWeaponAvailable(p.item.weapon.name))
 function clearResults(){if(busy.value)backgroundCalculation();detailController?.abort();detailBusy.value=false;output.value=null;resultContext.value=null;showResults.value=false;showHitAnalysis.value=false;activeHit.value=null;error.value=''}
 function loadPreset(r:number){clearResults();const item=JSON.parse(JSON.stringify(presetStore.presets.value[names.value[r]].item));item.constraint={minRecharge:1,minCritical:0,minCriticalDamage:0,minElementalMastery:0,...item.constraint,setNames:(item.constraint?.setNames||[]).filter(availableArtifactSet)};item.filter={sandMainStats:[],gobletMainStats:[],headMainStats:[],...item.filter};item.artifactConfig=upgradeArtifactConfig(item.artifactConfig||{});item.artifactEffectMode='custom';members.value[r]=item}
-function changeWeapon(r:number,name:string){members.value[r].weapon.name=name;members.value[r].weapon.params=params(name,weaponData[name].configs)}
-const levelString=(x:any)=>x.level+(x.ascend?'+':'-')
+function changeWeapon(r:number,name:string){
+ const weapon = members.value[r].weapon
+ if (weapon.name === name) return
+ weapon.name = name
+ weapon.params = params(name,weaponData[name].configs)
+}
 function setLevel(x:any,v:string){x.level=parseInt(v);x.ascend=v.includes('+')}
 function autoLoad(){
  const uid=mys.selectedUid.value||'';
@@ -303,7 +391,7 @@ async function selectResult(index:number){
 }
 function allArtifacts(items:any[]=[...artifactStore.artifacts.value.values()]){return items.map(a=>({...convertArtifact(a),omit:a.omit}))}
 async function run(mode:string){
- if(calculationState.active){ElMessage.info('当前有计算线程正在进行');return}
+ if(calculationState.active){showCalculationNotice('info', '当前有计算线程正在进行');return}
  detailController?.abort();showHitAnalysis.value=false;activeHit.value=null;
  const input=JSON.parse(JSON.stringify({single_interfaces:members.value.map(convertPresetToWasmInterface),team_dps:{axis:props.configuration,initial_ids:members.value.map(p=>p.artifactIds),initial_hp:initialHp.value.map(v=>v/100),enemy:enemyConfig.value,enemy_is_slime:enemyIsSlime.value,enemy_count:enemyCount.value,damage_scope:damageScope.value,narzissenkreuz_enabled:narzissenkreuzEnabled.value,weapon_conditions:weaponConditions.value,widsith_mode:widsithMode.value,frozen:frozen.value,objective:objective.value,metric:metric.value,search_algorithm:searchAlgorithm.value,compute_backend:computeBackend.value,result_count:count.value,max_evaluations:budget.value,minimum_artifact_level:minLevel.value}}))
  const items:any[]=JSON.parse(JSON.stringify([...artifactStore.artifacts.value.values()])),artifacts=allArtifacts(items);
@@ -320,7 +408,7 @@ async function run(mode:string){
  });
  const task=job.controller;controller=task
  try{const {detail}:any=await job.promise;recordUsage('action.team-dps');recordCharacterUsage('action.team-dps',input.single_interfaces.map((x:any)=>x.character.name));if(task.signal.aborted||controller!==task||backgrounded||!pageActive||accountStore.currentAccountId.value!==accountId||loadedUid!==uid)return;resultContext.value=snapshot;output.value=unpackTeamDpsResult(detail.output);sortMetric.value=input.team_dps.metric;if(output.value.results.length)await selectResult(0)}
- catch(e:any){if(e.name==='AbortError'){if(controller===task)ElMessage.info('计算已取消')}else{console.error(e);if(controller===task)error.value=e.message}}
+ catch(e:any){if(e.name==='AbortError'){if(controller===task)showCalculationNotice('info', '计算已取消')}else{console.error(e);if(controller===task)error.value=e.message}}
  finally{clearInterval(taskTimer);if(controller===task){clock.value=performance.now();busy.value=false;showProgress.value=false;controller=null;timer=null}}
 }
 async function exportDebug(){try{const blob=await exportTeamDpsResult({resultVersion:TEAM_DPS_RESULT_VERSION,input:lastInput,result_input:resultContext.value?.input,result:packResult(output.value),error:error.value,usageStats:usageStatsDebugInfo(),contentPatch:patchDebugInfo()}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='team-dps-debug.json';a.click();URL.revokeObjectURL(url);recordUsage('action.debug-export')}catch(e:any){console.error(e);error.value=e.message}}
@@ -332,7 +420,7 @@ watch(()=>[mys.selectedUid.value,presetStore.allFlat.value.map(p=>p.name),mys.da
 watch([()=>clone(Object.fromEntries(Object.entries(taskFields).map(([key,value])=>[key,value.value]))),output,resultContext],saveTask,{flush:'post'})
 watch(()=>accountStore.currentAccountId.value,()=>{clearResults();names.value=['','','',''];members.value=roles.map(fresh);weaponConditions.value=roles.map(()=>defaultWeaponOptions());widsithMode.value=roles.map(()=>'average');loadedUid=null})
 onBeforeUnmount(()=>{pageActive=false;backgroundCalculation();detailController?.abort();if(timer)clearInterval(timer);saveTask()})
-onDeactivated(()=>{pageActive=false;if(busy.value)backgroundCalculation();saveTask()})
+onDeactivated(()=>{pageActive=false;weaponPickerOpen.value=false;if(busy.value)backgroundCalculation();saveTask()})
 if(props.historyDetail){
  restoringTask=true;taskRestored=true;
  for(const [key,value]of Object.entries(taskFields))value.value=clone(props.historyDetail.view.fields[key]);
@@ -347,16 +435,35 @@ if(props.historyDetail){
 .team-dps{display:flex;flex-direction:column;gap:14px;padding:0 0 10px;font-variant-numeric:tabular-nums}
 .dps-card{background:var(--cx-card);border:1px solid var(--cx-step-2);border-radius:14px;padding:18px;min-width:0;box-shadow:0 8px 24px #24395708}
 .card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.card-heading h3{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:650;margin:0;letter-spacing:.02em}.card-heading h3 svg{color:var(--cx-gold);width:22px;height:22px}
-.general-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 22px}.setting-field{min-width:0}.setting-field>label{display:flex;align-items:center;flex-wrap:wrap;gap:9px;color:var(--cx-dim);font-size:16px;font-weight:600;margin-bottom:7px}.setting-field .el-select,.setting-field .el-input-number{width:100%}.setting-field :deep(.el-input__wrapper){min-height:36px}.setting-field :deep(.el-input__inner){text-align:center;font-size:20px;font-weight:650}.setting-field .el-slider{margin-top:2px;height:22px}.role-chip{font-size:13px;color:#3d8d87;border:1px solid #b7dad6;background:#eff9f7;padding:1px 7px;border-radius:20px;font-weight:500}
+.general-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 22px}.setting-field{min-width:0}.setting-field>label{display:flex;align-items:center;flex-wrap:wrap;gap:9px;color:var(--cx-dim);font-size:16px;font-weight:600;margin-bottom:7px}.setting-field :deep(.select-trigger),.setting-field .team-number{width:100%}.setting-field :deep(.ui-input){min-height:36px}.setting-field :deep(.ui-input){text-align:center;font-size:20px;font-weight:650}.setting-field .team-slider{margin-top:2px;height:22px}.role-chip{font-size:13px;color:#3d8d87;border:1px solid #b7dad6;background:#eff9f7;padding:1px 7px;border-radius:20px;font-weight:500}
 .team-workspace{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}.team-editor{display:flex;flex-direction:column;gap:14px;min-width:0}.axis-duration{color:#438e96;font-weight:650;font-size:20px}.team-roster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.roster-member{display:flex;align-items:center;flex-direction:column;gap:5px;background:transparent;color:var(--cx-dim);border:1px solid transparent;border-radius:12px;padding:8px 4px;cursor:pointer;font:inherit;transition:background .15s,border-color .15s}.roster-member img{width:80px;height:80px;object-fit:cover;border-radius:50%;background:var(--cx-step);border:2px solid var(--cx-step-2)}.roster-member strong{font-size:17px;white-space:nowrap}.roster-member>span{font-size:14px;color:var(--cx-dim)}.roster-member:hover{background:var(--cx-step)}.roster-member.active{background:var(--cx-step);border-color:var(--cx-step-2);color:var(--cx-gold)}.roster-member.active img{border-color:var(--role-accent);box-shadow:0 0 17px color-mix(in srgb,var(--role-accent) 28%,transparent)}
-.constellation-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}.constellation-line>span{font-size:16px;color:var(--cx-dim);margin-right:4px}.constellation-line button{width:38px;height:38px;border:1px solid var(--cx-step-2);background:var(--cx-step);border-radius:50%;color:var(--cx-dim);font-weight:650;cursor:pointer;font-size:16px}.constellation-line button.active{border-color:#91c8c8;background:#edf8f7;color:#387f82;box-shadow:0 0 10px #70bdb522}.constellation-line button:disabled{cursor:default;opacity:.65}.member .card-heading{margin-bottom:12px}.member .el-select{width:100%}.member :deep(.el-form-item){margin-bottom:12px}.member form>:last-child{margin-bottom:0}.equipment-grid{display:grid;grid-template-columns:minmax(0,1fr) 96px 120px;gap:10px}.weapon-choice{display:flex;align-items:center;gap:10px;width:100%}.weapon-choice>img{width:48px;height:48px;object-fit:contain;background:var(--cx-step);border-radius:8px}.weapon-choice .el-select{flex:1;min-width:0}
+.member .card-heading{margin-bottom:12px}
+.member :deep(.select-trigger){width:100%}
+.member :deep(.team-form-item){margin-bottom:12px}
+.member-form>:last-child{margin-bottom:0}
+.member-character-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%, 390px),1fr));gap:12px;align-items:start;margin-bottom:14px}
+.member-weapon{margin-bottom:14px}
+.member-weapon-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.member-weapon :deep(.detail){display:block}
+.member-weapon :deep(.detail-body){padding-left:0}
+.member-weapon :deep(.name){font-size:15px;color:var(--cx-letter);margin:0 0 4px}
+.member-weapon :deep(.description){font-size:13px;line-height:1.65;color:var(--cx-dim);word-break:normal;overflow-wrap:anywhere}
+.member-weapon-trigger[data-slot="button"]{width:64px;height:64px;padding:2px;margin-bottom:4px;border:1px dashed var(--cx-dim);border-radius:10px;background:transparent}
+.member-weapon-trigger[data-slot="button"]:hover:enabled{background:var(--cx-step);border-color:var(--cx-gold)}
+.member-weapon-trigger img{width:100%;height:100%;object-fit:contain}
 .character-panel{position:sticky;top:12px;padding-bottom:18px}.panel-identity{display:flex;align-items:center;gap:12px;margin:12px 0}.panel-identity>img{height:76px;width:76px;object-fit:cover;border-radius:50%;background:var(--cx-step);border:2px solid #acd8d5}.panel-identity h3{margin:0 0 7px;font-size:22px}.panel-badges{display:flex;gap:6px;flex-wrap:wrap}.panel-badges span{border-radius:14px;background:var(--cx-step);border:1px solid var(--cx-step-2);padding:2px 7px;font-size:14px;color:var(--cx-dim)}.panel-stats{margin:0}.panel-stats>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 5px;border-bottom:1px solid var(--cx-step-2);font-size:16px}.panel-stats>div:nth-child(even){background:var(--cx-card)}.panel-stats dt{color:var(--cx-dim)}.panel-stats dd{margin:0;font-size:19px;font-weight:650;color:var(--cx-letter)}.panel-weapon{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:16px;color:var(--cx-dim)}.panel-weapon img{width:42px;height:42px;object-fit:contain}.panel-empty{min-height:64px;display:flex;align-items:center;justify-content:center;color:var(--cx-dim);font-size:15px}
-.controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.controls label{display:flex;align-items:center;gap:8px}.optimization-fields{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.optimization-fields>label{display:flex;flex-direction:column;align-items:stretch;font-size:16px;color:var(--cx-dim);gap:7px}.optimization-fields .el-select,.optimization-fields .el-input-number{width:100%}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--cx-step-2)}.actions>.el-button{margin:0;height:40px;padding:0 24px}.actions>.el-checkbox{margin-left:auto;margin-right:0}
-.summary{display:flex;align-items:baseline;gap:28px;flex-wrap:wrap;margin:16px 0}.summary>div{display:flex;align-items:baseline;gap:12px}.summary span{font-size:16px;color:var(--cx-dim)}.summary strong{font-size:clamp(32px,3.4vw,44px);font-weight:700;letter-spacing:-.025em}.metric-total strong{color:#e76d76}.metric-dps strong{color:var(--cx-gold)}.metric-time strong{color:#4a9f9e}.metric-time strong small{font-size:20px;margin-left:3px}.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.metric-switch{display:flex;padding:4px;gap:3px;border:1px solid var(--cx-step-2);border-radius:24px;background:var(--cx-step)}.metric-switch button{padding:8px 14px;border:0;background:transparent;color:var(--cx-dim);border-radius:20px;font-size:16px;cursor:pointer}.metric-switch button.active{background:var(--cx-step);color:var(--cx-gold);font-weight:650}.selection{display:flex;align-items:center;gap:10px;color:var(--cx-dim);font-size:15px}.selection .el-input-number{width:130px}.result-meta{display:flex;gap:16px;flex-wrap:wrap;color:var(--cx-dim);font-size:14px;margin:12px 0}
+.controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.controls label{display:flex;align-items:center;gap:8px}.optimization-fields{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.optimization-fields>label{display:flex;flex-direction:column;align-items:stretch;font-size:16px;color:var(--cx-dim);gap:7px}.optimization-fields :deep(.select-trigger),.optimization-fields .team-number{width:100%}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--cx-step-2)}.actions>.ui-button{margin:0;height:40px;padding:0 24px}.actions>.check-label{margin-left:auto;margin-right:0}
+.summary{display:flex;align-items:baseline;gap:28px;flex-wrap:wrap;margin:16px 0}.summary>div{display:flex;align-items:baseline;gap:12px}.summary span{font-size:16px;color:var(--cx-dim)}.summary strong{font-size:clamp(32px,3.4vw,44px);font-weight:700;letter-spacing:-.025em}.metric-total strong{color:#e76d76}.metric-dps strong{color:var(--cx-gold)}.metric-time strong{color:#4a9f9e}.metric-time strong small{font-size:20px;margin-left:3px}.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.metric-switch{display:flex;padding:4px;gap:3px;border:1px solid var(--cx-step-2);border-radius:24px;background:var(--cx-step)}.metric-switch button{padding:8px 14px;border:0;background:transparent;color:var(--cx-dim);border-radius:20px;font-size:16px;cursor:pointer}.metric-switch button.active{background:var(--cx-step);color:var(--cx-gold);font-weight:650}.selection{display:flex;align-items:center;gap:10px;color:var(--cx-dim);font-size:15px}.selection .team-number{width:130px}.result-meta{display:flex;gap:16px;flex-wrap:wrap;color:var(--cx-dim);font-size:14px;margin:12px 0}
 .contribution-row{display:grid;grid-template-columns:140px minmax(0,1fr) minmax(200px,25%);align-items:center;gap:16px;border-top:1px solid var(--cx-step-2);padding:12px 0}.contribution-person{display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;color:var(--cx-dim);font:inherit;font-size:16px;cursor:pointer}.contribution-person img{height:44px;width:44px;border:1px solid var(--cx-step-2);border-radius:50%;background:var(--cx-step)}.contribution-damage{display:flex;flex-direction:column;gap:6px}.contribution-track{height:11px;border-radius:8px;background:var(--cx-step);overflow:hidden}.contribution-track>span{display:block;height:100%;border-radius:8px}.contribution-damage strong{font-size:20px;color:var(--cx-letter);font-weight:650}.contribution-damage small{font-size:14px;color:var(--cx-dim);font-weight:400}.contribution-equipment{display:flex;flex-direction:column;gap:3px;font-size:14px;line-height:1.45;color:var(--cx-dim)}.contribution-equipment>span:last-child{color:var(--cx-dim)}
-.result-member{margin:14px 0 0;padding-top:14px;border-top:1px solid var(--cx-step-2)}.result-member h3{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 8px;font-size:19px}.damage{font-size:14px;font-weight:400;color:var(--cx-dim)}.build-panel{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 10px;color:var(--cx-gold);font-size:15px}.gear{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:8px}.detail-card{padding:2px 18px}.detail-card :deep(.el-collapse-item__header){height:46px}.detail-card :deep(.el-collapse-item__wrap){border-bottom:0}.hit-table :deep(.el-table__row){cursor:pointer}.health-values{display:block;white-space:nowrap}.health-ratio{color:var(--cx-dim);display:block;margin-top:4px;font-size:14px}.member-settings .el-select{width:100%}
-.sort-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px;color:var(--cx-dim);font-size:16px}.sort-bar label{display:flex;gap:12px;align-items:center}.sort-bar .el-select{width:170px}.result-list{max-height:65vh;overflow-y:auto}.team-row{padding:16px;border:1px solid var(--cx-step-2);border-radius:13px;margin-bottom:10px;cursor:pointer;background:var(--cx-card)}.team-row>span{margin-left:14px;font-size:15px;color:var(--cx-dim)}.team-row>strong{color:var(--cx-dim)}.team-row.chosen{border-color:var(--cx-gold);background:var(--cx-step)}.row-member{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;font-size:14px;color:var(--cx-dim)}.row-member>b{min-width:70px;color:var(--cx-dim)}.team-row:focus,.roster-member:focus-visible,.constellation-line button:focus-visible,.metric-switch button:focus-visible{outline:2px solid var(--cx-gold);outline-offset:3px}
-@media(max-width:1200px){.team-workspace{grid-template-columns:minmax(0,1fr) 300px}.dps-card{padding:16px}.equipment-grid{grid-template-columns:minmax(0,1fr) 90px}.weapon-field{grid-column:1/-1}.optimization-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.roster-member img{width:68px;height:68px}.roster-member strong{font-size:16px}.contribution-row{grid-template-columns:130px minmax(0,1fr) 200px}}
-@media(max-width:850px){.team-workspace{grid-template-columns:1fr}.character-panel{position:static}.panel-stats{display:grid;grid-template-columns:1fr 1fr;column-gap:20px}.general-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel-empty{min-height:40px}.panel-identity{margin:10px 0}.equipment-grid{grid-template-columns:minmax(0,1fr) 100px 130px}.weapon-field{grid-column:auto}.roster-member img{width:76px;height:76px}.contribution-row{grid-template-columns:130px minmax(0,1fr)}.contribution-equipment{grid-column:2}.summary{gap:20px}}
-@media(max-width:550px){.team-dps{gap:10px}.dps-card{padding:14px;border-radius:12px}.general-grid{gap:12px}.setting-field>label{font-size:14px}.role-chip{font-size:12px;padding:1px 5px}.roster-member{padding:7px 2px}.roster-member img{width:56px;height:56px}.roster-member strong{font-size:14px}.team-roster{gap:4px}.equipment-grid{grid-template-columns:1fr 1fr}.weapon-field{grid-column:1/-1}.optimization-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.actions>.el-button{padding:0 13px}.actions>.el-checkbox{margin-left:0}.panel-stats{grid-template-columns:1fr}.card-heading h3{font-size:18px}.constellation-line{gap:7px}.constellation-line>span{width:100%}.constellation-line button{width:34px;height:34px}.metric-switch button{padding:7px 10px;font-size:14px}.contribution-row{grid-template-columns:108px minmax(0,1fr);gap:10px}.contribution-person{gap:6px;font-size:14px}.contribution-person img{width:34px;height:34px}.contribution-damage strong{font-size:17px}.summary strong{font-size:30px}.summary{gap:14px}.team-row>span{display:block;margin:8px 0}.sort-bar{align-items:flex-start}}
+.result-member{margin:14px 0 0;padding-top:14px;border-top:1px solid var(--cx-step-2)}.result-member h3{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 8px;font-size:19px}.damage{font-size:14px;font-weight:400;color:var(--cx-dim)}.build-panel{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 10px;color:var(--cx-gold);font-size:15px}.gear{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:8px}.detail-card{padding:2px 18px}.detail-table-scroll{max-height:500px}.hit-table{min-width:580px}.health-table{min-width:1315px;table-layout:fixed}.team-table-link{border-color:transparent;background:transparent;color:var(--cx-gold)}.health-values{display:block;white-space:nowrap}.health-ratio{color:var(--cx-dim);display:block;margin-top:4px;font-size:14px}.member-settings :deep(.select-trigger){width:100%}
+.sort-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px;color:var(--cx-dim);font-size:16px}.sort-bar label{display:flex;gap:12px;align-items:center}.sort-bar :deep(.select-trigger){width:170px}.result-list{max-height:65vh;overflow-y:auto}.team-row{padding:16px;border:1px solid var(--cx-step-2);border-radius:13px;margin-bottom:10px;cursor:pointer;background:var(--cx-card)}.team-row>span{margin-left:14px;font-size:15px;color:var(--cx-dim)}.team-row>strong{color:var(--cx-dim)}.team-row.chosen{border-color:var(--cx-gold);background:var(--cx-step)}.row-member{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0;font-size:14px;color:var(--cx-dim)}.row-member>b{min-width:70px;color:var(--cx-dim)}.team-row:focus,.roster-member:focus-visible,.metric-switch button:focus-visible{outline:2px solid var(--cx-gold);outline-offset:3px}
+@media(max-width:1200px){.team-workspace{grid-template-columns:minmax(0,1fr) 300px}.dps-card{padding:16px}.optimization-fields{grid-template-columns:repeat(3,minmax(0,1fr))}.roster-member img{width:68px;height:68px}.roster-member strong{font-size:16px}.contribution-row{grid-template-columns:130px minmax(0,1fr) 200px}}
+@media(max-width:850px){.team-workspace{grid-template-columns:1fr}.character-panel{position:static}.panel-stats{display:grid;grid-template-columns:1fr 1fr;column-gap:20px}.general-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel-empty{min-height:40px}.panel-identity{margin:10px 0}.roster-member img{width:76px;height:76px}.contribution-row{grid-template-columns:130px minmax(0,1fr)}.contribution-equipment{grid-column:2}.summary{gap:20px}}
+@media(max-width:550px){.member-character-cards :deep(.edit-talents){min-height:40px}.team-dps{gap:10px}.dps-card{padding:14px;border-radius:12px}.general-grid{gap:12px}.setting-field>label{font-size:14px}.role-chip{font-size:12px;padding:1px 5px}.roster-member{padding:7px 2px}.roster-member img{width:56px;height:56px}.roster-member strong{font-size:14px}.team-roster{gap:4px}.optimization-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.actions>.ui-button{padding:0 13px}.actions>.check-label{margin-left:0}.panel-stats{grid-template-columns:1fr}.card-heading h3{font-size:18px}.metric-switch button{padding:7px 10px;font-size:14px}.contribution-row{grid-template-columns:108px minmax(0,1fr);gap:10px}.contribution-person{gap:6px;font-size:14px}.contribution-person img{width:34px;height:34px}.contribution-damage strong{font-size:17px}.summary strong{font-size:30px}.summary{gap:14px}.team-row>span{display:block;margin:8px 0}.sort-bar{align-items:flex-start}}
+
+.team-constraint-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}
+.member-form > .team-form-item{margin-bottom:12px}
+.enemy-extra-controls :deep(.select-trigger){width:148px}
+.actions > .check-label{margin-left:auto}
+@media(max-width:550px){.team-constraint-fields{grid-template-columns:1fr}.actions > .check-label{margin-left:0}}
 </style>

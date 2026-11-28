@@ -1,58 +1,29 @@
 <template>
-    <el-select
-        :model-value="modelValue"
-        @update:modelValue="$emit('update:modelValue', $event)"
-    >
-        <el-option-group label=">=80">
-            <el-option label="90" value="90-"></el-option>
-            <el-option label="85" value="85"></el-option>
-            <el-option label="80+" value="80+"></el-option>
-            <el-option label="80-" value="80-"></el-option>
-        </el-option-group>
-        <el-option-group label=">=70">
-            <el-option label="75" value="75"></el-option>
-            <el-option label="70+" value="70+"></el-option>
-            <el-option label="70-" value="70-"></el-option>
-        </el-option-group>
-        <el-option-group label=">=60">
-            <el-option label="65" value="65"></el-option>
-            <el-option label="60+" value="60+"></el-option>
-            <el-option label="60-" value="60-"></el-option>
-        </el-option-group>
-        <el-option-group label=">=50">
-            <el-option label="55" value="55"></el-option>
-            <el-option label="50+" value="50+"></el-option>
-            <el-option label="50-" value="50-"></el-option>
-        </el-option-group>
-        <el-option-group label=">=40">
-            <el-option label="45" value="45"></el-option>
-            <el-option label="40+" value="40+"></el-option>
-            <el-option label="40-" value="40-"></el-option>
-        </el-option-group>
-        <el-option-group label=">=30">
-            <el-option label="35" value="35"></el-option>
-            <el-option label="30" value="30"></el-option>
-        </el-option-group>
-        <el-option-group label=">=20">
-            <el-option label="25" value="25"></el-option>
-            <el-option label="20+" value="20+"></el-option>
-            <el-option label="20-" value="20-"></el-option>
-        </el-option-group>
-        <el-option-group label=">=10">
-            <el-option label="15" value="15"></el-option>
-            <el-option label="10" value="10"></el-option>
-        </el-option-group>
-        <el-option-group label=">=1">
-            <el-option label="5" value="5"></el-option>
-            <el-option label="1" value="1"></el-option>
-        </el-option-group>
-    </el-select>
+    <GroupedLevelSelect :model-value="useUiSelect && modelValue === '90' ? '90-' : modelValue"
+        :level-groups="levelGroups" label="武器等级" :use-ui-select="useUiSelect"
+        @update:model-value="$emit('update:modelValue', $event)" />
 </template>
 
 <script>
+import GroupedLevelSelect from './GroupedLevelSelect.vue'
+
+const levelGroups = [
+    ['>=80', [{ value: '90-', label: '90' }, '85', '80+', '80-']],
+    ['>=70', ['75', '70+', '70-']],
+    ['>=60', ['65', '60+', '60-']],
+    ['>=50', ['55', '50+', '50-']],
+    ['>=40', ['45', '40+', '40-']],
+    ['>=30', ['35', '30']],
+    ['>=20', ['25', '20+', '20-']],
+    ['>=10', ['15', '10']],
+    ['>=1', ['5', '1']],
+]
+
 export default {
     name: "SelectWeaponLevel",
-    props: ["modelValue"],
-    emits: ["update:modelValue"]
+    components: { GroupedLevelSelect },
+    props: { modelValue: null, useUiSelect: Boolean },
+    emits: ["update:modelValue"],
+    setup() { return { levelGroups } },
 }
 </script>

@@ -62,7 +62,7 @@
                 </div>
             </template>
         </UiDialog>
-        <div class="choices">
+        <UiHoverPreview target="button.art-card" class="choices art-hover-grid">
             <div v-for="piece in filtered.slice(0, limit)" :key="piece.id" class="choice" :class="{picked: selected === piece.id}">
                 <ArtifactCard :item="piece" :icon-src="pieceIcon(piece)" :highlight-tags="highlightTags" :selected="selected === piece.id" @open="selected = piece.id" />
                 <span v-if="!entry.characterVariant && owners.has(piece.id)" class="wearers">
@@ -75,7 +75,7 @@
                     </span>
                 </span>
             </div>
-        </div>
+        </UiHoverPreview>
         <p v-if="!filtered.length">仓库里没有符合条件的{{ t('misc', position) }}</p>
         <button v-if="filtered.length > limit" type="button" @click="limit += 24">显示更多</button>
         <template #footer>
@@ -90,6 +90,7 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import UiHoverPreview from '@/components/ui/UiHoverPreview.vue'
 import UiSelect from '@/components/ui/UiSelect.vue'
 import UiDialog from '@/components/ui/UiDialog.vue'
 import UiAvatar from '@/components/ui/UiAvatar.vue'
@@ -249,7 +250,7 @@ function apply(item) {
     .filter-section h4 { margin: 0; }
 }
 .choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(310px, 100%), 1fr)); gap: 8px; }
-.choice { display: flex; flex-direction: column; background: var(--cx-step); border: 1px solid transparent; border-radius: 10px; }
+.choice { --artifact-card-surface: transparent; display: flex; flex-direction: column; background: var(--cx-step); border: 1px solid transparent; border-radius: 10px; }
 .choice.picked { border-color: var(--cx-gold); }
 .choice :deep(.art-card) { width: 100%; height: 100%; background: transparent; }
 .choice { position: relative; }

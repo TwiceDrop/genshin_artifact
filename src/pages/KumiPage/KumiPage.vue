@@ -1,17 +1,22 @@
 <template>
     <div class="kumi-page cx-scope cx-page-frame">
-        <el-dialog
+        <ArtifactPromptDialog ref="promptDialog" width="min(420px, calc(100vw - 32px))" />
+        <UiDialog
             v-model="showSelectArtifactDialog"
-            custom-class="cx-scope"
             :title="t('kumiPage.selectArt')"
-            :width="deviceIsPC ? '80%' : '90%'"
+            :width="phoneLayout ? 'calc(100% - 16px)' : deviceIsPC ? '80%' : '90%'"
+            :max-width="phoneLayout ? 'calc(100% - 16px)' : undefined"
+            :max-height="phoneLayout ? 'calc(100dvh - 24px)' : undefined"
+            :top="phoneLayout ? '8px' : '15vh'"
         >
             <select-artifact
+                shadcn
                 :position="artifactPositionToBeSelected"
+                :state="pickerState"
                 :highlight-tags="groupHighlights.get(underSelectionKumiId)"
                 @select="handleSelectArtifact"
             ></select-artifact>
-        </el-dialog>
+        </UiDialog>
 
         <div class="kumi-layout">
             <aside class="kumi-folders cx-panel" aria-labelledby="kumi-folders-title">
@@ -37,18 +42,16 @@
                         <PageGuideButton guide-id="detail-artifacts" />
                     </div>
                     <div class="kumi-actions cx-panel-body">
-                        <el-input v-model="searchString" class="kumi-search" :placeholder="t('misc.search')" clearable>
-                            <template #prefix><icon-ep-search aria-hidden="true" /></template>
-                        </el-input>
-                        <el-dropdown trigger="click" @command="handleCommand">
-                            <button type="button" class="kumi-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
-                            <template #dropdown><el-dropdown-menu>
-                                <el-dropdown-item command="add" class="kumi-narrow-only">新建收藏夹</el-dropdown-item>
-                                <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="rename">重命名</el-dropdown-item>
-                                <el-dropdown-item command="clear">清空</el-dropdown-item>
-                                <el-dropdown-item v-if="currentDirId !== 0 && currentDirId !== 1" command="delete" divided>删除收藏夹</el-dropdown-item>
-                            </el-dropdown-menu></template>
-                        </el-dropdown>
+                        <UiSearchInput v-model="searchString" class="kumi-search" :placeholder="t('misc.search')" />
+                        <UiDropdownMenu>
+                            <template #trigger>
+                                <button type="button" class="kumi-btn">更多 <icon-ep-arrow-down aria-hidden="true" /></button>
+                            </template>
+                            <UiDropdownMenuItem v-if="phoneLayout" @select="nextTick(handleNewDir)">新建收藏夹</UiDropdownMenuItem>
+                            <UiDropdownMenuItem v-if="currentDirId !== 0 && currentDirId !== 1" @select="nextTick(() => handleRenameDir(currentDirId))">重命名</UiDropdownMenuItem>
+                            <UiDropdownMenuItem @select="nextTick(() => handleClearDir(currentDirId))">清空</UiDropdownMenuItem>
+                            <UiDropdownMenuItem v-if="currentDirId !== 0 && currentDirId !== 1" divided @select="nextTick(() => handleDeleteDir(currentDirId))">删除收藏夹</UiDropdownMenuItem>
+                        </UiDropdownMenu>
                         <button type="button" class="kumi-add" @click="handleNewKumi">＋ 新建套装</button>
                     </div>
                 </header>
@@ -65,7 +68,7 @@
                         @deleteArtifact="handleDeleteArtifact(kumi.id, $event)"
                     ></kumi-item>
                 </div>
-                <el-empty v-else></el-empty>
+                <UiEmpty v-else />
             </section>
         </div>
     </div>
@@ -74,9 +77,16 @@
 <script setup lang="ts">
 import PageGuideButton from "@/onboarding/PageGuideButton.vue"
 import Fuse from "fuse.js"
+import { nextTick, reactive } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import IconEpFolder from "~icons/ep/folder"
-import IconEpSearch from "~icons/ep/search"
 import IconEpArrowDown from "~icons/ep/arrow-down"
+import ArtifactPromptDialog from '@/pages/ArtifactsPage/ArtifactPromptDialog.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
+import UiDropdownMenu from '@/components/ui/UiDropdownMenu.vue'
+import UiDropdownMenuItem from '@/components/ui/UiDropdownMenuItem.vue'
+import UiEmpty from '@/components/ui/UiEmpty.vue'
+import UiSearchInput from '@/components/ui/UiSearchInput.vue'
 
 import KumiItem from "./KumiItem"
 import SelectArtifact from "@/components/select/SelectArtifact"
@@ -85,11 +95,13 @@ import {artifactGroupHighlights} from "@/utils/character-artifact-highlights"
 import type {KumiItem as TypeKumiItem} from "@/types/kumi"
 import {deviceIsPC} from "@/utils/device"
 
-import type {ArtifactPosition} from "@/types/artifact"
+import type {ArtifactMainStatName, ArtifactPosition, ArtifactSetName} from "@/types/artifact"
 import {useI18n} from "@/i18n/i18n";
 
 
 const kumiStore = useKumiStore()
+const promptDialog = ref<InstanceType<typeof ArtifactPromptDialog> | null>(null)
+const phoneLayout = useMediaQuery('(max-width: 767px)')
 
 
 // i18n
@@ -126,47 +138,47 @@ const currentDirTitle = computed(() => {
 })
 
 function handleNewDir() {
-    ElMessageBox.prompt(t("kumiPage.enterFolder"), t("kumiPage.newFolder"), {
+    promptDialog.value?.prompt(t("kumiPage.enterFolder"), t("kumiPage.newFolder"), {
         confirmButtonText: t("misc.confirm"),
         cancelButtonText: t("misc.cancel")
     }).then(({ value }) => {
         if (value) {
             kumiStore.createDir(value)
         }
-    }).catch(() => {})
+    }, () => {})
 }
 
 function handleDeleteDir(id: number) {
     if (id === 0 || id === 1) {
         return
     }
-    ElMessageBox.confirm(t("kumiPage.confirmDelete"), t("kumiPage.deleteFolder"), {
+    promptDialog.value?.confirm(t("kumiPage.confirmDelete"), t("kumiPage.deleteFolder"), {
         confirmButtonText: t("misc.confirm"),
         cancelButtonText: t("misc.cancel")
     }).then(() => {
         kumiStore.deleteDir(id)
         currentDirId.value = 0
-    })
+    }, () => {})
 }
 
 function handleRenameDir(id: number) {
-    ElMessageBox.prompt(t("kumiPage.enterFolder"), t("kumiPage.renameFolder"), {
+    promptDialog.value?.prompt(t("kumiPage.enterFolder"), t("kumiPage.renameFolder"), {
         confirmButtonText: t("misc.confirm"),
         cancelButtonText: t("misc.cancel")
     }).then(({ value }) => {
         if (value) {
             kumiStore.rename(id, value)
         }
-    }).catch(() => {})
+    }, () => {})
 }
 
 function handleClearDir(id: number) {
-    ElMessageBox.confirm(t("kumiPage.confirmClear"), t("kumiPage.clearFolder"), {
+    promptDialog.value?.confirm(t("kumiPage.confirmClear"), t("kumiPage.clearFolder"), {
         confirmButtonText: t("misc.confirm"),
         cancelButtonText: t("misc.cancel")
     }).then(() => {
         kumiStore.clearDir(id)
-    })
+    }, () => {})
 }
 
 // kumis
@@ -176,35 +188,35 @@ const currentKumiList = computed((): TypeKumiItem[] => {
 const groupHighlights = computed(() => new Map(currentKumiList.value.map(group => [group.id, artifactGroupHighlights(group.title)] as const)))
 
 function handleNewKumi() {
-    ElMessageBox.prompt(t("kumiPage.enterKumi"), t("kumiPage.newKumi"), {
+    promptDialog.value?.prompt(t("kumiPage.enterKumi"), t("kumiPage.newKumi"), {
         confirmButtonText: t("misc.confirm"),
         cancelButtonText: t("misc.cancel")
     }).then(({ value }) => {
         if (value) {
             kumiStore.createKumi(currentDirId.value, value)
         }
-    }).catch(() => {})
+    }, () => {})
 }
 
 function handleDeleteKumi(id: number) {
-    ElMessageBox.confirm(t("kumiPage.confirmDelete"), t("misc.hint"), {
+    promptDialog.value?.confirm(t("kumiPage.confirmDelete"), t("misc.hint"), {
         confirmButtonText: t("misc.del"),
         cancelButtonText: t("misc.cancel"),
         type: "warning"
     }).then(() => {
         kumiStore.deleteKumi(id)
-    }).catch(() => {})
+    }, () => {})
 }
 
 function handleEditKumi(id: number) {
-    ElMessageBox.prompt(t("kumiPage.enterKumi"), t("kumiPage.renameKumi"), {
+    promptDialog.value?.prompt(t("kumiPage.enterKumi"), t("kumiPage.renameKumi"), {
         confirmButtonText: t("misc.confirm"),
         cancelButtonText: t("misc.cancel")
     }).then(({ value }) => {
         if (value) {
             kumiStore.rename(id, value)
         }
-    }).catch(() => {})
+    }, () => {})
 }
 
 
@@ -227,6 +239,9 @@ const filteredKumiList = computed((): TypeKumiItem[] => {
 
 // artifact
 const showSelectArtifactDialog = ref(false)
+const pickerState = reactive<{ page: number; mainTag: ArtifactMainStatName | 'any'; setName: ArtifactSetName | 'any' }>({
+    page: 1, mainTag: 'any', setName: 'any',
+})
 const artifactPositionToBeSelected = ref<ArtifactPosition>("flower")
 const underSelectionKumiId = ref(0)
 
@@ -245,23 +260,6 @@ function handleClickPosition(kumiId: number, position: ArtifactPosition) {
     underSelectionKumiId.value = kumiId
 }
 
-
-// command
-function handleCommand(command: string) {
-    if (command === "add") {
-        handleNewDir()
-    } else if (command.startsWith("use")) {
-        currentDirId.value = parseInt(command.split(" ")[1])
-    } else if (command === "delete") {
-        handleDeleteDir(currentDirId.value)
-    } else if (command === "rename") {
-        handleRenameDir(currentDirId.value)
-    } else if (command === "clear") {
-        handleClearDir(currentDirId.value)
-    } else if (command === "addKumi") {
-        handleNewKumi()
-    }
-}
 
 </script>
 
@@ -364,6 +362,10 @@ function handleCommand(command: string) {
 
 .kumi-search {
     width: 220px;
+
+    :deep([data-slot="input"]) {
+        min-height: 32px;
+    }
 }
 
 .kumi-btn {
@@ -411,16 +413,7 @@ function handleCommand(command: string) {
     outline-offset: 2px;
 }
 
-// 「新建收藏夹」菜单项只在手机上出现（宽屏有左栏按钮）；菜单挂在 body 上，用全局选择器
-:global(.kumi-narrow-only) {
-    display: none !important;
-}
-
 @media (max-width: 767px) {
-    :global(.kumi-narrow-only) {
-        display: flex !important;
-    }
-
     .kumi-layout {
         grid-template-columns: minmax(0, 1fr);
         gap: 12px;
@@ -460,6 +453,10 @@ function handleCommand(command: string) {
     .kumi-search {
         order: 5;
         width: 100%;
+
+        :deep([data-slot="input"]) {
+            min-height: 40px;
+        }
     }
 
     .kumi-grid {

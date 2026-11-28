@@ -10,6 +10,7 @@
             :help="ta(config.help)"
             :type="config.type"
             :modelValue="value2[config.name]"
+            :shadcn="shadcn"
             @update:modelValue="handleInput(config.name, $event)"
         ></ConfigItem>
     </div>
@@ -35,7 +36,8 @@ export default {
         },
         needItemName: {
             default: true,
-        }
+        },
+        shadcn: Boolean,
     },
     emits: ["update:modelValue"],
     computed: {

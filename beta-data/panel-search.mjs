@@ -16,7 +16,10 @@ export const newPanelSearchOptions = () => ({metric:'critical_damage', direction
 // WASM maps can return sources in a different order between calls. Sum by
 // source name so identical panels have identical comparisons at boundaries.
 export function readPanel(api, input, artifacts) {
-    const panel = api.CommonInterface.get_attribute({...input, artifacts});
+    return sumPanel(api.CommonInterface.get_attribute({...input, artifacts}));
+}
+
+export function sumPanel(panel) {
     return Object.fromEntries(PANEL_STATS.map(({key}) => [key, Object.keys(panel[key]).sort().reduce((sum,source) => sum+panel[key][source], 0)]));
 }
 

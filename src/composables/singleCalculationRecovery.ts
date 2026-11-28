@@ -1,7 +1,7 @@
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref, shallowRef, watch } from 'vue'
-import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 
+import { showCalculationNotice } from '@/store/calculation-history'
 import { singleDraftKey } from '@/store/single-calculation-draft'
 import { canonical } from '@/algorithms/artifact-score/cache.mjs'
 
@@ -24,7 +24,7 @@ export function useSingleCalculationRecovery<T>(options: {
         try {
             localStorage.setItem(key, JSON.stringify({ path, draft: JSON.parse(state.value) }))
             lastSaved = state.value
-        } catch (e) { ElMessage.error('单次计算进度保存失败：' + String(e)) }
+        } catch (e) { showCalculationNotice('error', '单次计算进度保存失败：' + String(e)) }
     }
     watch(state, () => {
         if (!active || !enabled) return
@@ -52,7 +52,7 @@ export function useSingleCalculationRecovery<T>(options: {
                     else pending.value = saved.draft
                     return
                 }
-            } catch (e) { ElMessage.error('单次计算进度读取失败：' + String(e)) }
+            } catch (e) { showCalculationNotice('error', '单次计算进度读取失败：' + String(e)) }
         }
         enabled = true
         if (explicit) void options.openRoute()
@@ -69,7 +69,7 @@ export function useSingleCalculationRecovery<T>(options: {
             // Restoring can normalize a preset or freeze its selected result's equipment.
             lastSaved = storedState
             save()
-        } catch (e) { ElMessage.error('单次计算进度恢复失败：' + String(e)) }
+        } catch (e) { showCalculationNotice('error', '单次计算进度恢复失败：' + String(e)) }
         finally { restoring.value = false }
     }
     function restart() {

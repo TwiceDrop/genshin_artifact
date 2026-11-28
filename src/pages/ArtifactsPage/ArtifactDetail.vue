@@ -1,29 +1,24 @@
 <template>
     <div class="art-detail">
-        <div class="art-detail-hero">
-            <artifact-icon :item="item" :size="84" />
-            <div>
-                <b>{{ setLabel }}</b>
-                <small>{{ slotLabel }} · {{ item.star }} 星 · {{ item.omit ? "已锁定" : "未锁定" }}</small>
-            </div>
-        </div>
+        <ArtifactCard :item="item" :highlight-tags="highlightTags" readonly>
+            <template #icon><ArtifactIcon :item="item" :size="84" /></template>
+            <template #metadata>
+                <small class="art-detail-metadata">
+                    <span>{{ item.star }} 星</span>
+                    <span class="art-detail-lock-state" :data-locked="item.omit" aria-live="polite">
+                        <IconEpLock v-if="item.omit" aria-hidden="true" />
+                        <IconEpUnlock v-else aria-hidden="true" />
+                        {{ item.omit ? '已锁定' : '未锁定' }}
+                    </span>
+                </small>
+            </template>
+        </ArtifactCard>
 
-        <div class="art-detail-main" :class="{ recommended: highlightedMainStat(item, highlightTags) }">
-            <span>{{ main[0] }}</span>
-            <b>{{ main[1] }}</b>
-        </div>
-
-        <div class="art-detail-subs">
-            <div v-for="(sub, index) in subs" :key="index" :class="{ crit: sub.crit }">
-                <span>{{ sub.label }}<ArtifactUpgradeCount :count="hits[index]" /></span><b>{{ sub.value }}</b>
-            </div>
-        </div>
-
-        <button type="button" class="art-detail-score" @click="emit('score')">
+        <UiButton class="art-detail-score" @click="emit('score')">
             <span>喵喵评分<template v-if="scoreLabel"> · {{ scoreLabel }}</template></span>
             <b v-if="score !== null && score !== undefined" class="miao-score" :data-grade="grade">{{ score.toFixed(1) }} <small>{{ grade }}</small></b>
             <em>评分详情 ›</em>
-        </button>
+        </UiButton>
 
         <div v-if="effect2 || effect4" class="art-detail-set">
             <p v-if="effect2"><b>2 件套</b>：<span v-html="effect2"></span></p>
@@ -31,26 +26,26 @@
         </div>
 
         <div class="art-detail-actions">
-            <button type="button" @click="emit('edit')">编辑</button>
-            <button type="button" @click="emit('toggle-lock')">
-                <icon-ep-lock v-if="!item.omit" aria-hidden="true" /><icon-ep-unlock v-else aria-hidden="true" />
+            <UiButton @click="emit('edit')">编辑</UiButton>
+            <UiButton class="art-detail-lock-action" variant="primary" @click="emit('toggle-lock')">
+                <IconEpLock v-if="!item.omit" aria-hidden="true" />
+                <IconEpUnlock v-else aria-hidden="true" />
                 {{ item.omit ? '解锁' : '锁定' }}
-            </button>
-            <button type="button" class="danger" @click="emit('delete')">删除</button>
+            </UiButton>
+            <UiButton class="danger" @click="emit('delete')">删除</UiButton>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import UiButton from '@/components/ui/UiButton.vue'
 import IconEpLock from "~icons/ep/lock"
 import IconEpUnlock from "~icons/ep/unlock"
 import {computed} from "vue"
 import {artifactsData} from "@/assets/artifacts"
-import {displayedTagParts, displayedUpgradeHits} from "@/utils/artifacts"
-import ArtifactUpgradeCount from '@/components/display/ArtifactUpgradeCount.vue'
-import { highlightedMainStat, highlightedSubStat } from '@/utils/character-artifact-highlights'
 import {useI18n} from "@/i18n/i18n"
 import type {IArtifact} from "@/types/artifact"
+import ArtifactCard from "@/components/display/ArtifactCard.vue"
 import ArtifactIcon from "@/components/display/ArtifactIcon.vue"
 
 const props = defineProps<{ item: IArtifact, score?: number | null, scoreLabel?: string, grade?: string, highlightTags?: string[] }>()
@@ -60,19 +55,11 @@ const emit = defineEmits<{
     (e: "delete"): void
     (e: "score"): void
 }>()
-const { t, ta } = useI18n()
+const { ta } = useI18n()
 
 const set = computed(() => (artifactsData as any)[props.item.setName])
-const setLabel = computed(() => ta(set.value.nameLocale))
-const slotLabel = computed(() => t("misc", props.item.position))
 const effect2 = computed(() => set.value.effect2 ? ta(set.value.effect2) : "")
 const effect4 = computed(() => set.value.effect4 ? ta(set.value.effect4) : "")
-const main = computed(() => displayedTagParts(props.item.mainTag.name, props.item.mainTag.value))
-const hits = computed(() => displayedUpgradeHits(props.item))
-const subs = computed(() => props.item.normalTags.map(tag => {
-    const [label, value] = displayedTagParts(tag.name, tag.value)
-    return { label, value, crit: highlightedSubStat(tag.name, props.highlightTags) }
-}))
 </script>
 
 <style lang="scss" scoped>
@@ -83,57 +70,38 @@ const subs = computed(() => props.item.normalTags.map(tag => {
     color: var(--cx-letter);
 }
 
-.art-detail-hero {
+.art-detail :deep(.art-name b) {
+    font-size: 18px;
+}
+
+.art-detail :deep(.art-main b) {
+    font-size: 28px;
+}
+
+.art-detail-metadata {
     display: flex;
     align-items: center;
-    gap: 16px;
-
-    b {
-        display: block;
-        font-size: 18px;
-    }
-
-    small {
-        color: var(--cx-dim);
-    }
+    flex-wrap: wrap;
+    gap: 4px 6px;
 }
 
-.art-detail-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    padding: 14px 16px;
-    border-radius: 14px;
+.art-detail-lock-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border: 1px solid var(--cx-step-2);
+    border-radius: 8px;
     background: var(--cx-step);
+    color: var(--cx-letter);
+    font-weight: 600;
+    white-space: nowrap;
 
-    span {
-        color: var(--cx-dim);
-    }
-
-    b {
-        font-size: 28px;
-        font-variant-numeric: tabular-nums;
-    }
-}
-
-.art-detail-subs div {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 2px;
-
-    span {
-        color: var(--cx-dim);
-    }
-
-    b {
-        font-variant-numeric: tabular-nums;
-    }
-
-    &.crit :is(span, b) {
+    &[data-locked="true"] {
+        border-color: var(--cx-gold);
         color: var(--cx-gold);
     }
 }
-.art-detail-main.recommended :is(span, b) { color: var(--cx-gold); }
 
 .art-detail-score {
     display: flex;
@@ -211,19 +179,25 @@ const subs = computed(() => props.item.normalTags.map(tag => {
         justify-content: center;
         gap: 6px;
         height: 42px;
-        border: 0;
         border-radius: 10px;
-        background: var(--cx-step);
-        color: var(--cx-letter);
         font: inherit;
         cursor: pointer;
 
-        &:hover {
-            background: var(--cx-step-2);
+        &[data-variant="outline"] {
+            border: 0;
         }
 
         &.danger {
             color: var(--cx-up);
+        }
+    }
+
+    .art-detail-lock-action {
+        font-weight: 700;
+
+        svg {
+            width: 18px;
+            height: 18px;
         }
     }
 }

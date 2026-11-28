@@ -1,14 +1,9 @@
 <template>
-    <div>
-        <div class="footer">
-            <span class="footer-item">©{{ year }} 莫娜占卜铺</span>
-            <span class="footer-item">#{{ revision }} {{ date }}</span>
-<!--            <span class="footer-item">{{ date }}</span>-->
-            <span class="footer-item"><a target="_blank" href="https://github.com/TwiceDrop/genshin_artifact">Github</a></span>
-
-        </div>
-    </div>
-
+    <footer class="footer">
+        <span>©{{ year }} 莫娜占卜铺</span>
+        <span>#{{ revision }} {{ date }}</span>
+        <a target="_blank" rel="noopener" href="https://github.com/TwiceDrop/genshin_artifact">Github</a>
+    </footer>
 </template>
 
 <script>
@@ -24,39 +19,29 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-
-
+<style scoped>
 .footer {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    align-items: baseline;
-    //border-top: 1px solid #eee;
-    // background: #123456;
-    //padding-top: 20px;
-    //margin-top: 20px;
+    gap: 2px 8px;
+    color: var(--cx-dim);
+    font-size: 11px;
+    line-height: 1.4;
+}
 
-    .footer-item {
-        font-size: 0.8rem;
-        color: #5e6d82;
+.footer > * + * {
+    padding-inline-start: 8px;
+    border-inline-start: 1px solid var(--cx-step-2);
+}
 
-        padding: 0 8px;
-        border-right: 1px solid gray;
+.footer a {
+    color: inherit;
+    text-decoration: none;
+}
 
-        &:last-of-type {
-            //padding-right: 0;
-            border-right: none;
-        }
-
-        a {
-            text-decoration: none;
-            color: #5e6d82
-        }
-    }
-
-    //a {
-    //    text-decoration: none;
-    //    // color: white;
-    //}
+.footer a:is(:hover, :focus-visible) {
+    color: var(--cx-letter);
+    text-decoration: underline;
 }
 </style>

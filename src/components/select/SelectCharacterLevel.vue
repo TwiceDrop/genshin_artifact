@@ -1,35 +1,24 @@
 <template>
-    <el-select
-        :model-value="modelValue"
-        @update:modelValue="$emit('update:modelValue', $event)"
-    >
-        <el-option-group label=">=60">
-            <el-option label="60-" value="60-"></el-option>
-            <el-option label="60+" value="60+"></el-option>
-            <el-option label="65" value="65"></el-option>
-        </el-option-group>
-        <el-option-group label=">=70">
-            <el-option label="70-" value="70-"></el-option>
-            <el-option label="70+" value="70+"></el-option>
-            <el-option label="75" value="75"></el-option>
-        </el-option-group>
-        <el-option-group label=">=80">
-            <el-option label="80-" value="80-"></el-option>
-            <el-option label="80+" value="80+"></el-option>
-            <el-option label="85" value="85"></el-option>
-        </el-option-group>
-        <el-option-group label=">=90">
-            <el-option v-for="level in highCharacterLevels" :key="level" :label="String(level)" :value="String(level)" />
-        </el-option-group>
-    </el-select>
+    <GroupedLevelSelect :model-value="modelValue" :level-groups="levelGroups" label="角色等级" :use-ui-select="useUiSelect"
+        @update:model-value="$emit('update:modelValue', $event)" />
 </template>
 
 <script>
 import { highCharacterLevels } from '@/utils/character-level.mjs'
+import GroupedLevelSelect from './GroupedLevelSelect.vue'
+
+const levelGroups = [
+    ['>=60', ['60-', '60+', '65']],
+    ['>=70', ['70-', '70+', '75']],
+    ['>=80', ['80-', '80+', '85']],
+    ['>=90', highCharacterLevels.map(String)],
+]
+
 export default {
     name: "SelectCharacterLevel",
-    props: ["modelValue"],
+    components: { GroupedLevelSelect },
+    props: { modelValue: null, useUiSelect: Boolean },
     emits: ["update:modelValue"],
-    setup: () => ({ highCharacterLevels })
+    setup: () => ({ levelGroups }),
 }
 </script>

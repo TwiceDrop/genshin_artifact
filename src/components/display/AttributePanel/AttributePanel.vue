@@ -1,26 +1,26 @@
 <template>
-    <div>
+    <div :class="{ 'calculator-attributes': shadcn }">
         <h3 class="class">{{ t("stat.base") }}</h3>
-        <attribute-item :title="t('stat.lifeStatic')" :composition="attribute.hp" :baseline="baseline?.hp"></attribute-item>
-        <attribute-item :title="t('stat.attackStatic')" :composition="attribute.atk" :baseline="baseline?.atk"></attribute-item>
-        <attribute-item :title="t('stat.defendStatic')" :composition="attribute.def" :baseline="baseline?.def"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.lifeStatic')" :composition="attribute.hp" :baseline="baseline?.hp"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.attackStatic')" :composition="attribute.atk" :baseline="baseline?.atk"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.defendStatic')" :composition="attribute.def" :baseline="baseline?.def"></attribute-item>
         
-        <attribute-item :title="t('stat.elementalMastery')" :composition="attribute.elemental_mastery" :baseline="baseline?.elemental_mastery"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.elementalMastery')" :composition="attribute.elemental_mastery" :baseline="baseline?.elemental_mastery"></attribute-item>
 
         <h3 class="class">{{ t("stat.advanced") }}</h3>
-        <attribute-item :title="t('stat.critical')" :composition="attribute.critical" :baseline="baseline?.critical" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.criticalDamage')" :composition="attribute.critical_damage" :baseline="baseline?.critical_damage" :percentage="true"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.critical')" :composition="attribute.critical" :baseline="baseline?.critical" :percentage="true"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.criticalDamage')" :composition="attribute.critical_damage" :baseline="baseline?.critical_damage" :percentage="true"></attribute-item>
 
-        <attribute-item :title="t('stat.cureEffect')" :composition="attribute.healing_bonus" :baseline="baseline?.healing_bonus" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.incomingHealing')" :composition="attribute.incoming_healing_bonus" :baseline="baseline?.incoming_healing_bonus" :percentage="true" />
-        <attribute-item :title="t('stat.recharge')" :composition="attribute.recharge" :baseline="baseline?.recharge" :percentage="true"></attribute-item>
-        <attribute-item :title="t('stat.cooldownReduction')" :composition="attribute.cooldown_reduction" :baseline="baseline?.cooldown_reduction" :percentage="true" />
-        <attribute-item :title="t('stat.shield')" :composition="attribute.shield_strength" :baseline="baseline?.shield_strength" :percentage="true"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.cureEffect')" :composition="attribute.healing_bonus" :baseline="baseline?.healing_bonus" :percentage="true"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.incomingHealing')" :composition="attribute.incoming_healing_bonus" :baseline="baseline?.incoming_healing_bonus" :percentage="true" />
+        <attribute-item :shadcn="shadcn" :title="t('stat.recharge')" :composition="attribute.recharge" :baseline="baseline?.recharge" :percentage="true"></attribute-item>
+        <attribute-item :shadcn="shadcn" :title="t('stat.cooldownReduction')" :composition="attribute.cooldown_reduction" :baseline="baseline?.cooldown_reduction" :percentage="true" />
+        <attribute-item :shadcn="shadcn" :title="t('stat.shield')" :composition="attribute.shield_strength" :baseline="baseline?.shield_strength" :percentage="true"></attribute-item>
 
         <h3 class="class">{{ t("stat.ele") }}</h3>
         <template v-for="[element, label] in elements" :key="element">
-            <attribute-item :title="t('stat.' + label + 'Bonus')" :composition="attribute['bonus_' + element]" :baseline="baseline?.['bonus_' + element]" :percentage="true" />
-            <attribute-item :title="t('stat.' + label + 'Res')" :composition="attribute['res_' + element]" :baseline="baseline?.['res_' + element]" :percentage="true" />
+            <attribute-item :shadcn="shadcn" :title="t('stat.' + label + 'Bonus')" :composition="attribute['bonus_' + element]" :baseline="baseline?.['bonus_' + element]" :percentage="true" />
+            <attribute-item :shadcn="shadcn" :title="t('stat.' + label + 'Res')" :composition="attribute['res_' + element]" :baseline="baseline?.['res_' + element]" :percentage="true" />
         </template>
     </div>
 </template>
@@ -35,6 +35,7 @@ export default {
         AttributeItem
     },
     props: {
+        shadcn: Boolean,
         baseline: { type: Object, default: null },
         attribute: {
             type: Object,
@@ -84,4 +85,6 @@ export default {
     // border-bottom: 5px solid rgb(74, 99, 211);
     color: #555555;
 }
+.calculator-attributes .class { margin: 16px 0 4px; color: var(--cx-letter); }
+.calculator-attributes .class:first-child { margin-top: 0; }
 </style>

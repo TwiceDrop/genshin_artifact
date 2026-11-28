@@ -33,7 +33,7 @@ const chargedPairs = {
 // Published AetherCryoDefault ($f312) reads the two private character-state
 // attributes. Their sole writers ($f915/$f934) copy these configured values;
 // equipment/BUFF attribute bridges cannot write either private slot.
-function cryoDefaultSource(character) {
+export function cryoDefaultSource(character) {
     const state = character.params[character.name];
     const mode = Math.max(0, Math.min(2, state.radiance_mode));
     const enhanced = mode !== 0;

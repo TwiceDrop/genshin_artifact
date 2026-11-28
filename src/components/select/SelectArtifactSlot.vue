@@ -1,35 +1,17 @@
-<template>
-    <el-select
-        :value="value"
-        @input="$emit('input', $event)"
-        :multiple="multiple"
-    >
-        <el-option
-            v-for="item in positions"
-            :key="item"
-            :label="item"
-            :value="item"
-        ></el-option>
-    </el-select>
-</template>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { positions } from '@/constants/artifact'
+import { useI18n } from '@/i18n/i18n'
+import type { ArtifactPosition } from '@/types/artifact'
+import UiSelect from '@/components/ui/UiSelect.vue'
 
-<script>
-import {positions} from "@/constants/artifact"
-
-// const items = []
-
-export default {
-    name: "SelectArtifactSlot",
-    props: {
-        value: {},
-        multiple: { default: false }
-    },
-    created() {
-        this.positions = positions
-    }
-}
+defineProps<{ modelValue: ArtifactPosition }>()
+const emit = defineEmits<{ (event: 'update:modelValue', value: ArtifactPosition): void }>()
+const { t } = useI18n()
+const options = computed(() => positions.map(value => ({ value, label: t('misc', value) })))
 </script>
 
-<style scoped>
-
-</style>
+<template>
+    <UiSelect :model-value="modelValue" :label="t('misc.artSlot')" :options="options"
+        @update:model-value="emit('update:modelValue', $event as ArtifactPosition)" />
+</template>

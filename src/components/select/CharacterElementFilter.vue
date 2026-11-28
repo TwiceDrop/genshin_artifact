@@ -1,14 +1,15 @@
 <template>
     <div class="character-element-tabs" role="group" aria-label="按元素筛选">
-        <button type="button" :aria-pressed="modelValue === 'all'" @click="emit('update:modelValue', 'all')">全部</button>
-        <button v-for="(label, element) in ELEMENT_NAMES" :key="element" type="button"
+        <UiButton :aria-pressed="modelValue === 'all'" @click="emit('update:modelValue', 'all')">全部</UiButton>
+        <UiButton v-for="(label, element) in ELEMENT_NAMES" :key="element"
             :aria-pressed="modelValue === element" @click="emit('update:modelValue', element)">
             <img :src="elementIcons[element]" alt="" />{{ label }}
-        </button>
+        </UiButton>
     </div>
 </template>
 
 <script setup>
+import UiButton from '@/components/ui/UiButton.vue'
 import { ELEMENT_NAMES } from '@/import/character-summary.mjs'
 import elementIcons from '@/assets/element-icons'
 

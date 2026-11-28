@@ -1,6 +1,7 @@
 import {ARTIFACT_SLOTS, buildArtifactIds, compareArtifactBuildIds, createArtifactBuildTraversal, createTopResults} from './artifact-build-search.mjs';
 import {beginOptimizationProgress, reportOptimizationEnumeration} from './optimizer-progress.mjs';
 import {PANEL_STATS, readPanel} from './panel-search.mjs';
+import {createDamagePanelPruner, hasContradictoryDamageBounds} from './damage-panel-bounds.mjs';
 
 const MAIN_STAT_FILTERS = {Sand: 'sand_main_stat', Goblet: 'goblet_main_stat', Head: 'head_main_stat'};
 const ATTRIBUTE_MINIMUMS = {
@@ -43,6 +44,12 @@ export function searchSegmentBuilds(api, input, artifacts, evaluate, onProgress)
         target_function: {...target_function, dsl_source: 'result = 1'},
     } : null;
     const traversal = createArtifactBuildTraversal(pools, requiredSets(constraint?.set_mode));
+    const contradictory = hasContradictoryDamageBounds(constraint);
+    // Vesna's segmented path validates supported sets on each complete
+    // build, so a raw HP estimate cannot discard those inventory errors.
+    const prune = !contradictory && maximums.length && base.character.name !== 'Vesna'
+        ? createDamagePanelPruner(api, base, pools, constraint)
+        : null;
     const {candidateSpace} = traversal;
     const results = createTopResults(RESULT_LIMIT, (a, b) => b.value - a.value || compareArtifactBuildIds(a, b));
     let evaluated = 0;
@@ -50,12 +57,18 @@ export function searchSegmentBuilds(api, input, artifacts, evaluate, onProgress)
     const report = () => reportOptimizationEnumeration(candidateSpace, covered, evaluated);
 
     // Whole-target conditions and comparisons can reverse the order of builds.
-    // Only set reachability prunes partial builds, and every eligible build is scored.
+    // Prune on set reachability and base-panel eligibility before scoring.
     const progress = maximums.length && onProgress ? beginOptimizationProgress(input, artifacts, onProgress) : null;
     try {
         report();
         traversal.forEach({
             onSkipSet(count) { covered += count; report(); },
+            prune: (contradictory || prune) && ((domains, count) => {
+                if (!contradictory && !prune(domains)) return false;
+                covered += count;
+                report();
+                return true;
+            }),
             onBuild(build) {
                 covered++;
                 const panel = needsPanel ? readPanel(api, base, build) : null;

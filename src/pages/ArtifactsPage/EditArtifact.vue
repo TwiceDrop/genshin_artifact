@@ -1,101 +1,65 @@
 <template>
     <div>
         <div class="section title">
-            <img :src="image" class="title-image">
+            <img :src="image" class="title-image" alt="">
             <span class="title-name">{{ title }}</span>
         </div>
 
-        <el-divider></el-divider>
+        <Separator class="edit-divider" />
 
-        <div style="padding: 0 20px">
-            <el-row :gutter="16">
-                <el-col :span="12">
-                    <p class="config-title">{{ t("misc.artifactSet") }}</p>
-                    <select-artifact-set
-                        v-model="setName"
-                    ></select-artifact-set>
-                </el-col>
-                <el-col :span="12">
-                    <p class="config-title">{{ t("misc.artSlot") }}</p>
-                    <select-artifact-slot
-                        :model-value="position"
-                        @update:modelValue="handleChangePosition"
-                    ></select-artifact-slot>
-                </el-col>
-            </el-row>
-
-            <el-row :gutter="16">
-                <el-col :span="12">
-                    <p class="config-title">{{ t("misc.quality") }}</p>
-                    <el-rate
-                        v-model="star"
-                    ></el-rate>
-                </el-col>
-                <el-col :span="12">
-                    <p class="config-title">{{ t("misc.lvl") }}</p>
-                    <el-input-number
-                        v-model="level"
-                        :max="20"
-                        :min="0"
-                    ></el-input-number>
-                </el-col>
-            </el-row>
-        </div>
-
-        <el-divider></el-divider>
-
-        <div class="section">
-            <p class="config-title">{{ t("misc.stat") }}</p>
-
-            <input-artifact-main-stat v-model="mainStat"
-                style="margin-bottom: 24px"
-            ></input-artifact-main-stat>
-
-
-            <div class="sub-stat-div">
-                <div
-                    v-for="(sub, index) in subStats"
-                    :key="index"
-                    class="sub-stat-item"
-                >
-                    <input-artifact-sub-stat
-                        v-model="subStats[index]"
-                    ></input-artifact-sub-stat>
-
-                    <el-button
-                        :icon="IconEpDelete"
-                        type="danger"
-                        @click="handleRemoveSubStat(index)"
-                    ></el-button>
+        <div class="edit-config">
+            <div class="edit-columns">
+                <div>
+                    <p class="config-title">{{ t('misc.artifactSet') }}</p>
+                    <SelectArtifactSet v-model="setName" shadcn :placeholder="t('misc.artifactSet')" />
+                </div>
+                <div>
+                    <p class="config-title">{{ t('misc.artSlot') }}</p>
+                    <SelectArtifactSlot :model-value="position" @update:model-value="handleChangePosition" />
+                </div>
+            </div>
+            <div class="edit-columns">
+                <div>
+                    <p class="config-title">{{ t('misc.quality') }}</p>
+                    <ArtifactStarField v-model="star" />
+                </div>
+                <div>
+                    <p class="config-title">{{ t('misc.lvl') }}</p>
+                    <ArtifactLevelField v-model="level" :max="20" />
                 </div>
             </div>
         </div>
 
-        <el-divider></el-divider>
+        <Separator class="edit-divider" />
 
         <div class="section">
-            <el-row :gutter="12">
-                <el-col :span="12">
-                    <el-button type="primary" class="button"
-                        @click="emits('confirm', artifactId)"
-                    >
-                        {{ t("misc.confirm") }}
-                    </el-button>
-                </el-col>
-                <el-col :span="12">
-                    <el-button class="button"
-                               @click="emits('cancel')"
-                    >
-                        {{ t("misc.cancel") }}
-                    </el-button>
-                </el-col>
-            </el-row>
+            <p class="config-title">{{ t('misc.stat') }}</p>
+            <InputArtifactMainStat v-model="mainStat" style="margin-bottom: 24px" />
+            <div class="sub-stat-div">
+                <div v-for="(sub, index) in subStats" :key="index" class="sub-stat-item">
+                    <InputArtifactSubStat v-model="subStats[index]" />
+                    <UiButton variant="danger" :aria-label="t('misc.del')" @click="handleRemoveSubStat(index)">
+                        <IconEpDelete aria-hidden="true" />
+                    </UiButton>
+                </div>
+            </div>
+        </div>
+
+        <Separator class="edit-divider" />
+
+        <div class="section edit-columns edit-actions">
+            <UiButton variant="primary" class="button" @click="emits('confirm', artifactId)">{{ t('misc.confirm') }}</UiButton>
+            <UiButton class="button" @click="emits('cancel')">{{ t('misc.cancel') }}</UiButton>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref } from 'vue'
+import { Separator } from 'radix-vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import ArtifactStarField from './ArtifactStarField.vue'
+import ArtifactLevelField from './ArtifactLevelField.vue'
 
 import {getArtifact, getArtifactImage, positionToIndex} from "@/utils/artifacts"
 import { artifactsData } from "@artifact"
@@ -271,6 +235,12 @@ defineExpose({
 </script>
 
 <style scoped lang="scss">
+.edit-divider { height: 1px; margin: 24px 0; background: var(--cx-step-2); }
+.edit-config { padding: 0 20px; }
+.edit-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.edit-columns :deep([role="combobox"]) { max-width: 100%; }
+.edit-actions { gap: 12px; }
+
 .sub-stat-item {
     margin-bottom: 8px;
     display: flex;

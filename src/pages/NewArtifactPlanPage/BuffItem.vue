@@ -1,8 +1,17 @@
 <template>
-    <div class="buff-root">
+    <div class="buff-root" :class="{ 'buff-root-migrated': shadcn }">
         <div class="top" :class="{ lock }">
             <p class="buff-title">{{ displayName }}</p>
-            <div class="buttons">
+            <div v-if="shadcn" class="buttons">
+                <UiButton class="button" size="small" variant="danger" :aria-label="`删除${displayName}`" @click="emits('delete')">
+                    <IconEpDelete aria-hidden="true" />
+                </UiButton>
+                <UiButton class="button" size="small" :aria-pressed="!lock"
+                    :aria-label="`${lock ? '启用' : '停用'}${displayName}`" @click="emits('toggle')">
+                    <component :is="lock ? IconEpUnlock : IconEpLock" aria-hidden="true" />
+                </UiButton>
+            </div>
+            <div v-else class="buttons">
                 <el-button
                     text
                     circle
@@ -34,6 +43,7 @@
             :model-value="props.buffConfig"
             @update:modelValue="handleChangeConfig"
             :item-name="props.buff.name"
+            :shadcn="shadcn"
             :configs="data.config"
         ></item-config>
     </div>
@@ -43,6 +53,7 @@
 import { buffData } from "@buff"
 
 import ItemConfig from "@c/config/ItemConfig"
+import UiButton from '@/components/ui/UiButton.vue'
 import {type BuffEntry} from "@/composables/buff"
 
 import IconEpDelete from "~icons/ep/delete"
@@ -55,6 +66,7 @@ const { t, ta } = useI18n()
 interface Props {
     buff: BuffEntry,
     buffConfig: any
+    shadcn?: boolean
 }
 
 const props = defineProps<Props>()
@@ -88,6 +100,19 @@ const description = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.buff-root.buff-root-migrated {
+    .top {
+        border-bottom-color: var(--cx-step-2);
+        &.lock { background: var(--cx-step); }
+        &.lock .buff-title { color: var(--cx-dim); }
+        .buttons {
+            gap: 4px;
+            .button { width: 29px; min-width: 29px; padding: 0; color: var(--cx-letter); }
+            .button[data-variant="danger"] { color: var(--cx-up); }
+        }
+    }
+}
+
 .buff-root {
     //background-color: rgb(239, 246, 253);
     margin-bottom: 12px;

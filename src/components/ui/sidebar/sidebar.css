@@ -1,6 +1,9 @@
 /* Local shadcn-vue sidebar slots, using the application's existing light/dark tokens. */
 :root { --sidebar-rail-width: 64px; --sidebar-panel-width: 248px; }
 [data-slot="sidebar"] {
+    --hover-preview-radius: 7px;
+    --hover-preview-fill: var(--sh-hover);
+    --hover-preview-edge: inset 0 0 0 1px color-mix(in srgb, var(--sh-dim) 14%, transparent);
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
@@ -16,7 +19,7 @@
 [data-slot="sidebar"] :is([data-sidebar="header"],[data-sidebar="footer"]) { flex: none; padding: 10px 8px; }
 [data-sidebar="header"] { border-bottom: 1px solid var(--cx-step-2); }
 [data-sidebar="footer"] { border-top: 1px solid var(--cx-step-2); padding-bottom: max(10px, env(safe-area-inset-bottom)); }
-[data-sidebar="content"] { flex: 1; min-height: 0; overflow: hidden auto; scrollbar-width: thin; scrollbar-color: var(--sh-raised) transparent; }
+[data-sidebar="content"] { flex: 1; min-height: 0; overflow: hidden auto; }
 [data-sidebar="group"] { padding: 8px; }
 [data-sidebar="group-label"] { position: relative; margin: 0; height: 24px; padding: 0 10px; overflow: hidden; white-space: nowrap; color: var(--sh-dim); font-size: 12px; line-height: 24px; font-weight: 500; }
 [data-state="collapsed"] [data-sidebar="group-label"] { color: transparent; }
@@ -32,6 +35,8 @@
 [data-sidebar="menu-button"][data-active="true"] { background: var(--sh-raised); color: var(--sh-letter); font-weight: 600; }
 [data-sidebar="menu-button"][data-active="true"]::before { content: ''; position: absolute; left: 2px; top: 10px; bottom: 10px; width: 2px; border-radius: 4px; background: var(--sh-gold); }
 [data-sidebar="menu-button"][data-active="true"] > svg { color: var(--sh-gold); }
+[data-hover-preview="true"] [data-sidebar="menu-button"]:hover:not([data-active="true"]) { background: transparent; }
+[data-slot="sidebar"] > .ui-hover-preview { z-index: -1; }
 [data-slot="sidebar"] button:focus-visible, .sidebar-sheet-close:focus-visible { outline: 2px solid var(--sh-gold); outline-offset: -2px; }
 .sidebar-touch-trigger { display: none; }
 @media (hover: none) {

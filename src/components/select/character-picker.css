@@ -1,6 +1,6 @@
 /* 目的：默认角色和我的角色共用角色卡片样式，避免两个入口外观不同步。 */
 .mys-character-picker, .default-character-picker { display: grid; gap: 12px; color: var(--cx-letter); }
-.character-uid-list { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; }
+.character-uid-list { display: flex; gap: 8px; overflow-x: auto; }
 .character-uid { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; padding: 10px 16px; border: 0; border-radius: 14px; background: var(--cx-step); color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .character-uid:hover:not(:disabled) { background: var(--cx-step-2); }
 .character-uid.active { background: var(--cx-gold); color: var(--cx-gold-on); }

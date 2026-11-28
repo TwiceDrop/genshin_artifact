@@ -10,9 +10,9 @@
             <li v-for="(stage, i) in stages" :key="i">
                 <UiHoverDetails ref="effectDetails" enabled :tap-label="directSelection ? undefined : stage.name" :side="i % 2 === 0 ? 'left' : 'right'">
                     <template #trigger>
-                        <button type="button" class="rank" :data-rank="i + 1" :class="{ lit: i < count }"
+                        <UiButton class="rank" :data-rank="i + 1" :class="{ lit: i < count }"
                             :aria-label="[layerLabels[i], stage.name, status(i)].join('，')"
-                            :aria-pressed="editable ? count === i + 1 : undefined">
+                            :disabled="disabled" :aria-pressed="directSelection || editable ? count === i + 1 : undefined">
                             <span class="rank-icon" aria-hidden="true">
                                 <i v-if="record" class="rank-symbol" :style="{ maskPosition: (i * 20) + '% center' }"></i>
                                 <img v-else-if="stage.icon" :src="stage.icon" alt="" />
@@ -20,7 +20,7 @@
                                 <i-ep-lock v-if="known && i >= count" class="lock-badge" />
                             </span>
                             <span class="rank-copy"><small>{{ layerLabels[i] }}</small><span>{{ stage.name }}</span></span>
-                        </button>
+                        </UiButton>
                     </template>
                     <GameEffectText :title="stage.name" :effect="stage.effect" />
                 </UiHoverDetails>
@@ -31,13 +31,14 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onDeactivated, ref } from 'vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import UiHoverDetails from '@/components/ui/UiHoverDetails.vue'
 import GameEffectText from '@/components/display/GameEffectText.vue'
 import catalog from '@/assets/character-constellations.json'
 
-const props = defineProps({ entry: { type: Object, required: true }, directSelection: Boolean })
+const props = defineProps({ entry: { type: Object, required: true }, directSelection: Boolean, disabled: Boolean })
 const emit = defineEmits(['change-rank'])
-const editable = computed(() => props.directSelection || (!!props.entry.preset && props.entry.characterName !== 'Aloy'))
+const editable = computed(() => !props.disabled && (props.directSelection || (!!props.entry.preset && props.entry.characterName !== 'Aloy')))
 const effectDetails = ref([])
 function requestRank(rank) {
     if (editable.value) emit('change-rank', rank === count.value ? 0 : rank)
@@ -116,7 +117,7 @@ header { justify-content: space-between; }
 [data-rank] { -webkit-user-select: none; user-select: none; }
 .rank-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; list-style: none; margin: 0; }
 .rank-list li { display: flex; min-width: 0; }
-.rank { width: 100%; display: flex; align-items: center; gap: 8px; text-align: left; font: inherit; line-height: 1.35; color: var(--cx-dim); padding: 9px 7px; border: 1px solid transparent; border-radius: 9px; background: var(--cx-step); cursor: pointer; }
+.rank { width: 100%; display: flex; align-items: center; justify-content: flex-start; gap: 8px; text-align: left; font: inherit; line-height: 1.35; color: var(--cx-dim); padding: 9px 7px; border: 1px solid transparent; border-radius: 9px; background: var(--cx-step); cursor: pointer; }
 .rank:hover, .rank[aria-expanded="true"], .rank[aria-pressed="true"] { border-color: var(--cx-gold); color: var(--cx-letter); }
 .rank:focus-visible { outline: 2px solid var(--cx-gold); outline-offset: 1px; }
 .rank-icon { flex: none; position: relative; display: grid; place-items: center; box-sizing: border-box; width: 35px; height: 35px; border: 1px solid var(--cx-step-2); border-radius: 50%; background: var(--cx-card); }

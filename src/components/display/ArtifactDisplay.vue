@@ -20,6 +20,18 @@
             </span>
 
             <div class="buttons" v-if="props.buttons">
+                <template v-if="props.shadcn">
+                    <UiButton v-if="props.lockButton" :variant="isLocked ? 'primary' : 'outline'" size="small"
+                        :aria-pressed="isLocked" :aria-label="isLocked ? t('misc.unlock') : t('misc.lock')"
+                        :title="isLocked ? t('misc.unlock') : t('misc.lock')" class="mybutton artifact-icon-button" @click.stop="emits('toggle')">
+                        <component :is="isLocked ? IconEpLock : IconEpUnlock" aria-hidden="true" />
+                    </UiButton>
+                    <UiButton v-if="props.deleteButton" size="small" variant="danger" :aria-label="t('misc.del')" :title="t('misc.del')"
+                        class="mybutton artifact-icon-button" @click.stop="emits('delete')"><IconEpDelete aria-hidden="true" /></UiButton>
+                    <UiButton v-if="props.editButton" size="small" :aria-label="t('misc.edit')" :title="t('misc.edit')"
+                        class="mybutton artifact-icon-button" @click.stop="emits('edit')"><IconEpEdit aria-hidden="true" /></UiButton>
+                </template>
+                <template v-else>
                 <el-button
                     v-if="props.lockButton"
                     :icon="isLocked ? IconEpLock : IconEpUnlock"
@@ -52,6 +64,7 @@
                     class="mybutton"
                     @click.stop="emits('edit')"
                 ></el-button>
+                </template>
             </div>
 
             <span class="extra fs-12" v-if="props.extra">{{ props.extra }}</span>
@@ -100,6 +113,7 @@ import IconEpEdit from "~icons/ep/edit"
 import {IArtifact, IArtifactContentOnly} from "@/types/artifact"
 import {displayedTag, displayedTagParts, displayedUpgradeHits, positionToIndex} from "@/utils/artifacts"
 import ArtifactUpgradeCount from './ArtifactUpgradeCount.vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import {useI18n} from "@/i18n/i18n"
 import { characterArtifactHighlights, highlightedMainStat } from '@/utils/character-artifact-highlights'
 
@@ -109,6 +123,7 @@ const { t, ta } = useI18n()
 interface Props {
     item: Omit<IArtifact, "id" | "contentHash">,
     selectable?: boolean,
+    shadcn?: boolean,
     twoColumn?: boolean,
     characterName?: string | null,
     shortRecharge?: boolean,
@@ -311,6 +326,8 @@ function defaultItem(): Omit<IArtifact, "id" | "contentHash"> {
                 margin: 0;
                 margin-left: 8px;
             }
+
+            .artifact-icon-button { width: 28px; margin-left: 4px; flex: none; }
         }
     }
 

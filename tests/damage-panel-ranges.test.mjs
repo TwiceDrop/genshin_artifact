@@ -4,9 +4,10 @@ import test from 'node:test'
 import vm from 'node:vm'
 import ts from 'typescript'
 import {computed, ref} from 'vue'
-import {api} from '../beta-tools/runtime.mjs'
+import {api, named} from '../beta-tools/runtime.mjs'
 import {fixture, gear, optimizer} from '../beta-tools/interface-audit-7108.mjs'
 import {PANEL_STATS, readPanel} from '../beta-data/panel-search.mjs'
+import {searchSegmentBuilds} from '../beta-data/dsl-segment-search.mjs'
 
 test('damage range settings round-trip in presets and load older minimums', () => {
     const source = fs.readFileSync(new URL('../src/composables/constraint.ts', import.meta.url), 'utf8')
@@ -119,4 +120,55 @@ test('Vesna applies main stat filters after the same inventory checks with or wi
     const incomplete = gear.filter(artifact => artifact.slot !== 'Head')
     assert.throws(() => api.OptimizeSingleWasm.optimize(input, incomplete), /候选不足五个部位/)
     assert.throws(() => api.OptimizeSingleWasm.optimize(withCap, incomplete), /候选不足五个部位/)
+})
+
+test('impossible attack and buffed HP caps skip all 1024 complete panels in both search paths', () => {
+    const inventory = gear.flatMap((piece, slot) => Array.from({length: 4}, (_, i) => ({
+        ...piece, id: slot * 4 + i + 1, sub_stats: [['ATKFixed', i + 1]],
+    })))
+    const inventoryPieces = new Set(inventory)
+    for (const [panel_max, buffs, minimums] of [
+        [{atk: 1}, [], {}],
+        [{hp: 1}, [named('ATKFixed', {value: 500})], {}],
+        [{hp: 30000}, [], {hp_min: 31000}],
+    ]) {
+        const input = {...optimizer(fixture('Kaeya', 'MaxATK')), buffs,
+            constraint: {set_mode: 'Any', ...minimums, panel_max}}
+        const progress = []
+        assert.deepEqual(api.OptimizeSingleWasm.optimize(input, inventory, event => progress.push(event)), [])
+        assert.equal(progress.at(-1).candidateSpace, 1024)
+        assert.equal(progress.at(-1).evaluated, 0)
+        assert.equal(progress.at(-1).percent, 100)
+
+        let completePanels = 0
+        const counted = {...api, CommonInterface: {get_attribute(config) {
+            if (config.artifacts.some(a => inventoryPieces.has(a))) completePanels++
+            return api.CommonInterface.get_attribute(config)
+        }}}
+        assert.deepEqual(searchSegmentBuilds(counted, input, inventory, () => 1), [])
+        assert.equal(completePanels, 0)
+    }
+})
+
+test('an impossible cap preserves errors for unsupported Vesna inventory', () => {
+    const input = optimizer(fixture('Vesna'))
+    const inventory = gear.map(piece => ({...piece, set_name: 'CelestialGift'}))
+    assert.throws(() => api.OptimizeSingleWasm.optimize(input, inventory), /可成套圣遗物/)
+    const capped = {...input, constraint: {...input.constraint, panel_max: {hp: 1}}}
+    assert.throws(() => api.OptimizeSingleWasm.optimize(capped, inventory), /可成套圣遗物/)
+})
+
+test('Heuristic can omit a flower before testing the HP cap', () => {
+    const inventory = gear.map(piece => ({...piece, sub_stats: piece.slot === 'Flower' ? [] :
+        [['ATKPercentage', .1], ['CriticalRate', .1], ['CriticalDamage', .2]]}))
+    const input = {...optimizer(fixture('Escoffier')), algorithm: 'Heuristic'}
+    const expected = api.OptimizeSingleWasm.optimize(input, inventory)
+    assert.equal(expected.length, 1)
+    assert.equal(expected[0].flower, undefined)
+
+    const hp = readPanel(api, input, inventory.slice(1)).hp
+    assert.ok(readPanel(api, input, inventory).hp > hp)
+    assert.deepEqual(api.OptimizeSingleWasm.optimize({
+        ...input, constraint: {...input.constraint, panel_max: {hp}},
+    }, inventory), expected)
 })

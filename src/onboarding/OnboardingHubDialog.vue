@@ -1,17 +1,17 @@
 <template>
-    <el-dialog :model-value="welcomeVisible || controller.hubOpen" :title="welcomeVisible ? '欢迎使用莫娜占卜铺' : '使用引导'"
-               width="min(680px, 94vw)" custom-class="onboarding-hub cx-scope" modal-class="onboarding-backdrop" append-to-body
-               :show-close="!welcomeVisible" :close-on-click-modal="!welcomeVisible" :close-on-press-escape="!welcomeVisible"
-               @update:model-value="closeHub">
+    <UiDialog :model-value="welcomeVisible || controller.hubOpen" :title="welcomeVisible ? '欢迎使用莫娜占卜铺' : '使用引导'"
+              width="var(--app-dialog-width, min(680px, 94vw))" top="var(--app-dialog-top)"
+              content-class="app-dialog onboarding-hub" focus-container :hide-close="welcomeVisible" :prevent-outside="welcomeVisible"
+              @escape-key-down="welcomeVisible && $event.preventDefault()" @update:model-value="!$event && closeHub()">
         <template v-if="welcomeVisible">
             <p class="welcome-lead">还没有圣遗物和预设。可以先 3 步快速了解核心用法，或直接导入已有数据。</p>
             <div class="welcome-actions">
-                <el-button type="primary" @click="beginQuickGuide">快速了解（3 步）</el-button>
-                <el-button :aria-expanded="importsOpen" @click="importsOpen = !importsOpen">先导入我的数据</el-button>
+                <UiButton variant="primary" @click="beginQuickGuide">快速了解（3 步）</UiButton>
+                <UiButton :aria-expanded="importsOpen" @click="importsOpen = !importsOpen">先导入我的数据</UiButton>
                 <div v-if="importsOpen" class="import-options">
-                    <el-button v-if="loggedIn" @click="chooseImport('/online-account')">从云端账号导入</el-button>
-                    <el-button @click="chooseImport('/uid-data')">通过 UID 导入</el-button>
-                    <el-button @click="chooseImport('/artifacts?import=1')">导入圣遗物文件</el-button>
+                    <UiButton v-if="loggedIn" @click="chooseImport('/online-account')">从云端账号导入</UiButton>
+                    <UiButton @click="chooseImport('/uid-data')">通过 UID 导入</UiButton>
+                    <UiButton @click="chooseImport('/artifacts?import=1')">导入圣遗物文件</UiButton>
                 </div>
             </div>
         </template>
@@ -22,23 +22,25 @@
                     <p>{{ guide.summary }}</p>
                     <small>{{ guide.steps.length }} 步 <span v-if="completed(guide.id)">· 已完成</span></small>
                 </div>
-                <el-button :type="guide.kind === 'quick' ? 'primary' : 'default'" @click="startGuide(guide.id, router)">
+                <UiButton :variant="guide.kind === 'quick' ? 'primary' : 'outline'" @click="startGuide(guide.id, router)">
                     {{ completed(guide.id) ? '再看一遍' : '开始' }}
-                </el-button>
+                </UiButton>
             </article>
         </div>
         <template #footer>
-            <el-button v-if="welcomeVisible" link @click="skipWelcome">先自己逛逛</el-button>
-            <el-button v-else :disabled="!controller.completedIds.length" @click="resetProgress">重置引导进度</el-button>
+            <UiButton v-if="welcomeVisible" class="skip-welcome" @click="skipWelcome">先自己逛逛</UiButton>
+            <UiButton v-else :disabled="!controller.completedIds.length" @click="resetProgress">重置引导进度</UiButton>
         </template>
-    </el-dialog>
+    </UiDialog>
 </template>
 
 <script setup>
 import {computed, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {ElMessage} from 'element-plus'
+import UiButton from '@/components/ui/UiButton.vue'
+import UiDialog from '@/components/ui/UiDialog.vue'
 import backend from '@/store/backend'
+import {showCalculationNotice} from '@/store/calculation-history'
 import {accountReady, useAccountStore} from '@/store/pinia/account'
 import {cloudApi} from '@/platform/cloud.mjs'
 import {usageStatsAvailable, usageStatsConsent} from '@/usage-stats/index.mjs'
@@ -96,22 +98,22 @@ function chooseImport(path) {
 }
 function skipWelcome() {
     dismissWelcome()
-    ElMessage.info('随时可以从侧栏「使用引导」或设置页重新打开。')
+    showCalculationNotice('info', '随时可以从侧栏「使用引导」或设置页重新打开。')
 }
 </script>
 
 <style>
-@media (prefers-reduced-motion: reduce) {
-    .onboarding-backdrop.dialog-fade-enter-active, .onboarding-backdrop.dialog-fade-leave-active,
-    .onboarding-backdrop.dialog-fade-enter-active .el-overlay-dialog, .onboarding-backdrop.dialog-fade-leave-active .el-overlay-dialog {animation: none;}
+.ui-dialog.onboarding-hub {--app-dialog-desktop-top: 6vh;}
+@media (min-width: 768px) {
+    .ui-dialog.app-dialog.onboarding-hub {max-height: 88vh; max-height: 88dvh;}
 }
-.el-dialog.onboarding-hub {display: flex; flex-direction: column; max-height: 88vh; max-height: 88dvh; margin: 6vh auto;}
-.onboarding-hub .el-dialog__body {min-height: 0; overflow: auto; overscroll-behavior: contain;}
 </style>
 <style scoped>
 .welcome-lead, .guide-row p {margin: 0 0 12px; line-height: 1.65; color: var(--cx-letter);}
 .welcome-actions, .import-options, .guide-list {display: grid; gap: 10px;}
-.welcome-actions .el-button {height: auto; min-height: 42px; margin: 0; white-space: normal;}
+.welcome-actions [data-slot="button"] {height: auto; min-height: 42px; margin: 0; white-space: normal;}
+.skip-welcome[data-slot="button"] {padding: 2px; border-color: transparent; background: transparent; color: var(--cx-dim);}
+.skip-welcome[data-slot="button"]:hover {background: transparent; color: var(--cx-letter);}
 .import-options {padding: 12px; border-radius: 10px; background: var(--cx-ground);}
 .guide-row {display: flex; align-items: center; justify-content: space-between; gap: 16px;
     padding: 14px; border: 1px solid var(--cx-step-2); border-radius: 12px;}
@@ -120,8 +122,11 @@ function skipWelcome() {
 .quick h3 {font-size: 19px;}
 .guide-row p {margin-bottom: 4px;}
 .guide-row small {color: var(--cx-dim);}
+.guide-row [data-slot="button"] {min-height: 32px;}
+@media (max-width: 767px) {
+    .guide-row [data-slot="button"] {min-height: 40px;}
+}
 @media (max-width: 480px) {
     .guide-row {align-items: start; flex-direction: column; gap: 8px;}
-    .guide-row .el-button {min-height: 40px;}
 }
 </style>

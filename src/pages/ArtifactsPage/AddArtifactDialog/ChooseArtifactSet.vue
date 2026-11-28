@@ -1,27 +1,25 @@
 <template>
     <div class="choose-artifact-set">
-        <div
+        <UiButton
             v-for="(artData) in artifactsData"
             :key="artData.eng"
+            :aria-pressed="artData.eng === props.modelValue"
             :class="{active: artData.eng === props.modelValue}"
             class="item"
             @click="emits('update:modelValue', artData.eng)"
         >
-            <el-image
-                class="image"
-                :src="getArtifactThumbnailURL(artData.eng)"
-            >
-            </el-image>
+            <img class="image" :src="getArtifactThumbnailURL(artData.eng)" alt="" />
             <p class="text">
                 {{ ta(artData.nameLocale) }}
             </p>
-        </div>
+        </UiButton>
         
         
     </div>
 </template>
 
 <script setup lang="ts">
+import UiButton from '@/components/ui/UiButton.vue'
 import { artifactsData } from "../../../assets/artifacts"
 import { getArtifactThumbnailURL } from "@/utils/utils"
 import type {ArtifactSetName} from "@/types/artifact"
@@ -67,7 +65,12 @@ const emits = defineEmits<Emits>()
     flex-wrap: wrap;
 }
 
-.item {
+.choose-artifact-set .item {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0;
+    background: transparent;
+    border-color: transparent;
     margin-right: 4px;
     padding: 8px;
     color: #777777;
