@@ -7,8 +7,9 @@ export async function listDslEntries(accountId: number): Promise<DslLibraryEntry
     return await backend.getItem(dslLibraryKey(accountId)) ?? []
 }
 
-export function saveDslEntry(accountId: number, entry: DslLibraryEntry, existing: boolean) {
+export function saveDslEntry(accountId: number, entry: DslLibraryEntry, existing: boolean, canWrite?: () => boolean) {
     return backend.updateAccountItem<DslLibraryEntry[]>(accountId, dslLibraryKey(accountId), data => {
+        if (canWrite && !canWrite()) return undefined
         const entries = data ?? []
         const index = entries.findIndex(item => item.id === entry.id)
         if (index < 0 && existing) return undefined

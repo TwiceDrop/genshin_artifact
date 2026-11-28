@@ -288,8 +288,9 @@ export function useDslManagement() {
         })
     }
 
-    async function addImportedDocument(id: number, document: DslLibraryDocument) {
-        const next = await saveDslEntry(id, { ...document, id: newEntryId() }, false)
+    async function addImportedDocument(id: number, document: DslLibraryDocument, isCurrent?: () => boolean) {
+        const next = await saveDslEntry(id, { ...document, id: newEntryId() }, false, isCurrent)
+        if (isCurrent && !isCurrent()) return false
         if (!acceptEntries(id, next)) return false
         vm.character = document.character
         return true
@@ -310,15 +311,36 @@ export function useDslManagement() {
         const link = vm.shareLink.trim()
         const generation = account.reloadGeneration.value
         return run(async accountId => {
-            const config = await cloudApi('config')
-            const id = dslShareId(link, config.url)
-            const context = { url: config.url, userId: config.user?.id }
-            const result = await cloudApi('v1/dsl-shares/' + id, 'GET', undefined, context)
-            if (contextAccount !== accountId || account.reloadGeneration.value !== generation) return
-            const document: DslLibraryDocument = validateDslDocument(result.document, catalog.value)
-            if (await addImportedDocument(accountId, document)) {
-                vm.linkImportOpen = false
-                vm.shareLink = ''
+            let invalidated = false
+            const invalidate = () => { invalidated = true }
+            const isCurrent = () => {
+                if (account.applyingCloud.value || account.currentAccountId.value !== accountId
+                    || account.reloadGeneration.value !== generation) invalidate()
+                return !invalidated
+            }
+
+            window.addEventListener('mona-cloud-context-change', invalidate)
+            try {
+                if (!isCurrent()) return
+                const config = await cloudApi('config')
+                if (!isCurrent()) return
+                const id = dslShareId(link, config.url)
+                const context = { url: config.url, userId: config.user?.id }
+                const result = await cloudApi('v1/dsl-shares/' + id, 'GET', undefined, context)
+                if (!isCurrent()) return
+                // A config write queued behind the share request can complete before this read.
+                const latest = await cloudApi('config')
+                if (!isCurrent() || latest.url !== context.url || latest.user?.id !== context.userId) return
+
+                const document: DslLibraryDocument = validateDslDocument(result.document, catalog.value)
+                if (await addImportedDocument(accountId, document, isCurrent)) {
+                    vm.linkImportOpen = false
+                    vm.shareLink = ''
+                }
+            } catch (error) {
+                if (isCurrent()) throw error
+            } finally {
+                window.removeEventListener('mona-cloud-context-change', invalidate)
             }
         })
     }
